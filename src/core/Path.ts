@@ -1,9 +1,3 @@
-export interface Coordinate {
-    x: number;
-    y: number;
+export class Segment {
+    constructor()
 }
-
-export interface CoordinateWithHeading extends Coordinate {
-    heading: number;
-}
-
