@@ -1,23 +1,25 @@
 import { makeId } from "./Util";
 
+export interface Coordinate {
+    x: number
+    y: number
+}
+
 export class Control {
     public id: string;
 
-    public x: number;
-    public y: number;
+    public position: Coordinate
     public heading: number;
 
-
-    constructor(x: number, y: number, heading: number) {
-        this.x = x;
-        this.y = y;
+    constructor(position: Coordinate, heading: number) {
+        this.position = position
         this.heading = heading
         this.id = makeId(10)
     }
 }
 
-export class Segment {
-    public points: Control[]
+// export class Segment {
+//     public points: Control[]
 
-    constructor(conte)
-}
+//     constructor(conte)
+// }

@@ -1,3 +1,10 @@
+import type { Control } from "./Coordinate";
+
 export class Segment {
-    constructor()
+    public contols: Control[];
+
+    constructor(controls: Control[]) {
+        this.contols = controls
+    }
 }
+
