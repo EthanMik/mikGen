@@ -11,13 +11,13 @@ export const FIELD_REAL_DIMENSIONS: Rectangle = { x: -72, y: 72, w: 144, h: 144 
 export const FIELD_IMG_DIMENSIONS: Rectangle = { x: 0, y: 0, w: 575, h: 575 };
 
 export function toInch(position: Coordinate, field: Rectangle, img: Rectangle): Coordinate {
-  const sx = img.w / field.w;
-  const sy = img.h / field.h;
+    const sx = field.w / img.w
+    const sy = field.h / img.h 
 
-  const dx = field.x + (position.x - img.x) / sx;
-  const dy = field.y + (position.y - img.y) / sy;
+    const dx = field.x + sx * (position.x - img.x)
+    const dy = field.y + sy * (position.y - img.y)
 
-  return {x: dx, y: dy}
+    return {x: dx, y: dy}
 }
 
 export function toPX(position: Coordinate, field: Rectangle, img: Rectangle): Coordinate {

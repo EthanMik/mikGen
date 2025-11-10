@@ -14,11 +14,11 @@ describe("toPX", () => {
 
   it("Testing toInch", () => {
     const out = toInch(
-      { x: 63.88889, y: -311.45833},
+      { x: 111.8, y: -123.8},
       { x: -72, y: 72, w: 144, h: 144 },
       { x: 0, y: 0, w: 575, h: 575 }
-    )
-  }
-
-  )
+    );
+    expect(out.x).toBeCloseTo(-44, 1)
+    expect(out.y).toBeCloseTo(41, 1)
+  });
 });

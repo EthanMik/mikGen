@@ -5,16 +5,24 @@ import Field from "./FieldWithMarkers";
 export default function FieldContainer({ src, img }: { src: string; img: { x: number, y: number, w: number; h: number } }) {
   const [segment, setSegment] = useState<Segment>({ controls: [] });
 
-  const handleChange = useCallback((next: Segment) => {
+  const addControl = useCallback((next: Segment) => {
     setSegment(next);
   }, []);
+
+  const deleteControl = useCallback((id: string) => {
+    setSegment(s => ({
+      ...s, controls: s.controls.filter(c => c.id !== id)
+    }));
+  }, []);
+
 
   return (
     <Field
       src={src}
       img={img}
       segment={segment}
-      onChange={handleChange}
+      addControl={addControl}
+      deleteControl={deleteControl}
     />
   );
 }
