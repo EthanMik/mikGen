@@ -21,6 +21,7 @@ export default function FieldContainer({ src, img }: { src: string; img: { x: nu
       src={src}
       img={img}
       segment={segment}
+      radius={15}
       addControl={addControl}
       deleteControl={deleteControl}
     />

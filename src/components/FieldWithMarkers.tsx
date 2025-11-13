@@ -1,11 +1,12 @@
-import React, { useCallback, useRef, useState } from "react";
-import { addControlToSegment, Control, type Coordinate, type Segment } from "../core/Path";
-import { FIELD_REAL_DIMENSIONS, makeId, toInch, toPX, type Rectangle } from "../core/Util";
+import React, { useRef, useState } from "react";
+import { Control, type Coordinate, type Segment } from "../core/Path";
+import { FIELD_REAL_DIMENSIONS, toInch, toPX, type Rectangle } from "../core/Util";
 
 type FieldProps = {
   segment: Segment;
   src: string;
   img: Rectangle;
+  radius: number;
   addControl?: (segment: Segment) => void;
   deleteControl?:(id: string) => void;
 };
@@ -14,44 +15,56 @@ export default function Field({
   src,
   segment,
   img,
+  radius,
   addControl,
   deleteControl
 }: FieldProps) {
 
   const svgRef = useRef<SVGSVGElement | null>(null); 
+  const [selectedId, setSelectedId] = useState<string>("");
 
-const handleBackgroundPointerDown = (evt: React.PointerEvent<SVGSVGElement>) => {
-  if (evt.button !== 0) return;
-  const tag = evt.target instanceof Element ? evt.target.tagName.toLowerCase() : "";
-  if (tag === "circle") return;
+  type DragState = {id:string; dx: number, dy: number } | null;
+  const [drag, setDrag] = useState<DragState>(null);
 
-  const rect = (evt.currentTarget as SVGSVGElement).getBoundingClientRect();
-  const posPx: Coordinate = { x: evt.clientX - rect.left, y: (evt.clientY - rect.top) }
+  const handleKeyDown = (evt: React.KeyboardEvent<HTMLDivElement>) => {
+    if (evt.key === "Backspace" || evt.key === "Delete") {
+      deleteControl?.(selectedId);
+    }
+  }
 
-  // Convert image px -> inches (use your util)
-  const posIn = toInch(posPx, FIELD_REAL_DIMENSIONS, img);
+  const handlePointerMove = (evt: React.PointerEvent<SVGSVGElement>) => {
+    
+  }
 
-  // Make control and updated segment
-  const control = new Control(posIn, 0);
-  const next: Segment = { ...segment, controls: [...segment.controls, control] };
+  const handlePointerDown = (evt: React.PointerEvent<SVGSVGElement>) => {
+    if (evt.button !== 0) return;
+    const target = evt.target as Element 
+    const tag = target.tagName.toLowerCase();
 
-  addControl?.(next);
-};
+    if (tag === "circle") {
+      const id = target.getAttribute("id")
+      const controlId: string = id === null ? "" : id;
+      setSelectedId(controlId)
+      return;
+    }
 
-const handlePointerDown = (evt: React.PointerEvent<SVGSVGElement>) => {
-  if (evt.button !== 0) return;
-  const tag = evt.target instanceof Element ? evt.target.tagName.toLowerCase() : "";
-  if (tag !== "circle") return;
+    const rect = (evt.currentTarget as SVGSVGElement).getBoundingClientRect();
+    const posPx: Coordinate = { x: evt.clientX - rect.left, y: (evt.clientY - rect.top) }
 
-  const rect = (evt.currentTarget as SVGSVGElement).getBoundingClientRect();
-  const posPx: Coordinate = { x: evt.clientX - rect.left, y: (evt.clientY - rect.top) }
+    const posIn = toInch(posPx, FIELD_REAL_DIMENSIONS, img);
 
-  
-}
+    const control = new Control(posIn, 0);
+    const next: Segment = { ...segment, controls: [...segment.controls, control] };
+
+    addControl?.(next);
+  };
+
 
   return (
     <div
       className="inline-block select-none"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
     >
       <svg
         ref={svgRef}
@@ -59,7 +72,7 @@ const handlePointerDown = (evt: React.PointerEvent<SVGSVGElement>) => {
         width={img.w}
         height={img.h}
         className="block"
-        onPointerDown={handleBackgroundPointerDown}
+        onPointerDown={handlePointerDown}
       >
 
         <image
@@ -72,13 +85,19 @@ const handlePointerDown = (evt: React.PointerEvent<SVGSVGElement>) => {
           preserveAspectRatio="none"
         />
 
-        {segment.controls.map((control, idx) => (
+        {segment.controls.map((control) => (
           <g key={control.id}>
-            <circle 
+            <circle
+            id={control.id}
             cx={toPX(control.position, FIELD_REAL_DIMENSIONS, img).x}
             cy={toPX(control.position, FIELD_REAL_DIMENSIONS, img).y}
-            r={10}
-            fill="rgba(59,130,246,0.25)"
+            r={radius}
+            fill={
+              control.id === selectedId
+                ? "rgba(239,68,68,0.6)"
+                : "rgba(59,130,246,0.25)"
+            }
+
             stroke="rgb(59,130,246)"
             strokeWidth={2}
             />
