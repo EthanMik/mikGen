@@ -7,6 +7,7 @@ export interface Coordinate {
 
 export class Control {
     public id: string;
+    public selected: boolean;
 
     public position: Coordinate
     public heading: number;
@@ -15,6 +16,7 @@ export class Control {
         this.position = position
         this.heading = heading
         this.id = makeId(10)
+        this.selected = false
     }
 }
 

@@ -1,23 +1,21 @@
 import React, { useRef, useState } from "react";
 import { Control, type Coordinate, type Segment } from "../core/Path";
 import { FIELD_REAL_DIMENSIONS, toInch, toPX, type Rectangle } from "../core/Util";
+import { useSegment } from "../hooks/useSegment";
 
 type FieldProps = {
-  segment: Segment;
-  src: string;
+src: string;
   img: Rectangle;
   radius: number;
-  updateControl?: (next: Segment) => void;
 };
 
 export default function Field({
   src,
-  segment,
   img,
   radius,
-  updateControl,
 }: FieldProps) {
 
+  const { segment, setSegment } = useSegment();
   const svgRef = useRef<SVGSVGElement | null>(null); 
   const [selectedId, setSelectedId] = useState<string>("");
   const [drag, setDrag] = useState<string | null>(null);
@@ -30,7 +28,7 @@ export default function Field({
             segment.controls.filter((c) => c.id !== selectedId)
         }
 
-      updateControl?.(next);
+      setSegment(next);
     }
   }
 
@@ -47,7 +45,7 @@ export default function Field({
         ) 
     } 
 
-    updateControl?.(next);
+    setSegment?.(next);
   }
 
   const endDrag = () => setDrag(null);
@@ -66,7 +64,17 @@ export default function Field({
     const posIn = toInch(posPx, FIELD_REAL_DIMENSIONS, img);
 
     if (tag === "circle") {
-      if (!drag) setSelectedId(controlId)
+      if (!drag) {
+        setSelectedId(controlId)
+
+        setSegment({
+          ...segment, controls: segment.controls.map(c => ({
+            ...c, selected: c.id === controlId
+          })),
+
+        });
+
+      }
         
       setDrag(controlId)
       return;
@@ -75,7 +83,7 @@ export default function Field({
     const control = new Control(posIn, 0);
     const next: Segment = { ...segment, controls: [...segment.controls, control] };
 
-    updateControl?.(next);
+    setSegment?.(next);
   };
 
   const controls = segment.controls;
@@ -93,7 +101,6 @@ export default function Field({
 
   return (
     <div
-      className="inline-block select-none"
       tabIndex={0}
       onKeyDown={handleKeyDown}
     >
@@ -102,7 +109,6 @@ export default function Field({
         viewBox={`0 0 ${img.w} ${img.h}`}
         width={img.w}
         height={img.h}
-        className="block"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={endDrag}
@@ -132,6 +138,7 @@ export default function Field({
             cx={toPX(control.position, FIELD_REAL_DIMENSIONS, img).x}
             cy={toPX(control.position, FIELD_REAL_DIMENSIONS, img).y}
             r={radius}
+
             fill={
               control.id === selectedId
                 ? "rgba(239,68,68,0.6)"
