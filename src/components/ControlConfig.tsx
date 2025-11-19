@@ -149,7 +149,7 @@ export default function ControlConfig() {
     const { segment, setSegment } = useSegment();
 
     const clampToField = (value: number) => {
-        return Math.min(Math.max(value, -72), 72);
+        return Math.min(Math.max(value, -100), 100);
     }
 
     const getXValue = () => {

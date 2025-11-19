@@ -32,7 +32,6 @@ export default function Field({
   const LARGE_HEADING_STEP_FAST = 180;
 
   const moveControl = (evt: React.KeyboardEvent<HTMLDivElement>) => {
-    // Step sizes depend only on whether Shift is held *for this event*
     const posStep = evt.shiftKey ? FAST_POS_STEP : BASE_POS_STEP;
     const headingStep = evt.shiftKey ? FAST_HEADING_STEP : BASE_HEADING_STEP;
     const largeHeadingStep = evt.shiftKey
@@ -75,8 +74,8 @@ export default function Field({
               heading: normalizeDeg(control.heading + thetaScale),
               position: {
                 ...control.position,
-                x: clamp(control.position.x + xScale, -72, 72),
-                y: clamp(control.position.y + yScale, -72, 72),
+                x: clamp(control.position.x + xScale, -100, 100),
+                y: clamp(control.position.y + yScale, -100, 100),
               },
             }
           : control
@@ -121,47 +120,67 @@ export default function Field({
   }
 
   const endDrag = () => setDrag({dragging: false, lastPos: {x: 0, y: 0}});
-  const endSelecton = () => setSelectedIds([]);
+  const endSelecton = () => {
+    setSelectedIds([]);
+    setSegment((prevSegment) => ({
+    ...prevSegment,
+    controls: prevSegment.controls.map((c) => ({
+      ...c,
+      selected: false,
+    })),
+  }));  
+  }
 
   const selectSegment = (controlId: string, shifting: boolean) => {
-    if (shifting) {
-      setSelectedIds([controlId])
-    } else {
-      setSelectedIds([...selectedIds, controlId])
-    }
-
-    setSegment({
-      ...segment, controls: segment.controls.map(c => ({
-        ...c, selected: selectedIds.includes(c.id)
-      })),
-
-    });
+    setSelectedIds((prev) => {
+      let nextSelectedIds: string[];
+  
+      if (!shifting && prev.length <= 1) {
+        nextSelectedIds = [controlId];
+      } else {
+        nextSelectedIds = [...prev, controlId];
+      }
+  
+      setSegment((prevSegment) => ({
+        ...prevSegment,
+        controls: prevSegment.controls.map((c) => ({
+          ...c,
+          selected: nextSelectedIds.includes(c.id),
+        })),
+      }));
+  
+      return nextSelectedIds
+    })
   };
 
-  const handlePointerDown = (evt: React.PointerEvent<SVGSVGElement>) => {
+  const handleControlPointerDown = (evt: React.PointerEvent<SVGGElement>, controlId: string) => {
     if (evt.button !== 0) return;
-    const target = evt.target as Element 
-    const tag = target.tagName.toLowerCase();
-    
-    const id = target.getAttribute("id")
-    const controlId: string = id === null ? "" : id;
 
+    evt.stopPropagation();
+
+    const svg = svgRef.current;
+    if (!svg) return;
+
+    const rect = svg.getBoundingClientRect();
+    const posPx: Coordinate = { x: evt.clientX - rect.left, y: evt.clientY - rect.top };
+
+    if (!drag.dragging) {
+      selectSegment(controlId, evt.shiftKey);
+    }
+
+    setDrag({ dragging: true, lastPos: posPx });  
+  }
+
+  const handleBackgroundPointerDown = (evt: React.PointerEvent<SVGSVGElement>) => {
+    if (evt.button !== 0) return;
+        
     const rect = (evt.currentTarget as SVGSVGElement).getBoundingClientRect();
     const posPx: Coordinate = { x: evt.clientX - rect.left, y: (evt.clientY - rect.top) }
 
     const posIn = toInch(posPx, FIELD_REAL_DIMENSIONS, img);
 
-    if (tag === "circle") {
-      if (!drag?.dragging) {
-        selectSegment(controlId, evt.shiftKey)
-      }
-        
-      setDrag({dragging: true, lastPos: {x: posPx.x, y: posPx.y}})
-      return;
-    }
-
     if (selectedIds.length > 1) {
-      setSelectedIds([])
+      endSelecton();
       return
     }
 
@@ -202,7 +221,7 @@ export default function Field({
         viewBox={`0 0 ${img.w} ${img.h}`}
         width={img.w}
         height={img.h}
-        onPointerDown={handlePointerDown}
+        onPointerDown={handleBackgroundPointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={endDrag}
       >
@@ -225,7 +244,10 @@ export default function Field({
         )}
 
         {segment.controls.map((control, idx) => (
-          <g key={control.id}>
+          <g 
+            key={control.id}
+            onPointerDown={(e) => handleControlPointerDown(e, control.id)}
+          >
             <circle
             id={control.id}
             cx={toPX(control.position, FIELD_REAL_DIMENSIONS, img).x}
