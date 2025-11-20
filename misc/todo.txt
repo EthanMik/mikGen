@@ -1,0 +1,10 @@
+controlConfig
+- cant change coords on multiselect
+
+useFieldMacros
+- ctrl a
+- ctrl+shift a
+- ctrl z
+- ctrl y
+- ctrl c
+- ctrl v

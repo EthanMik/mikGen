@@ -1,6 +1,6 @@
 import type React from "react";
 import { useSegment } from "./useSegment";
-import { clamp, normalizeDeg } from "../core/Util";
+import { calculateHeading, clamp, normalizeDeg } from "../core/Util";
 import type { Segment } from "../core/Path";
 
 export default function useFieldMacros() {
@@ -73,6 +73,18 @@ export default function useFieldMacros() {
     }
     if (evt.key.toLowerCase() === "s") {
       thetaScale = -largeHeadingStep;
+    }
+    if (evt.key === " ") {
+      setSegment(prev => ({
+        ...prev, controls:
+          prev.controls.map((c, idx, arr) => 
+            c.selected && idx < arr.length - 1 ?
+            {
+              ...c, heading: calculateHeading(arr[idx].position, arr[idx + 1].position)
+            } : 
+            c
+          )
+      }));
     }
 
     if (thetaScale === 0) return;

@@ -24,6 +24,12 @@ export function vector2Add(a: Coordinate, b: Coordinate): Coordinate {
   };
 }
 
+export function calculateHeading(currentPos: Coordinate, desiredPos: Coordinate): number {
+  const dPos = vector2Subtract(desiredPos, currentPos);
+
+  return toDeg(Math.atan2(dPos.x, dPos.y));
+}
+
 export function normalizeDeg(angle: number) { return ((angle % 360) + 360) % 360; }
 
 export function clamp(value: number, min: number, max: number) {

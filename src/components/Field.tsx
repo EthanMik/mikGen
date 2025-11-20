@@ -76,8 +76,8 @@ export default function Field({
   
       if (!shifting && prev.length <= 1) {
         nextSelectedIds = [controlId];
-      } else if(shifting) {
-        nextSelectedIds = [...prev, controlId];
+      } else if (shifting && segment.controls.find((c) => c.id === controlId && c.selected)) {
+        nextSelectedIds = prev.filter((c) => c !== controlId)
       } else {
         nextSelectedIds = [...prev, controlId];
       }
