@@ -190,6 +190,8 @@ export default function Field({
             onPointerDown={(e) => handleControlPointerDown(e, control.id)}
           >
             <circle
+            className="cursor-grab stroke-[#1560BD]"
+
             id={control.id}
             cx={toPX(control.position, FIELD_REAL_DIMENSIONS, img).x}
             cy={toPX(control.position, FIELD_REAL_DIMENSIONS, img).y}
@@ -201,7 +203,6 @@ export default function Field({
                 : "rgba(160, 32, 7, .5)"
             }
             
-            stroke="#1560BD"
             strokeWidth={idx === segment.controls.length - 1 ? 2: 0}
             />
             <line
