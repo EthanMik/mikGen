@@ -1,3 +1,21 @@
+# CONSANTS #
+
+# Correction #
+pilons_correction = pilons_correction
+
+# Power #
+coast_power = 0.02_s
+
+# Stopping #
+harsh = 0.06_s
+coast = 0.02_s
+timeout = 0_s
+
+# Turn # 
+harsh_turn = 0.085;
+coast_turn = 0.23;
+brake_time = 0.1_s;
+
 # WRAPPER #
 
 reckless->go({
@@ -7,19 +25,20 @@ reckless->go({
 # DRIVING #
 
   &PilonsSegment(
-    &ConstantMotion([power]),
+    &ConstantMotion([drive_power]),
     [pilons_correction],
-    &SimpleStop([harsh]_s, [coast]_s, [coast_power], [timeout]_s),
-    {[x]_in, [y]_ft}
+    &SimpleStop([harsh], [coast], [coast_power], [timeout]),
+    {[x]_in, [y]_in}
   ),
 
 # TURNING #
 
-  &RecklessTurnSegment(
-    [max_power],
-    [coast_power],
-    [theta]_deg,
+  &LookAt(
+    [turn_power],
+    coast_power,
+    {[x]_in, [y]_in},
+    0_deg,
     harsh_turn,
     coast_turn,
-    0.25_s
+    brake_time
   ),

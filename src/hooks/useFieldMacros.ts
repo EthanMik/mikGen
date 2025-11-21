@@ -80,7 +80,9 @@ export default function useFieldMacros() {
           prev.controls.map((c, idx, arr) => 
             c.selected && idx < arr.length - 1 ?
             {
-              ...c, heading: calculateHeading(arr[idx].position, arr[idx + 1].position)
+              ...c,
+              turnToPos: arr[idx + 1].position,
+              heading: calculateHeading(arr[idx].position, arr[idx + 1].position)
             } : 
             c
           )
