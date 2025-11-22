@@ -1,28 +1,29 @@
-# CONSANTS #
 
-# Correction #
+export default `
+# CONSANTS
+
+# Correction
 pilons_correction = pilons_correction
 
-# Power #
+# Power
 coast_power = 0.02_s
 
-# Stopping #
+# Stopping
 harsh = 0.06_s
 coast = 0.02_s
 timeout = 0_s
 
-# Turn # 
+# Turn 
 harsh_turn = 0.085;
 coast_turn = 0.23;
 brake_time = 0.1_s;
 
-# WRAPPER #
-
+# WRAPPER
 reckless->go({
 
 });
 
-# DRIVING #
+# DRIVING
 
   &PilonsSegment(
     &ConstantMotion([drive_power]),
@@ -30,8 +31,7 @@ reckless->go({
     &SimpleStop([harsh], [coast], [coast_power], [timeout]),
     {[x]_in, [y]_in}
   ),
-
-# TURNING #
+# TURNING
 
   &LookAt(
     [turn_power],
@@ -42,3 +42,4 @@ reckless->go({
     coast_turn,
     brake_time
   ),
+`;
