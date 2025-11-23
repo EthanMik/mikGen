@@ -28,6 +28,9 @@ startToString(position: Coordinate, heading: number): string {
 }
 
   driveToString(position: Coordinate, speed: number, callback: string, toPoint: boolean): string {
+    if (callback !== '' || toPoint) {
+      console.log('')
+    }
     return (
     `
   reckless->go({
@@ -43,6 +46,9 @@ startToString(position: Coordinate, heading: number): string {
   }
 
   turnToString(position: Coordinate, speed: number, callback: string, toPoint: boolean): string {
+    if (callback !== '' || toPoint) {
+      console.log('')
+    }
     return (
     `
   reckless->go({

@@ -17,7 +17,7 @@ type MotionListProps = {
 function MotionList({name, segmentId}: MotionListProps) {
     const [value, setValue] = useState<number>(0);
     const { segment, setSegment } = useSegment();
-    let selected = segment.controls.find((c) => c.id === segmentId)?.selected
+    const selected = segment.controls.find((c) => c.id === segmentId)?.selected
 
     useEffect(() => {
       if (name === "Drive") {
@@ -80,7 +80,7 @@ function MotionList({name, segmentId}: MotionListProps) {
 }
 
 function PathConfigHeader() {
-  const {segment, setSegment} = useSegment(); 
+  const {segment} = useSegment(); 
 
   const copyOnClick = () => {
     const format = new ReveilLibPathFormat();
@@ -116,7 +116,7 @@ function PathConfigHeader() {
 }
 
 export default function PathConfig() {
-  const { segment, setSegment } = useSegment();
+  const { segment } = useSegment();
 
   return (
     <div className="bg-medgray w-[500px] h-[650px] rounded-lg p-[15px] flex flex-col">

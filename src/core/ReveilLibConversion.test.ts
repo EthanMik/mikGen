@@ -1,4 +1,4 @@
-import { describe, it, expect} from "vitest";
+import { describe, it} from "vitest";
 import { convertPath } from "./ReveilLibConversion";
 import { Control, type Segment } from "./Path";
 import { ReveilLibPathFormat } from "../formats/ReveilLibPathFormat";
