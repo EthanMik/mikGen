@@ -42,7 +42,6 @@ function ControlInput({
         if (edit === null) return;
         
         if (evt.key === "Enter" || evt.key == "Tab") {
-            console.log(segment)
             const num: number = parseFloat(edit);
             if (!Number.isFinite(num)) return;
 
