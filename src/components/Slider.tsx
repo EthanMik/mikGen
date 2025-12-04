@@ -10,6 +10,8 @@ type SliderProps = {
   knobColor?: string,
   value: number,
   setValue: (value: number) => void; 
+  onChangeStart?: () => void;
+  OnChangeEnd?: () => void;
 }
 
 export default function Slider({
@@ -20,7 +22,9 @@ export default function Slider({
   knobHeight,
   knobColor = "--color-verylightgray",
   value, 
-  setValue
+  setValue,
+  onChangeStart,
+  OnChangeEnd
 }: SliderProps) {
   const trackRef = useRef<HTMLDivElement | null>(null);
 
@@ -37,12 +41,15 @@ export default function Slider({
 
   const startDrag = (evt: React.MouseEvent) => {
     evt.preventDefault();
+
     
     const move = (evt: MouseEvent) => {
+      onChangeStart?.();
       handleMove(evt.clientX)
     }
 
     const stop = () => {
+      OnChangeEnd?.();
       window.removeEventListener("mouseup", stop);
       window.removeEventListener("mousemove", move);
     }

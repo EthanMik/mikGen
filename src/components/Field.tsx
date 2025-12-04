@@ -241,6 +241,16 @@ export default function Field({
           />
         )}
 
+        {pose === null ? <></> :
+          <RobotView
+              x={pose.x}
+              y={pose.y}
+              angle={pose.angle}
+              width={14}
+              height={14}
+          />
+        }
+        
         {segment.controls.map((control, idx) => (
           <g 
             key={control.id}
@@ -293,17 +303,6 @@ export default function Field({
             </>
               : <></>
             }
-
-        {pose === null ? <></> :
-          <RobotView
-              x={pose.x}
-              y={pose.y}
-              angle={pose.angle}
-              width={14}
-              height={14}
-          />
-        }
-
         </g>
         
 

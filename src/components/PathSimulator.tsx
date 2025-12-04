@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Slider from "./Slider";
 import play from "../assets/play.svg";
+import pause from "../assets/pause.svg";
 import { Robot } from "../core/Robot";
 import { driveDistance, driveToPoint, turnToAngle } from "../core/mikLibSim/DriveMotions";
 import { PID } from "../core/mikLibSim/PID";
@@ -37,17 +38,34 @@ const auton = [
 
 const path = precomputePath(robot, auton)
 
-
 export default function PathSimulator() {
+    const [value, setValue] = useState<number>(0);
     const [time, setTime] = useState<number>(0);
-    const [ pose, setPose ] = usePose()
+    const [pose, setPose] = usePose()
+    const [playing, setPlaying] = useState<boolean>(false);
 
     const setPathPercent = (path: PathSim, percent: number) => {
         if (!path.trajectory.length) return;
 
         percent = clamp(percent, 0, 100) / 100;
 
-        // Pick the corresponding snapshot on the trajectory
+        const idx = Math.floor(percent * (path.trajectory.length - 1));
+        const snap = path.trajectory[idx];
+        setTime(snap.t);
+
+        setPose({x: snap.x, y: snap.y, angle: snap.angle})
+    }
+
+    const setPathTime = (path: PathSim, t: number) => {
+        if (!path.trajectory.length) return;
+
+        t = clamp(t, 0, path.totalTime);
+
+        setTime(t);
+
+        const percent = (t / path.totalTime);
+        setValue(percent * 100);
+
         const idx = Math.floor(percent * (path.trajectory.length - 1));
         const snap = path.trajectory[idx];
 
@@ -55,22 +73,54 @@ export default function PathSimulator() {
     }
 
     useEffect(() => {
-        setPathPercent(path, time);
-    }, [time])
+        if (!playing) setPathPercent(path, value);
+    }, [value])
 
+    useEffect(() => {
+        if (!playing) return;
+
+        const interval = setInterval(() => {
+            setTime(prevTime => {
+                const nextTime = prevTime + 1 / 60;
+                setPathTime(path, nextTime);
+
+                if (nextTime >= path.totalTime) {
+                    clearInterval(interval);
+                    setTime(0)
+                    setPlaying(false)
+                }
+
+                return nextTime
+            });
+        }, 1000 / 60)
+
+        return () => clearInterval(interval)
+    }, [playing])
+    
     return (
         <div className="flex bg-medgray w-[575px] h-[65px] rounded-lg 
-            items-center justify-center gap-7"
+            items-center justify-center gap-6"
         >
-            <img src={play}/>
+            <button onClick={() => setPlaying(p => !p)} className="hover:bg-medgray_hover px-2 py-1 rounded-sm">
+                {playing ?
+                    <img className="w-[25px] h-[25px]" src={pause}/> :
+                    <img className="w-[25px] h-[25px]" src={play}/> 
+                }
+                
+            </button>
             <Slider 
-                value={time} 
-                setValue={setTime} 
+                value={value} 
+                setValue={setValue} 
                 sliderWidth={400} 
                 sliderHeight={8} 
                 knobHeight={22} 
-                knobWidth={22}/>
-            <span className="block">{time.toFixed(1)}</span>
+                knobWidth={22}
+                onChangeStart={() => setPlaying(false)}
+                OnChangeEnd={() => {}}
+            />
+            <div className="w-14">
+                <span className="block">{time.toFixed(2)} s</span>
+            </div>
         </div>        
     );
 }

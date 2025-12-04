@@ -32,8 +32,9 @@ export default function RobotView({
     return (
         <g transform={`translate(${pos.x} ${pos.y}) rotate(${normAngle})`}>
             <rect
-                fill="#969696"
-                fillOpacity={.07}
+                fill="rgba(150, 150, 150, 0.4)"
+                stroke="black"
+                strokeWidth={.5}            
                 x={-pxWidth / 2}
                 y={-pxHeight / 2}
                 width={pxWidth}

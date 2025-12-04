@@ -19,13 +19,13 @@ export class ReveilLibPathFormat extends PathFormat {
   coast_turn: string = '0.23';
   brake_time: string = '0.1_s';
 
-startToString(position: Coordinate, heading: number): string {
-  return (
+  startToString(position: Coordinate, heading: number): string {
+    return (
     `
   drivetrain::odom->set_position({${position.x.toFixed(2)}_in, ${position.y.toFixed(2)}_in, ${heading.toFixed(2)}_deg});
     `
-  )
-}
+    );
+  }
 
   driveToString(position: Coordinate, speed: number, callback: string, toPoint: boolean): string {
     return (
