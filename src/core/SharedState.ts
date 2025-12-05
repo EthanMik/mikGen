@@ -1,6 +1,6 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 
-function createSharedState<T>(initialValue: T) {
+export function createSharedState<T>(initialValue: T) {
   let state = initialValue;
   const listeners = new Set<Dispatch<SetStateAction<T>>>();
 
@@ -32,5 +32,3 @@ function createSharedState<T>(initialValue: T) {
 
   return useSharedState;
 }
-
-export { createSharedState };

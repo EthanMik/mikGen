@@ -5,40 +5,29 @@ import pause from "../assets/pause.svg";
 import { Robot } from "../core/Robot";
 import { driveDistance, driveToPoint, turnToAngle } from "../core/mikLibSim/DriveMotions";
 import { PID } from "../core/mikLibSim/PID";
-import { kOdomDrivePID, kOdomHeadingPID, kturnPID } from "../core/mikLibSim/Constants";
+import { kDrivePID, kOdomDrivePID, kOdomHeadingPID, kturnPID } from "../core/mikLibSim/Constants";
 import { precomputePath, type PathSim } from "../core/PathSim";
 import { usePose } from "../hooks/usePose";
 import { clamp } from "../core/Util";
 import { useRobotVisibility } from "../hooks/useRobotVisibility";
 import Checkbox from "./Checkbox";
+import { useSegment } from "../hooks/useSegment";
+import { convertPathtoSim } from "../core/PathConversion";
 
-const robot = new Robot(
-    -55, // Start x
-    -12, // Start y
-    110, // Start angle
-    14, // Width (inches)
-    14, // Height (inches)
-    6, // Speed (ft/s)
-    16,  // Track Radius (inches)
-    15 // Max Accel (ft/s^2)
-);
+function createRobot(): Robot {
+    return new Robot(
+        0, // Start x
+        0, // Start y
+        0, // Start angle
+        14, // Width (inches)
+        14, // Height (inches)
+        6, // Speed (ft/s)
+        16,  // Track Radius (inches)
+        15 // Max Accel (ft/s^2)
+    );
+}
 
-const turnPID = new PID(kturnPID);
-const drivePID = new PID(kOdomDrivePID);
-const headingPID = new PID(kOdomHeadingPID);
-
-const auton = [
-    (robot: Robot, dt: number):boolean =>{return driveToPoint(robot, dt, -23, -24, drivePID, headingPID);},
-    (robot: Robot, dt: number):boolean =>{return driveToPoint(robot, dt, -11, -38, drivePID, headingPID);},
-    (robot: Robot, dt: number):boolean =>{return driveToPoint(robot, dt, -26, -27, drivePID, headingPID);},
-    (robot: Robot, dt: number):boolean =>{return turnToAngle(robot, dt, -139, turnPID);},
-    (robot: Robot, dt: number):boolean =>{return driveToPoint(robot, dt, -42, -46, drivePID, headingPID);},
-    (robot: Robot, dt: number):boolean =>{return turnToAngle(robot, dt, 270, turnPID);},
-    (robot: Robot, dt: number):boolean =>{return driveDistance(robot, dt, 15, robot.getAngle(), drivePID, headingPID);},
-    (robot: Robot, dt: number):boolean =>{return driveDistance(robot, dt, -22, robot.getAngle(), drivePID, headingPID);},
-];
-
-const path = precomputePath(robot, auton)
+let path: PathSim;
 
 export default function PathSimulator() {
     const [value, setValue] = useState<number>(0);
@@ -46,6 +35,27 @@ export default function PathSimulator() {
     const [pose, setPose] = usePose()
     const [playing, setPlaying] = useState<boolean>(false);
     const [robotVisible, setRobotVisibility] = useRobotVisibility();
+    const [segment, setSegment] = useSegment();
+
+    useEffect(() => {
+        path = precomputePath(createRobot(), convertPathtoSim(segment));
+        if (robotVisible) forceSnapTime(path, time);
+    }, [segment]) 
+
+    useEffect(() => {
+        const handleKeyDown = (evt: KeyboardEvent) => {
+        if (evt.key.toLowerCase() === "p") {
+            setPlaying(v => !v)
+            evt.stopPropagation();
+        }
+        }
+        
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+        
+    }, []);
 
     const setPathPercent = (path: PathSim, percent: number) => {
         setRobotVisibility(true);
@@ -59,6 +69,17 @@ export default function PathSimulator() {
 
         setPose({x: snap.x, y: snap.y, angle: snap.angle})
     }
+
+    const forceSnapTime = (path: PathSim, t: number) => {
+        setRobotVisibility(true);
+        if (!path.trajectory.length) return;
+
+        const percent = (t / path.totalTime);
+        const idx = Math.floor(percent * (path.trajectory.length - 1));
+        const snap = path.trajectory[idx];
+
+        setPose({x: snap.x, y: snap.y, angle: snap.angle})       
+    };
 
     const setPathTime = (path: PathSim, t: number) => {
         setRobotVisibility(true);
@@ -82,17 +103,24 @@ export default function PathSimulator() {
     }, [value])
 
     useEffect(() => {
+        const dt = 1 / 60;
+
+        if (playing) {
+            setTime(prev => (prev + dt >= path.totalTime ? 0 : prev));
+        }
+
         if (!playing) return;
 
         const interval = setInterval(() => {
             setTime(prevTime => {
-                const nextTime = prevTime + 1 / 60;
+                const nextTime = prevTime + dt;
                 setPathTime(path, nextTime);
 
                 if (nextTime >= path.totalTime) {
                     clearInterval(interval);
-                    setTime(0)
                     setPlaying(false)
+
+                    return path.totalTime;
                 }
 
                 return nextTime

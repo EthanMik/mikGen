@@ -36,6 +36,10 @@ export default function Field({
   } = useFieldMacros();
 
   useEffect(() => {
+    localStorage.setItem("path", JSON.stringify(segment));
+  }, [segment])
+
+  useEffect(() => {
     const handleKeyDown = (evt: KeyboardEvent) => {
       if (evt.key.toLowerCase() === "r") {
         setRobotVisibility(v => !v)

@@ -93,6 +93,8 @@ export class Robot {
         this.x = x;
         this.y = y;
         this.angle = angle;
+        
+        return true;
     }
 
     public pathFollow(path: PathSim, dt: number) {

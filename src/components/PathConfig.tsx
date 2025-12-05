@@ -10,7 +10,7 @@ import plus from "../assets/plus.svg";
 import copy from "../assets/copy.svg";
 import { useSegment } from "../hooks/useSegment";
 import { ReveilLibPathFormat } from "../formats/ReveilLibPathFormat";
-import { convertPath } from "../core/ReveilLibConversion";
+import { convertPath } from "../core/PathConversion";
 import { usePathVisibility } from "./usePathVisibility";
 
 type MotionListProps = {
