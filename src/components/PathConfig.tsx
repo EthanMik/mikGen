@@ -12,6 +12,7 @@ import { useSegment } from "../hooks/useSegment";
 import { ReveilLibPathFormat } from "../formats/ReveilLibPathFormat";
 import { convertPath } from "../core/PathConversion";
 import { usePathVisibility } from "./usePathVisibility";
+import { mikLibFormat } from "../formats/mikLibFormat";
 
 type MotionListProps = {
     name: string
@@ -127,7 +128,7 @@ function PathConfigHeader() {
   const [ pathVisible, setPathVisibility ] = usePathVisibility();
 
   const copyOnClick = () => {
-    const format = new ReveilLibPathFormat();
+    const format = new mikLibFormat();
     const out = convertPath(segment, format);
     navigator.clipboard.writeText(out);
   }

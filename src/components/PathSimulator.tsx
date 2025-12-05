@@ -3,9 +3,6 @@ import Slider from "./Slider";
 import play from "../assets/play.svg";
 import pause from "../assets/pause.svg";
 import { Robot } from "../core/Robot";
-import { driveDistance, driveToPoint, turnToAngle } from "../core/mikLibSim/DriveMotions";
-import { PID } from "../core/mikLibSim/PID";
-import { kDrivePID, kOdomDrivePID, kOdomHeadingPID, kturnPID } from "../core/mikLibSim/Constants";
 import { precomputePath, type PathSim } from "../core/PathSim";
 import { usePose } from "../hooks/usePose";
 import { clamp } from "../core/Util";
@@ -76,9 +73,13 @@ export default function PathSimulator() {
 
         const percent = (t / path.totalTime);
         const idx = Math.floor(percent * (path.trajectory.length - 1));
-        const snap = path.trajectory[idx];
+        try {
+            const snap = path.trajectory[idx];
+            setPose({x: snap.x, y: snap.y, angle: snap.angle})       
+        } catch {
+            return;
+        }
 
-        setPose({x: snap.x, y: snap.y, angle: snap.angle})       
     };
 
     const setPathTime = (path: PathSim, t: number) => {
@@ -86,8 +87,6 @@ export default function PathSimulator() {
         if (!path.trajectory.length) return;
 
         t = clamp(t, 0, path.totalTime);
-
-        setTime(t);
 
         const percent = (t / path.totalTime);
         setValue(percent * 100);
@@ -111,24 +110,30 @@ export default function PathSimulator() {
 
         if (!playing) return;
 
+        let last = performance.now();
+
         const interval = setInterval(() => {
+            const now = performance.now();
+            const dtSec = (now - last) / 1000;
+            last = now;
+
             setTime(prevTime => {
-                const nextTime = prevTime + dt;
-                setPathTime(path, nextTime);
+                const nextTime = prevTime + dtSec;
+                const clamped = Math.min(nextTime, path.totalTime);
 
-                if (nextTime >= path.totalTime) {
+                setPathTime(path, clamped);
+
+                if (clamped >= path.totalTime) {
                     clearInterval(interval);
-                    setPlaying(false)
-
-                    return path.totalTime;
+                    setPlaying(false);
                 }
 
-                return nextTime
+                return clamped;
             });
-        }, 1000 / 60)
+        }, 1000 / 60);
 
-        return () => clearInterval(interval)
-    }, [playing])
+        return () => clearInterval(interval);
+    }, [playing]);
     
     return (
         <div className="flex bg-medgray w-[575px] h-[65px] rounded-lg 

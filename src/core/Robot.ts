@@ -1,4 +1,3 @@
-import type { PathSim } from "./PathSim";
 import { clamp, normalizeDeg, toDeg, toRad } from "./Util";
 
 export class Robot {
@@ -10,7 +9,6 @@ export class Robot {
     private x: number = 0; 
     private y: number = 0;
     private angle: number = 0;
-    private pathTime: number = 0;
 
     private vL: number = 0;
     private vR: number = 0;
@@ -95,22 +93,5 @@ export class Robot {
         this.angle = angle;
         
         return true;
-    }
-
-    public pathFollow(path: PathSim, dt: number) {
-        if (!path.trajectory.length) return;
-
-        this.pathTime += dt;
-        if (this.pathTime > path.totalTime) {
-            this.pathTime = path.totalTime;
-        }
-
-        const normalized = this.pathTime / path.totalTime;
-        const idx = Math.floor(normalized * (path.trajectory.length - 1));
-        const snap = path.trajectory[idx];
-
-        this.setX(snap.x);
-        this.setY(snap.y);
-        this.setAngle(snap.angle);
     }
 }
