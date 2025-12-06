@@ -9,13 +9,13 @@ function App() {
   return (
     <div className='flex flex-row'>
       <div className='flex flex-col gap-[10px] pl-[10px] pt-[10px]'>
-        {/* <Config/> */}
+        <Config/>
         <FieldContainer/>
-        {/* <PathSimulator/> */}
+        <PathSimulator/>
       </div>
       <div className='flex flex-col gap-[10px] pt-[10px] pl-[10px]'>
         <PathConfig/>
-        {/* <ControlConfig/> */}
+        <ControlConfig/>
       </div>
     </div>
   )

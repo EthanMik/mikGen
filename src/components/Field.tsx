@@ -188,7 +188,7 @@ export default function Field({
       const controls = inserted.map(c =>
         c === newControl ? c : { ...c, selected: false }
       );
-      console.log(path)
+
       return {
         ...prev,
         segments: controls,
@@ -198,12 +198,23 @@ export default function Field({
     setSelectedIds([control.id])
   };
 
+  const getSnapPose = (controls: typeof path.segments, idx: number) => {
+    for (let i = idx; i >= 0; i--) {
+      const c = controls[i];
+      if (c.pose.x != null && c.pose.y != null) {
+        return c.pose;
+      }
+    }
+    return null;
+  };
+
   const controls = path.segments;
 
   const moveToPoints =
     controls.length > 1
       ? controls
           .map((m) => {
+            if (m.pose.x === null || m.pose.y === null) return;
             const p = toPX({x: m.pose.x, y: m.pose.y}, FIELD_REAL_DIMENSIONS, img);
             return `${p.x},${p.y}`;
           })
@@ -253,7 +264,7 @@ export default function Field({
         onPointerMove={handlePointerMove}
         onPointerUp={endDrag}
       >
-
+        {/* Field image */}
         <image
           href={src}
           x={0}
@@ -262,6 +273,7 @@ export default function Field({
           height={img.h}
         />
 
+        {/* Path */}
         {!pathVisible && path.segments.length >= 2 && (
           <polyline
             points={moveToPoints}
@@ -272,6 +284,7 @@ export default function Field({
           />
         )}
 
+        {/* Robot */}
         {pose === null || !robotVisible ? <></> :
           <RobotView
               x={pose.x}
@@ -289,52 +302,65 @@ export default function Field({
           >
             {control.visible &&
             <>
-              <circle
-                className="stroke-[#1560BD]"
-                style={control.locked ? {cursor : "not-allowed"} : {cursor : "grab"}}
-              
-                id={control.id}
-                cx={toPX({x: control.pose.x, y: control.pose.y}, FIELD_REAL_DIMENSIONS, img).x}
-                cy={toPX({x: control.pose.x, y: control.pose.y}, FIELD_REAL_DIMENSIONS, img).y}
-                r={radius}
-
-                fill={
-                  control.selected
-                    ? "rgba(180, 50, 11, .75)"
-                    : "rgba(160, 32, 7, .5)"
-                }
+              {control.pose.x !== null && control.pose.y !== null &&
+                <circle
+                  className="stroke-[#1560BD]"
+                  style={control.locked ? {cursor : "not-allowed"} : {cursor : "grab"}}
                 
-                strokeWidth={idx === path.segments.length - 1 ? 2: 0}
-              />
+                  id={control.id}
+                  cx={toPX({x: control.pose.x, y: control.pose.y}, FIELD_REAL_DIMENSIONS, img).x}
+                  cy={toPX({x: control.pose.x, y: control.pose.y}, FIELD_REAL_DIMENSIONS, img).y}
+                  r={radius}
 
-              {control.pose.angle !== null && <>
-                <line
-                  x1={toPX({x: control.pose.x, y: control.pose.y}, FIELD_REAL_DIMENSIONS, img).x}
-                  y1={toPX({x: control.pose.x, y: control.pose.y}, FIELD_REAL_DIMENSIONS, img).y}
+                  fill={
+                    control.selected
+                      ? "rgba(180, 50, 11, .75)"
+                      : "rgba(160, 32, 7, .5)"
+                  }
                   
-                  x2={
-                    toPX(
-                    { 
-                      x: control.pose.x + (radius * FIELD_REAL_DIMENSIONS.w / img.w) * Math.sin(toRad(control.pose.angle)), 
-                      y: control.pose.x + (radius * FIELD_REAL_DIMENSIONS.h / img.h) * Math.cos(toRad(control.pose.angle)) 
-                    }
-                    , FIELD_REAL_DIMENSIONS, 
-                    img).x
-                  }
-                  y2={
-                    toPX(
-                    { 
-                      x: control.pose.x + (radius * FIELD_REAL_DIMENSIONS.w / img.w) * Math.sin(toRad(control.pose.angle)), 
-                      y: control.pose.y + (radius * FIELD_REAL_DIMENSIONS.h / img.h) * Math.cos(toRad(control.pose.angle)) 
-                    }
-                    , FIELD_REAL_DIMENSIONS, 
-                    img).y       
-                  }
-                  stroke="black"
-                  strokeWidth={2}
-                  />
-              </>
+                  strokeWidth={idx === path.segments.length - 1 ? 2: 0}
+                />
               }
+
+              {control.pose.angle !== null && (() => {
+                const snapPose = getSnapPose(controls, idx);
+                if (snapPose === null || snapPose.y === null || snapPose.x === null) return null;
+
+                const basePx = toPX(
+                  { x: snapPose.x, y: snapPose.y },
+                  FIELD_REAL_DIMENSIONS,
+                  img
+                );
+
+                const headingInFieldUnits = {
+                  x:
+                    snapPose.x +
+                    (radius * FIELD_REAL_DIMENSIONS.w / img.w) *
+                      Math.sin(toRad(control.pose.angle)),
+                  y:
+                    snapPose.y +
+                    (radius * FIELD_REAL_DIMENSIONS.h / img.h) *
+                      Math.cos(toRad(control.pose.angle)),
+                };
+
+                const tipPx = toPX(
+                  headingInFieldUnits,
+                  FIELD_REAL_DIMENSIONS,
+                  img
+                );
+
+                return (
+                  <line
+                    pointerEvents="none"
+                    x1={basePx.x}
+                    y1={basePx.y}
+                    x2={tipPx.x}
+                    y2={tipPx.y}
+                    stroke={control.pose.x !== null && control.pose.y !== null ? "#1560BDB8" : "Black"}
+                    strokeWidth={2}
+                  />
+                );
+              })()}
             </>
             }
         </g>

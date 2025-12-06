@@ -5,7 +5,7 @@ import { normalizeDeg } from "../core/Util";
 import { usePath } from "../hooks/usePath";
 
 type ControlInputProps = {
-    getValue?: () => number | undefined;
+    getValue?: () => number | null | undefined;
     updateValue?: (value: number) => void;
     clampTo?: (value: number) => number;
 }
@@ -23,8 +23,8 @@ function ControlInput({
     const display: string = edit !== null ? edit : value.toFixed(2);
 
     const resetValue = () => {
-        const val: number | undefined = getValue?.();
-        const num = val === undefined ? "" : val.toFixed(2); 
+        const val: number | null | undefined = getValue?.();
+        const num = val === undefined || val === null ? "" : val.toFixed(2); 
 
         setEdit(num);
     }
@@ -153,17 +153,20 @@ export default function ControlConfig() {
     }
 
     const getXValue = () => {
-        const x: number | undefined = path.segments.find(c => c.selected)?.pose.x;
+        const x: number | null | undefined = path.segments.find(c => c.selected)?.pose.x;
+        if (x === null) return null;
         return x
     }
 
     const getYValue = () => {
-        const y: number | undefined = path.segments.find(c => c.selected)?.pose.y;
+        const y: number | null | undefined = path.segments.find(c => c.selected)?.pose.y;
+        if (y === null) return null;
         return y
     }
 
     const getHeadingValue = () => {
-        const heading: number | undefined = path.segments.find(c => c.selected)?.pose.angle;
+        const heading: number | null | undefined = path.segments.find(c => c.selected)?.pose.angle;
+        if (heading === null) return null;
         return heading;
     }
 
