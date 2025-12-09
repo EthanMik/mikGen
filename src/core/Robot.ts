@@ -87,6 +87,11 @@ export class Robot {
         this.setAngle(θdegNew);
     }
 
+    public stop() {
+        this.vL = 0;
+        this.vR = 0;
+    }
+
     public setPose(x: number, y: number, angle: number) {
         this.x = x;
         this.y = y;

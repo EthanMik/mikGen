@@ -86,7 +86,9 @@ export const kOdomDrivePID = createPIDConstants({
     starti: 0,
     settleTime: 300,
     settleError: 3,
-    timeout: 5000
+    timeout: 5000,
+    lead: 0.4,
+    setback: 1,
 });
 
 export const kOdomHeadingPID = createPIDConstants({

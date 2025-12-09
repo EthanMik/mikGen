@@ -166,7 +166,7 @@ export default function Field({
     }
 
     // const control = new Control(posIn, 0);
-    const control = new PointDriveSegment(posIn);
+    const control = PointDriveSegment(posIn);
 
     setPath(prev => {
       let selectedIndex = prev.segments.findIndex(c => c.selected);

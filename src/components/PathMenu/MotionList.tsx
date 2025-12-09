@@ -17,7 +17,7 @@ export default function MotionList({name, segmentId}: MotionListProps) {
   const [value, setValue] = useState<number>(0);
   const [ path, setPath ] = usePath(); 
   const selected = path.segments.find((c) => c.id === segmentId)?.selected;
-  const [ isEyeOpen, setEyeOpen ] = useState(false);
+  const [ isEyeOpen, setEyeOpen ] = useState(true);
   const [ isLocked, setLocked ] = useState(false);
 
     // useEffect(() => {
@@ -85,7 +85,7 @@ export default function MotionList({name, segmentId}: MotionListProps) {
             <button className="cursor-pointer" 
               onClick={handleEyeOnClick}>
               <img className="w-[30px] h-[22px]"
-                  src={isEyeOpen ? eyeClosed : eyeOpen}
+                  src={isEyeOpen ? eyeOpen : eyeClosed}
               />
             </button>
 

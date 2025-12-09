@@ -12,92 +12,70 @@ export interface Pose {
     angle: number | null
 }
 
-export abstract class Segment {
-    abstract id: string;
-    abstract selected: boolean;
-    abstract locked: boolean;
-    abstract visible: boolean;
-    abstract pose: Pose;
-    abstract constants: PIDConstants;
-}
+export type SegmentKind =
+  | "pointDrive"
+  | "poseDrive"
+  | "pointTurn"
+  | "angleTurn";
 
-export class PointDriveSegment extends Segment {
-    public id: string;
-    public selected: boolean;
-    public locked: boolean;
-    public visible: boolean;
-    public pose: Pose = { x: null, y: null, angle: null };
-    public constants: PIDConstants;
-
-    constructor (position: Coordinate) {
-        super();
-        this.id = makeId(10);
-        this.selected = false;
-        this.locked = false;
-        this.visible = true;
-        this.pose.x = position.x;
-        this.pose.y = position.y;
-        this.constants = kOdomDrivePID;
-    }
-}
-
-export class PoseDriveSegment extends Segment {
-    public id: string;
-    public selected: boolean;
-    public locked: boolean;
-    public visible: boolean;
-    public pose: Pose = { x: null, y: null, angle: null };
-    public constants: PIDConstants;
-
-    constructor (pose: Pose) {
-        super();
-        this.id = makeId(10);
-        this.selected = false;
-        this.locked = false;
-        this.visible = true;
-        this.pose = pose;
-        this.constants = kBoomerangPID;
-    }
-}    
-
-export class PointTurnSegment extends Segment {
-    public id: string;
-    public selected: boolean;
-    public locked: boolean;
-    public visible: boolean;
-    public pose: Pose = { x: null, y: null, angle: null };
-    public constants: PIDConstants;
-
-    constructor (pose: Pose) {
-        super();
-        this.id = makeId(10);
-        this.selected = false;
-        this.locked = false;
-        this.visible = true;
-        this.pose = pose;
-        this.constants = kOdomTurnPID;
-    }
-}
-
-export class AngleTurnSegment extends Segment {
-    public id: string;
-    public selected: boolean;
-    public locked: boolean;
-    public visible: boolean;
-    public pose: Pose = { x: null, y: null, angle: null };
-    public constants: PIDConstants;
-
-    constructor (heading: number) {
-        super();
-        this.id = makeId(10);
-        this.selected = false;
-        this.locked = false;
-        this.visible = true;
-        this.pose.angle = heading;
-        this.constants = kturnPID;
-    }    
+export interface Segment {
+  id: string;
+  selected: boolean;
+  locked: boolean;
+  visible: boolean;
+  pose: Pose;
+  constants: PIDConstants;
+  kind: SegmentKind;
 }
 
 export interface Path {
-    segments: Segment[];
+  segments: Segment[];
+}
+
+export function PointDriveSegment(position: Coordinate): Segment {
+  return {
+    id: makeId(10),
+    selected: false,
+    locked: false,
+    visible: true,
+    pose: { x: position.x, y: position.y, angle: null },
+    constants: kOdomDrivePID,
+    kind: "pointDrive",
+  };
+}
+
+export function PoseDriveSegment(pose: Pose): Segment {
+  return {
+    id: makeId(10),
+    selected: false,
+    locked: false,
+    visible: true,
+    pose,
+    constants: kBoomerangPID,
+    kind: "poseDrive",
+  };
+}
+
+export function PointTurnSegment(pose: Pose): Segment {
+  return {
+    id: makeId(10),
+    selected: false,
+    locked: false,
+    visible: true,
+    pose,
+    constants: kOdomTurnPID,
+    kind: "pointTurn",
+  };
+}
+
+export function AngleTurnSegment(heading: number): Segment {
+  return {
+    id: makeId(10),
+    selected: false,
+    locked: false,
+    visible: true,
+    pose: { x: null, y: null, angle: heading },
+    constants: kturnPID,
+    kind: "angleTurn",
+  };
 }

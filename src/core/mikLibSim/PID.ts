@@ -12,6 +12,8 @@ export class PID {
 
     public maxSpeed: number = 1;
     public minSpeed: number = 0;
+    public lead: number = 0;
+    public setback: number = 0;
 
     private acculatedError = 0;
     private previousError = 0;
@@ -30,6 +32,9 @@ export class PID {
         
         this.maxSpeed = kPID.maxSpeed ? kPID.maxSpeed : 0;
         this.minSpeed = kPID.minSpeed ? kPID.minSpeed : 0;
+
+        this.lead = kPID.lead ? kPID.lead : 0;        
+        this.setback = kPID.setback ? kPID.setback : 0;   
     }
 
     public update(kPID: PIDConstants) {
@@ -43,7 +48,10 @@ export class PID {
         this.timeout = kPID.timeout ? kPID.timeout : 0;
         
         this.maxSpeed = kPID.maxSpeed ? kPID.maxSpeed : 0;
-        this.minSpeed = kPID.minSpeed ? kPID.minSpeed : 0;        
+        this.minSpeed = kPID.minSpeed ? kPID.minSpeed : 0; 
+
+        this.lead = kPID.lead ? kPID.lead : 0;        
+        this.setback = kPID.setback ? kPID.setback : 0;        
     }
 
     public compute(error: number) {

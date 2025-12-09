@@ -1,6 +1,6 @@
 import type { PathFormat } from "../formats/PathFormat";
 import { kHeadingPID, kOdomDrivePID, kOdomHeadingPID, kturnPID } from "./mikLibSim/Constants";
-import { driveToPoint, turnToPoint } from "./mikLibSim/DriveMotions";
+import { driveToPoint, drivetoPose, turnToAngle, turnToPoint } from "./mikLibSim/DriveMotions";
 import { PID } from "./mikLibSim/PID";
 import type { Path } from "./Path";
 import type { Robot } from "./Robot";
@@ -25,22 +25,45 @@ export function convertPathtoSim(path: Path): ((robot: Robot, dt: number) => boo
             continue;
         }
 
-        auton.push(
-            (robot: Robot, dt: number): boolean => { 
-                drivePID.update(kOdomDrivePID);
-                headingPID.update(kHeadingPID);
-                return driveToPoint(robot, dt, control.pose.x, control.pose.y, drivePID, headingPID);
-            }
-        );
+        if (control.kind === "pointDrive") {
+            auton.push(
+                (robot: Robot, dt: number): boolean => { 
+                    drivePID.update(kOdomDrivePID);
+                    headingPID.update(kHeadingPID);
+                    return driveToPoint(robot, dt, control.pose.x, control.pose.y, drivePID, headingPID);
+                }
+            );
+        }
+
+        if (control.kind === "poseDrive") {
+            auton.push(
+                (robot: Robot, dt: number): boolean => { 
+                    drivePID.update(kOdomDrivePID);
+                    headingPID.update(kHeadingPID);
+                    return drivetoPose(robot, dt, control.pose.x, control.pose.y, control.pose.angle, drivePID, headingPID);
+                }
+            );
+        }
         
-        if (control.turnToPos !== null) {
+        if (control.kind === "pointTurn") {
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
                     turnPID.update(kturnPID);
                     return turnToPoint(robot, dt, control.pose.x, control.pose.y, 0, turnPID);
                 }
-                );            
+            );            
         }
+
+        if (control.kind === "angleTurn") {
+            auton.push(
+                (robot: Robot, dt: number): boolean => { 
+                    turnPID.update(kturnPID);
+                    return turnToAngle(robot, dt, control.pose.angle, turnPID);
+                }
+            );                 
+        }
+
+
     }
         
     return auton;
