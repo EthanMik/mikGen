@@ -112,7 +112,7 @@ export default function useFieldMacros() {
     if (evt.key === "Backspace" || evt.key === "Delete") {
         const next: Path = {
           segments:
-            path.segments.filter((c) => !c.selected)
+            path.segments.filter((c) => !c.selected || c.locked)
         }
 
       setPath(next);
