@@ -20,8 +20,10 @@ export default function Field({
   radius,
 }: FieldProps) {
 
-  const [ path, setPath ] = usePath();
   const svgRef = useRef<SVGSVGElement | null>(null); 
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  const [ path, setPath ] = usePath();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [pose, setPose] = usePose();
   const [ robotVisible, setRobotVisibility ] = useRobotVisibility();
@@ -38,6 +40,10 @@ export default function Field({
   useEffect(() => {
     localStorage.setItem("path", JSON.stringify(path));
   }, [path])
+
+  useEffect(() => {
+    wrapperRef.current?.focus();
+  }, [path]);
 
   useEffect(() => {
     const handleKeyDown = (evt: KeyboardEvent) => {
@@ -165,7 +171,6 @@ export default function Field({
       return
     }
 
-    // const control = new Control(posIn, 0);
     const control = PointDriveSegment(posIn);
 
     setPath(prev => {
@@ -251,6 +256,7 @@ export default function Field({
 
   return (
     <div
+      ref={wrapperRef}
       tabIndex={0}
       onKeyDown={handleKeyDown}
       onMouseLeave={endDrag}

@@ -1,11 +1,15 @@
 import { makeId } from "./Util";
 
-export class Command {
-    public name: string;
-    public id: string;
+export interface Command {
+    name: string,
+    percent: number,
+    id: string,
+}
 
-    constructor (name: string) {
-        this.name = name;
-        this.id = makeId(10)
+export function createCommand(name: string, percent = 0): Command {
+    return {
+        name: name,
+        percent: percent,
+        id: makeId(10)
     }
 }

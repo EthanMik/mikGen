@@ -9,10 +9,19 @@ import { usePathVisibility } from "../usePathVisibility";
 import { mikLibFormat } from "../../formats/mikLibFormat";
 import { usePath } from "../../hooks/usePath";
 
-export default function PathConfigHeader() {
+type PathConfigHeaderProps = {
+  isOpen: boolean,
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>,
+}
+
+export default function PathConfigHeader({isOpen, setOpen} : PathConfigHeaderProps) {
   const [ path, setPath ] = usePath(); 
   const [ isEyeOpen, setEyeOpen ] = useState(false);
   const [ pathVisible, setPathVisibility ] = usePathVisibility();
+
+  const handleOpenOnClick = () => {
+    setOpen(prev => !prev);
+  }
 
   const copyOnClick = () => {
     const format = new mikLibFormat();
@@ -42,15 +51,21 @@ export default function PathConfigHeader() {
               src={copy}
             />
           </button>
+
           <button className="cursor-pointer" 
               onClick={handleEyeOnClick}>
               <img className="w-[20px] h-[22px]"
                   src={isEyeOpen ? eyeClosed : eyeOpen}
           />
           </button>
-          <img className="w-[15px] h-[15px]"
-            src={downArrow}
-          />
+
+          <button onClick={handleOpenOnClick}
+          className="hover:bg-medgray_hover px-1 py-1 rounded-sm">
+            <img className={`w-[15px] h-[15px] rotate-${isOpen ? 180 : 0}`}
+              src={downArrow}
+            />
+          </button>
+
           <img className="block w-[18px] h-[18px]"
             src={plus}
           />

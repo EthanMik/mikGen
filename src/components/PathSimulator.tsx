@@ -20,7 +20,8 @@ function createRobot(): Robot {
         14, // Height (inches)
         6, // Speed (ft/s)
         16,  // Track Radius (inches)
-        15 // Max Accel (ft/s^2)
+        15, // Max Accel (ft/s^2)
+        18 // Max Decel (ft/s^2)
     );
 }
 

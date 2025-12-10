@@ -1,3 +1,4 @@
+import { createCommand, type Command } from "./Command";
 import { kBoomerangPID, kOdomDrivePID, kOdomTurnPID, kturnPID, type PIDConstants } from "./mikLibSim/Constants";
 import { makeId } from "./Util";
 
@@ -24,6 +25,7 @@ export interface Segment {
   locked: boolean;
   visible: boolean;
   pose: Pose;
+  command: Command;
   constants: PIDConstants;
   kind: SegmentKind;
 }
@@ -39,6 +41,7 @@ export function PointDriveSegment(position: Coordinate): Segment {
     locked: false,
     visible: true,
     pose: { x: position.x, y: position.y, angle: null },
+    command: createCommand(''),
     constants: kOdomDrivePID,
     kind: "pointDrive",
   };
@@ -51,6 +54,7 @@ export function PoseDriveSegment(pose: Pose): Segment {
     locked: false,
     visible: true,
     pose,
+    command: createCommand(''),
     constants: kBoomerangPID,
     kind: "poseDrive",
   };
@@ -63,6 +67,7 @@ export function PointTurnSegment(pose: Pose): Segment {
     locked: false,
     visible: true,
     pose,
+    command: createCommand(''),
     constants: kOdomTurnPID,
     kind: "pointTurn",
   };
@@ -74,6 +79,7 @@ export function AngleTurnSegment(heading: number): Segment {
     selected: false,
     locked: false,
     visible: true,
+    command: createCommand(''),
     pose: { x: null, y: null, angle: heading },
     constants: kturnPID,
     kind: "angleTurn",

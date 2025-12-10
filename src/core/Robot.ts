@@ -13,8 +13,9 @@ export class Robot {
     private vL: number = 0;
     private vR: number = 0;
     public maxAccel: number;
+    public maxDecel: number;
 
-    constructor(startX: number, startY: number, startAngle: number, width: number, height: number, maxSpeed: number, trackWidth: number, maxAccel: number) {
+    constructor(startX: number, startY: number, startAngle: number, width: number, height: number, maxSpeed: number, trackWidth: number, maxAccel: number, maxDecel: number) {
         this.x = startX;
         this.y = startY;
         this.angle = startAngle;
@@ -23,6 +24,7 @@ export class Robot {
         this.maxSpeed = maxSpeed;
         this.trackWidth = trackWidth;
         this.maxAccel = maxAccel;
+        this.maxDecel = maxDecel;
     }
 
     private setX(x: number) { 
@@ -41,8 +43,12 @@ export class Robot {
     getY() { return this.y; }
     getAngle() { return this.angle; }
 
-    private moveTowards(current: number, target: number, maxDelta: number): number {
+    private moveTowards(current: number, target: number, dt: number): number {
         const diff = target - current;
+
+        const isAccel = Math.abs(target) > Math.abs(current);
+        const maxDelta = (isAccel ? this.maxAccel : this.maxDecel) * dt;
+
         if (Math.abs(diff) <= maxDelta) return target;
         return current + Math.sign(diff) * maxDelta;
     }
@@ -57,10 +63,8 @@ export class Robot {
         const targetVL_ft = left  * v_max_ft;
         const targetVR_ft = right * v_max_ft;
 
-        const dvMax_ft = this.maxAccel * dt;
-
-        this.vL = this.moveTowards(this.vL, targetVL_ft, dvMax_ft);
-        this.vR = this.moveTowards(this.vR, targetVR_ft, dvMax_ft);
+        this.vL = this.moveTowards(this.vL, targetVL_ft, dt);
+        this.vR = this.moveTowards(this.vR, targetVR_ft, dt);
 
         const vL_in = this.vL * 12;
         const vR_in = this.vR * 12;

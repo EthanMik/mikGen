@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import enter from "../../assets/enter.svg";
 import cross from "../../assets/cross.svg"
 import { useCommand } from "../../hooks/useCommands";
-import { Command } from "../../core/Command";
+import { Command, createCommand } from "../../core/Command";
 
 type CommandInputProps = {
     width: number,
@@ -28,7 +28,7 @@ function CommmandInput({
         const finalEdit = edit.replace(/ /g, "_")
         SetValue(finalEdit);
 
-        setCommand((prev) => [...prev, new Command(finalEdit)])
+        setCommand((prev) => [...prev, createCommand(finalEdit)])
         cancel();
     }
 
