@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { PointDriveSegment, type Coordinate, type Path, type Pose } from "../core/Path";
+import { createPointDriveSegment, segmentsEqual, type Coordinate, type Path, type Pose } from "../core/Path";
 import { FIELD_REAL_DIMENSIONS, toInch, toPX, toRad, vector2Add, vector2Subtract, type Rectangle } from "../core/Util";
 import { usePath } from "../hooks/usePath";
 import RobotView from "./Util/RobotView";
@@ -21,10 +21,11 @@ export default function Field({
 }: FieldProps) {
 
   const svgRef = useRef<SVGSVGElement | null>(null); 
-  const wrapperRef = useRef<HTMLDivElement>(null);
 
   const [ path, setPath ] = usePath();
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [ pathStorage, setPathStorage ] = useState<Path[]>([]);
+  const prevPath = useRef<Path>(path);
+
   const [pose, setPose] = usePose();
   const [ robotVisible, setRobotVisibility ] = useRobotVisibility();
   const [ pathVisible, setPathVisibility] = usePathVisibility();
@@ -32,18 +33,47 @@ export default function Field({
   type dragProps = { dragging: boolean, lastPos: Coordinate }
   const [drag, setDrag] = useState<dragProps>({dragging: false, lastPos: {x: 0, y: 0}});
   
+  useEffect(() => {
+    prevPath.current = path;
+  }, [path])
+
+  const pathChanged = (): boolean => {
+    const size = prevPath.current.segments.length !== path.segments.length;
+    if (size) return true;
+
+    for (let i = 0; i < path.segments.length; i++) {
+      const seg1 = path.segments[i];
+      const seg2 = prevPath.current.segments[i];
+
+      if (!segmentsEqual(seg1, seg2)) {
+        return true;
+      }
+
+    }
+
+    return false
+  }
+  
+
+
   const { moveControl, 
           moveHeading,
           deleteControl,
+          unselectPath,
+          selectPath,
+          undoPath
   } = useMacros();
 
   useEffect(() => {
       const handleKeyDown = (evt: KeyboardEvent) => {
           const target = evt.target as HTMLElement | null;
           if (target?.isContentEditable || target?.tagName === "INPUT") return;
+          unselectPath(evt, setPath);
           moveControl(evt, setPath);
           moveHeading(evt, setPath);
           deleteControl(evt, setPath);
+          selectPath(evt, setPath);
+          undoPath(evt, setPathStorage);
       }
 
       document.addEventListener('keydown', handleKeyDown)
@@ -82,7 +112,7 @@ export default function Field({
 
     const next: Path = {
       segments: path.segments.map((c) => {
-        if (!selectedIds.includes(c.id) || c.locked) return c;
+        if (!c.selected || c.locked) return c;
 
         const currentPx = toPX(
           { x: c.pose.x, y: c.pose.y },
@@ -113,38 +143,39 @@ export default function Field({
 
   const endDrag = () => setDrag({dragging: false, lastPos: {x: 0, y: 0}});
   const endSelecton = () => {
-    setSelectedIds([]);
     setPath((prevSegment) => ({
-    ...prevSegment,
-    segments: prevSegment.segments.map((c) => ({
-      ...c,
-      selected: false,
-    })),
-  }));  
+      ...prevSegment,
+      segments: prevSegment.segments.map((c) => ({
+        ...c,
+        selected: false,
+      })),
+    }));  
   }
 
   const selectSegment = (controlId: string, shifting: boolean) => {
-    setSelectedIds((prev) => {
+    setPath((prevSegment) => {
+      const prevSelectedIds = prevSegment.segments
+        .filter((c) => c.selected)
+        .map((c) => c.id);
+
       let nextSelectedIds: string[];
-  
-      if (!shifting && prev.length <= 1) {
+
+      if (!shifting && prevSelectedIds.length <= 1) {
         nextSelectedIds = [controlId];
-      } else if (shifting && path.segments.find((c) => c.id === controlId && c.selected)) {
-        nextSelectedIds = prev.filter((c) => c !== controlId)
+      } else if (shifting && prevSegment.segments.find((c) => c.id === controlId && c.selected)) {
+        nextSelectedIds = prevSelectedIds.filter((c) => c !== controlId);
       } else {
-        nextSelectedIds = [...prev, controlId];
+        nextSelectedIds = [...prevSelectedIds, controlId];
       }
-  
-      setPath((prevSegment) => ({
+
+      return {
         ...prevSegment,
         segments: prevSegment.segments.map((c) => ({
           ...c,
           selected: !c.locked && nextSelectedIds.includes(c.id),
         })),
-      }));
-  
-      return nextSelectedIds
-    })
+      };
+    });
   };
 
   const handleControlPointerDown = (evt: React.PointerEvent<SVGGElement>, controlId: string) => {
@@ -173,12 +204,13 @@ export default function Field({
 
     const posIn = toInch(posPx, FIELD_REAL_DIMENSIONS, img);
 
-    if (selectedIds.length > 1) {
+    const selectedCount = path.segments.filter((c) => c.selected).length;
+    if (selectedCount > 1) {
       endSelecton();
       return
     }
 
-    const control = PointDriveSegment(posIn);
+    const control = createPointDriveSegment(posIn);
 
     setPath(prev => {
       let selectedIndex = prev.segments.findIndex(c => c.selected);
@@ -206,8 +238,6 @@ export default function Field({
         segments: controls,
       };
     });
-
-    setSelectedIds([control.id])
   };
 
   const getSnapPose = (controls: typeof path.segments, idx: number) => {
@@ -282,7 +312,6 @@ export default function Field({
 
   return (
     <div
-      ref={wrapperRef}
       tabIndex={0}
       onMouseLeave={endDrag}
     >

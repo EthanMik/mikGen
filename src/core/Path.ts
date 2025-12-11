@@ -34,7 +34,7 @@ export interface Path {
   segments: Segment[];
 }
 
-export function PointDriveSegment(position: Coordinate): Segment {
+export function createPointDriveSegment(position: Coordinate): Segment {
   return {
     id: makeId(10),
     selected: false,
@@ -47,7 +47,7 @@ export function PointDriveSegment(position: Coordinate): Segment {
   };
 }
 
-export function PoseDriveSegment(pose: Pose): Segment {
+export function createPoseDriveSegment(pose: Pose): Segment {
   return {
     id: makeId(10),
     selected: false,
@@ -60,7 +60,7 @@ export function PoseDriveSegment(pose: Pose): Segment {
   };
 }
 
-export function PointTurnSegment(pose: Pose): Segment {
+export function createPointTurnSegment(pose: Pose): Segment {
   return {
     id: makeId(10),
     selected: false,
@@ -73,7 +73,7 @@ export function PointTurnSegment(pose: Pose): Segment {
   };
 }
 
-export function AngleTurnSegment(heading: number): Segment {
+export function createAngleTurnSegment(heading: number): Segment {
   return {
     id: makeId(10),
     selected: false,
@@ -84,4 +84,43 @@ export function AngleTurnSegment(heading: number): Segment {
     constants: kturnPID,
     kind: "angleTurn",
   };
+}
+
+function posesEqual(a: Pose, b: Pose): boolean {
+  return a.x === b.x && a.y === b.y && a.angle === b.angle;
+}
+
+function commandsEqual(a: Command, b: Command): boolean {
+  return (
+    a.id === b.id &&
+    a.name === b.name &&
+    a.percent === b.percent
+  );
+}
+
+function pidConstantsEqual(a: PIDConstants, b: PIDConstants): boolean {
+  return (
+    a.maxSpeed === b.maxSpeed &&
+    a.minSpeed === b.minSpeed &&
+    a.kp === b.kp &&
+    a.ki === b.ki &&
+    a.kd === b.kd &&
+    a.starti === b.starti &&
+    a.settleTime === b.settleTime &&
+    a.settleError === b.settleError &&
+    a.timeout === b.timeout &&
+    a.lead === b.lead &&
+    a.setback === b.setback
+  );
+}
+
+export function segmentsEqual(a: Segment, b: Segment): boolean {
+  return (
+    a.locked === b.locked &&
+    a.visible === b.visible &&
+    a.kind === b.kind &&
+    posesEqual(a.pose, b.pose) &&
+    commandsEqual(a.command, b.command) &&
+    pidConstantsEqual(a.constants, b.constants)
+  );
 }

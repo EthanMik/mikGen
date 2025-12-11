@@ -1,6 +1,7 @@
 import type React from "react";
 import { calculateHeading, clamp, normalizeDeg } from "../core/Util";
-import type { Path, Segment } from "../core/Path";
+import { createPoseDriveSegment, type Path, type Segment } from "../core/Path";
+import { useEffect, useState } from "react";
 
 export default function useMacros() {
   const MIN_FIELD_X = -100;
@@ -102,8 +103,30 @@ export default function useMacros() {
     }));    
   }
   
+  /** Using key "Escape" to unselect whole path */
   function unselectPath(evt: KeyboardEvent, setPath: React.Dispatch<React.SetStateAction<Path>>) {
-    
+    if (evt.key === "Escape")
+      setPath((prevSegment) => ({
+        ...prevSegment,
+        segments: prevSegment.segments.map((c) => ({
+          ...c,
+          selected: false,
+        })),
+      }));  
+  }
+
+  /** Using keys "ctrl + a" to select whole path */
+  function selectPath(evt: KeyboardEvent, setPath: React.Dispatch<React.SetStateAction<Path>>) {
+    if (evt.ctrlKey && evt.key.toLowerCase() === "a") {
+      evt.preventDefault();
+      setPath((prevSegment) => ({
+        ...prevSegment,
+        segments: prevSegment.segments.map((c) => ({
+          ...c,
+          selected: true,
+        })),
+      }));   
+    }
   }
 
   /** Using keys "Backspace" and "Delete" to remove segments */
@@ -116,6 +139,22 @@ export default function useMacros() {
     }
   }
 
+  function undoPath(evt: KeyboardEvent, setPathStorage: React.Dispatch<React.SetStateAction<Path[]>>) {
+    if (evt.ctrlKey && evt.key.toLowerCase() === "z") {
+
+      let lastpath: Path | undefined;
+
+      setPathStorage(prev => {
+        // if (prev.length === 0) return prev;
+        
+        const newStorage = [ ...prev ];
+        lastpath = newStorage.pop();
+        console.log("Last Path", lastpath);
+        return newStorage;
+      });
+    }
+  }
+
   /** Using key "P" to start and stop simulator */
   const pauseSimulator = (evt: KeyboardEvent, setPlaying: React.Dispatch<React.SetStateAction<boolean>>) => {
     if (evt.key.toLowerCase() === "p") {
@@ -124,12 +163,13 @@ export default function useMacros() {
     }
   }
   
-
   return {
     moveControl,
     unselectPath,
+    selectPath,
     deleteControl,
     moveHeading,
+    undoPath,
     pauseSimulator
   }
 
