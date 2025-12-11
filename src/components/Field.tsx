@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { PointDriveSegment, type Coordinate, type Path } from "../core/Path";
+import { PointDriveSegment, type Coordinate, type Path, type Pose } from "../core/Path";
 import { FIELD_REAL_DIMENSIONS, toInch, toPX, toRad, vector2Add, vector2Subtract, type Rectangle } from "../core/Util";
 import { usePath } from "../hooks/usePath";
 import useFieldMacros from "../hooks/useFieldMacros";
@@ -213,6 +213,25 @@ export default function Field({
     return null;
   };
 
+  const interpolate = (currentPose: Pose, previousPose: Pose, percent: number): Coordinate | null => {
+    const x1 = previousPose.x;
+    const x2 = currentPose.x;
+    const y1 = previousPose.y;
+    const y2 = currentPose.y;
+    if (x1 === null || x2 === null || y1 === null || y2 === null) return null; 
+    if (percent < 0 && percent > 1) return null;
+
+    if (x1 === x2) {
+      return {x: x1, y: y1 + (y2 - y1) * percent}
+    }
+
+    const x = x1 + (x2 - x1) * percent;
+    const slope = (y2 - y1) / (x2 - x1);
+    const y = y1 + (x - x1) * slope
+
+    return { x: x, y: y };
+  }
+
   const controls = path.segments;
 
   const moveToPoints =
@@ -301,13 +320,46 @@ export default function Field({
           />
         }
         
+        {/* Command Points */}
+        <g>
+          {!pathVisible && path.segments.map((control, idx) => (
+            <g
+              key={control.id}
+            >
+              {control.visible && control.pose.x !== null && control.pose.y !== null && control.command.name !== "" && (() => {
+                const snapPose = getSnapPose(controls, idx - 1);
+                if (snapPose === null || snapPose.y === null || snapPose.x === null) return null;
+                
+                const posIn = interpolate(control.pose, snapPose, control.command.percent / 100);
+                if (posIn === null || posIn.y === null || posIn.x === null) return null;
+  
+                const posPx = toPX({x: posIn.x, y: posIn.y}, FIELD_REAL_DIMENSIONS, img);
+  
+                return (
+                  <circle
+                    fill="rgba(21, 102, 189, .75)"
+                    r={8}
+                    cx={posPx.x}
+                    cy={posPx.y}
+                  />
+                )
+  
+              })()
+              }
+            </g>
+          ))}
+        </g>
+
+
         {!pathVisible && path.segments.map((control, idx) => (
           <g 
             key={control.id}
             onPointerDown={(e) => handleControlPointerDown(e, control.id)}
           >
+
             {control.visible &&
             <>
+              {/* Render Drive Segments */}
               {control.pose.x !== null && control.pose.y !== null &&
                 <circle
                   className="stroke-[#1560BD]"
@@ -328,6 +380,7 @@ export default function Field({
                 />
               }
 
+              {/* Render Turn Segments */}
               {control.pose.angle !== null && (() => {
                 const snapPose = getSnapPose(controls, idx);
                 if (snapPose === null || snapPose.y === null || snapPose.x === null) return null;

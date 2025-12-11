@@ -35,7 +35,7 @@ export default function PathConfigHeader({isOpen, setOpen} : PathConfigHeaderPro
       return !eye
     });
   }
-
+  
   return (
     <div className="w-full flex flex-row items-center justify-between">
       <span className="block text-[20px]">
@@ -61,9 +61,15 @@ export default function PathConfigHeader({isOpen, setOpen} : PathConfigHeaderPro
 
           <button onClick={handleOpenOnClick}
           className="hover:bg-medgray_hover px-1 py-1 rounded-sm">
-            <img className={`w-[15px] h-[15px] rotate-${isOpen ? 180 : 0}`}
+            {
+            isOpen ? <img className={`w-[15px] h-[15px] rotate-180`}
+              src={downArrow}
+            /> :
+            <img className={`w-[15px] h-[15px] rotate-0`}
               src={downArrow}
             />
+
+            }
           </button>
 
           <img className="block w-[18px] h-[18px]"

@@ -24,7 +24,7 @@ function CommmandInput({
     }
 
     const executeInput = () => {
-        if (edit === null || edit === "") return;
+        if (edit === null || edit === "" || commands.find((c) => c.name === edit)) return;
         const finalEdit = edit.replace(/ /g, "_")
         SetValue(finalEdit);
 

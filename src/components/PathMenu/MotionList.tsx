@@ -105,8 +105,6 @@ export default function MotionList({name, segmentId, isOpenGlobal, defaultSpeed}
         return !locked
       })
     }
-    console.log(path)
-    // console.log(0)
 
     return (
         <div className="flex flex-col gap-2">

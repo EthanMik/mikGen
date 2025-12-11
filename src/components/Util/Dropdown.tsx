@@ -1,21 +1,35 @@
 import { useEffect, useRef, useState } from "react"
 import arrow from "../../assets/down-arrow.svg"
-import { type Command } from "../../core/Command";
+import { makeId } from "../../core/Util";
+
+export interface DropdownItem {
+    name: string,
+    id: string
+}
+
+function createDropDownItem(name: string): DropdownItem {
+    return {
+        name: name,
+        id: makeId(10)
+    }
+}
 
 type DropdownProps = {
     width: number,
     height: number,
-    text: string,
-    items: Command[]
-    setCommand: (command: Command) => void;
+    defaultText: string,
+    noneText: string,
+    items: DropdownItem[]
+    setSelectedItem: (item: DropdownItem) => void;
 }
 
 export default function Dropdown({
     height,
     width,
-    text,
+    defaultText,
+    noneText,
     items,
-    setCommand
+    setSelectedItem
 }: DropdownProps) {
     const [ isOpen, setOpen ] = useState(false);
     const [ selectedId, setSelectedId ] = useState("");
@@ -35,17 +49,25 @@ export default function Dropdown({
         }
     }, []);
 
+    useEffect(() => {
+        handleSelectedItem(selectedId, isOpen)
+    }, [items])
+
     const handleToggleMenu = () => {
         setOpen((prev) => !prev);
     }
 
-    const handleSelectedCommand = (id: string) => {
+    const handleSelectedItem = (id: string, open: boolean) => {
         setSelectedId(id);
         const command = items.find((c) => c.id === id);
-        if (!command) return;
-        setCommand(command);
+        setOpen(open);
+        if (!command) {
+            setSelectedItem(createDropDownItem(''));
+            return;
+        };
+        setSelectedItem(command);
     }
-    
+
     return (
         <div ref={menuRef} className={`relative ${isOpen ? "bg-medgray_hover" : "bg-none"} hover:bg-medgray_hover rounded-sm`}>
             <button 
@@ -66,7 +88,7 @@ export default function Dropdown({
                     height: `${height}px`
                 }}>
                 <span className="text-left">
-                    {items.find((c) => c.id === selectedId) === undefined ? text : items.find((c) => c.id === selectedId)?.name}
+                    {items.find((c) => c.id === selectedId) === undefined ? defaultText : items.find((c) => c.id === selectedId)?.name}
                 </span>
                 <img 
                     className={`rotate-${isOpen ? 180 : 0} w-[10px] h-[10px]`}
@@ -90,11 +112,18 @@ export default function Dropdown({
                         <div className="flex flex-col max-h-40 overflow-y-auto">
                             {items.map((c) => (
                                 <button 
-                                    onClick={() => handleSelectedCommand(c.id)}
+                                    key={c.id}
+                                    onClick={() => handleSelectedItem(c.id, true)}
                                     className="flex hover:bg-blackgrayhover pl-2 rounded-sm cursor-pointer">
                                     <span className="text-[16px]">{c.name}</span>
                                 </button>
                             ))}
+                            <button 
+                                onClick={() => handleSelectedItem("", false)}
+                                className="flex hover:bg-blackgrayhover mt-1 pl-2 rounded-sm cursor-pointer text-lightgray">
+                                <span className="text-[16px]">{noneText}</span>
+                            </button>
+
                         </div>
         
                     </div>

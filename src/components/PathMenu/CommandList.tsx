@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
-import Dropdown from "../Util/DropDown";
+import { useEffect, useState } from "react";
 import Slider from "../Util/Slider";
 import { useCommand } from "../../hooks/useCommands";
-import { createCommand, type Command } from "../../core/Command";
+import { type Command } from "../../core/Command";
+import { makeId } from "../../core/Util";
+import type { DropdownItem } from "../Util/Dropdown";
+import Dropdown from "../Util/Dropdown";
 
 type CommandListProps = {
     command: Command;
@@ -15,15 +17,43 @@ export default function CommandList({
     const [ value, setValue ] = useState(0);
     const [ commands, setCommands ] = useCommand();
 
-    useEffect(() => (
+    const [ item, setItem ] = useState<DropdownItem>({name: "", id: makeId(10)})
+
+    useEffect(() => {
+        if (item.name === "") return;
         setCommand(prev => ({
-            ...prev, percent: value
-        }))
-    ), [value])
+            ...prev, 
+            percent: item.name === "" ? 0 : value,
+            name: item.name
+        }));
+
+    }, [item, value, commands.length])
+
+    // useEffect(() => {
+    // if (item.name === "") return;
+
+    // const timeoutId = setTimeout(() => {
+    //     setCommand(prev => ({
+    //     ...prev,
+    //     percent: value,
+    //     name: item.name,
+    //     }));
+    // }, 300); // run 300ms after value stops changing
+
+    // return () => clearTimeout(timeoutId); // cancel if value changes again
+    // }, [item.name, value]);
 
     return (
         <div className="flex flex-row items-center gap-4">
-            <Dropdown width={180} height={35} items={commands} setCommand={setCommand} text="Add Command..."/>
+            <Dropdown 
+                width={180} 
+                height={35} 
+                items={commands}
+                setSelectedItem={setItem} 
+                defaultText="Add Command..."
+                noneText="No Command..."
+            />
+                
             <Slider 
                 sliderWidth={150}
                 sliderHeight={5}

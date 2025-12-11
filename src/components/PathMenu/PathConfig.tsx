@@ -2,7 +2,7 @@ import { useState } from "react";
 import { usePath } from "../../hooks/usePath";
 import MotionList from "./MotionList";
 import PathConfigHeader from "./PathHeader";
-import { kOdomDrivePID, kOdomTurnPID, kturnPID } from "../../core/mikLibSim/Constants";
+import { kOdomDrivePID, kturnPID } from "../../core/mikLibSim/Constants";
 
 export default function PathConfig() {
   const [ path, setPath ] = usePath();
