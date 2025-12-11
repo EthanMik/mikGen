@@ -1,18 +1,15 @@
 import type React from "react";
 import { calculateHeading, clamp, normalizeDeg } from "../core/Util";
 import type { Path, Segment } from "../core/Path";
-import { usePath } from "./usePath";
 
-export default function useFieldMacros() {
-  const [ path, setPath ] = usePath();
-
-  
+export default function useMacros() {
   const MIN_FIELD_X = -100;
   const MIN_FIELD_Y = -100;
   const MAX_FIELD_X = 100;
   const MAX_FIELD_Y = 100;
   
-  function moveControl(evt: React.KeyboardEvent<HTMLDivElement>) {
+  /** Using keys "←↑↓→" and "Shift + ←↑↓→" to move segments  */
+  function moveControl(evt: KeyboardEvent, setPath: React.Dispatch<React.SetStateAction<Path>>) {
     const BASE_POS_STEP = 0.25;
     const FAST_POS_STEP = 1;
 
@@ -47,7 +44,8 @@ export default function useFieldMacros() {
     }));
   }
 
-  function moveHeading(evt: React.KeyboardEvent<HTMLDivElement>) {
+  /** Using keys "WASD" and "Shift + WASD" to move angle of segment  */
+  function moveHeading(evt: KeyboardEvent, setPath: React.Dispatch<React.SetStateAction<Path>>) {
     const BASE_HEADING_STEP = 5;
     const FAST_HEADING_STEP = 10;
 
@@ -104,27 +102,35 @@ export default function useFieldMacros() {
     }));    
   }
   
-  function selectControl() {
-  
+  function unselectPath(evt: KeyboardEvent, setPath: React.Dispatch<React.SetStateAction<Path>>) {
+    
   }
 
-  function deleteControl(evt: React.KeyboardEvent<HTMLDivElement>) {
+  /** Using keys "Backspace" and "Delete" to remove segments */
+  function deleteControl(evt: KeyboardEvent, setPath: React.Dispatch<React.SetStateAction<Path>>) {
     if (evt.key === "Backspace" || evt.key === "Delete") {
-        const next: Path = {
+        setPath(prev => ({
           segments:
-            path.segments.filter((c) => !c.selected || c.locked)
-        }
+            prev.segments.filter((c) => !c.selected || c.locked)
+        }));
+    }
+  }
 
-      setPath(next);
+  /** Using key "P" to start and stop simulator */
+  const pauseSimulator = (evt: KeyboardEvent, setPlaying: React.Dispatch<React.SetStateAction<boolean>>) => {
+    if (evt.key.toLowerCase() === "p") {
+      setPlaying(v => !v)
+      evt.stopPropagation();
     }
   }
   
 
   return {
     moveControl,
-    selectControl,
+    unselectPath,
     deleteControl,
     moveHeading,
+    pauseSimulator
   }
 
 }

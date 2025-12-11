@@ -2,11 +2,11 @@ import React, { useEffect, useRef, useState } from "react";
 import { PointDriveSegment, type Coordinate, type Path, type Pose } from "../core/Path";
 import { FIELD_REAL_DIMENSIONS, toInch, toPX, toRad, vector2Add, vector2Subtract, type Rectangle } from "../core/Util";
 import { usePath } from "../hooks/usePath";
-import useFieldMacros from "../hooks/useFieldMacros";
 import RobotView from "./Util/RobotView";
 import { usePose } from "../hooks/usePose";
 import { useRobotVisibility } from "../hooks/useRobotVisibility";
 import { usePathVisibility } from "./usePathVisibility";
+import useMacros from "../hooks/useMacros";
 
 type FieldProps = {
   src: string;
@@ -35,15 +35,27 @@ export default function Field({
   const { moveControl, 
           moveHeading,
           deleteControl,
-  } = useFieldMacros();
+  } = useMacros();
+
+  useEffect(() => {
+      const handleKeyDown = (evt: KeyboardEvent) => {
+          const target = evt.target as HTMLElement | null;
+          if (target?.isContentEditable || target?.tagName === "INPUT") return;
+          moveControl(evt, setPath);
+          moveHeading(evt, setPath);
+          deleteControl(evt, setPath);
+      }
+
+      document.addEventListener('keydown', handleKeyDown)
+
+      return () => {
+          document.removeEventListener('keydown', handleKeyDown)
+      }
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("path", JSON.stringify(path));
   }, [path])
-
-  useEffect(() => {
-    wrapperRef.current?.focus();
-  }, [path]);
 
   useEffect(() => {
     const handleKeyDown = (evt: KeyboardEvent) => {
@@ -60,11 +72,6 @@ export default function Field({
       
   }, []);
 
-  const handleKeyDown = (evt: React.KeyboardEvent<HTMLDivElement>) => {
-    deleteControl(evt);
-    moveControl(evt);
-    moveHeading(evt);
-  }
   
   const handlePointerMove = (evt: React.PointerEvent<SVGSVGElement>) => {
     if (!drag?.dragging) return
@@ -277,7 +284,6 @@ export default function Field({
     <div
       ref={wrapperRef}
       tabIndex={0}
-      onKeyDown={handleKeyDown}
       onMouseLeave={endDrag}
     >
       <svg

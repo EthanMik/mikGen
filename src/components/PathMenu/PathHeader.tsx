@@ -8,6 +8,7 @@ import { convertPath } from "../../core/PathConversion";
 import { usePathVisibility } from "../usePathVisibility";
 import { mikLibFormat } from "../../formats/mikLibFormat";
 import { usePath } from "../../hooks/usePath";
+import AddSegmentButton from "./AddSegmentButton";
 
 type PathConfigHeaderProps = {
   isOpen: boolean,
@@ -71,10 +72,9 @@ export default function PathConfigHeader({isOpen, setOpen} : PathConfigHeaderPro
 
             }
           </button>
-
-          <img className="block w-[18px] h-[18px]"
-            src={plus}
-          />
+          
+          <AddSegmentButton/>
+        
         </div>
     </div>
   );

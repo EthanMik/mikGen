@@ -72,8 +72,8 @@ export default function Dropdown({
         <div ref={menuRef} className={`relative ${isOpen ? "bg-medgray_hover" : "bg-none"} hover:bg-medgray_hover rounded-sm`}>
             <button 
                 onClick={handleToggleMenu}
-                className="
-                    bg-medlightgray
+                className={`
+                    ${isOpen ? "bg-medgray_hover" : "bg-medlightgray"}
                     flex
                     justify-between
                     pl-2
@@ -82,7 +82,7 @@ export default function Dropdown({
                     items-center
                     rounded-sm 
                     cursor-pointer
-                "
+                `}
                 style={{
                     width: `${width}px`,
                     height: `${height}px`

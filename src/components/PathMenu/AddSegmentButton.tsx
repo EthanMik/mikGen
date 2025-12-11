@@ -1,0 +1,88 @@
+import { useEffect, useRef, useState } from "react";
+import plus from "../../assets/plus.svg"
+
+export default function AddSegmentButton() {
+    const [ isOpen, setOpen ] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    
+    const handleToggleMenu = () => {
+        setOpen((prev) => !prev)
+    }
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setOpen(false);
+            }
+        }
+
+        document.addEventListener("mousedown", handleClickOutside)
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside)
+        }
+    }, []);
+
+    return (
+        <div ref={menuRef} className={`relative ${isOpen ? "bg-medgray_hover" : "bg-none"} hover:bg-medgray_hover rounded-sm`}>
+
+            <button onClick={handleToggleMenu} className="px-1 py-1 cursor-pointer">
+                <img className="block w-[18px] h-[18px] hover:bg-medgray_hover"
+                    src={plus}
+                />
+            </button>
+
+            {isOpen && (
+                <div className="absolute shadow-xs mt-1 shadow-black right-0 top-full w-40 z-40
+                    rounded-sm bg-medgray_hover min-h-2">
+                    <div className="flex flex-col mt-2 pl-2 pr-2 mb-2 gap-2">
+                        <div className="flex flex-col">
+
+                            {/* Drive Segments */}
+                            <div className="flex pl-2 mt-1 py-0.5 mb-1 bg-medgray rounded-sm">
+                                <span className="text-[18px]">Drive Segment:</span>
+                            </div>
+
+                            {/* <button className="flex pr-1 pl-2 py-0.5 justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
+                                <span className="text-[18px]">Distance</span>
+                                <span className="text-lightgray text-[16px]">ctrl+1</span>
+                            </button> */}
+
+                            <button className="flex pr-1 pl-2 py-0.5 justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
+                                <span className="text-[18px]">Point</span>
+                                <span className="text-lightgray text-[16px]">ctrl+1</span>
+                            </button>
+
+                            <button className="flex pr-1 pl-2 py-0.5 justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
+                                <span className="text-[18px]">Pose</span>
+                                <span className="text-lightgray text-[16px]">ctrl+2</span>
+                            </button>
+
+                            {/* <button className="flex pr-1 pl-2 py-0.5 justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
+                                <span className="text-[18px]">Path</span>
+                                <span className="text-lightgray text-[16px]">ctrl+4</span>
+                            </button> */}
+
+                            {/* Turn Segments */}
+                            <div className="flex pl-2 py-0.5 mt-2 mb-1 bg-medgray rounded-sm">
+                                <span className="text-[18px]">Turn Segment:</span>
+                            </div>
+
+                            <button className="flex pr-1 py-0.5 pl-2 justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
+                                <span className="text-[18px]">Angle</span>
+                                <span className="text-lightgray text-[16px]">ctrl+3</span>
+                            </button>
+
+                            <button className="flex pr-1 py-0.5 pl-2 justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
+                                <span className="text-[18px]">Point</span>
+                                <span className="text-lightgray text-[16px]">ctrl+4</span>
+                            </button>
+                        </div>
+        
+                    </div>
+                </div>
+            )}
+        </div>
+    )
+}

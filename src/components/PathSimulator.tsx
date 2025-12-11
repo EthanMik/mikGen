@@ -10,6 +10,7 @@ import Checkbox from "./Util/Checkbox";
 import { convertPathtoSim } from "../core/PathConversion";
 import Slider from "./Util/Slider";
 import { usePath } from "../hooks/usePath";
+import useMacros from "../hooks/useMacros";
 
 function createRobot(): Robot {
     return new Robot(
@@ -34,6 +35,7 @@ export default function PathSimulator() {
     const [playing, setPlaying] = useState<boolean>(false);
     const [robotVisible, setRobotVisibility] = useRobotVisibility();
     const [ path, setPath ] = usePath();
+    const { pauseSimulator } = useMacros();
 
     useEffect(() => {
         computedPath = precomputePath(createRobot(), convertPathtoSim(path));
@@ -42,17 +44,16 @@ export default function PathSimulator() {
 
     useEffect(() => {
         const handleKeyDown = (evt: KeyboardEvent) => {
-        if (evt.key.toLowerCase() === "p") {
-            setPlaying(v => !v)
-            evt.stopPropagation();
+            const target = evt.target as HTMLElement | null;
+            if (target?.isContentEditable || target?.tagName === "INPUT") return;
+            pauseSimulator(evt, setPlaying)
         }
-        }
-        
-        document.addEventListener('keydown', handleKeyDown);
+
+        document.addEventListener('keydown', handleKeyDown)
+
         return () => {
-            document.removeEventListener('keydown', handleKeyDown);
-        };
-        
+            document.removeEventListener('keydown', handleKeyDown)
+        }
     }, []);
 
     const setPathPercent = (path: PathSim, percent: number) => {
