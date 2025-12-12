@@ -92,7 +92,6 @@ function posesEqual(a: Pose, b: Pose): boolean {
 
 function commandsEqual(a: Command, b: Command): boolean {
   return (
-    a.id === b.id &&
     a.name === b.name &&
     a.percent === b.percent
   );

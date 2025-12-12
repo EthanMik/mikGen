@@ -7,6 +7,7 @@ import { usePose } from "../hooks/usePose";
 import { useRobotVisibility } from "../hooks/useRobotVisibility";
 import { usePathVisibility } from "./usePathVisibility";
 import useMacros from "../hooks/useMacros";
+import { precomputePath } from "../core/PathSim";
 
 type FieldProps = {
   src: string;
@@ -23,38 +24,47 @@ export default function Field({
   const svgRef = useRef<SVGSVGElement | null>(null); 
 
   const [ path, setPath ] = usePath();
-  const [ pathStorage, setPathStorage ] = useState<Path[]>([]);
+
+  const pathStorageRef = useRef<Path[]>([]);
+  const prevPathStorageLen = useRef<number>(0);
   const prevPath = useRef<Path>(path);
 
-  const [pose, setPose] = usePose();
+  const [ pose, setPose] = usePose();
   const [ robotVisible, setRobotVisibility ] = useRobotVisibility();
   const [ pathVisible, setPathVisibility] = usePathVisibility();
 
   type dragProps = { dragging: boolean, lastPos: Coordinate }
   const [drag, setDrag] = useState<dragProps>({dragging: false, lastPos: {x: 0, y: 0}});
+  const startDrag = useRef(false);
   
-  useEffect(() => {
-    prevPath.current = path;
-  }, [path])
-
-  const pathChanged = (): boolean => {
-    const size = prevPath.current.segments.length !== path.segments.length;
-    if (size) return true;
+  const pathChanged = (): boolean => {    
+    if (prevPath.current.segments.length !== path.segments.length) return true;
 
     for (let i = 0; i < path.segments.length; i++) {
       const seg1 = path.segments[i];
       const seg2 = prevPath.current.segments[i];
-
+      
       if (!segmentsEqual(seg1, seg2)) {
         return true;
       }
-
+      
     }
-
     return false
   }
   
+  useEffect(() => {
+    if ((prevPathStorageLen.current <= pathStorageRef.current.length)) {
+      const changed = pathChanged();
+      if (changed && !drag.dragging || startDrag.current && changed) {
+        startDrag.current = false;
+        pathStorageRef.current = [...pathStorageRef.current, prevPath.current];
+      }
+    }
+    
+    prevPath.current = path;
+    prevPathStorageLen.current = pathStorageRef.current.length
 
+  }, [path, drag.dragging])
 
   const { moveControl, 
           moveHeading,
@@ -73,7 +83,7 @@ export default function Field({
           moveHeading(evt, setPath);
           deleteControl(evt, setPath);
           selectPath(evt, setPath);
-          undoPath(evt, setPathStorage);
+          undoPath(evt, pathStorageRef, setPath);
       }
 
       document.addEventListener('keydown', handleKeyDown)
@@ -193,6 +203,7 @@ export default function Field({
       selectSegment(controlId, evt.shiftKey);
     }
 
+    startDrag.current = true;
     setDrag({ dragging: true, lastPos: posPx });  
   }
 

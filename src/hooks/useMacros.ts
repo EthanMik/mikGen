@@ -134,24 +134,21 @@ export default function useMacros() {
     if (evt.key === "Backspace" || evt.key === "Delete") {
         setPath(prev => ({
           segments:
-            prev.segments.filter((c) => !c.selected || c.locked)
+            prev.segments.filter(c => !c.selected || c.locked)
         }));
     }
   }
 
-  function undoPath(evt: KeyboardEvent, setPathStorage: React.Dispatch<React.SetStateAction<Path[]>>) {
+  function undoPath(evt: KeyboardEvent, pathStorageRef: React.RefObject<Path[]>, setPath: React.Dispatch<React.SetStateAction<Path>>) {
     if (evt.ctrlKey && evt.key.toLowerCase() === "z") {
+      const storage = pathStorageRef.current;
 
-      let lastpath: Path | undefined;
+      if (!storage.length) return;
 
-      setPathStorage(prev => {
-        // if (prev.length === 0) return prev;
-        
-        const newStorage = [ ...prev ];
-        lastpath = newStorage.pop();
-        console.log("Last Path", lastpath);
-        return newStorage;
-      });
+      const last = storage[storage.length - 1];
+      pathStorageRef.current.pop();
+
+      setPath(last)
     }
   }
 
