@@ -2,11 +2,12 @@ Todo List:
 
 - Add Path constants changing, speed and lib specific constants
 - Add file saving, loading unloading 
-- Add Robot UI, width height accel deccel trackwidth
+- ~~Add Robot UI, width height accel deccel trackwidth~~
 - Fix path conversion and make a animation, also make it so if will only copy selected segments
 - add ez reveilib rw lemlib jar mik vexide drive motions
 - link drive motions with formats
-- Add undo/redo
+- Fix undo/redo
+- Add copy and paste
 - Fix path mirroring
 - Fix WASD
 - Add macro for quick scrubbing path sim
