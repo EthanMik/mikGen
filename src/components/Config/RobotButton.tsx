@@ -2,11 +2,13 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import UserInput from "../Util/UserInput";
 import { clamp } from "../../core/Util";
 import { robotConstants, robotConstantsStore } from "../../core/Robot";
+import Checkbox from "../Util/Checkbox";
 
 export default function RobotButton() {
     const [ isOpen, setOpen ] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
     const robot =  useSyncExternalStore(robotConstantsStore.subscribe, robotConstantsStore.get);
+    const [ holonomic, setHolonomic ] = useState(false);
 
     const updateWidth = (width: number | null) => {
         if (width !== null) robotConstantsStore.set({ width: width });   
@@ -70,7 +72,6 @@ export default function RobotButton() {
                     rounded-sm bg-medgray_hover min-h-2">
                     <div className="flex flex-col mt-2 pl-3 pr-3 mb-2 gap-2">
                         <div className="flex flex-col gap-2">
-
                             <div className="flex flex-row items-center justify-between">
                                 <span className="text-[16px]">Width:</span>
                                 <div className="w-25">
@@ -131,6 +132,15 @@ export default function RobotButton() {
                                 </div>
                             </div>
 
+                            <div className="mt-0.5 pt-2 border-t border-gray-500/40 flex flex-row items-center justify-between h-[35px]">
+                            <span className="text-[16px]">Holonomic:</span>
+
+                            <div className="w-25 flex items-center justify-end">
+                                <label className="flex items-center gap-2 cursor-pointer select-none">
+                                <Checkbox checked={holonomic} setChecked={setHolonomic} />
+                                </label>
+                            </div>
+                            </div>
 
                         </div>
         
