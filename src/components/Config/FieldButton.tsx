@@ -55,19 +55,20 @@ export default function FieldButton() {
             {isOpen && (
                 <div className="absolute shadow-xs mt-1 shadow-black left-0 top-full w-60
                     rounded-sm bg-medgray_hover min-h-2">
-                    <div className="flex flex-col mt-2 pl-2 pr-2 mb-2 gap-2">
-                        <div className="flex flex-col max-h-40 overflow-y-auto">
-                            {fields.map((c) => (
-                                <button 
-                                    className="flex pl-2 hover:bg-blackgrayhover cursor-pointer rounded-sm"
-                                    onClick={() => handleOnClick(c.src)}
-                                >
-                                    <span className="text-[16px]">{c.name}</span>
-                                </button>
-                            ))}
-                        </div>
-        
+
+                    <div className="
+                        mt-2 pl-2 pr-2 mb-2 gap-2
+                        flex flex-col max-h-40 overflow-y-auto">
+                        {fields.map((c) => (
+                            <button 
+                                className="flex pl-2 hover:bg-blackgrayhover cursor-pointer rounded-sm"
+                                onClick={() => handleOnClick(c.src)}
+                            >
+                                <span className="text-[16px]">{c.name}</span>
+                            </button>
+                        ))}
                     </div>
+        
                 </div>
             )}
         </div>
