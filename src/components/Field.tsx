@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPointDriveSegment, segmentsEqual, type Coordinate, type Path, type Pose } from "../core/Path";
 import { FIELD_REAL_DIMENSIONS, toInch, toPX, toRad, vector2Add, vector2Subtract, type Rectangle } from "../core/Util";
 import { usePath } from "../hooks/usePath";
@@ -7,7 +7,7 @@ import { usePose } from "../hooks/usePose";
 import { useRobotVisibility } from "../hooks/useRobotVisibility";
 import { usePathVisibility } from "./usePathVisibility";
 import useMacros from "../hooks/useMacros";
-import { precomputePath } from "../core/PathSim";
+import { robotConstants, robotConstantsStore } from "../core/Robot";
 
 type FieldProps = {
   src: string;
@@ -26,10 +26,14 @@ export default function Field({
   const [ path, setPath ] = usePath();
 
   const pathStorageRef = useRef<Path[]>([]);
+  const pathStoragePtr = useRef<number>(0);
+  const undo = useRef(false);
+
   const prevPathStorageLen = useRef<number>(0);
   const prevPath = useRef<Path>(path);
 
   const [ pose, setPose] = usePose();
+  const robot = useSyncExternalStore(robotConstantsStore.subscribe, robotConstantsStore.get);
   const [ robotVisible, setRobotVisibility ] = useRobotVisibility();
   const [ pathVisible, setPathVisibility] = usePathVisibility();
 
@@ -37,6 +41,7 @@ export default function Field({
   const [drag, setDrag] = useState<dragProps>({dragging: false, lastPos: {x: 0, y: 0}});
   const startDrag = useRef(false);
   
+  // Detect for a redo event
   const pathChanged = (): boolean => {    
     if (prevPath.current.segments.length !== path.segments.length) return true;
 
@@ -52,26 +57,43 @@ export default function Field({
     return false
   }
   
+  // Execute undo/redo events
   useEffect(() => {
-    if ((prevPathStorageLen.current <= pathStorageRef.current.length)) {
-      const changed = pathChanged();
-      if (changed && !drag.dragging || startDrag.current && changed) {
-        startDrag.current = false;
-        pathStorageRef.current = [...pathStorageRef.current, prevPath.current];
-      }
+    const changed = pathChanged();
+
+    if (undo.current) {
+      undo.current = false;
+      prevPath.current = path;
+      return;
+    }
+
+    if (changed && pathStoragePtr.current < pathStorageRef.current.length - 1) {
+      pathStorageRef.current = pathStorageRef.current.slice(0, pathStoragePtr.current + 1);
     }
     
-    prevPath.current = path;
-    prevPathStorageLen.current = pathStorageRef.current.length
+    if (changed && (!drag.dragging || startDrag.current)) {
+      startDrag.current = false;
 
-  }, [path, drag.dragging])
+      pathStorageRef.current = [...pathStorageRef.current.slice(0, pathStorageRef.current.length - 1), 
+        prevPath.current, path];
+
+      pathStoragePtr.current = pathStorageRef.current.length - 1;
+    }
+
+    prevPath.current = path;
+    prevPathStorageLen.current = pathStorageRef.current.length;
+
+  }, [path, drag.dragging]);
 
   const { moveControl, 
           moveHeading,
           deleteControl,
           unselectPath,
           selectPath,
-          undoPath
+          selectInversePath,
+          undoPath,
+          redoPath,
+          toggleRobotVisibility
   } = useMacros();
 
   useEffect(() => {
@@ -83,7 +105,10 @@ export default function Field({
           moveHeading(evt, setPath);
           deleteControl(evt, setPath);
           selectPath(evt, setPath);
-          undoPath(evt, pathStorageRef, setPath);
+          selectInversePath(evt, setPath);
+          undoPath(evt, undo, pathStorageRef, pathStoragePtr, setPath);
+          redoPath(evt, undo, pathStorageRef, pathStoragePtr, setPath);
+          toggleRobotVisibility(evt, setRobotVisibility);
       }
 
       document.addEventListener('keydown', handleKeyDown)
@@ -96,21 +121,6 @@ export default function Field({
   useEffect(() => {
     localStorage.setItem("path", JSON.stringify(path));
   }, [path])
-
-  useEffect(() => {
-    const handleKeyDown = (evt: KeyboardEvent) => {
-      if (evt.key.toLowerCase() === "r") {
-        setRobotVisibility(v => !v)
-        evt.stopPropagation();
-      }
-    }
-    
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-      
-  }, []);
 
   
   const handlePointerMove = (evt: React.PointerEvent<SVGSVGElement>) => {
@@ -361,8 +371,8 @@ export default function Field({
               x={pose.x}
               y={pose.y}
               angle={pose.angle}
-              width={14}
-              height={14}
+              width={robot.width}
+              height={robot.height}
           />
         }
         

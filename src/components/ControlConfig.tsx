@@ -1,93 +1,8 @@
-import { useEffect, useState } from "react";
 import flipHorizontal from "../assets/flip-horizontal.svg";
 import flipVertical from "../assets/flip-vertical.svg";
 import { normalizeDeg } from "../core/Util";
 import { usePath } from "../hooks/usePath";
-
-type ControlInputProps = {
-    getValue?: () => number | null | undefined;
-    updateValue?: (value: number) => void;
-    clampTo?: (value: number) => number;
-}
-
-function ControlInput({
-    getValue,
-    updateValue,
-    clampTo,
-}: ControlInputProps) {
-    const [ path, setPath ] = usePath();
-
-    const [ value, SetValue ] = useState<number>(0);
-    const [ edit, setEdit ] = useState<string | null>(null);
-
-    const display: string = edit !== null ? edit : value.toFixed(2);
-
-    const resetValue = () => {
-        const val: number | null | undefined = getValue?.();
-        const num = val === undefined || val === null ? "" : val.toFixed(2); 
-
-        setEdit(num);
-    }
-
-    useEffect(() => {
-        resetValue();
-
-    }, [path.segments])
-
-    const executeValue = () => {
-        if (edit === null) return;
-
-        const num: number = parseFloat(edit);
-        if (!Number.isFinite(num)) return;
-
-        const selectedControls = path.segments.filter(c => c.selected);
-        if (selectedControls.length > 1) {
-            resetValue();
-            return;
-
-        } 
-
-        const clampNum = clampTo?.(num);
-        if (clampNum === undefined) return;
-        updateValue?.(clampNum);
-
-        SetValue(num);
-
-    }
-
-    const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
-        setEdit(evt.target.value)
-    }
-
-    const handleKeyDown = (evt: React.KeyboardEvent<HTMLInputElement>) => {        
-        if (evt.key === "Enter") {
-            executeValue()
-            evt.currentTarget.blur();
-        }
-    }
-
-    const handleBlur = (evt: React.FocusEvent<HTMLInputElement>) => {
-        executeValue()
-        evt.currentTarget.blur();
-    }
-
-    return (
-        <input 
-            className="bg-blackgray w-[80px] h-[40px]
-            outline-2 outline-transparent rounded-lg text-center text-white
-            hover:outline-lightgray
-            "
-            
-            style={{fontSize: '18px'}}
-            type="text"
-            value={ display }
-
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-            onBlur={handleBlur}
-        />
-    );
-}
+import NumberInput from "./Util/UserInput";
 
 type MirrorDirection = "x" | "y";
 
@@ -148,29 +63,25 @@ function MirrorControl({
 export default function ControlConfig() {
     const [ path, setPath ] = usePath(); 
 
-    const clampToField = (value: number) => {
-        return Math.min(Math.max(value, -100), 100);
-    }
-
-    const getXValue = () => {
+    const getXValue = (): number | null => {
         const x: number | null | undefined = path.segments.find(c => c.selected)?.pose.x;
-        if (x === null) return null;
+        if (x === null || x === undefined) return null;
         return x
     }
 
-    const getYValue = () => {
+    const getYValue = (): number | null => {
         const y: number | null | undefined = path.segments.find(c => c.selected)?.pose.y;
-        if (y === null) return null;
+        if (y === null || y === undefined) return null;
         return y
     }
 
-    const getHeadingValue = () => {
+    const getHeadingValue = (): number | null => {
         const heading: number | null | undefined = path.segments.find(c => c.selected)?.pose.angle;
-        if (heading === null) return null;
+        if (heading === null || heading === undefined) return null;
         return heading;
     }
 
-    const updateXValue = (newX: number) => {
+    const updateXValue = (newX: number | null) => {
         setPath(prev => ({
                     ...prev,
                     segments: prev.segments.map(control =>
@@ -181,7 +92,7 @@ export default function ControlConfig() {
                 }));
     }
 
-    const updateYValue = (newY: number) => {
+    const updateYValue = (newY: number | null) => {
         setPath(prev => ({
                     ...prev,
                     segments: prev.segments.map(control =>
@@ -192,7 +103,9 @@ export default function ControlConfig() {
                 }));
     }
 
-    const updateHeadingValue = (newHeading: number) => {
+    const updateHeadingValue = (newHeading: number | null) => {
+        if (!newHeading) return;
+        newHeading = normalizeDeg(newHeading);
         setPath(prev => ({
                     ...prev,
                     segments: prev.segments.map(control =>
@@ -206,12 +119,33 @@ export default function ControlConfig() {
     return (
         <div className="flex flex-row items-center justify-center gap-[10px] bg-medgray w-[500px] h-[65px] rounded-lg">
             <span style={{ fontSize: 20 }}>X:</span>
-            <ControlInput updateValue={updateXValue} getValue={getXValue} clampTo={clampToField}/>
+            <NumberInput 
+                width={80}
+                height={40}
+                fontSize={18}
+                setValue={updateXValue} 
+                value={getXValue()}
+                bounds={[-100, 100]}
+            />
             <span style={{ fontSize: 20 }}>Y:</span>
-            <ControlInput updateValue={updateYValue} getValue={getYValue} clampTo={clampToField}/>
+            <NumberInput 
+                width={80}
+                height={40}
+                fontSize={18}
+                setValue={updateYValue} 
+                value={getYValue()} 
+                bounds={[-100, 100]}
+            />
             <span style={{ fontSize: 20 }}>θ:</span>
             <div className="flex items-center flex-row gap-[15px]">
-                <ControlInput updateValue={updateHeadingValue} getValue={getHeadingValue} clampTo={normalizeDeg}/>
+                <NumberInput 
+                    width={80}
+                    height={40}
+                    fontSize={18}
+                    setValue={updateHeadingValue} 
+                    value={getHeadingValue()} 
+                    bounds={[-Infinity, Infinity]}
+                />
                 <MirrorControl mirrorDirection="x" src={flipHorizontal}/>
                 <MirrorControl mirrorDirection="y" src={flipVertical}/>
             </div>

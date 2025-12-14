@@ -1,7 +1,7 @@
 import type React from "react";
 import { calculateHeading, clamp, normalizeDeg } from "../core/Util";
 import { createPoseDriveSegment, type Path, type Segment } from "../core/Path";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type SetStateAction } from "react";
 
 export default function useMacros() {
   const MIN_FIELD_X = -100;
@@ -117,13 +117,26 @@ export default function useMacros() {
 
   /** Using keys "ctrl + a" to select whole path */
   function selectPath(evt: KeyboardEvent, setPath: React.Dispatch<React.SetStateAction<Path>>) {
-    if (evt.ctrlKey && evt.key.toLowerCase() === "a") {
+    if (!evt.shiftKey && evt.ctrlKey && evt.key.toLowerCase() === "a") {
       evt.preventDefault();
       setPath((prevSegment) => ({
         ...prevSegment,
         segments: prevSegment.segments.map((c) => ({
           ...c,
           selected: true,
+        })),
+      }));   
+    }
+  }
+
+  function selectInversePath(evt: KeyboardEvent, setPath: React.Dispatch<React.SetStateAction<Path>>) {
+    if (evt.shiftKey && evt.ctrlKey && evt.key.toLowerCase() === "a") {
+      evt.preventDefault();
+      setPath((prevSegment) => ({
+        ...prevSegment,
+        segments: prevSegment.segments.map((c) => ({
+          ...c,
+          selected: !c.selected,
         })),
       }));   
     }
@@ -139,16 +152,52 @@ export default function useMacros() {
     }
   }
 
-  function undoPath(evt: KeyboardEvent, pathStorageRef: React.RefObject<Path[]>, setPath: React.Dispatch<React.SetStateAction<Path>>) {
+  function undoPath(evt: KeyboardEvent, 
+    undo: React.RefObject<boolean>,
+    pathStorageRef: React.RefObject<Path[]>,
+    pathStoragePtr: React.RefObject<number>,
+    setPath: React.Dispatch<React.SetStateAction<Path>>
+  ) {
     if (evt.ctrlKey && evt.key.toLowerCase() === "z") {
       const storage = pathStorageRef.current;
+      const ptr = pathStoragePtr.current
+      
+      if (!storage.length || storage.length <= 0 || ptr > storage.length || ptr <= 0) return;
 
-      if (!storage.length) return;
+      undo.current = true;
 
-      const last = storage[storage.length - 1];
-      pathStorageRef.current.pop();
+      const last = storage[ptr - 1];
+      pathStoragePtr.current = ptr - 1;
 
       setPath(last)
+    }
+  }
+
+  function redoPath(evt: KeyboardEvent, 
+    undo: React.RefObject<boolean>,
+    pathStorageRef: React.RefObject<Path[]>,
+    pathStoragePtr: React.RefObject<number>,
+    setPath: React.Dispatch<React.SetStateAction<Path>>
+  ) {
+    if (evt.ctrlKey && evt.key.toLowerCase() === "y") {
+      const storage = pathStorageRef.current;
+      const ptr = pathStoragePtr.current
+      
+      if (!storage.length || storage.length <= 0 || ptr >= storage.length - 1 || ptr < 0) return;
+
+      undo.current = true; 
+      
+      const last = storage[ptr + 1];
+      pathStoragePtr.current = ptr + 1
+
+      setPath(last)
+    }
+  }
+
+  function toggleRobotVisibility(evt: KeyboardEvent, setVisibility: React.Dispatch<SetStateAction<boolean>>) {
+    if (evt.key.toLowerCase() === "r") {
+      setVisibility(v => !v)
+      evt.stopPropagation();
     }
   }
 
@@ -164,9 +213,12 @@ export default function useMacros() {
     moveControl,
     unselectPath,
     selectPath,
+    selectInversePath,
     deleteControl,
     moveHeading,
     undoPath,
+    redoPath,
+    toggleRobotVisibility,
     pauseSimulator
   }
 

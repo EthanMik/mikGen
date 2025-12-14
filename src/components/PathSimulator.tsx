@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import play from "../assets/play.svg";
 import pause from "../assets/pause.svg";
-import { Robot } from "../core/Robot";
+import { Robot, robotConstants, robotConstantsStore } from "../core/Robot";
 import { precomputePath, type PathSim } from "../core/PathSim";
 import { usePose } from "../hooks/usePose";
 import { clamp } from "../core/Util";
@@ -13,16 +13,18 @@ import { usePath } from "../hooks/usePath";
 import useMacros from "../hooks/useMacros";
 
 function createRobot(): Robot {
+    const { width, height, speed, accel } = robotConstantsStore.get();
+
     return new Robot(
         0, // Start x
         0, // Start y
         0, // Start angle
-        14, // Width (inches)
-        14, // Height (inches)
-        6, // Speed (ft/s)
-        16,  // Track Radius (inches)
-        15, // Max Accel (ft/s^2)
-        18 // Max Decel (ft/s^2)
+        width, // Width (inches)
+        height, // Height (inches)
+        speed, // Speed (ft/s)
+        width,  // Track Width (inches)
+        accel, // Max Accel (ft/s^2)
+        accel // Max Decel (ft/s^2)
     );
 }
 
@@ -32,6 +34,7 @@ export default function PathSimulator() {
     const [value, setValue] = useState<number>(0);
     const [time, setTime] = useState<number>(0);
     const [pose, setPose] = usePose()
+    const robotk = useSyncExternalStore(robotConstantsStore.subscribe, robotConstantsStore.get);
     const [playing, setPlaying] = useState<boolean>(false);
     const [robotVisible, setRobotVisibility] = useRobotVisibility();
     const [ path, setPath ] = usePath();
@@ -40,7 +43,7 @@ export default function PathSimulator() {
     useEffect(() => {
         computedPath = precomputePath(createRobot(), convertPathtoSim(path));
         if (robotVisible) forceSnapTime(computedPath, time);
-    }, [path]) 
+    }, [path, robotk]) 
 
     useEffect(() => {
         const handleKeyDown = (evt: KeyboardEvent) => {
