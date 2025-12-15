@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import play from "../assets/play.svg";
 import pause from "../assets/pause.svg";
 import { Robot, robotConstants, robotConstantsStore } from "../core/Robot";
@@ -38,19 +38,48 @@ export default function PathSimulator() {
     const [playing, setPlaying] = useState<boolean>(false);
     const [robotVisible, setRobotVisibility] = useRobotVisibility();
     const [ path, setPath ] = usePath();
+    const skip = useRef(false);
+
     const { pauseSimulator, scrubSimulator } = useMacros();
 
     useEffect(() => {
+        if (robotVisible && path.segments.length <= 0) setRobotVisibility(false);
+
         computedPath = precomputePath(createRobot(), convertPathtoSim(path));
-        if (robotVisible) forceSnapTime(computedPath, time);
-    }, [path, robotk]) 
+
+        if (!computedPath.trajectory.length || computedPath.totalTime <= 0) return;
+
+        const clampedTime = clamp(time, 0, computedPath.totalTime);
+
+        if (robotVisible) forceSnapTime(computedPath, clampedTime);
+
+        setValue((clampedTime / computedPath.totalTime) * 100);
+        
+    }, [path, robotk, robotVisible]);
+
+    
+    useEffect(() => {
+        if (skip.current) {
+            skip.current = false;
+            return;
+        }
+
+        if (!playing) {
+            setRobotVisibility(true);
+            setPathPercent(computedPath, value);
+        }
+    }, [value]);
+
+    useEffect(() => {
+        skip.current = true;
+    }, [path])
 
     useEffect(() => {
         const handleKeyDown = (evt: KeyboardEvent) => {
             const target = evt.target as HTMLElement | null;
             if (target?.isContentEditable || target?.tagName === "INPUT") return;
             pauseSimulator(evt, setPlaying)
-            scrubSimulator(evt, setValue, computedPath);
+            scrubSimulator(evt, setValue, setPlaying, skip, computedPath);
         }
 
         document.addEventListener('keydown', handleKeyDown)
@@ -102,10 +131,6 @@ export default function PathSimulator() {
 
         setPose({x: snap.x, y: snap.y, angle: snap.angle})
     }
-
-    useEffect(() => {
-        if (!playing) setPathPercent(computedPath, value);
-    }, [value])
 
     useEffect(() => {
         const dt = 1 / 60;

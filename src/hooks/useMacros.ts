@@ -210,7 +210,12 @@ export default function useMacros() {
     }
   }
 
-  const scrubSimulator = (evt: KeyboardEvent, setPercent: React.Dispatch<React.SetStateAction<number>>, computedPath: PathSim) => {
+  const scrubSimulator = (evt: KeyboardEvent, 
+    setPercent: React.Dispatch<React.SetStateAction<number>>, 
+    setPlaying: React.Dispatch<React.SetStateAction<boolean>>,
+    skip: React.RefObject<boolean>,
+    computedPath: PathSim
+  ) => {
     const FAST_SCRUB_STEP = .25; // Move 1 second
     const SLOW_SCRUB_STEP = .05;
 
@@ -225,6 +230,8 @@ export default function useMacros() {
         }
         return 100;
       });
+      setPlaying(false);
+      skip.current = false;
     }
     if (evt.key.toLowerCase() === "j") {
       setPercent(p => {
@@ -233,6 +240,8 @@ export default function useMacros() {
         }
         return 0;
       });
+      setPlaying(false);
+      skip.current = false;
     }
   }
   

@@ -368,9 +368,9 @@ export default function Field({
         {/* Robot */}
         {pose === null || !robotVisible ? <></> :
           <RobotView
-              x={pose.x}
-              y={pose.y}
-              angle={pose.angle}
+              x={pose.x ?? 0}
+              y={pose.y ?? 0}
+              angle={pose.angle ?? 0}
               width={robot.width}
               height={robot.height}
           />
