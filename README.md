@@ -1,8 +1,8 @@
 Todo List:
 
-- Add Path constants changing, speed and lib specific constants
+- Add Path constants changing, speed and lib specific constants + swing option for mik/jar
 - Add file saving, loading unloading
-- Add add segment implementation
+- Add add segment implementation + right click for turns
 - ~~Add Robot UI, width height accel deccel trackwidth~~
 - Fix path conversion and make a animation, also make it so if will only copy selected segments
 - add ez reveilib rw lemlib jar mik vexide drive motions
