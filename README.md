@@ -10,7 +10,7 @@ Todo List:
 - Add copy and paste
 - Fix path mirroring
 - Fix WASD
-- Add macro for quick scrubbing path sim
+- Add macro for quick scrubbing path sim jkl + shift
 - coordinate mouse hover view
 - fix UI not resizing to fit resolution (a bitch to fix)
 - Setting menu: units and coord system if not lazy, holonomic drive
