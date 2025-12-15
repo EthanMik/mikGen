@@ -74,35 +74,35 @@ export default function useMacros() {
     if (evt.key.toLowerCase() === "s") {
       thetaScale = -largeHeadingStep;
     }
-    if (evt.key === " ") {
-      setPath(prev => ({
-        ...prev, segments:
-          prev.segments.map((c, idx, arr) => 
-            c.selected && idx < arr.length - 1 ?
-            {
-              ...c,
-              turnToPos: { x: arr[idx + 1].pose.x, y: arr[idx + 1].pose.y },
-              heading: calculateHeading({ x: arr[idx].pose.x, y: arr[idx].pose.y }, { x: arr[idx + 1].pose.x, y: arr[idx + 1].pose.y })
-            } : 
-            c
-          )
-      }));
-    }
+    // if (evt.key === " ") {
+    //   setPath(prev => ({
+    //     ...prev, segments:
+    //       prev.segments.map((c, idx, arr) => 
+    //         c.selected && idx < arr.length - 1 ?
+    //         {
+    //           ...c,
+    //           turnToPos: { x: arr[idx + 1].pose.x, y: arr[idx + 1].pose.y },
+    //           heading: calculateHeading({ x: arr[idx].pose.x, y: arr[idx].pose.y }, { x: arr[idx + 1].pose.x, y: arr[idx + 1].pose.y })
+    //         } : 
+    //         c
+    //       )
+    //   }));
+    // }
 
     if (thetaScale === 0) return;
 
     setPath(prev => ({
       ...prev,
-      controls: prev.segments.map(control =>
-        control.selected
-          ? {
-              ...control,
-              heading: normalizeDeg(control.pose.angle + thetaScale)
-            }
-          : control
-      ),
-    }));    
+      segments: prev.segments.map(c =>
+          c.selected ? {
+              ...c, pose: {
+                  ...c.pose, angle: c.pose.angle !== null ? normalizeDeg(c.pose.angle + thetaScale) : c.pose.angle,
+              }
+          } : c
+      )
+    }));        
   }
+
   
   /** Using key "Escape" to unselect whole path */
   function unselectPath(evt: KeyboardEvent, setPath: React.Dispatch<React.SetStateAction<Path>>) {

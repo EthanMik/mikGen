@@ -112,7 +112,7 @@ export default function ControlConfig() {
     }
 
     const updateHeadingValue = (newHeading: number | null) => {
-        if (!newHeading) return;
+        if (newHeading === null) return;
         newHeading = normalizeDeg(newHeading);
         setPath(prev => ({
                     ...prev,
