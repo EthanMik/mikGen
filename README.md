@@ -16,6 +16,7 @@ Todo List:
 - fix UI not resizing to fit resolution (a bitch to fix)
 - Setting menu: units and coord system if not lazy, holonomic drive
 - Polish Control Config (segment casting)
+- Add scrubbing steps to settings
 
 Docs:
 
