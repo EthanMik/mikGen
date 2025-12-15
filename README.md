@@ -1,7 +1,8 @@
 Todo List:
 
 - Add Path constants changing, speed and lib specific constants
-- Add file saving, loading unloading 
+- Add file saving, loading unloading
+- Add add segment implementation
 - ~~Add Robot UI, width height accel deccel trackwidth~~
 - Fix path conversion and make a animation, also make it so if will only copy selected segments
 - add ez reveilib rw lemlib jar mik vexide drive motions
@@ -10,11 +11,12 @@ Todo List:
 - Add copy and paste
 - Fix path mirroring
 - Fix WASD
-- Add macro for quick scrubbing path sim jkl + shift
+- ~~Add macro for quick scrubbing path sim jkl + shift~~
 - coordinate mouse hover view
 - fix UI not resizing to fit resolution (a bitch to fix)
 - Setting menu: units and coord system if not lazy, holonomic drive
 - Polish Control Config (segment casting)
+- Add scrubbing steps to settings
 
 Docs:
 
