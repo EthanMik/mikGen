@@ -2,6 +2,7 @@ import type React from "react";
 import { calculateHeading, clamp, normalizeDeg } from "../core/Util";
 import { createPoseDriveSegment, type Path, type Segment } from "../core/Path";
 import { useEffect, useState, type SetStateAction } from "react";
+import type { PathSim } from "../core/PathSim";
 
 export default function useMacros() {
   const MIN_FIELD_X = -100;
@@ -203,9 +204,35 @@ export default function useMacros() {
 
   /** Using key "P" to start and stop simulator */
   const pauseSimulator = (evt: KeyboardEvent, setPlaying: React.Dispatch<React.SetStateAction<boolean>>) => {
-    if (evt.key.toLowerCase() === "p") {
+    if (evt.key.toLowerCase() === "k") {
       setPlaying(v => !v)
       evt.stopPropagation();
+    }
+  }
+
+  const scrubSimulator = (evt: KeyboardEvent, setPercent: React.Dispatch<React.SetStateAction<number>>, computedPath: PathSim) => {
+    const FAST_SCRUB_STEP = .25; // Move 1 second
+    const SLOW_SCRUB_STEP = .05;
+
+    const scrub = evt.shiftKey ? 
+      FAST_SCRUB_STEP / computedPath.totalTime * 100 : 
+      SLOW_SCRUB_STEP / computedPath.totalTime * 100;
+
+    if (evt.key.toLowerCase() === "l") {
+      setPercent(p => {
+        if (p + scrub <= 100) {
+          return p + scrub
+        }
+        return 100;
+      });
+    }
+    if (evt.key.toLowerCase() === "j") {
+      setPercent(p => {
+        if (p - scrub >= 0) {
+          return p - scrub
+        }
+        return 0;
+      });
     }
   }
   
@@ -219,7 +246,8 @@ export default function useMacros() {
     undoPath,
     redoPath,
     toggleRobotVisibility,
-    pauseSimulator
+    pauseSimulator,
+    scrubSimulator
   }
 
 }

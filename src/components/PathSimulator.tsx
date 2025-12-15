@@ -38,7 +38,7 @@ export default function PathSimulator() {
     const [playing, setPlaying] = useState<boolean>(false);
     const [robotVisible, setRobotVisibility] = useRobotVisibility();
     const [ path, setPath ] = usePath();
-    const { pauseSimulator } = useMacros();
+    const { pauseSimulator, scrubSimulator } = useMacros();
 
     useEffect(() => {
         computedPath = precomputePath(createRobot(), convertPathtoSim(path));
@@ -50,6 +50,7 @@ export default function PathSimulator() {
             const target = evt.target as HTMLElement | null;
             if (target?.isContentEditable || target?.tagName === "INPUT") return;
             pauseSimulator(evt, setPlaying)
+            scrubSimulator(evt, setValue, computedPath);
         }
 
         document.addEventListener('keydown', handleKeyDown)
