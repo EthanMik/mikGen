@@ -20,23 +20,29 @@ function MirrorControl({
     const mirrorX = () => {
         setPath(prev => ({
             ...prev,
-            controls: prev.segments.map(control =>
-                control.selected
-                ? { ...control, pose: { angle: normalizeDeg(360 - control.pose.angle), x: -control.pose.x }, }
-                : control
-            ),
+            segments: prev.segments.map(c =>
+                c.selected ? {
+                    ...c, pose: {
+                        ...c.pose, angle: normalizeDeg(360 - (c.pose.angle ?? 0)),
+                        x: -(c.pose.x ?? 0)
+                    }
+                } : c
+            )
         }));
     }
 
     const mirrorY = () => {
         setPath(prev => ({
             ...prev,
-            controls: prev.segments.map(control =>
-                control.selected
-                ? { ...control, pose: { angle: normalizeDeg(180 - control.pose.angle), y: -control.pose.y }, }
-                : control
-            ),
-        }));
+            segments: prev.segments.map(c =>
+                c.selected ? {
+                    ...c, pose: {
+                        ...c.pose, angle: normalizeDeg(180 - (c.pose.angle ?? 0)),
+                        y: -(c.pose.y ?? 0)
+                    }
+                } : c
+            )
+        }));        
     }
 
     const handleOnClick = () => {
@@ -82,6 +88,7 @@ export default function ControlConfig() {
     }
 
     const updateXValue = (newX: number | null) => {
+        // if (newX === null) return;
         setPath(prev => ({
                     ...prev,
                     segments: prev.segments.map(control =>
@@ -93,6 +100,7 @@ export default function ControlConfig() {
     }
 
     const updateYValue = (newY: number | null) => {
+        // if (newY === null) return;
         setPath(prev => ({
                     ...prev,
                     segments: prev.segments.map(control =>

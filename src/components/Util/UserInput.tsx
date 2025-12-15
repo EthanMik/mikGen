@@ -40,6 +40,11 @@ export default function NumberInput({
 
     const executeValue = () => {
         if (edit === null) return;
+        console.log("edit is:", edit, ":");
+        if (edit === "") {
+            setValue(null);
+            return;
+        }
 
         if (!isFinite(Number(edit))) {
             resetValue();
