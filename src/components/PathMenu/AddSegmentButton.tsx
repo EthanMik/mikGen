@@ -1,13 +1,49 @@
 import { useEffect, useRef, useState } from "react";
 import plus from "../../assets/plus.svg"
+import { usePath } from "../../hooks/usePath";
+import { createAngleTurnSegment, type Segment } from "../../core/Path";
 
 export default function AddSegmentButton() {
     const [ isOpen, setOpen ] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
-
+    const [ path, setPath] = usePath();
     
     const handleToggleMenu = () => {
         setOpen((prev) => !prev)
+    }
+
+    const addSegment = (segment: Segment) => {
+        setPath(prev => {
+            let selectedIndex = prev.segments.findIndex(c => c.selected);
+            selectedIndex = selectedIndex === -1 ? selectedIndex = prev.segments.length : selectedIndex + 1;
+        
+            const oldControls = prev.segments;
+        
+            const newControl = { ...segment, selected: !segment.locked };
+        
+            const inserted =
+                selectedIndex >= 0
+                ? [
+                    ...oldControls.slice(0, selectedIndex),
+                    newControl,
+                    ...oldControls.slice(selectedIndex)
+                    ]
+                : [...oldControls, newControl];
+        
+            const controls = inserted.map(c =>
+                c === newControl ? c : { ...c, selected: false }
+            );
+        
+            return {
+                ...prev,
+                segments: controls,
+            };
+        });
+    }
+
+    const addTurnSegment = () => {
+        const control = createAngleTurnSegment(0);
+        addSegment(control);
     }
 
     useEffect(() => {
@@ -65,11 +101,15 @@ export default function AddSegmentButton() {
                             </button> */}
 
                             {/* Turn Segments */}
-                            <div className="flex pl-2 py-0.5 mt-2 mb-1 bg-medgray rounded-sm">
+                            <div 
+                                className="flex pl-2 py-0.5 mt-2 mb-1 bg-medgray rounded-sm">
                                 <span className="text-[18px]">Turn Segment:</span>
                             </div>
 
-                            <button className="flex pr-1 py-0.5 pl-2 justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
+                            <button
+                                onClick={addTurnSegment}
+                                className="flex pr-1 py-0.5 pl-2 justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
+
                                 <span className="text-[18px]">Angle</span>
                                 <span className="text-lightgray text-[16px]">ctrl+3</span>
                             </button>
