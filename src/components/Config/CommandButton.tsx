@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import enter from "../../assets/enter.svg";
 import cross from "../../assets/cross.svg"
 import { useCommand } from "../../hooks/useCommands";
-import { Command, createCommand } from "../../core/Command";
+import { createCommand } from "../../core/Types/Command";
 
 type CommandInputProps = {
     width: number,

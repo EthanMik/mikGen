@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import play from "../assets/play.svg";
 import pause from "../assets/pause.svg";
 import { Robot, robotConstantsStore } from "../core/Robot";
-import { precomputePath, type PathSim } from "../core/PathSim";
+import { precomputePath, type PathSim } from "../core/ComputePathSim";
 import { usePose } from "../hooks/usePose";
 import { clamp } from "../core/Util";
 import { useRobotVisibility } from "../hooks/useRobotVisibility";

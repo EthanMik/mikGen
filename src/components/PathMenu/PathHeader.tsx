@@ -5,7 +5,7 @@ import downArrow from "../../assets/down-arrow.svg";
 import plus from "../../assets/plus.svg";
 import copy from "../../assets/copy.svg";
 import { convertPath } from "../../core/PathConversion";
-import { usePathVisibility } from "../usePathVisibility";
+import { usePathVisibility } from "../../hooks/usePathVisibility";
 import { mikLibFormat } from "../../formats/mikLibFormat";
 import { usePath } from "../../hooks/usePath";
 import AddSegmentButton from "./AddSegmentButton";

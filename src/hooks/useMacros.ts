@@ -1,8 +1,8 @@
 import type React from "react";
-import { calculateHeading, clamp, normalizeDeg } from "../core/Util";
-import { createPoseDriveSegment, type Path, type Segment } from "../core/Path";
-import { useEffect, useState, type SetStateAction } from "react";
-import type { PathSim } from "../core/PathSim";
+import { clamp, normalizeDeg } from "../core/Util";
+import { type SetStateAction } from "react";
+import type { PathSim } from "../core/ComputePathSim";
+import type { Path } from "../core/Types/Path";
 
 export default function useMacros() {
   const MIN_FIELD_X = -100;
@@ -102,7 +102,6 @@ export default function useMacros() {
       )
     }));        
   }
-
   
   /** Using key "Escape" to unselect whole path */
   function unselectPath(evt: KeyboardEvent, setPath: React.Dispatch<React.SetStateAction<Path>>) {

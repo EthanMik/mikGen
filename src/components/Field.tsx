@@ -1,13 +1,16 @@
 import React, { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { createPointDriveSegment, segmentsEqual, type Coordinate, type Path, type Pose } from "../core/Path";
+import { robotConstantsStore } from "../core/Robot";
+import type { Coordinate } from "../core/Types/Coordinate";
+import type { Path } from "../core/Types/Path";
+import { createPointDriveSegment, segmentsEqual } from "../core/Types/Segment";
 import { FIELD_REAL_DIMENSIONS, toInch, toPX, toRad, vector2Add, vector2Subtract, type Rectangle } from "../core/Util";
+import useMacros from "../hooks/useMacros";
 import { usePath } from "../hooks/usePath";
-import RobotView from "./Util/RobotView";
+import { usePathVisibility } from "../hooks/usePathVisibility";
 import { usePose } from "../hooks/usePose";
 import { useRobotVisibility } from "../hooks/useRobotVisibility";
-import { usePathVisibility } from "./usePathVisibility";
-import useMacros from "../hooks/useMacros";
-import { robotConstants, robotConstantsStore } from "../core/Robot";
+import RobotView from "./Util/RobotView";
+import type { Pose } from "../core/Types/Pose";
 
 type FieldProps = {
   src: string;

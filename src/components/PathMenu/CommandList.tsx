@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Slider from "../Util/Slider";
 import { useCommand } from "../../hooks/useCommands";
-import { type Command } from "../../core/Command";
+import { type Command } from "../../core/Types/Command";
 import { makeId } from "../../core/Util";
 import type { DropdownItem } from "../Util/Dropdown";
 import Dropdown from "../Util/Dropdown";

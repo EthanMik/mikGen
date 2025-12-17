@@ -1,17 +1,8 @@
-import { createCommand, type Command } from "./Command";
-import { kBoomerangPID, kOdomDrivePID, kOdomTurnPID, kturnPID, type PIDConstants } from "./mikLibSim/Constants";
-import { makeId } from "./Util";
-
-export interface Coordinate {
-    x: number
-    y: number
-}
-
-export interface Pose {
-    x: number | null,
-    y: number | null,
-    angle: number | null
-}
+import { kBoomerangPID, kOdomDrivePID, kOdomTurnPID, kturnPID, PIDConstantsEqual, type PIDConstants } from "../mikLibSim/Constants";
+import { makeId } from "../Util";
+import { commandsEqual, createCommand, type Command } from "./Command";
+import type { Coordinate } from "./Coordinate";
+import { posesEqual, type Pose } from "./Pose";
 
 export type SegmentKind =
   | "pointDrive"
@@ -28,10 +19,6 @@ export interface Segment {
   command: Command;
   constants: PIDConstants;
   kind: SegmentKind;
-}
-
-export interface Path {
-  segments: Segment[];
 }
 
 export function createPointDriveSegment(position: Coordinate): Segment {
@@ -86,33 +73,6 @@ export function createAngleTurnSegment(heading: number): Segment {
   };
 }
 
-function posesEqual(a: Pose, b: Pose): boolean {
-  return a.x === b.x && a.y === b.y && a.angle === b.angle;
-}
-
-function commandsEqual(a: Command, b: Command): boolean {
-  return (
-    a.name === b.name &&
-    a.percent === b.percent
-  );
-}
-
-function pidConstantsEqual(a: PIDConstants, b: PIDConstants): boolean {
-  return (
-    a.maxSpeed === b.maxSpeed &&
-    a.minSpeed === b.minSpeed &&
-    a.kp === b.kp &&
-    a.ki === b.ki &&
-    a.kd === b.kd &&
-    a.starti === b.starti &&
-    a.settleTime === b.settleTime &&
-    a.settleError === b.settleError &&
-    a.timeout === b.timeout &&
-    a.lead === b.lead &&
-    a.setback === b.setback
-  );
-}
-
 export function segmentsEqual(a: Segment, b: Segment): boolean {
   return (
     a.locked === b.locked &&
@@ -120,6 +80,6 @@ export function segmentsEqual(a: Segment, b: Segment): boolean {
     a.kind === b.kind &&
     posesEqual(a.pose, b.pose) &&
     commandsEqual(a.command, b.command) &&
-    pidConstantsEqual(a.constants, b.constants)
+    PIDConstantsEqual(a.constants, b.constants)
   );
 }

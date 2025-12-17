@@ -2,8 +2,8 @@ import type { PathFormat } from "../formats/PathFormat";
 import { kHeadingPID, kOdomDrivePID, kOdomHeadingPID, kturnPID } from "./mikLibSim/Constants";
 import { driveToPoint, drivetoPose, turnToAngle, turnToPoint } from "./mikLibSim/DriveMotions";
 import { PID } from "./mikLibSim/PID";
-import type { Path } from "./Path";
 import type { Robot } from "./Robot";
+import type { Path } from "./Types/Path";
 
 
 export function convertPathtoSim(path: Path): ((robot: Robot, dt: number) => boolean)[] {

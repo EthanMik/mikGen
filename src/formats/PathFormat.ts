@@ -1,4 +1,4 @@
-import type { Coordinate } from "../core/Path";
+import type { Coordinate } from "../core/Types/Coordinate";
 
 export abstract class PathFormat {
     constructor() {};

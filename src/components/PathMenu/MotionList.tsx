@@ -8,7 +8,7 @@ import downArrow from "../../assets/down-arrow.svg";
 import Slider from "../Util/Slider";
 import { usePath } from "../../hooks/usePath";
 import CommandList from "./CommandList";
-import { createCommand, type Command } from "../../core/Command";
+import { createCommand, type Command } from "../../core/Types/Command";
 
 type MotionListProps = {
     name: string,

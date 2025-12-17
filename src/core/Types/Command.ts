@@ -1,4 +1,4 @@
-import { makeId } from "./Util";
+import { makeId } from "../Util";
 
 export interface Command {
     name: string,
@@ -12,4 +12,11 @@ export function createCommand(name: string, percent = 0): Command {
         percent: percent,
         id: makeId(10)
     }
+}
+
+export function commandsEqual(a: Command, b: Command): boolean {
+  return (
+    a.name === b.name &&
+    a.percent === b.percent
+  );
 }

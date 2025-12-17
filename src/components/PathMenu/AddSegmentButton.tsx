@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import plus from "../../assets/plus.svg"
 import { usePath } from "../../hooks/usePath";
-import { createAngleTurnSegment, type Segment } from "../../core/Path";
+import { createAngleTurnSegment, type Segment } from "../../core/Types/Segment";
 
 export default function AddSegmentButton() {
     const [ isOpen, setOpen ] = useState(false);

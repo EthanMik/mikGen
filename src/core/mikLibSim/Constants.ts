@@ -12,6 +12,22 @@ export interface PIDConstants {
     setback: number | null
 }
 
+export function PIDConstantsEqual(a: PIDConstants, b: PIDConstants): boolean {
+  return (
+    a.maxSpeed === b.maxSpeed &&
+    a.minSpeed === b.minSpeed &&
+    a.kp === b.kp &&
+    a.ki === b.ki &&
+    a.kd === b.kd &&
+    a.starti === b.starti &&
+    a.settleTime === b.settleTime &&
+    a.settleError === b.settleError &&
+    a.timeout === b.timeout &&
+    a.lead === b.lead &&
+    a.setback === b.setback
+  );
+}
+
 function createPIDConstants(values: Partial<PIDConstants> = {}): PIDConstants {
   return {
     maxSpeed: values.maxSpeed ?? null,
