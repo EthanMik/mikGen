@@ -246,17 +246,23 @@ export default function Field({
       return
     }
 
-    if (evt.button === 0) {
+    if (!evt.shiftKey && evt.button === 0) {
       const pos = getPressedPositionInch(evt);
       addPointDriveSegment(pos, setPath);
-      
     }
     
-    if (evt.button === 2) {
-      evt.preventDefault();
+    if (!evt.shiftKey && evt.button === 2) {
       addAngleTurnSegment(setPath);
     }
-
+    
+    if (evt.shiftKey && evt.button == 2) {
+      addAngleTurnSegment(setPath);
+    }
+    
+    if (evt.shiftKey && evt.button === 0) {
+      const pos = getPressedPositionInch(evt);
+      addPoseDriveSegment({ x: pos.x, y: pos.y, angle: 0 }, setPath)
+    }
 
   };
 
@@ -290,26 +296,23 @@ export default function Field({
   }
 
   const controls = path.segments;
-
-  const moveToPoints =
-    controls.length > 1
-      ? controls
-          .map((m) => {
-            if (m.pose.x === null || m.pose.y === null) return;
-            const p = toPX({x: m.pose.x, y: m.pose.y}, FIELD_REAL_DIMENSIONS, img);
-            return `${p.x},${p.y}`;
-          })
-          .join(" ")
-      : "";
   
-  const boomerangToPoints = 
+  const driveToPoints = 
     controls.length > 1
       ? controls
           .map((m, idx) => {
-            if (idx < 1) return
+            if (m.pose.x === null && m.pose.y === null) return;
+
+            if (m.pose.angle === null) {
+              const p = toPX({x: m.pose.x, y: m.pose.y}, FIELD_REAL_DIMENSIONS, img);
+              return `${p.x},${p.y}`;              
+            }
+
+            if (idx < 1) return;
 
             const lead = .4;
-            const pStart = toPX({x: controls[idx - 1].pose.x, y: controls[idx - 1].pose.y}, FIELD_REAL_DIMENSIONS, img);
+            const lastPos = getSnapPose(controls, idx - 1);
+            const pStart = toPX({x: lastPos.x, y: lastPos.y}, FIELD_REAL_DIMENSIONS, img);
             const pEnd = toPX({x: m.pose.x, y: m.pose.y}, FIELD_REAL_DIMENSIONS, img);
             const ΘEnd = m.pose.angle;
             const h = Math.sqrt(((pStart.x - pEnd.x) * (pStart.x - pEnd.x)) 
@@ -318,11 +321,16 @@ export default function Field({
             const x1 = pEnd.x - h * Math.sin(toRad(ΘEnd)) * lead
             const y1 = pEnd.y + h * Math.cos(toRad(ΘEnd)) * lead
 
-            let boomerangPts: string[] = [];
-            for (let t = 0; t <= 1; t += .05) {
-              const x = ((1 - t) * ((1 - t) * pStart.x + t * x1) + t * ((1 - t) * x1 + t * pEnd.x))
-              const y = ((1 - t) * ((1 - t) * pStart.y + t * y1) + t * ((1 - t) * y1 + t * pEnd.y))
-              boomerangPts = [...boomerangPts, `${x},${y}`]
+            const boomerangPts: string[] = [];
+            const steps = 20;
+
+            for (let i = 0; i <= steps; i++) {
+              const t = i / steps;
+
+              const x = ((1 - t) * ((1 - t) * pStart.x + t * x1) + t * ((1 - t) * x1 + t * pEnd.x));
+              const y = ((1 - t) * ((1 - t) * pStart.y + t * y1) + t * ((1 - t) * y1 + t * pEnd.y));
+
+              boomerangPts.push(`${x},${y}`);
             }
 
             return boomerangPts.join(" ")
@@ -360,7 +368,7 @@ export default function Field({
         {/* Path */}
         {!pathVisible && path.segments.length >= 2 && (
           <polyline
-            points={moveToPoints}
+            points={driveToPoints}
             fill="none"
             stroke="rgba(21, 96, 189, 1)"
             strokeDasharray={"10, 5"}

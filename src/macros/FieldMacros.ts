@@ -277,7 +277,7 @@ export default function FieldMacros() {
     }
 
     const addPoseDriveSegment = (position: Pose, setPath: React.Dispatch<SetStateAction<Path>>) => {
-        const control = createPoseDriveSegment({x: 0, y: 0, angle: 0})
+        const control = createPoseDriveSegment(position)
         addSegment(control, setPath);
     }
 
