@@ -4,8 +4,8 @@ import type { PathSim } from "../core/ComputePathSim";
 export function PathSimMacros() {
     function toggleRobotVisibility(
         evt: KeyboardEvent,
-        setVisibility: React.Dispatch<SetStateAction<boolean>>
-    ) {
+        setVisibility: React.Dispatch<SetStateAction<boolean>>,
+    ) {        
         if (evt.key.toLowerCase() === "r") {
             setVisibility((v) => !v);
             evt.stopPropagation();

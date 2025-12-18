@@ -303,14 +303,14 @@ export default function Field({
           .map((m, idx) => {
             if (m.pose.x === null && m.pose.y === null) return;
 
-            if (m.pose.angle === null) {
+            if (m.pose.angle === null || idx === 0) {
               const p = toPX({x: m.pose.x, y: m.pose.y}, FIELD_REAL_DIMENSIONS, img);
               return `${p.x},${p.y}`;              
             }
 
             if (idx < 1) return;
 
-            const lead = .4;
+            const lead = m.constants.lead === null ? 0 : m.constants.lead;
             const lastPos = getSnapPose(controls, idx - 1);
             const pStart = toPX({x: lastPos.x, y: lastPos.y}, FIELD_REAL_DIMENSIONS, img);
             const pEnd = toPX({x: m.pose.x, y: m.pose.y}, FIELD_REAL_DIMENSIONS, img);

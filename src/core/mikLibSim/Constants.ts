@@ -114,9 +114,6 @@ export const kOdomHeadingPID = createPIDConstants({
     ki: 0,
     kd: 1,
     starti: 0,
-    settleTime: 0,
-    settleError: 0,
-    timeout: 0
 });
 
 export const kBoomerangPID = createPIDConstants({
@@ -129,6 +126,6 @@ export const kBoomerangPID = createPIDConstants({
     settleTime: 300,
     settleError: 1.5,
     timeout: 5000,
-    lead: 5,
+    lead: 0.4,
     setback: 2,
 });

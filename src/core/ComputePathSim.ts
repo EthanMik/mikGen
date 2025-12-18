@@ -26,7 +26,7 @@ export function precomputePath(
 
     let t = 0;
     let safetyIter = 0;
-    const maxIter = 60 * 60;
+    const maxIter = 60 * 120;
 
     while (autoIdx < auton.length && safetyIter < maxIter) {
         const done = auton[autoIdx](robot, dt);

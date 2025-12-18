@@ -12,6 +12,8 @@ import Slider from "./Util/Slider";
 import { usePath } from "../hooks/usePath";
 import { PathSimMacros } from "../macros/PathSimMacros";
 
+// This fucking file is the biggest piece of shit i find a new bug every day
+
 function createRobot(): Robot {
     const { width, height, speed, accel } = robotConstantsStore.get();
 
@@ -43,7 +45,15 @@ export default function PathSimulator() {
     const { pauseSimulator, scrubSimulator } = PathSimMacros();
 
     useEffect(() => {
-        if (robotVisible && path.segments.length <= 0) setRobotVisibility(false);
+        if (path.segments.length === 0) {
+            computedPath = precomputePath(createRobot(), convertPathtoSim(path));
+            setPlaying(false);
+            setTime(0);
+            setValue(0);
+            setRobotVisibility(false);
+            setPose({ x: 0, y: 0, angle: 0 });
+            return;
+        }
 
         computedPath = precomputePath(createRobot(), convertPathtoSim(path));
 
@@ -187,9 +197,7 @@ export default function PathSimulator() {
                 onChangeStart={() => setPlaying(false)}
                 OnChangeEnd={() => {}}
             />
-            <div className="w-11">
-                <span className="block">{time.toFixed(2)} s</span>
-            </div>
+            <span className="block">{time.toFixed(2)} s</span>
             <Checkbox checked={robotVisible} setChecked={setRobotVisibility}/>
         </div>        
     );
