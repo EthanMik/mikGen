@@ -272,7 +272,7 @@ export default function FieldMacros() {
     }
     
     const addPointTurnSegment = (setPath: React.Dispatch<SetStateAction<Path>>) => {
-        const control = createPointTurnSegment({x: 0, y: 0, angle: 0})
+        const control = createPointTurnSegment({x: null, y: null, angle: 0})
         addSegment(control, setPath);
     }
 

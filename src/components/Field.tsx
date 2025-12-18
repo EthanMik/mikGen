@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { robotConstantsStore } from "../core/Robot";
 import type { Coordinate } from "../core/Types/Coordinate";
-import type { Path } from "../core/Types/Path";
+import { getBackwardsSnapPose, getForwardSnapPose, type Path } from "../core/Types/Path";
 import { createPointDriveSegment, segmentsEqual } from "../core/Types/Segment";
-import { FIELD_REAL_DIMENSIONS, toInch, toPX, toRad, vector2Add, vector2Subtract, type Rectangle } from "../core/Util";
+import { calculateHeading, FIELD_REAL_DIMENSIONS, toInch, toPX, toRad, vector2Add, vector2Subtract, type Rectangle } from "../core/Util";
 import useMacros from "../hooks/useMacros";
 import { usePath } from "../hooks/usePath";
 import { usePathVisibility } from "../hooks/usePathVisibility";
@@ -11,7 +11,6 @@ import { usePose } from "../hooks/usePose";
 import { useRobotVisibility } from "../hooks/useRobotVisibility";
 import RobotView from "./Util/RobotView";
 import type { Pose } from "../core/Types/Pose";
-import useFieldMacros from "../macros/FieldMacros";
 import { PathSimMacros } from "../macros/PathSimMacros";
 import FieldMacros from "../macros/FieldMacros";
 
@@ -246,34 +245,24 @@ export default function Field({
       return
     }
 
-    if (!evt.shiftKey && evt.button === 0) {
+    if (!evt.ctrlKey && evt.button === 0) {
       const pos = getPressedPositionInch(evt);
       addPointDriveSegment(pos, setPath);
     }
     
-    if (!evt.shiftKey && evt.button === 2) {
+    if (!evt.ctrlKey && evt.button === 2) {
+      addPointTurnSegment(setPath);
+    }
+    
+    if (evt.ctrlKey && evt.button == 2) {
       addAngleTurnSegment(setPath);
     }
     
-    if (evt.shiftKey && evt.button == 2) {
-      addAngleTurnSegment(setPath);
-    }
-    
-    if (evt.shiftKey && evt.button === 0) {
+    if (evt.ctrlKey && evt.button === 0) {
       const pos = getPressedPositionInch(evt);
       addPoseDriveSegment({ x: pos.x, y: pos.y, angle: 0 }, setPath)
     }
 
-  };
-
-  const getSnapPose = (controls: typeof path.segments, idx: number) => {
-    for (let i = idx; i >= 0; i--) {
-      const c = controls[i];
-      if (c.pose.x != null && c.pose.y != null) {
-        return c.pose;
-      }
-    }
-    return null;
   };
 
   const interpolate = (currentPose: Pose, previousPose: Pose, percent: number): Coordinate | null => {
@@ -311,7 +300,8 @@ export default function Field({
             if (idx < 1) return;
 
             const lead = m.constants.lead === null ? 0 : m.constants.lead;
-            const lastPos = getSnapPose(controls, idx - 1);
+            const lastPos = getBackwardsSnapPose(path, idx - 1);
+            if (lastPos === null) return;
             const pStart = toPX({x: lastPos.x, y: lastPos.y}, FIELD_REAL_DIMENSIONS, img);
             const pEnd = toPX({x: m.pose.x, y: m.pose.y}, FIELD_REAL_DIMENSIONS, img);
             const ΘEnd = m.pose.angle;
@@ -394,7 +384,7 @@ export default function Field({
               key={control.id}
             >
               {control.visible && control.pose.x !== null && control.pose.y !== null && control.command.name !== "" && (() => {
-                const snapPose = getSnapPose(controls, idx - 1);
+                const snapPose = getBackwardsSnapPose(path, idx - 1);
                 if (snapPose === null || snapPose.y === null || snapPose.x === null) return null;
                 
                 const posIn = interpolate(control.pose, snapPose, control.command.percent / 100);
@@ -448,8 +438,8 @@ export default function Field({
               }
 
               {/* Render Turn Segments */}
-              {control.pose.angle !== null && (() => {
-                const snapPose = getSnapPose(controls, idx);
+              {(control.kind === "angleTurn" || control.kind === "pointTurn" || control.kind === "poseDrive") && (() => {
+                const snapPose = getBackwardsSnapPose(path, idx);
                 if (snapPose === null || snapPose.y === null || snapPose.x === null) return null;
                 const r = control.selected ? radius * 1.1 : radius;
                 const thickness = control.selected ? 3 : 1.5;
@@ -459,22 +449,31 @@ export default function Field({
                 const glowWidth = active ? thickness * 1.5 : 0;
                 const glowOpacity = active ? 0.35 : 0;
 
-
                 const basePx = toPX(
                   { x: snapPose.x, y: snapPose.y },
                   FIELD_REAL_DIMENSIONS,
                   img
                 );
 
+                let angle = control.pose.angle ?? 0;
+
+                if (control.kind === "pointTurn") {
+                  const desiredPos = getForwardSnapPose(path, idx);
+                  
+                  angle = desiredPos !== null ?  
+                    calculateHeading(snapPose, {x: desiredPos.x ?? 0, y: desiredPos.y ?? 0}) + (control.pose.angle ?? 0) :
+                    0;
+                }
+
                 const headingInFieldUnits = {
                   x:
                     snapPose.x +
                     ((r) * FIELD_REAL_DIMENSIONS.w / img.w) *
-                      Math.sin(toRad(control.pose.angle)),
+                      Math.sin(toRad(angle)),
                   y:
                     snapPose.y +
                     ((r) * FIELD_REAL_DIMENSIONS.h / img.h) *
-                      Math.cos(toRad(control.pose.angle)),
+                      Math.cos(toRad(angle)),
                 };
 
                 const tipPx = toPX(

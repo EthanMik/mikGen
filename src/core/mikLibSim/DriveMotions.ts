@@ -39,6 +39,21 @@ export function turnToPoint(robot: Robot, dt: number, x: number, y: number, offs
     return false;
 }
 
+export function swingToAngle(robot: Robot, dt: number, angle: number, swingPID: PID) {
+    const error = reduce_negative_180_to_180(angle - robot.getAngle());
+    let output = swingPID.compute(error);
+
+    if (swingPID.isSettled()) {
+        robot.tankDrive(0, 0, dt);
+        swingPID.reset();
+        return true;
+    }
+
+    output = clamp(output, -swingPID.maxSpeed, swingPID.maxSpeed);
+    robot.tankDrive(output, 0, dt);
+    return false;
+}
+
 let driveDistanceStartPos: number | null = null;
 
 export function driveDistance(robot: Robot, dt: number, distance: number, heading: number, drivePID: PID, headingPID: PID) {
