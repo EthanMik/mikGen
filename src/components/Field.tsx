@@ -443,6 +443,14 @@ export default function Field({
               {control.pose.angle !== null && (() => {
                 const snapPose = getSnapPose(controls, idx);
                 if (snapPose === null || snapPose.y === null || snapPose.x === null) return null;
+                const r = control.selected ? radius * 1.1 : radius;
+                const thickness = control.selected ? 3 : 1.5;
+                const active = control.selected;
+                const baseStroke = control.pose.x !== null && control.pose.y !== null ? "#1560BDB8" : active ? "rgba(0, 0, 0, .5)" : "Black";
+
+                const glowWidth = active ? thickness * 1.5 : 0;
+                const glowOpacity = active ? 0.35 : 0;
+
 
                 const basePx = toPX(
                   { x: snapPose.x, y: snapPose.y },
@@ -453,11 +461,11 @@ export default function Field({
                 const headingInFieldUnits = {
                   x:
                     snapPose.x +
-                    (radius * FIELD_REAL_DIMENSIONS.w / img.w) *
+                    ((r) * FIELD_REAL_DIMENSIONS.w / img.w) *
                       Math.sin(toRad(control.pose.angle)),
                   y:
                     snapPose.y +
-                    (radius * FIELD_REAL_DIMENSIONS.h / img.h) *
+                    ((r) * FIELD_REAL_DIMENSIONS.h / img.h) *
                       Math.cos(toRad(control.pose.angle)),
                 };
 
@@ -468,20 +476,31 @@ export default function Field({
                 );
 
                 return (
-                  <line
-                    pointerEvents="none"
-                    x1={basePx.x}
-                    y1={basePx.y}
-                    x2={tipPx.x}
-                    y2={tipPx.y}
-                    fill={
-                    control.selected
-                      ? "rgba(180, 50, 11, .75)"
-                      : "rgba(160, 32, 7, .5)"
-                    }
-                    stroke={control.pose.x !== null && control.pose.y !== null ? "#1560BDB8" : "Black"}
-                    strokeWidth={2}
-                  />
+                  <>
+                    <line
+                      pointerEvents="none"
+                      x1={basePx.x} y1={basePx.y} x2={tipPx.x} y2={tipPx.y}
+                      stroke={baseStroke}
+                      strokeWidth={glowWidth}
+                      strokeLinecap="round"
+                      style={{
+                        opacity: glowOpacity,
+                        filter: active ? "blur(2px)" : "none",
+                        transition: "stroke-width 90ms ease-out, opacity 90ms ease-out, filter 90ms ease-out"
+                      }}
+                    />
+
+                    <line
+                      pointerEvents="none"
+                      x1={basePx.x} y1={basePx.y} x2={tipPx.x} y2={tipPx.y}
+                      stroke={baseStroke}
+                      strokeWidth={thickness}
+                      strokeLinecap="round"
+                      style={{
+                        transition: "stroke 90ms ease-out, stroke-width 90ms ease-out"
+                      }}
+                    />
+                  </>
                 );
               })()}
             </>
