@@ -10,7 +10,7 @@ import Checkbox from "./Util/Checkbox";
 import { convertPathtoSim } from "../core/PathConversion";
 import Slider from "./Util/Slider";
 import { usePath } from "../hooks/usePath";
-import useMacros from "../hooks/useMacros";
+import { PathSimMacros } from "../macros/PathSimMacros";
 
 function createRobot(): Robot {
     const { width, height, speed, accel } = robotConstantsStore.get();
@@ -40,7 +40,7 @@ export default function PathSimulator() {
     const [ path, setPath ] = usePath();
     const skip = useRef(false);
 
-    const { pauseSimulator, scrubSimulator } = useMacros();
+    const { pauseSimulator, scrubSimulator } = PathSimMacros();
 
     useEffect(() => {
         if (robotVisible && path.segments.length <= 0) setRobotVisibility(false);

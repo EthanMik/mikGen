@@ -11,6 +11,9 @@ import { usePose } from "../hooks/usePose";
 import { useRobotVisibility } from "../hooks/useRobotVisibility";
 import RobotView from "./Util/RobotView";
 import type { Pose } from "../core/Types/Pose";
+import useFieldMacros from "../macros/FieldMacros";
+import { PathSimMacros } from "../macros/PathSimMacros";
+import FieldMacros from "../macros/FieldMacros";
 
 type FieldProps = {
   src: string;
@@ -96,8 +99,15 @@ export default function Field({
           selectInversePath,
           undoPath,
           redoPath,
-          toggleRobotVisibility
-  } = useMacros();
+          addPointDriveSegment,
+          addPointTurnSegment,
+          addPoseDriveSegment,
+          addAngleTurnSegment
+  } = FieldMacros();
+
+  const { 
+    toggleRobotVisibility
+  } = PathSimMacros();
 
   useEffect(() => {
       const handleKeyDown = (evt: KeyboardEvent) => {
@@ -220,48 +230,34 @@ export default function Field({
     setDrag({ dragging: true, lastPos: posPx });  
   }
 
-  const handleBackgroundPointerDown = (evt: React.PointerEvent<SVGSVGElement>) => {
-    if (evt.button !== 0 || pathVisible) return;
-        
+  const getPressedPositionInch = (evt: React.PointerEvent<SVGSVGElement>): Coordinate => {
     const rect = (evt.currentTarget as SVGSVGElement).getBoundingClientRect();
     const posPx: Coordinate = { x: evt.clientX - rect.left, y: (evt.clientY - rect.top) }
 
-    const posIn = toInch(posPx, FIELD_REAL_DIMENSIONS, img);
+    return toInch(posPx, FIELD_REAL_DIMENSIONS, img);
+  }
 
+  const handleBackgroundPointerDown = (evt: React.PointerEvent<SVGSVGElement>) => {
+    if (evt.button !== 0 && evt.button !== 2 ||  pathVisible) return;
+    
     const selectedCount = path.segments.filter((c) => c.selected).length;
     if (selectedCount > 1) {
       endSelecton();
       return
     }
 
-    const control = createPointDriveSegment(posIn);
+    if (evt.button === 0) {
+      const pos = getPressedPositionInch(evt);
+      addPointDriveSegment(pos, setPath);
+      
+    }
+    
+    if (evt.button === 2) {
+      evt.preventDefault();
+      addAngleTurnSegment(setPath);
+    }
 
-    setPath(prev => {
-      let selectedIndex = prev.segments.findIndex(c => c.selected);
-      selectedIndex = selectedIndex === -1 ? selectedIndex = prev.segments.length : selectedIndex + 1;
 
-      const oldControls = prev.segments;
-
-      const newControl = { ...control, selected: !control.locked };
-
-      const inserted =
-        selectedIndex >= 0
-          ? [
-              ...oldControls.slice(0, selectedIndex),
-              newControl,
-              ...oldControls.slice(selectedIndex)
-            ]
-          : [...oldControls, newControl];
-
-      const controls = inserted.map(c =>
-        c === newControl ? c : { ...c, selected: false }
-      );
-
-      return {
-        ...prev,
-        segments: controls,
-      };
-    });
   };
 
   const getSnapPose = (controls: typeof path.segments, idx: number) => {
@@ -344,6 +340,10 @@ export default function Field({
         viewBox={`0 0 ${img.w} ${img.h}`}
         width={img.w}
         height={img.h}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
         onPointerDown={handleBackgroundPointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={endDrag}
@@ -474,6 +474,11 @@ export default function Field({
                     y1={basePx.y}
                     x2={tipPx.x}
                     y2={tipPx.y}
+                    fill={
+                    control.selected
+                      ? "rgba(180, 50, 11, .75)"
+                      : "rgba(160, 32, 7, .5)"
+                    }
                     stroke={control.pose.x !== null && control.pose.y !== null ? "#1560BDB8" : "Black"}
                     strokeWidth={2}
                   />

@@ -12,39 +12,6 @@ export default function AddSegmentButton() {
         setOpen((prev) => !prev)
     }
 
-    const addSegment = (segment: Segment) => {
-        setPath(prev => {
-            let selectedIndex = prev.segments.findIndex(c => c.selected);
-            selectedIndex = selectedIndex === -1 ? selectedIndex = prev.segments.length : selectedIndex + 1;
-        
-            const oldControls = prev.segments;
-        
-            const newControl = { ...segment, selected: !segment.locked };
-        
-            const inserted =
-                selectedIndex >= 0
-                ? [
-                    ...oldControls.slice(0, selectedIndex),
-                    newControl,
-                    ...oldControls.slice(selectedIndex)
-                    ]
-                : [...oldControls, newControl];
-        
-            const controls = inserted.map(c =>
-                c === newControl ? c : { ...c, selected: false }
-            );
-        
-            return {
-                ...prev,
-                segments: controls,
-            };
-        });
-    }
-
-    const addTurnSegment = () => {
-        const control = createAngleTurnSegment(0);
-        addSegment(control);
-    }
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
