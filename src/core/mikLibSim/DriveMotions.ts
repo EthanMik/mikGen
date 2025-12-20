@@ -25,6 +25,8 @@ export function turnToPoint(robot: Robot, dt: number, x: number, y: number, offs
             x - robot.getX(), 
             y - robot.getY())) 
             - robot.getAngle() + offset);
+            
+    let output = turnPID.compute(error);
     
     if (turnPID.isSettled()) {
         robot.tankDrive(0, 0, dt);
@@ -32,7 +34,6 @@ export function turnToPoint(robot: Robot, dt: number, x: number, y: number, offs
         return true;
     }
 
-    let output = turnPID.compute(error);
     output = clamp(output, -turnPID.maxSpeed, turnPID.maxSpeed);
     robot.tankDrive(output, -output, dt);
 

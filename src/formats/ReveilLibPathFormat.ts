@@ -1,4 +1,4 @@
-import type { Coordinate } from "../core/Path";
+import type { Coordinate } from "../core/Types/Coordinate";
 import { PathFormat } from "../formats/PathFormat";
 
 export class ReveilLibPathFormat extends PathFormat {

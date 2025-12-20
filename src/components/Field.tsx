@@ -2,9 +2,8 @@ import React, { useEffect, useRef, useState, useSyncExternalStore } from "react"
 import { robotConstantsStore } from "../core/Robot";
 import type { Coordinate } from "../core/Types/Coordinate";
 import { getBackwardsSnapPose, getForwardSnapPose, type Path } from "../core/Types/Path";
-import { createPointDriveSegment, segmentsEqual } from "../core/Types/Segment";
+import { segmentsEqual } from "../core/Types/Segment";
 import { calculateHeading, FIELD_REAL_DIMENSIONS, toInch, toPX, toRad, vector2Add, vector2Subtract, type Rectangle } from "../core/Util";
-import useMacros from "../hooks/useMacros";
 import { usePath } from "../hooks/usePath";
 import { usePathVisibility } from "../hooks/usePathVisibility";
 import { usePose } from "../hooks/usePose";
@@ -285,49 +284,48 @@ export default function Field({
   }
 
   const controls = path.segments;
+
+  const getSegmentLines = (idx: number): string | null => {
+    if (idx <= 0) return null;
+
+    const m = controls[idx];
+    if (m.pose.x === null || m.pose.y === null) return null;
+
+    const startPose = getBackwardsSnapPose(path, idx - 1);
+    if (startPose === null || startPose.x === null || startPose.y === null) return null;
+
+    const pStart = toPX({ x: startPose.x, y: startPose.y }, FIELD_REAL_DIMENSIONS, img);
+    const pEnd = toPX({ x: m.pose.x, y: m.pose.y }, FIELD_REAL_DIMENSIONS, img);
+
+    if (m.pose.angle === null) {
+      return `${pStart.x},${pStart.y} ${pEnd.x},${pEnd.y}`;
+    }
+
+    const lead = m.constants.lead === null ? 0 : m.constants.lead;
+    const ΘEnd = m.pose.angle;
+
+    const h = Math.sqrt(
+      (pStart.x - pEnd.x) * (pStart.x - pEnd.x) + (pStart.y - pEnd.y) * (pStart.y - pEnd.y)
+    );
+
+    const x1 = pEnd.x - h * Math.sin(toRad(ΘEnd)) * lead;
+    const y1 = pEnd.y + h * Math.cos(toRad(ΘEnd)) * lead;
+
+    const boomerangPts: string[] = [];
+    const steps = 20;
+
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+
+      const x = (1 - t) * ((1 - t) * pStart.x + t * x1) + t * ((1 - t) * x1 + t * pEnd.x);
+      const y = (1 - t) * ((1 - t) * pStart.y + t * y1) + t * ((1 - t) * y1 + t * pEnd.y);
+
+      boomerangPts.push(`${x},${y}`);
+    }
+
+    return boomerangPts.join(" ");
+  };
   
-  const driveToPoints = 
-    controls.length > 1
-      ? controls
-          .map((m, idx) => {
-            if (m.pose.x === null && m.pose.y === null) return;
-
-            if (m.pose.angle === null || idx === 0) {
-              const p = toPX({x: m.pose.x, y: m.pose.y}, FIELD_REAL_DIMENSIONS, img);
-              return `${p.x},${p.y}`;              
-            }
-
-            if (idx < 1) return;
-
-            const lead = m.constants.lead === null ? 0 : m.constants.lead;
-            const lastPos = getBackwardsSnapPose(path, idx - 1);
-            if (lastPos === null) return;
-            const pStart = toPX({x: lastPos.x, y: lastPos.y}, FIELD_REAL_DIMENSIONS, img);
-            const pEnd = toPX({x: m.pose.x, y: m.pose.y}, FIELD_REAL_DIMENSIONS, img);
-            const ΘEnd = m.pose.angle;
-            const h = Math.sqrt(((pStart.x - pEnd.x) * (pStart.x - pEnd.x)) 
-                              + ((pStart.y - pEnd.y) * (pStart.y - pEnd.y)));
-
-            const x1 = pEnd.x - h * Math.sin(toRad(ΘEnd)) * lead
-            const y1 = pEnd.y + h * Math.cos(toRad(ΘEnd)) * lead
-
-            const boomerangPts: string[] = [];
-            const steps = 20;
-
-            for (let i = 0; i <= steps; i++) {
-              const t = i / steps;
-
-              const x = ((1 - t) * ((1 - t) * pStart.x + t * x1) + t * ((1 - t) * x1 + t * pEnd.x));
-              const y = ((1 - t) * ((1 - t) * pStart.y + t * y1) + t * ((1 - t) * y1 + t * pEnd.y));
-
-              boomerangPts.push(`${x},${y}`);
-            }
-
-            return boomerangPts.join(" ")
-          })
-          .join(" ")
-      : "";
-
   return (
     <div
       tabIndex={0}
@@ -355,17 +353,28 @@ export default function Field({
           height={img.h}
         />
 
-        {/* Path */}
+        {/* Path (base) */}
         {!pathVisible && path.segments.length >= 2 && (
-          <polyline
-            points={driveToPoints}
-            fill="none"
-            stroke="rgba(21, 96, 189, 1)"
-            strokeDasharray={"10, 5"}
-            strokeWidth={2}
-          />
-        )}
+          <>
+            {controls.map((control, idx) => {
+              const hovered = control.hovered;
+              const segPts = getSegmentLines(idx);
+              if (!segPts) return null;
 
+              return (
+                <polyline
+                  key={`hover-seg-${control.id}`}
+                  points={segPts}
+                  fill="none"
+                  stroke={hovered ? "rgba(180, 50, 11, 1)" : "rgba(21, 96, 189, 1)"}
+                  strokeDasharray={"10, 5"}
+                  strokeWidth={hovered ? 3 : 2}
+                />
+              );
+            })}
+          </>
+        )}
+        
         {/* Robot */}
         {pose === null || !robotVisible ? <></> :
           <RobotView
@@ -425,7 +434,7 @@ export default function Field({
                   id={control.id}
                   cx={toPX({x: control.pose.x, y: control.pose.y}, FIELD_REAL_DIMENSIONS, img).x}
                   cy={toPX({x: control.pose.x, y: control.pose.y}, FIELD_REAL_DIMENSIONS, img).y}
-                  r={radius}
+                  r={control.hovered ? radius * 1.2 : radius}
 
                   fill={
                     control.selected
@@ -441,13 +450,15 @@ export default function Field({
               {(control.kind === "angleTurn" || control.kind === "pointTurn" || control.kind === "poseDrive") && (() => {
                 const snapPose = getBackwardsSnapPose(path, idx);
                 if (snapPose === null || snapPose.y === null || snapPose.x === null) return null;
-                const r = control.selected ? radius * 1.1 : radius;
-                const thickness = control.selected ? 3 : 1.5;
-                const active = control.selected;
-                const baseStroke = control.pose.x !== null && control.pose.y !== null ? "#1560BDB8" : active ? "rgba(0, 0, 0, .5)" : "Black";
+                const active = control.selected; 
+                const hovered = control.hovered;
+                const r = active || hovered ? radius * 1.15 : radius;
+                const thickness = active || hovered ? 3 : 1.5;
+                const baseStroke = control.pose.x !== null && control.pose.y !== null ? "#1560BDB8" : 
+                active ? (hovered ? "#451717CC" : "#451717")  : "#451717";
 
-                const glowWidth = active ? thickness * 1.5 : 0;
-                const glowOpacity = active ? 0.35 : 0;
+                const glowWidth = active || hovered ? thickness * 1 : 0;
+                const glowOpacity = active || hovered ? 0.35 : 0;
 
                 const basePx = toPX(
                   { x: snapPose.x, y: snapPose.y },

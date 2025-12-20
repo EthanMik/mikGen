@@ -1,5 +1,5 @@
 import type { PathFormat } from "../formats/PathFormat";
-import { kHeadingPID, kOdomDrivePID, kOdomHeadingPID, kturnPID } from "./mikLibSim/Constants";
+import { kHeadingPID, kOdomDrivePID, kOdomHeadingPID, kOdomTurnPID, kturnPID } from "./mikLibSim/Constants";
 import { driveToPoint, drivetoPose, swingToAngle, turnToAngle, turnToPoint } from "./mikLibSim/DriveMotions";
 import { PID } from "./mikLibSim/PID";
 import type { Robot } from "./Robot";
@@ -8,7 +8,7 @@ import { getBackwardsSnapPose, getForwardSnapPose, type Path } from "./Types/Pat
 
 
 export function convertPathtoSim(path: Path): ((robot: Robot, dt: number) => boolean)[] {
-    const turnPID = new PID(kturnPID);
+    const turnPID = new PID(kOdomTurnPID);
     const drivePID = new PID(kOdomDrivePID);
     const headingPID = new PID(kOdomHeadingPID);
     
@@ -59,7 +59,7 @@ export function convertPathtoSim(path: Path): ((robot: Robot, dt: number) => boo
 
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
-                    turnPID.update(kturnPID);
+                    turnPID.update(kOdomTurnPID);
                     return turnToPoint(robot, dt, pos.x, pos.y, control.pose.angle ?? 0, turnPID);
                 }
             );            

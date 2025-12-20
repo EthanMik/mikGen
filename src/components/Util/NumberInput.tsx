@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { clamp } from "../../core/Util";
 
-type ControlInputProps = {
+type NumberInputProps = {
     fontSize: number;
     width: number,
     height: number,
     value: number | null,
-    setValue: (value: number | null) => void;
-    bounds: [number, number]
+    setValue: (value: number | null) => void,
+    bounds: [number, number],
+    stepSize: number,
+    roundTo: number,
 }
 
 export default function NumberInput({
@@ -17,7 +19,9 @@ export default function NumberInput({
     value,
     setValue,
     bounds,
-}: ControlInputProps) {
+    stepSize = 1,
+    roundTo = 2,
+}: NumberInputProps) {
     const [ edit, setEdit ] = useState<string | null>(null);
     const displayRef = useRef("");
 
@@ -25,7 +29,7 @@ export default function NumberInput({
     
     const resetValue = () => {    
         const val: number | null = value
-        const num = val === null ? "" : trimZeros(val.toFixed(2)); 
+        const num = val === null ? "" : trimZeros(val.toFixed(roundTo)); 
         displayRef.current = num;
 
         setEdit(num);
@@ -52,13 +56,13 @@ export default function NumberInput({
         }
         const num: number = parseFloat(edit);
         
-        displayRef.current = trimZeros(num.toFixed(2));
+        displayRef.current = trimZeros(num.toFixed(roundTo));
 
         const clampNum = clamp(num, bounds[0], bounds[1])
         if (clampNum === undefined) return;
         setValue(clampNum);
 
-        displayRef.current = trimZeros(clampNum.toFixed(2));
+        displayRef.current = trimZeros(clampNum.toFixed(roundTo));
 
     }
 
@@ -70,6 +74,12 @@ export default function NumberInput({
         if (evt.key === "Enter") {
             executeValue()
             evt.currentTarget.blur();
+        }
+        if (evt.key === "ArrowUp" && value !== null) {
+            setValue((value + stepSize));
+        }
+        if (evt.key === "ArrowDown" && value !== null) {
+            setValue((value - stepSize));
         }
     }
 

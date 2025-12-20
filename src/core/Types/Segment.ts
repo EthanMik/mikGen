@@ -13,6 +13,7 @@ export type SegmentKind =
 export interface Segment {
   id: string;
   selected: boolean;
+  hovered: boolean;
   locked: boolean;
   visible: boolean;
   pose: Pose;
@@ -25,6 +26,7 @@ export function createPointDriveSegment(position: Coordinate): Segment {
   return {
     id: makeId(10),
     selected: false,
+    hovered: false,
     locked: false,
     visible: true,
     pose: { x: position.x, y: position.y, angle: null },
@@ -38,6 +40,7 @@ export function createPoseDriveSegment(pose: Pose): Segment {
   return {
     id: makeId(10),
     selected: false,
+    hovered: false,
     locked: false,
     visible: true,
     pose,
@@ -51,6 +54,7 @@ export function createPointTurnSegment(pose: Pose): Segment {
   return {
     id: makeId(10),
     selected: false,
+    hovered: false,
     locked: false,
     visible: true,
     pose,
@@ -64,6 +68,7 @@ export function createAngleTurnSegment(heading: number): Segment {
   return {
     id: makeId(10),
     selected: false,
+    hovered: false,
     locked: false,
     visible: true,
     command: createCommand(''),

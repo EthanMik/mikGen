@@ -2,7 +2,7 @@ import flipHorizontal from "../assets/flip-horizontal.svg";
 import flipVertical from "../assets/flip-vertical.svg";
 import { normalizeDeg } from "../core/Util";
 import { usePath } from "../hooks/usePath";
-import NumberInput from "./Util/UserInput";
+import NumberInput from "./Util/NumberInput";
 
 type MirrorDirection = "x" | "y";
 

@@ -47,7 +47,7 @@ export default function CommandList({
         <div className="flex flex-row items-center gap-4">
             <Dropdown 
                 width={180} 
-                height={35} 
+                height={30} 
                 items={commands}
                 setSelectedItem={setItem} 
                 defaultText="Add Command..."

@@ -84,33 +84,33 @@ export const kHeadingPID = createPIDConstants({
 export const kOdomTurnPID = createPIDConstants({
     maxSpeed: 1,
     minSpeed: 0,
-    kp: .4,
-    ki: 0,
-    kd: 1,
-    starti: 0,
-    settleTime: 300,
+    kp: .3,
+    ki: .01,
+    kd: 3,
+    starti: 15,
+    settleTime: 150,
     settleError: 1.5,
-    timeout: 5000
+    timeout: 3000
 });
 
 export const kOdomDrivePID = createPIDConstants({
-    maxSpeed: .6,
+    maxSpeed: .666,
     minSpeed: 0,
     kp: 1.5,
     ki: 0,
-    kd: 10,
+    kd: 12,
     starti: 0,
-    settleTime: 300,
-    settleError: 3,
+    settleTime: 250,
+    settleError: 2,
     timeout: 5000,
     lead: 0.4,
     setback: 1,
 });
 
 export const kOdomHeadingPID = createPIDConstants({
-    maxSpeed: .8,
+    maxSpeed: .833,
     minSpeed: 0,
-    kp: .4,
+    kp: .5,
     ki: 0,
     kd: 1,
     starti: 0,

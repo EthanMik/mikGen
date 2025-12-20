@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import UserInput from "../Util/UserInput";
+import UserInput from "../Util/NumberInput";
 import { clamp } from "../../core/Util";
 import { robotConstants, robotConstantsStore } from "../../core/Robot";
 import Checkbox from "../Util/Checkbox";

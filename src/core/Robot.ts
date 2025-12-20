@@ -79,7 +79,9 @@ export class Robot {
     private moveTowards(current: number, target: number, dt: number): number {
         const diff = target - current;
 
-        const isAccel = Math.abs(target) > Math.abs(current);
+        const signFlip = current !== 0 && target !== 0 && Math.sign(current) !== Math.sign(target);
+        const isAccel = !signFlip && Math.abs(target) > Math.abs(current);
+
         const maxDelta = (isAccel ? this.maxAccel : this.maxDecel) * dt;
 
         if (Math.abs(diff) <= maxDelta) return target;
