@@ -1,16 +1,23 @@
 import type { PathFormat } from "../formats/PathFormat";
-import { kHeadingPID, kOdomDrivePID, kOdomHeadingPID, kOdomTurnPID, kturnPID } from "./mikLibSim/Constants";
 import { driveToPoint, drivetoPose, swingToAngle, turnToAngle, turnToPoint } from "./mikLibSim/DriveMotions";
 import { PID } from "./mikLibSim/PID";
 import type { Robot } from "./Robot";
 import type { Coordinate } from "./Types/Coordinate";
 import { getBackwardsSnapPose, getForwardSnapPose, type Path } from "./Types/Path";
+import { getDefaultConstantsForKind } from "./Types/Segment";
 
 
 export function convertPathtoSim(path: Path): ((robot: Robot, dt: number) => boolean)[] {
-    const turnPID = new PID(kOdomTurnPID);
-    const drivePID = new PID(kOdomDrivePID);
-    const headingPID = new PID(kOdomHeadingPID);
+    const pointTurnPID = new PID(getDefaultConstantsForKind("pointTurn").turn);
+
+    const angleTurnPID = new PID(getDefaultConstantsForKind("angleTurn").turn);
+
+    const pointDrivePID = new PID(getDefaultConstantsForKind("pointDrive").drive);
+    const pointHeadingPID = new PID(getDefaultConstantsForKind("pointDrive").heading);
+
+    const poseDrivePID = new PID(getDefaultConstantsForKind("poseDrive").drive);
+    const poseHeadingPID = new PID(getDefaultConstantsForKind("poseDrive").heading);
+
     
     const auton: ((robot: Robot, dt: number) => boolean)[] = [];
 
@@ -27,21 +34,23 @@ export function convertPathtoSim(path: Path): ((robot: Robot, dt: number) => boo
         }
 
         if (control.kind === "pointDrive") {
+            const { drive, heading } = control.constants;
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
-                    drivePID.update(kOdomDrivePID);
-                    headingPID.update(kHeadingPID);
-                    return driveToPoint(robot, dt, control.pose.x, control.pose.y, drivePID, headingPID);
+                    pointDrivePID.update(drive);
+                    pointHeadingPID.update(heading);
+                    return driveToPoint(robot, dt, control.pose.x, control.pose.y, pointDrivePID, pointHeadingPID);
                 }
             );
         }
 
         if (control.kind === "poseDrive") {
+            const { drive, heading } = control.constants;
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
-                    drivePID.update(kOdomDrivePID);
-                    headingPID.update(kHeadingPID);
-                    return drivetoPose(robot, dt, control.pose.x, control.pose.y, control.pose.angle, drivePID, headingPID);
+                    poseDrivePID.update(drive);
+                    poseHeadingPID.update(heading);
+                    return drivetoPose(robot, dt, control.pose.x, control.pose.y, control.pose.angle, pointDrivePID, poseHeadingPID);
                 }
             );
         }
@@ -57,19 +66,24 @@ export function convertPathtoSim(path: Path): ((robot: Robot, dt: number) => boo
                 ? { x: previousPos.x ?? 0, y: (previousPos.y ?? 0) + 5 }
                 : { x: 0, y: 5 };
 
+            const { turn } = control.constants;
+
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
-                    turnPID.update(kOdomTurnPID);
-                    return turnToPoint(robot, dt, pos.x, pos.y, control.pose.angle ?? 0, turnPID);
+                    pointTurnPID.update(turn);
+                    return turnToPoint(robot, dt, pos.x, pos.y, control.pose.angle ?? 0, pointTurnPID);
                 }
             );            
         }
 
         if (control.kind === "angleTurn") {
+            
+            const { turn } = control.constants;
+
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
-                    turnPID.update(kturnPID);
-                    return turnToAngle(robot, dt, control.pose.angle, turnPID);
+                    angleTurnPID.update(angleTurnPID)
+                    return turnToAngle(robot, dt, control.pose.angle, angleTurnPID);
                 }
             );                 
         }

@@ -60,7 +60,8 @@ export default function PathSimulator() {
         if (!computedPath.trajectory.length || computedPath.totalTime <= 0) return;
 
         const clampedTime = clamp(time, 0, computedPath.totalTime);
-
+        if (clampedTime !== time) setTime(clampedTime);
+        
         if (robotVisible) forceSnapTime(computedPath, clampedTime);
 
         setValue((clampedTime / computedPath.totalTime) * 100);

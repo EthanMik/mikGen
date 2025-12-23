@@ -1,3 +1,5 @@
+import { isTurnConstants, type DriveConstants, type TurnConstants } from "../Types/Segment";
+
 export interface PIDConstants {
     maxSpeed: number | null;
     minSpeed: number | null;
@@ -12,7 +14,7 @@ export interface PIDConstants {
     setback: number | null
 }
 
-export function PIDConstantsEqual(a: PIDConstants, b: PIDConstants): boolean {
+const PIDConstantsEqual = (a: PIDConstants, b: PIDConstants) => {
   return (
     a.maxSpeed === b.maxSpeed &&
     a.minSpeed === b.minSpeed &&
@@ -26,6 +28,18 @@ export function PIDConstantsEqual(a: PIDConstants, b: PIDConstants): boolean {
     a.lead === b.lead &&
     a.setback === b.setback
   );
+}
+
+export function SegmentConstantsEqual(a: TurnConstants | DriveConstants, b: TurnConstants | DriveConstants): boolean {
+  if (isTurnConstants(a) && isTurnConstants(b)) {
+    return PIDConstantsEqual(a.turn, b.turn);
+  }
+
+  if (!isTurnConstants(a) && !isTurnConstants(b)) {
+    return PIDConstantsEqual(a.drive, b.drive) && PIDConstantsEqual(a.heading, b.heading);
+  }
+
+  return false;
 }
 
 function createPIDConstants(values: Partial<PIDConstants> = {}): PIDConstants {
@@ -109,7 +123,6 @@ export const kOdomDrivePID = createPIDConstants({
 
 export const kOdomHeadingPID = createPIDConstants({
     maxSpeed: .833,
-    minSpeed: 0,
     kp: .5,
     ki: 0,
     kd: 1,

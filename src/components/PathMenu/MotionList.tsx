@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import eyeOpen from "../../assets/eye-open.svg";
 import eyeClosed from "../../assets/eye-closed.svg";
@@ -8,24 +9,43 @@ import Slider from "../Util/Slider";
 import { usePath } from "../../hooks/usePath";
 import CommandList from "./CommandList";
 import { createCommand, type Command } from "../../core/Types/Command";
+import { getDefaultConstantsForKind, isDriveConstants, type DriveConstants, type TurnConstants } from "../../core/Types/Segment";
+import type { ConstantField } from "./ConstantRow";
 import ConstantsList from "./ConstantsList";
+
+export type ConstantListField = {
+    header: string,
+    values: any,
+    fields: ConstantField[]
+    onChange: (partial: Partial<any>) => void;
+}
 
 type MotionListProps = {
     name: string,
+    startSpeed: number, 
+    field: ConstantListField[], 
     segmentId: string,
-    defaultSpeed: number,
     isOpenGlobal: boolean,
 }
 
-export default function MotionList({name, segmentId, isOpenGlobal, defaultSpeed}: MotionListProps) {
-    const [value, setValue] = useState<number>(defaultSpeed);
+export default function MotionList({
+    name, 
+    startSpeed,
+    field,
+    segmentId, 
+    isOpenGlobal,
+}: MotionListProps) {
     const [ path, setPath ] = usePath(); 
+
+    const segment = path.segments.find(s => s.id === segmentId)!;
+    const selected = path.segments.find((c) => c.id === segmentId)?.selected;
+
+    const [ value, setValue ] = useState<number>(startSpeed);
     const [ isEyeOpen, setEyeOpen ] = useState(true);
     const [ isLocked, setLocked ] = useState(false);
     const [ isOpen, setOpen ] = useState(false);
     const [ command, setCommand ] = useState<Command>(createCommand(''));
 
-    const selected = path.segments.find((c) => c.id === segmentId)?.selected;
 
     const normalSelect = () => {
         setPath(prev => ({
@@ -162,6 +182,31 @@ export default function MotionList({name, segmentId, isOpenGlobal, defaultSpeed}
       })
     }
 
+    const updateAllConstants = (constants: DriveConstants | TurnConstants) => {
+        setPath(prev => ({
+            ...prev,
+            segments: prev.segments.map(s => {
+            if (s.id !== segmentId) return s;
+
+            if (isDriveConstants(s.constants)) {
+                return {
+                ...s,
+                constants: constants
+                };
+            }
+
+            return {
+                ...s,
+                constants: constants
+            };
+            }),
+        }));
+    }
+
+    useEffect(() => {
+        // onChange({ maxSpeed: value / 100 } as Partial<any>);
+    }, [value]);
+
     return (
         <div className="flex flex-col gap-2">
             <button 
@@ -217,8 +262,17 @@ export default function MotionList({name, segmentId, isOpenGlobal, defaultSpeed}
             </button>
             <div className={`flex flex-col ml-10 gap-2 transition-all ${isOpen ? "block" : "hidden"}`}>
                 <CommandList command={command} setCommand={setCommand} />
-                <ConstantsList header={"Exit Conditions"} />
-                <ConstantsList header={"Constants"} />
+                {field.map((f) => (
+                <ConstantsList
+                    key={f.header}
+                    header={f.header}
+                    fields={f.fields}
+                    values={f.values}
+                    isOpenGlobal={isOpenGlobal}
+                    onChange={f.onChange}
+                    onReset={() => updateAllConstants(getDefaultConstantsForKind(segment.kind))}
+                />
+                ))}
             </div>
         </div>
     );

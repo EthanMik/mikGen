@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useSyncExternalStore } from "react"
 import { robotConstantsStore } from "../core/Robot";
 import type { Coordinate } from "../core/Types/Coordinate";
 import { getBackwardsSnapPose, getForwardSnapPose, type Path } from "../core/Types/Path";
-import { segmentsEqual } from "../core/Types/Segment";
+import { isDriveConstants, segmentsEqual } from "../core/Types/Segment";
 import { calculateHeading, FIELD_REAL_DIMENSIONS, toInch, toPX, toRad, vector2Add, vector2Subtract, type Rectangle } from "../core/Util";
 import { usePath } from "../hooks/usePath";
 import { usePathVisibility } from "../hooks/usePathVisibility";
@@ -301,7 +301,7 @@ export default function Field({
       return `${pStart.x},${pStart.y} ${pEnd.x},${pEnd.y}`;
     }
 
-    const lead = m.constants.lead === null ? 0 : m.constants.lead;
+    const lead = isDriveConstants(m.constants) && m.constants.drive.lead !== null ? m.constants.drive.lead : 0;
     const ΘEnd = m.pose.angle;
 
     const h = Math.sqrt(

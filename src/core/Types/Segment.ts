@@ -1,4 +1,4 @@
-import { kBoomerangPID, kOdomDrivePID, kOdomTurnPID, kturnPID, PIDConstantsEqual, type PIDConstants } from "../mikLibSim/Constants";
+import { kBoomerangPID, kOdomDrivePID, kOdomHeadingPID, kOdomTurnPID, kturnPID, SegmentConstantsEqual, type PIDConstants } from "../mikLibSim/Constants";
 import { makeId } from "../Util";
 import { commandsEqual, createCommand, type Command } from "./Command";
 import type { Coordinate } from "./Coordinate";
@@ -7,10 +7,34 @@ import { posesEqual, type Pose } from "./Pose";
 export type SegmentKind =
   | "pointDrive"
   | "poseDrive"
-  | "pointTurn"
+  | "pointTurn" 
   | "angleTurn";
 
-export interface Segment {
+export type DriveConstants = {
+  drive: PIDConstants;
+  heading: PIDConstants;
+};
+
+export type TurnConstants = {
+  turn: PIDConstants;
+};
+
+export function isTurnConstants(x: TurnConstants | DriveConstants): x is TurnConstants {
+  return "turn" in x;
+}
+
+export function isDriveConstants(x: TurnConstants | DriveConstants): x is DriveConstants {
+  return "drive" in x;
+}
+
+export type SegmentConstantsByKind = {
+  pointDrive: DriveConstants;
+  poseDrive: DriveConstants;
+  pointTurn: TurnConstants;
+  angleTurn: TurnConstants;
+};
+
+export interface Segment<K extends SegmentKind = SegmentKind> {
   id: string;
   selected: boolean;
   hovered: boolean;
@@ -18,11 +42,29 @@ export interface Segment {
   visible: boolean;
   pose: Pose;
   command: Command;
-  constants: PIDConstants;
-  kind: SegmentKind;
+  kind: K;
+  constants: SegmentConstantsByKind[K];
 }
 
-export function createPointDriveSegment(position: Coordinate): Segment {
+const clonePID = (c: PIDConstants): PIDConstants => ({ ...c });
+
+export function getDefaultConstantsForKind<K extends SegmentKind>(kind: K): SegmentConstantsByKind[K] {
+  switch (kind) {
+    case "pointDrive":
+    case "poseDrive":
+      return {
+        drive: clonePID(kOdomDrivePID),
+        heading: clonePID(kOdomHeadingPID),
+      } as SegmentConstantsByKind[K];
+
+    case "pointTurn":
+      return { turn: clonePID(kturnPID) } as SegmentConstantsByKind[K];
+    case "angleTurn":
+      return { turn: clonePID(kOdomTurnPID) } as SegmentConstantsByKind[K];
+  }
+}
+
+export function createPointDriveSegment(position: Coordinate): Segment<"pointDrive"> {
   return {
     id: makeId(10),
     selected: false,
@@ -31,12 +73,12 @@ export function createPointDriveSegment(position: Coordinate): Segment {
     visible: true,
     pose: { x: position.x, y: position.y, angle: null },
     command: createCommand(''),
-    constants: kOdomDrivePID,
     kind: "pointDrive",
+    constants: getDefaultConstantsForKind("pointDrive"),
   };
 }
 
-export function createPoseDriveSegment(pose: Pose): Segment {
+export function createPoseDriveSegment(pose: Pose): Segment<"poseDrive"> {
   return {
     id: makeId(10),
     selected: false,
@@ -45,12 +87,12 @@ export function createPoseDriveSegment(pose: Pose): Segment {
     visible: true,
     pose,
     command: createCommand(''),
-    constants: kBoomerangPID,
     kind: "poseDrive",
+    constants: getDefaultConstantsForKind("poseDrive"),
   };
 }
 
-export function createPointTurnSegment(pose: Pose): Segment {
+export function createPointTurnSegment(pose: Pose): Segment<"pointTurn"> {
   return {
     id: makeId(10),
     selected: false,
@@ -59,12 +101,12 @@ export function createPointTurnSegment(pose: Pose): Segment {
     visible: true,
     pose,
     command: createCommand(''),
-    constants: kOdomTurnPID,
     kind: "pointTurn",
+    constants: getDefaultConstantsForKind("pointTurn"),
   };
 }
 
-export function createAngleTurnSegment(heading: number): Segment {
+export function createAngleTurnSegment(heading: number): Segment<"angleTurn"> {
   return {
     id: makeId(10),
     selected: false,
@@ -73,8 +115,8 @@ export function createAngleTurnSegment(heading: number): Segment {
     visible: true,
     command: createCommand(''),
     pose: { x: null, y: null, angle: heading },
-    constants: kturnPID,
     kind: "angleTurn",
+    constants: getDefaultConstantsForKind("angleTurn"),
   };
 }
 
@@ -85,6 +127,6 @@ export function segmentsEqual(a: Segment, b: Segment): boolean {
     a.kind === b.kind &&
     posesEqual(a.pose, b.pose) &&
     commandsEqual(a.command, b.command) &&
-    PIDConstantsEqual(a.constants, b.constants)
+    SegmentConstantsEqual(a.constants, b.constants)
   );
 }

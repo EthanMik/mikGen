@@ -76,9 +76,17 @@ export default function NumberInput({
             evt.currentTarget.blur();
         }
         if (evt.key === "ArrowUp" && value !== null) {
+            if (value + stepSize > bounds[1]) {
+                setValue(bounds[1]);
+                return;
+            }
             setValue((value + stepSize));
         }
         if (evt.key === "ArrowDown" && value !== null) {
+            if (value - stepSize < bounds[0]) {
+                setValue(bounds[0]);
+                return;
+            }
             setValue((value - stepSize));
         }
     }

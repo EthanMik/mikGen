@@ -1,42 +1,31 @@
-import { useState } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useEffect, useState } from "react";
 import downArrow from "../../assets/down-arrow.svg";
-import NumberInput from "../Util/NumberInput";
-
-type ConstantProps = {
-    name: string
-}
-
-function Constant({name} : ConstantProps) {
-    const [ value, setValue ] = useState<number | null>(0);
-
-    return (        
-        <div className="flex flex-row items-center 
-            justify-between h-[30px] ml-5 pl-2 pr-2"
-        >
-            <span className="w-20">{name} </span>
-            <NumberInput 
-                width={55} 
-                height={30}
-                fontSize={16}
-                value={value}
-                setValue={setValue}
-                bounds={[0, 100]}
-                stepSize={1}
-                roundTo={3}
-            />
-        </div>
-    );
-}
+import type { ConstantField } from "./ConstantRow";
+import ConstantRow from "./ConstantRow";
 
 type ConstantsListProps = {
-    header: string,
+    header: string;
+    values: any;
+    fields: ConstantField<any>[];
+    onChange: (constants: Partial<any>) => void,
+    onReset: () => void;
+    isOpenGlobal: boolean;
 }
 
 export default function ConstantsList({
     header,
+    values,
+    fields,
+    onChange,
+    onReset,
+    isOpenGlobal,
 }: ConstantsListProps) {
     const [ open, setOpen ] = useState(false);
-    const [ value, setValue ] = useState<number | null>(0);
+
+    useEffect(() => {
+        setOpen(isOpenGlobal)
+    }, [isOpenGlobal])
 
     return (
         <div className="flex flex-col">
@@ -60,7 +49,9 @@ export default function ConstantsList({
                         </span>
                     </button>
 
-                    <button className="bg-medlightgray hover:bg-medgray_hover px-2 rounded-sm">
+                    <button className="bg-medlightgray hover:bg-medgray_hover px-2 rounded-sm"
+                        onClick={() => onReset()}
+                    >
                         <span className="text-verylightgray">
                             Reset
                         </span>
@@ -72,10 +63,15 @@ export default function ConstantsList({
 
             {open && (
                 <div className="grid grid-cols-2 min-w-0 gap-1 mt-1 w-[400px]">
-                    <Constant name={"Drive kP"}/>
-                    <Constant name={"Drive kI"}/>
-                    <Constant name={"Drive kD"}/>
-                    <Constant name={"Drive startI"}/>
+                    {fields.map((f) => (
+                        <ConstantRow 
+                            key={String(f.key)}
+                            label={f.label} 
+                            value={values[f.key]}
+                            input={f.input}
+                            onChange={(v: number | null) => onChange({ [f.key]: v } as Partial<any>)}
+                        />
+                    ))}
                 </div>
 
             )}

@@ -1,10 +1,38 @@
-controlConfig
-- cant change coords on multiselect
+Todo List:
 
-useFieldMacros
-- ctrl a
-- ctrl+shift a
-- ctrl z
-- ctrl y
-- ctrl c
-- ctrl v
+- Add Play button to path segments on the right hand side
+- cant change coords on multiselect
+- Add Path constants changing, speed and lib specific constants + swing option for mik/jar
+- Add file saving, loading unloading
+- Add add segment implementation + right click for turns
+- Field visual for when turns are selected + visual for hoving over segments
+- Fix path conversion and make a animation, also make it so if will only copy selected segments
+- add ez reveilib rw lemlib jar mik vexide drive motions
+- link drive motions with formats
+- Fix undo/redo
+- Add copy and paste
+- Fix path mirroring
+- Add a segment soft delete button and add a global toggle for it as well as h keybind
+- coordinate mouse hover view
+- fix UI not resizing to fit resolution (a bitch to fix)
+- Setting menu: units and coord system if not lazy, holonomic drive
+- Polish Control Config (segment casting)
+- Add scrubbing steps to settings
+
+Docs:
+
+- A better way to plan VEX Autonoumous - EthanMik Channel
+- Readthedocs.io showing all the keybinds
+
+Fluff that might get done:
+
+- Constant Presets that save across cache sessions
+- Turn command animation
+- Bezier segments
+- distance segments
+- field dragging and resizing
+- radial click animations
+
+Stuff that I will only add if someone forces me to:
+
+-  Multiple paths

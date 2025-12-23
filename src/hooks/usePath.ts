@@ -5,4 +5,4 @@ import { createAngleTurnSegment, createPoseDriveSegment } from "../core/Types/Se
 const saved = localStorage.getItem("path");
 const initialData = saved ? JSON.parse(saved) : { segments: [] };
 
-export const usePath = createSharedState<Path>(initialData);
+export const usePath = createSharedState<Path>({segments: []});
