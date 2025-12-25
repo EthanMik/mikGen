@@ -8,7 +8,6 @@ export function turnToAngle(robot: Robot, dt: number, angle: number, turnPID: PI
     let output = turnPID.compute(error);
     
     if (turnPID.isSettled()) {
-        robot.tankDrive(0, 0, dt);
         turnPID.reset();
         return true;
     }
@@ -29,7 +28,6 @@ export function turnToPoint(robot: Robot, dt: number, x: number, y: number, offs
     let output = turnPID.compute(error);
     
     if (turnPID.isSettled()) {
-        robot.tankDrive(0, 0, dt);
         turnPID.reset();
         return true;
     }
@@ -45,7 +43,6 @@ export function swingToAngle(robot: Robot, dt: number, angle: number, swingPID: 
     let output = swingPID.compute(error);
 
     if (swingPID.isSettled()) {
-        robot.tankDrive(0, 0, dt);
         swingPID.reset();
         return true;
     }
@@ -76,7 +73,6 @@ export function driveDistance(robot: Robot, dt: number, distance: number, headin
     heading_output = clamp(heading_output, -headingPID.maxSpeed, headingPID.maxSpeed);
 
     if (drivePID.isSettled()) {
-        robot.tankDrive(0, 0, dt);
         driveDistanceStartPos = null; 
         drivePID.reset();
         headingPID.reset();
@@ -88,29 +84,35 @@ export function driveDistance(robot: Robot, dt: number, distance: number, headin
     return false;
 }
 
-let prev_line_settled = false;
+let pointStartHeading: number | null = null;
+let pointPrevLineSettled: boolean | null = null;
 
 export function driveToPoint(robot: Robot, dt: number, x: number, y: number, drivePID: PID, headingPID: PID) {
-    const heading = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
-    let drive_error = Math.hypot(x - robot.getX(), y - robot.getY());
-
+    
+    if (pointStartHeading === null) {
+        pointStartHeading = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
+        pointPrevLineSettled = is_line_settled(x, y, pointStartHeading, robot.getX(), robot.getY());
+    }
+    
     if (drivePID.isSettled()) {
-        robot.tankDrive(0, 0, dt);
         drivePID.reset();
         headingPID.reset();
-        return true
+        pointStartHeading = null;
+        pointPrevLineSettled = null;
+        return true;
     }
-
-    const line_settled = is_line_settled(x, y, heading, robot.getX(), robot.getY());
-    if (line_settled && !prev_line_settled) { 
+    
+    const line_settled = is_line_settled(x, y, pointStartHeading, robot.getX(), robot.getY());
+    if (line_settled && !pointPrevLineSettled!) {
         drivePID.reset();
         headingPID.reset();
-        prev_line_settled = false;
-        return true; 
+        pointStartHeading = null;
+        pointPrevLineSettled = null;
+        return true;
     }
-    prev_line_settled = line_settled;
-
-    drive_error = Math.hypot(x - robot.getX(), y - robot.getY());
+    pointPrevLineSettled = line_settled;
+    
+    const drive_error = Math.hypot(x - robot.getX(), y - robot.getY());
 
     let heading_error = reduce_negative_180_to_180(toDeg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle());
     let drive_output = drivePID.compute(drive_error);
@@ -132,69 +134,77 @@ export function driveToPoint(robot: Robot, dt: number, x: number, y: number, dri
     return false;
 }
 
-let pose_line_settled = false;
-let pose_prev_line_settled = false;
+let posePrevLineSettled: boolean | null = null;
+let poseInitCenterLineSide: boolean | null = null;
+let poseCrossedCenterLine = false;
 
-let pose_crossed_center_line = false;
+export function driveToPose(robot: Robot,dt: number, x: number, y: number, angle: number, drivePID: PID, headingPID: PID): boolean {
+  if (posePrevLineSettled === null || poseInitCenterLineSide === null) {
+    posePrevLineSettled = is_line_settled(x, y, angle, robot.getX(), robot.getY());
+    poseInitCenterLineSide = is_line_settled(x, y, angle + 90, robot.getX(), robot.getY());
+    poseCrossedCenterLine = false;
+  }
 
-let pose_center_line_side = false;
-let pose_prev_center_line_side = false;
+  if (drivePID.isSettled()) {
+    drivePID.reset();
+    headingPID.reset();
+    posePrevLineSettled = null;
+    poseInitCenterLineSide = null;
+    poseCrossedCenterLine = false;
+    return true;
+  }
 
+  const pose_line_settled = is_line_settled(x, y, angle, robot.getX(), robot.getY());
+  if (pose_line_settled && !posePrevLineSettled) {
+    drivePID.reset();
+    headingPID.reset();
+    posePrevLineSettled = null;
+    poseInitCenterLineSide = null;
+    poseCrossedCenterLine = false;
+    return true;
+  }
+  posePrevLineSettled = pose_line_settled;
 
-export function drivetoPose(robot: Robot, dt: number, x: number, y: number, angle: number, drivePID: PID, headingPID: PID) {
-    let target_distance = Math.hypot(x - robot.getX(), y - robot.getY());
+  const centerSide = is_line_settled(x, y, angle + 90, robot.getX(), robot.getY());
+  poseCrossedCenterLine ||= (centerSide !== poseInitCenterLineSide);
 
-    if (drivePID.isSettled()) {
-        robot.tankDrive(0, 0, dt);
-        drivePID.reset();
-        headingPID.reset();
-        pose_prev_line_settled = false;
-        pose_prev_center_line_side = false;
-        return true;
-    }
+  const target_distance = Math.hypot(x - robot.getX(), y - robot.getY());
 
-    pose_line_settled = is_line_settled(x, y, angle, robot.getX(), robot.getY());
+  const carrot_X = x - Math.sin(toRad(angle)) * (drivePID.lead * target_distance + drivePID.setback);
+  const carrot_Y = y - Math.cos(toRad(angle)) * (drivePID.lead * target_distance + drivePID.setback);
 
-    if (pose_line_settled && !pose_prev_line_settled) {
-        robot.tankDrive(0, 0, dt);
-        drivePID.reset();
-        headingPID.reset();
-        pose_prev_line_settled = false;
-        pose_prev_center_line_side = false;
-        return true;
-    }
-    pose_prev_line_settled = pose_line_settled;
+  let drive_error = Math.hypot(carrot_X - robot.getX(), carrot_Y - robot.getY());
+  let heading_error = reduce_negative_180_to_180(
+    toDeg(Math.atan2(carrot_X - robot.getX(), carrot_Y - robot.getY())) - robot.getAngle()
+  );
 
-    pose_center_line_side = is_line_settled(x, y, angle + 90, robot.getX(), robot.getY());
-    pose_crossed_center_line = pose_center_line_side !== pose_prev_center_line_side;
-    pose_prev_center_line_side = pose_center_line_side;
+  if (drive_error < drivePID.settleError || poseCrossedCenterLine || drive_error < drivePID.setback) {
+    heading_error = reduce_negative_180_to_180(angle - robot.getAngle());
+    drive_error = target_distance;
+  }
 
-    target_distance = Math.hypot(x - robot.getX(), y - robot.getY());
+  let drive_output = drivePID.compute(drive_error);
 
-    const carrot_X = x - Math.sin(toRad(angle)) * (drivePID.lead * target_distance + drivePID.setback);
-    const carrot_Y = y - Math.cos(toRad(angle)) * (drivePID.lead * target_distance + drivePID.setback);
+  const heading_scale_factor = Math.cos(toRad(heading_error));
+  drive_output *= heading_scale_factor;
 
-    let drive_error = Math.hypot(carrot_X - robot.getX(), carrot_Y - robot.getY());
-    let heading_error = reduce_negative_180_to_180(toDeg(Math.atan2(carrot_X - robot.getX(), carrot_Y - robot.getY())) - robot.getAngle());
+  heading_error = reduce_negative_90_to_90(heading_error);
+  const heading_output = headingPID.compute(heading_error);
 
-    if (drive_error < drivePID.settleError || pose_crossed_center_line || drive_error < drivePID.setback) {
-        heading_error = reduce_negative_180_to_180(angle - robot.getAngle());
-        drive_error = target_distance;
-    }
+  const clamped_drive_output = clamp(
+    drive_output,
+    -Math.abs(heading_scale_factor) * drivePID.maxSpeed,
+    Math.abs(heading_scale_factor) * drivePID.maxSpeed
+  );
+  const clamped_heading_output = clamp(heading_output, -headingPID.maxSpeed, headingPID.maxSpeed);
 
-    let drive_output = drivePID.compute(drive_error);
+  const final_drive_output = clamp_min_voltage(clamped_drive_output, drivePID.minSpeed);
 
-    const heading_scale_factor = Math.cos(toRad(heading_error));
-    drive_output *= heading_scale_factor;
-    heading_error = reduce_negative_90_to_90(heading_error);
-    let heading_output = headingPID.compute(heading_error);
+  robot.tankDrive(
+    left_voltage_scaling(final_drive_output, clamped_heading_output),
+    right_voltage_scaling(final_drive_output, clamped_heading_output),
+    dt
+  );
 
-    drive_output = clamp(drive_output, -Math.abs(heading_scale_factor) * drivePID.maxSpeed, Math.abs(heading_scale_factor) * drivePID.maxSpeed);
-    heading_output = clamp(heading_output, -headingPID.maxSpeed, headingPID.maxSpeed);
-
-    drive_output = clamp_min_voltage(drive_output, drivePID.minSpeed);
-
-    robot.tankDrive(left_voltage_scaling(drive_output, heading_output), right_voltage_scaling(drive_output, heading_output), dt);
-
-    return false;
+  return false;
 }

@@ -1,5 +1,5 @@
 import type { PathFormat } from "../formats/PathFormat";
-import { driveToPoint, drivetoPose, swingToAngle, turnToAngle, turnToPoint } from "./mikLibSim/DriveMotions";
+import { driveToPoint, driveToPose, swingToAngle, turnToAngle, turnToPoint } from "./mikLibSim/DriveMotions";
 import { PID } from "./mikLibSim/PID";
 import type { Robot } from "./Robot";
 import type { Coordinate } from "./Types/Coordinate";
@@ -50,7 +50,7 @@ export function convertPathtoSim(path: Path): ((robot: Robot, dt: number) => boo
                 (robot: Robot, dt: number): boolean => { 
                     poseDrivePID.update(drive);
                     poseHeadingPID.update(heading);
-                    return drivetoPose(robot, dt, control.pose.x, control.pose.y, control.pose.angle, pointDrivePID, poseHeadingPID);
+                    return driveToPose(robot, dt, control.pose.x, control.pose.y, control.pose.angle, poseDrivePID, poseHeadingPID);
                 }
             );
         }

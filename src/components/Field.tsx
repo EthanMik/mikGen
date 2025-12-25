@@ -244,6 +244,12 @@ export default function Field({
       return
     }
 
+    if (path.segments.length <= 0) {
+      const pos = getPressedPositionInch(evt);
+      addPoseDriveSegment({ x: pos.x, y: pos.y, angle: 0 }, setPath);      
+      return;
+    }
+
     if (!evt.ctrlKey && evt.button === 0) {
       const pos = getPressedPositionInch(evt);
       addPointDriveSegment(pos, setPath);

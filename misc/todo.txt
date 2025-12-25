@@ -1,5 +1,7 @@
 Todo List:
 
+- Add units to constants
+- fix add segment macro names
 - Add Play button to path segments on the right hand side
 - cant change coords on multiselect
 - Add Path constants changing, speed and lib specific constants + swing option for mik/jar

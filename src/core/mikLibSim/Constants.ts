@@ -123,7 +123,7 @@ export const kOdomDrivePID = createPIDConstants({
 
 export const kOdomHeadingPID = createPIDConstants({
     maxSpeed: .833,
-    kp: .5,
+    kp: .3,
     ki: 0,
     kd: 1,
     starti: 0,

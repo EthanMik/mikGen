@@ -5,7 +5,7 @@ import MotionList, { type ConstantListField } from "./MotionList";
 import PathConfigHeader from "./PathHeader";
 import type { Path } from "../../core/Types/Path";
 
-type Slot = "drive" | "heading" | "turn";
+export type Slot = "drive" | "heading" | "turn";
 
 const updateConstants = (
   setPath: React.Dispatch<SetStateAction<Path>>,
@@ -52,6 +52,7 @@ const createDrivePIDGroup = (
   return [
     {
       header: "Exit Conditions",
+      slot: "drive",
       values: driveConstants,
       fields: [
         { key: "settleError", label: "Settle Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
@@ -63,6 +64,7 @@ const createDrivePIDGroup = (
     },
     {
       header: "Drive Constants",
+      slot: "drive",
       values: driveConstants,
       fields: [
         { key: "kp", label: "kP", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
@@ -74,7 +76,64 @@ const createDrivePIDGroup = (
     },
     {
       header: "Heading Constants",
+      slot: "heading",
       values: headingConstants,
+      fields: [
+        { key: "maxSpeed", label: "Max Speed", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } },
+        { key: "kp", label: "kP", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
+        { key: "ki", label: "kI", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
+        { key: "kd", label: "kD", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
+        { key: "starti", label: "Starti", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
+      ],
+      onChange: onHeadingChange,
+    },
+  ];
+};
+
+const createDrivePosePIDGroup = (
+  setPath: React.Dispatch<SetStateAction<Path>>,
+  segmentId: string,
+  driveConstants: any,
+  headingConstants: any
+): ConstantListField[] => {
+
+  const onDriveChange = (partial: Partial<any>) =>
+    updateConstants(setPath, segmentId, "drive", partial);
+
+  const onHeadingChange = (partial: Partial<any>) =>
+    updateConstants(setPath, segmentId, "heading", partial);
+
+  return [
+    {
+      header: "Exit Conditions",
+      values: driveConstants,
+      slot: "drive",
+      fields: [
+        { key: "settleError", label: "Settle Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
+        { key: "settleTime", label: "Settle Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+        { key: "timeout", label: "Timeout", input: { bounds: [0, 9999], stepSize: 100, roundTo: 0 } },
+        { key: "minSpeed", label: "Min Speed", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } },
+      ],
+      onChange: onDriveChange,
+    },
+    {
+      header: "Drive Constants",
+      values: driveConstants,
+      slot: "drive",
+      fields: [
+        { key: "kp", label: "kP", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
+        { key: "ki", label: "kI", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
+        { key: "kd", label: "kD", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
+        { key: "starti", label: "Starti", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
+        { key: "lead", label: "Lead", input: { bounds: [0, 1], stepSize: .1, roundTo: 2 } },
+        { key: "setback", label: "Setback", input: { bounds: [0, 100], stepSize: .5, roundTo: 1 } },
+      ],
+      onChange: onDriveChange,
+    },
+    {
+      header: "Heading Constants",
+      values: headingConstants,
+      slot: "heading",
       fields: [
         { key: "maxSpeed", label: "Max Speed", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } },
         { key: "kp", label: "kP", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
@@ -100,6 +159,7 @@ const createTurnPIDGroup = (
     {
       header: "Exit Conditions",
       values: turnConstants,
+      slot: "turn",
       fields: [
         { key: "settleError", label: "Settle Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
         { key: "settleTime", label: "Settle Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
@@ -111,6 +171,7 @@ const createTurnPIDGroup = (
     {
       header: "Turn Constants",
       values: turnConstants,
+      slot: "turn",
       fields: [
         { key: "kp", label: "kP", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
         { key: "ki", label: "kI", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
@@ -141,7 +202,11 @@ export default function PathConfig() {
               <MotionList
                 name="Drive"
                 startSpeed={c.constants.drive.maxSpeed * 100}
-                field={createDrivePIDGroup(setPath, c.id, c.constants.drive, c.constants.heading)}
+                field={
+                  c.kind === "poseDrive" ? 
+                  createDrivePosePIDGroup(setPath, c.id, c.constants.drive, c.constants.heading) :
+                  createDrivePIDGroup(setPath, c.id, c.constants.drive, c.constants.heading)
+                }
                 segmentId={c.id}
                 isOpenGlobal={isOpen}
               />

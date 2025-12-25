@@ -10,6 +10,11 @@ export type SegmentKind =
   | "pointTurn" 
   | "angleTurn";
 
+export type DriveConstantKind = 
+  | "both"
+  | "drive"
+  | "heading";
+
 export type DriveConstants = {
   drive: PIDConstants;
   heading: PIDConstants;
@@ -48,10 +53,12 @@ export interface Segment<K extends SegmentKind = SegmentKind> {
 
 const clonePID = (c: PIDConstants): PIDConstants => ({ ...c });
 
-export function getDefaultConstantsForKind<K extends SegmentKind>(kind: K): SegmentConstantsByKind[K] {
+export function getDefaultConstantsForKind<K extends SegmentKind>(kind: K, driveConstantKind: DriveConstantKind = "both"): SegmentConstantsByKind[K] {
   switch (kind) {
     case "pointDrive":
     case "poseDrive":
+      if (driveConstantKind === "drive") return { drive: clonePID(kOdomDrivePID) } as SegmentConstantsByKind[K];
+      if (driveConstantKind === "heading") return { heading: clonePID(kOdomDrivePID) } as SegmentConstantsByKind[K];
       return {
         drive: clonePID(kOdomDrivePID),
         heading: clonePID(kOdomHeadingPID),

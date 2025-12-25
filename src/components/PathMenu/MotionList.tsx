@@ -12,10 +12,12 @@ import { createCommand, type Command } from "../../core/Types/Command";
 import { getDefaultConstantsForKind, isDriveConstants, type DriveConstants, type TurnConstants } from "../../core/Types/Segment";
 import type { ConstantField } from "./ConstantRow";
 import ConstantsList from "./ConstantsList";
+import type { Slot } from "./PathConfig";
 
 export type ConstantListField = {
     header: string,
     values: any,
+    slot: Slot,
     fields: ConstantField[]
     onChange: (partial: Partial<any>) => void;
 }
@@ -45,7 +47,6 @@ export default function MotionList({
     const [ isLocked, setLocked ] = useState(false);
     const [ isOpen, setOpen ] = useState(false);
     const [ command, setCommand ] = useState<Command>(createCommand(''));
-
 
     const normalSelect = () => {
         setPath(prev => ({
@@ -182,30 +183,52 @@ export default function MotionList({
       })
     }
 
-    const updateAllConstants = (constants: DriveConstants | TurnConstants) => {
-        setPath(prev => ({
-            ...prev,
-            segments: prev.segments.map(s => {
-            if (s.id !== segmentId) return s;
-
-            if (isDriveConstants(s.constants)) {
-                return {
-                ...s,
-                constants: constants
-                };
-            }
-
-            return {
-                ...s,
-                constants: constants
-            };
-            }),
-        }));
-    }
+    useEffect(() => {
+        setEyeOpen(segment.visible);
+    }, [segment.visible])
 
     useEffect(() => {
-        // onChange({ maxSpeed: value / 100 } as Partial<any>);
-    }, [value]);
+        setLocked(segment.locked);
+    }, [segment.locked])
+
+    useEffect(() => {
+        if (!field[0]) return;
+
+        const ms = field[0].values?.["maxSpeed"];
+        if (typeof ms !== "number") return;
+
+        const next = ms * 100;
+
+        setValue((prev) => (prev === next ? prev : next));
+    }, [segment.constants, field]);
+
+    const setSpeedValue: React.Dispatch<React.SetStateAction<number>> = (next) => {
+        setValue((prev) => {
+            const v = typeof next === "function" ? (next as (p: number) => number)(prev) : next;
+
+            if (field[0]) {
+                field[0].onChange({ maxSpeed: v / 100 } as Partial<any>);
+            }
+
+            return v;
+        });
+    };
+
+    const getDefaultConstantsFromKeys = (
+        slot: Slot,
+        keys: Array<string>,
+        constants: Partial<any>
+    ): Partial<any> => {
+        if (slot === "drive") { constants = constants.drive }
+        if (slot === "heading") { constants = constants.heading }
+        if (slot === "turn") { constants = constants.turn }
+        return keys.reduce<Partial<any>>((acc, key) => {
+            if (key in (constants ?? {})) {
+                acc[key as any] = (constants as any)[key];
+            }
+            return acc;
+        }, {});
+    };
 
     return (
         <div className="flex flex-col gap-2">
@@ -253,7 +276,7 @@ export default function MotionList({
                     knobHeight={16}
                     knobWidth={16}
                     value={value} 
-                    setValue={setValue}
+                    setValue={setSpeedValue}
                 />
                 <span className="w-10">
                     {(value / 100).toFixed(2)}
@@ -270,7 +293,7 @@ export default function MotionList({
                     values={f.values}
                     isOpenGlobal={isOpenGlobal}
                     onChange={f.onChange}
-                    onReset={() => updateAllConstants(getDefaultConstantsForKind(segment.kind))}
+                    onReset={() => f.onChange(getDefaultConstantsFromKeys(f.slot, f.fields.map((m) => m.key), getDefaultConstantsForKind(segment.kind)))}
                 />
                 ))}
             </div>

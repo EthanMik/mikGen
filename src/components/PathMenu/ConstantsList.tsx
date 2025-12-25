@@ -7,7 +7,7 @@ import ConstantRow from "./ConstantRow";
 type ConstantsListProps = {
     header: string;
     values: any;
-    fields: ConstantField<any>[];
+    fields: ConstantField[];
     onChange: (constants: Partial<any>) => void,
     onReset: () => void;
     isOpenGlobal: boolean;
@@ -43,13 +43,18 @@ export default function ConstantsList({
                     <span>{header}</span>   
                 </div>
                 <div className="flex pr-5 gap-2">
-                    <button className="bg-medlightgray hover:bg-medgray_hover px-2 rounded-sm">
+                    {/* <button className="bg-medlightgray hover:bg-medgray_hover px-2 rounded-sm">
                         <span className="text-verylightgray">
                             Set Default
                         </span>
-                    </button>
+                    </button> */}
 
-                    <button className="bg-medlightgray hover:bg-medgray_hover px-2 rounded-sm"
+                    <button className="
+                        bg-medlightgray hover:bg-medgray_hover px-2 rounded-sm
+                        transition-all duration-100
+                        active:scale-[0.995]
+                        active:bg-medgray_hover/70      
+                        "
                         onClick={() => onReset()}
                     >
                         <span className="text-verylightgray">
