@@ -38,13 +38,13 @@ export function convertPathtoSim(path: Path): ((robot: Robot, dt: number) => boo
 
         if (control.kind === "pointDrive") {
             const { drive, heading } = control.constants;
-            const p = new PilonsCorrection(1, 0.5); 
+            const p = new PilonsCorrection(2, 0.5); 
             const s = new SimpleStop(60, 200, .25);
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
                     pointDrivePID.update(drive);
                     pointHeadingPID.update(heading);
-                    return pilonsSegment(robot, dt, pointDrivePID.maxSpeed, p, s, control.pose.x, control.pose.y, 0, 0);
+                    return pilonsSegment(robot, dt, pointDrivePID.maxSpeed, p, s, control.pose.x, control.pose.y, 90, 0);
                     // return driveToPoint(robot, dt, control.pose.x, control.pose.y, pointDrivePID, pointHeadingPID);
                 }
             );

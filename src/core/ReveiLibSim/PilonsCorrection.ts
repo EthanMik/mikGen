@@ -26,18 +26,16 @@ export class PilonsCorrection {
 
     const dy = (posFinal.y ?? 0) - (startState.y ?? 0);
     const dx = (posFinal.x ?? 0) - (startState.x ?? 0);
-    posFinal.angle = toDeg(Math.atan2(dy, dx));
+    posFinal.angle = toDeg(Math.atan2(dx, dy));
 
     posFinal.angle = this.nearSemicircleDeg(posFinal.angle ?? 0, startState.angle ?? 0);
 
     const error: Pose = to_relative(posCurrent, posFinal);
-
-    let errorAngleDeg = -(error.angle ?? 0) + toDeg(Math.atan2(error.y ?? 0, error.x ?? 0));
+    let errorAngleDeg = -(error.angle ?? 0) + toDeg(Math.atan2(error.x ?? 0, error.y ?? 0));
 
     errorAngleDeg = this.nearSemicircleDeg(errorAngleDeg, 0);
 
-    const lineError = (error.y ?? 0) + (error.x ?? 0) * Math.tan(toRad(error.angle ?? 0));
-
+    const lineError = -(error.x ?? 0) + (error.y ?? 0) * Math.tan(toRad(error.angle ?? 0));
     let correction =
       Math.abs(lineError) > Math.abs(this.maxError)
         ? this.kCorrection * toRad(errorAngleDeg)

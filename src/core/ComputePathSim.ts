@@ -19,6 +19,8 @@ export function precomputePath(
     auton: ((robot: Robot, dt: number) => boolean)[], 
 ): PathSim 
 {   
+    const simLengthSeconds = 120;
+
     let autoIdx = 0;
     trajectory = [];
 
@@ -26,7 +28,7 @@ export function precomputePath(
 
     let t = 0;
     let safetyIter = 0;
-    const maxIter = 60 * 120;
+    const maxIter = 60 * simLengthSeconds;
 
     while (autoIdx < auton.length && safetyIter < maxIter) {
         const done = auton[autoIdx](robot, dt);

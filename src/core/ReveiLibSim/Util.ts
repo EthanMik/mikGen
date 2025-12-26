@@ -1,15 +1,15 @@
 import type { Pose } from "../Types/Pose";
-
 import { toRad } from "../Util";
-export function to_relative(currentPose: Pose, referencePose: Pose): Pose {
-  const x_shift = (currentPose.x ?? 0) - (referencePose.x ?? 0);
-  const y_shift = (currentPose.y ?? 0) - (referencePose.y ?? 0);
 
-  const theta = toRad((referencePose.angle ?? 0));
+export function to_relative(currentPose: Pose, referencePose: Pose): Pose {
+  const dx = (referencePose.x ?? 0) - (currentPose.x ?? 0);
+  const dy = (referencePose.y ?? 0) - (currentPose.y ?? 0);
+
+  const psi = toRad(referencePose.angle ?? 0);
 
   return {
-    x: x_shift * Math.sin(theta) + y_shift * Math.cos(theta),
-    y: x_shift * -Math.cos(theta) + y_shift * Math.sin(theta),
+    x: dx * Math.cos(psi) - dy * Math.sin(psi),
+    y: dx * Math.sin(psi) + dy * Math.cos(psi),
     angle: (currentPose.angle ?? 0) - (referencePose.angle ?? 0),
   };
 }
