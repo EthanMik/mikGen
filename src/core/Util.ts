@@ -1,4 +1,5 @@
-import type { Coordinate } from "./Path";
+import type { Coordinate } from "./Types/Coordinate";
+import type { Pose } from "./Types/Pose";
 
 export interface Rectangle {
     x: number;
@@ -70,6 +71,25 @@ export function makeId(length: number) {
         counter += 1;
     }
     return result;
+}
+
+export function interpolatePoses(currentPose: Pose, previousPose: Pose, percent: number): Coordinate | null {
+  const x1 = previousPose.x;
+  const x2 = currentPose.x;
+  const y1 = previousPose.y;
+  const y2 = currentPose.y;
+  if (x1 === null || x2 === null || y1 === null || y2 === null) return null; 
+  if (percent < 0 && percent > 1) return null;
+
+  if (x1 === x2) {
+    return {x: x1, y: y1 + (y2 - y1) * percent}
+  }
+
+  const x = x1 + (x2 - x1) * percent;
+  const slope = (y2 - y1) / (x2 - x1);
+  const y = y1 + (x - x1) * slope
+
+  return { x: x, y: y };
 }
 
 export function RectangleRectangleCollision(rect1: Rectangle, rect2: Rectangle): boolean {

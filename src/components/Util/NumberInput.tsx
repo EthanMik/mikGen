@@ -24,6 +24,7 @@ export default function NumberInput({
 }: NumberInputProps) {
     const [ edit, setEdit ] = useState<string | null>(null);
     const displayRef = useRef("");
+    const [ isHovering, setIsHovering ] = useState(false);
 
     displayRef.current = edit !== null ? edit : displayRef.current;
     
@@ -70,25 +71,45 @@ export default function NumberInput({
         setEdit(evt.target.value)
     }
 
+    type Direction = -1 | 1;
+
+    const stepInput = (stepDirection: Direction) => {
+        if (value === null) return;
+        switch (stepDirection) {
+            case 1:
+                if (value + stepSize > bounds[1]) {
+                    setValue(bounds[1]);
+                } else {
+                    setValue(value + stepSize);
+                }
+                return;
+            case -1: 
+                if (value - stepSize < bounds[0]) {
+                    setValue(bounds[0]);
+                } else {
+                    setValue(value - stepSize);
+                }
+                return;
+        }
+    }
+
+    const handleWheel = (evt: React.WheelEvent<HTMLInputElement>) => {
+        if (!isHovering) return;
+
+        evt.preventDefault();
+
+        if (evt.deltaY < 0) stepInput(1);
+        else if (evt.deltaY > 0) stepInput(-1);
+    };
+
     const handleKeyDown = (evt: React.KeyboardEvent<HTMLInputElement>) => {        
         if (evt.key === "Enter") {
             executeValue()
             evt.currentTarget.blur();
         }
-        if (evt.key === "ArrowUp" && value !== null) {
-            if (value + stepSize > bounds[1]) {
-                setValue(bounds[1]);
-                return;
-            }
-            setValue((value + stepSize));
-        }
-        if (evt.key === "ArrowDown" && value !== null) {
-            if (value - stepSize < bounds[0]) {
-                setValue(bounds[0]);
-                return;
-            }
-            setValue((value - stepSize));
-        }
+
+        if (evt.key === "ArrowUp") stepInput(1);
+        if (evt.key === "ArrowDown") stepInput(-1);
     }
 
     const handleBlur = (evt: React.FocusEvent<HTMLInputElement>) => {
@@ -112,6 +133,9 @@ export default function NumberInput({
             value={ displayRef.current }
 
             onChange={handleChange}
+            onWheel={handleWheel}
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
             onKeyDown={handleKeyDown}
             onBlur={handleBlur}
         />

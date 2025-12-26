@@ -76,6 +76,32 @@ export class Robot {
     getY() { return this.y; }
     getAngle() { return this.angle; }
 
+    // Returns Velocity in in/s
+    public getXVelocity(): number {
+        const vL_in = this.vL * 12;
+        const vR_in = this.vR * 12;
+        
+        const v_in = (vR_in + vL_in) / 2;
+        
+        const θ = toRad(this.getAngle());
+        const forwardX = Math.sin(θ);
+        
+        return v_in * forwardX;
+    }
+    
+    // Returns Velocity in in/s
+    public getYVelocity(): number {
+        const vL_in = this.vL * 12;
+        const vR_in = this.vR * 12;
+
+        const v_in = (vR_in + vL_in) / 2;
+
+        const θ = toRad(this.getAngle());
+        const forwardY = Math.cos(θ);
+
+        return v_in * forwardY;
+    }
+
     private moveTowards(current: number, target: number, dt: number): number {
         const diff = target - current;
 

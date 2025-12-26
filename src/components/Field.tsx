@@ -3,7 +3,7 @@ import { robotConstantsStore } from "../core/Robot";
 import type { Coordinate } from "../core/Types/Coordinate";
 import { getBackwardsSnapPose, getForwardSnapPose, type Path } from "../core/Types/Path";
 import { isDriveConstants, segmentsEqual } from "../core/Types/Segment";
-import { calculateHeading, FIELD_REAL_DIMENSIONS, toInch, toPX, toRad, vector2Add, vector2Subtract, type Rectangle } from "../core/Util";
+import { calculateHeading, FIELD_REAL_DIMENSIONS, interpolatePoses, toInch, toPX, toRad, vector2Add, vector2Subtract, type Rectangle } from "../core/Util";
 import { usePath } from "../hooks/usePath";
 import { usePathVisibility } from "../hooks/usePathVisibility";
 import { usePose } from "../hooks/usePose";
@@ -270,25 +270,6 @@ export default function Field({
 
   };
 
-  const interpolate = (currentPose: Pose, previousPose: Pose, percent: number): Coordinate | null => {
-    const x1 = previousPose.x;
-    const x2 = currentPose.x;
-    const y1 = previousPose.y;
-    const y2 = currentPose.y;
-    if (x1 === null || x2 === null || y1 === null || y2 === null) return null; 
-    if (percent < 0 && percent > 1) return null;
-
-    if (x1 === x2) {
-      return {x: x1, y: y1 + (y2 - y1) * percent}
-    }
-
-    const x = x1 + (x2 - x1) * percent;
-    const slope = (y2 - y1) / (x2 - x1);
-    const y = y1 + (x - x1) * slope
-
-    return { x: x, y: y };
-  }
-
   const controls = path.segments;
 
   const getSegmentLines = (idx: number): string | null => {
@@ -303,7 +284,7 @@ export default function Field({
     const pStart = toPX({ x: startPose.x, y: startPose.y }, FIELD_REAL_DIMENSIONS, img);
     const pEnd = toPX({ x: m.pose.x, y: m.pose.y }, FIELD_REAL_DIMENSIONS, img);
 
-    if (m.pose.angle === null) {
+    if (m.kind === "pointDrive") {
       return `${pStart.x},${pStart.y} ${pEnd.x},${pEnd.y}`;
     }
 
@@ -401,11 +382,17 @@ export default function Field({
               {control.visible && control.pose.x !== null && control.pose.y !== null && control.command.name !== "" && (() => {
                 const snapPose = getBackwardsSnapPose(path, idx - 1);
                 if (snapPose === null || snapPose.y === null || snapPose.x === null) return null;
-                
-                const posIn = interpolate(control.pose, snapPose, control.command.percent / 100);
+
+                const posIn = interpolatePoses(control.pose, snapPose, control.command.percent / 100);
                 if (posIn === null || posIn.y === null || posIn.x === null) return null;
-  
-                const posPx = toPX({x: posIn.x, y: posIn.y}, FIELD_REAL_DIMENSIONS, img);
+                let posPx = toPX({x: posIn.x, y: posIn.y}, FIELD_REAL_DIMENSIONS, img);
+
+                const pts = getSegmentLines(idx)?.split(" ");
+                if (control.kind === "poseDrive" && pts !== undefined) {
+                  const ptsIdx = Math.floor((control.command.percent / 100) * (pts?.length - 1));
+                  const coord = pts[ptsIdx].split(","); 
+                  posPx = { x: Number(coord[0]), y: Number(coord[1]) };
+                }
   
                 return (
                   <circle

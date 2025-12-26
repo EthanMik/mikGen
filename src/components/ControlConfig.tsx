@@ -132,7 +132,9 @@ export default function ControlConfig() {
                 height={40}
                 fontSize={18}
                 setValue={updateXValue} 
-                value={getXValue()}
+                value={getXValue()} 
+                stepSize={1}
+                roundTo={2}
                 bounds={[-100, 100]}
             />
             <span style={{ fontSize: 20 }}>Y:</span>
@@ -140,6 +142,8 @@ export default function ControlConfig() {
                 width={80}
                 height={40}
                 fontSize={18}
+                stepSize={1}
+                roundTo={2}
                 setValue={updateYValue} 
                 value={getYValue()} 
                 bounds={[-100, 100]}
@@ -150,6 +154,8 @@ export default function ControlConfig() {
                     width={80}
                     height={40}
                     fontSize={18}
+                    stepSize={5}
+                    roundTo={2}
                     setValue={updateHeadingValue} 
                     value={getHeadingValue()} 
                     bounds={[-Infinity, Infinity]}
