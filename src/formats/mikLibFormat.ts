@@ -1,30 +1,8 @@
-import { createPIDConstants, getUnequalPIDConstants, kOdomDrivePID, type PIDConstants } from "../core/mikLibSim/Constants";
-import type { Path } from "../core/Types/Path";
+import { getUnequalPIDConstants, type PIDConstants } from "../core/mikLibSim/Constants";
+import type { Coordinate } from "../core/Types/Coordinate";
+import { getBackwardsSnapPose, getForwardSnapPose, type Path } from "../core/Types/Path";
 import { getDefaultConstantsForKind } from "../core/Types/Segment";
 import { trimZeros } from "../core/Util";
-
-// export class mikLibFormat extends PathFormat {
-
-//   startToString(position: Coordinate, heading: number): string {
-//     return (
-//     `    chassis.set_coordinates(${position.x.toFixed(2)}, ${position.y.toFixed(2)}, ${heading.toFixed(2)});`
-//     );
-//   }
-
-//   driveToString(position: Coordinate, speed: number, callback: string, toPoint: boolean): string {
-//     return (
-//     `
-//     chassis.drive_to_point(${position.x.toFixed(2)}, ${position.y.toFixed(2)});`
-//     );
-//   }
-
-//   turnToString(position: Coordinate, speed: number, callback: string, toPoint: boolean): string {
-//     return (
-//     `
-//     chassis.turn_to_point(${position.x.toFixed(2)}, ${position.y.toFixed(2)});`
-//     );
-//   }
-// }
 
 const roundOff = (val: number | undefined | null, digits: number) => {
     if (val === null || val === undefined) return "";
@@ -121,9 +99,52 @@ export function mikLibToString(path: Path, selected: boolean = false) {
         if (kind === "pointTurn") {
             const constants = getUnequalPIDConstants(getDefaultConstantsForKind(kind).turn, control.constants.turn);
             const constantsList: string[] = [];
+
+            if (Number(angle) !== 0) constantsList.push(`.angle_offset = ${angle}`)
             for (const k of Object.keys(constants)) {
                 const c = keyToMikLibConstant(k, constants[k], "Turn");
                 if (c !== "") constantsList.push(c);
+            }
+
+            const previousPos = getBackwardsSnapPose(path, idx - 1);
+            const turnToPos = getForwardSnapPose(path, idx);
+
+            const pos: Coordinate =
+            turnToPos
+                ? { x: turnToPos.x ?? 0, y: turnToPos.y ?? 0 }
+                : previousPos
+                ? { x: previousPos.x ?? 0, y: (previousPos.y ?? 0) + 5 }
+                : { x: 0, y: 5 };
+            
+            const turnX = roundOff(pos.x, 2);
+            const turnY = roundOff(pos.y, 2);
+
+            if (commandName !== "") {
+                constantsList.push(`.callback = [](){ ${commandName} }`);
+                if (Number(commandPercent) !== 0) constantsList.push(`.callback_after_percent = ${commandPercent}`);
+            }
+
+            const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");     
+
+            pathString += constantsList.length === 0
+            ? `\n    chassis.turn_to_point(${turnX}, ${turnY});`
+            : constantsList.length === 1 
+            ? `\n    chassis.turn_to_point(${turnX}, ${turnY}, { ${constantsList[0]} });`
+            : `\n    chassis.turn_to_point(${turnX}, ${turnY}, {\n${formattedConstants}\n    });`
+        }
+
+        if (kind === "pointDrive") {
+            const driveConstants: Partial<PIDConstants> = getUnequalPIDConstants(getDefaultConstantsForKind(kind).drive, control.constants.drive);
+            const headingConstants: Partial<PIDConstants> = getUnequalPIDConstants(getDefaultConstantsForKind(kind).heading, control.constants.heading);
+            const constantsList: string[] = [];
+
+            for (const k of Object.keys(driveConstants)) {
+            const driveC = keyToMikLibConstant(k, driveConstants[k], "Drive");
+                if (driveC !== "") constantsList.push(driveC);
+            }
+            for (const k of Object.keys(headingConstants)) {
+                const headingC = keyToMikLibConstant(k, headingConstants[k], "Heading");
+                if (headingC !== "") constantsList.push(headingC);
             }
 
             if (commandName !== "") {
@@ -134,10 +155,38 @@ export function mikLibToString(path: Path, selected: boolean = false) {
             const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");     
 
             pathString += constantsList.length === 0
-            ? `\n    chassis.turn_to_point(${angle});`
+            ? `\n    chassis.drive_to_point(${x}, ${y});`
             : constantsList.length === 1 
-            ? `\n    chassis.turn_to_point(${angle}, { ${constantsList[0]} });`
-            : `\n    chassis.turn_to_point(${angle}, {\n${formattedConstants}\n    });`
+            ? `\n    chassis.drive_to_point(${x}, ${y}, { ${constantsList[0]} });`
+            : `\n    chassis.drive_to_point(${x}, ${y}, {\n${formattedConstants}\n    });`
+        }
+
+        if (kind === "poseDrive") {
+            const driveConstants: Partial<PIDConstants> = getUnequalPIDConstants(getDefaultConstantsForKind(kind).drive, control.constants.drive);
+            const headingConstants: Partial<PIDConstants> = getUnequalPIDConstants(getDefaultConstantsForKind(kind).heading, control.constants.heading);
+            const constantsList: string[] = [];
+
+            for (const k of Object.keys(driveConstants)) {
+                const driveC = keyToMikLibConstant(k, driveConstants[k], "Drive");
+                if (driveC !== "") constantsList.push(driveC);
+            }
+            for (const k of Object.keys(headingConstants)) {
+                const headingC = keyToMikLibConstant(k, headingConstants[k], "Heading");
+                if (headingC !== "") constantsList.push(headingC);
+            }
+
+            if (commandName !== "") {
+                constantsList.push(`.callback = [](){ ${commandName} }`);
+                if (Number(commandPercent) !== 0) constantsList.push(`.callback_after_percent = ${commandPercent}`);
+            }
+
+            const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");     
+
+            pathString += constantsList.length === 0
+            ? `\n    chassis.drive_to_pose(${x}, ${y}, ${angle});`
+            : constantsList.length === 1 
+            ? `\n    chassis.drive_to_pose(${x}, ${y}, ${angle}, { ${constantsList[0]} });`
+            : `\n    chassis.drive_to_pose(${x}, ${y}, ${angle}, {\n${formattedConstants}\n    });`
         }
     }
     

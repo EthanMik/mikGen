@@ -466,7 +466,7 @@ export default function Field({
                   
                   angle = desiredPos !== null ?  
                     calculateHeading(snapPose, {x: desiredPos.x ?? 0, y: desiredPos.y ?? 0}) + (control.pose.angle ?? 0) :
-                    0;
+                    angle;
                 }
 
                 const headingInFieldUnits = {
