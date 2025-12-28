@@ -1,10 +1,15 @@
+import type { Robot } from "../core/Robot";
 import type { Coordinate } from "../core/Types/Coordinate";
+import type { Path } from "../core/Types/Path";
+import type { Format } from "../hooks/useFormat";
+import { mikLibToString } from "./mikLibFormat";
 
-export abstract class PathFormat {
-    constructor() {};
+export function convertPathToSim(path: Path, format: Format): ((robot: Robot, dt: number) => boolean)[] {
     
-    abstract startToString(position: Coordinate, heading: number): string;
-    abstract driveToString(position: Coordinate, speed: number, callback: string, toPoint: boolean): string;
-    abstract turnToString(position: Coordinate, speed: number, callback: string, toPoint: boolean): string;
+}
 
+export function convertPathToString(path: Path, format: Format, selected = false) {
+    if (format === "mikLib") {
+        return mikLibToString(path, selected);
+    }
 }

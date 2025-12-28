@@ -1,25 +1,145 @@
-import type { Coordinate } from "../core/Path";
-import { PathFormat } from "../formats/PathFormat";
+import { createPIDConstants, getUnequalPIDConstants, kOdomDrivePID, type PIDConstants } from "../core/mikLibSim/Constants";
+import type { Path } from "../core/Types/Path";
+import { getDefaultConstantsForKind } from "../core/Types/Segment";
+import { trimZeros } from "../core/Util";
 
-export class mikLibFormat extends PathFormat {
+// export class mikLibFormat extends PathFormat {
 
-  startToString(position: Coordinate, heading: number): string {
-    return (
-    `    chassis.set_coordinates(${position.x.toFixed(2)}, ${position.y.toFixed(2)}, ${heading.toFixed(2)});`
-    );
-  }
+//   startToString(position: Coordinate, heading: number): string {
+//     return (
+//     `    chassis.set_coordinates(${position.x.toFixed(2)}, ${position.y.toFixed(2)}, ${heading.toFixed(2)});`
+//     );
+//   }
 
-  driveToString(position: Coordinate, speed: number, callback: string, toPoint: boolean): string {
-    return (
-    `
-    chassis.drive_to_point(${position.x.toFixed(2)}, ${position.y.toFixed(2)});`
-    );
-  }
+//   driveToString(position: Coordinate, speed: number, callback: string, toPoint: boolean): string {
+//     return (
+//     `
+//     chassis.drive_to_point(${position.x.toFixed(2)}, ${position.y.toFixed(2)});`
+//     );
+//   }
 
-  turnToString(position: Coordinate, speed: number, callback: string, toPoint: boolean): string {
-    return (
-    `
-    chassis.turn_to_point(${position.x.toFixed(2)}, ${position.y.toFixed(2)});`
-    );
-  }
+//   turnToString(position: Coordinate, speed: number, callback: string, toPoint: boolean): string {
+//     return (
+//     `
+//     chassis.turn_to_point(${position.x.toFixed(2)}, ${position.y.toFixed(2)});`
+//     );
+//   }
+// }
+
+const roundOff = (val: number | undefined | null, digits: number) => {
+    if (val === null || val === undefined) return "";
+    return trimZeros(val.toFixed(digits));
+}
+
+type ConstantType = "Drive" | "Heading" | "Turn";
+
+const keyToMikLibConstant = (key: string, value: number, constantType: ConstantType): string => {
+    if (constantType === "Drive") {
+        switch (key) {
+            case "kp" : return `.drive_k.p = ${roundOff(value, 3)}`  
+            case "ki" : return `.drive_k.i = ${roundOff(value, 5)}`
+            case "kd" : return `.drive_k.d = ${roundOff(value, 3)}`
+            case "starti" : return `.drive_k.starti = ${roundOff(value, 2)}`
+            case "maxSpeed" : return `.max_voltage = ${roundOff(value * 12, 1)}`  
+        }
+    } else if (constantType === "Heading") {
+        switch (key) {
+            case "kp" : return `.heading_k.p = ${roundOff(value, 3)}`  
+            case "ki" : return `.heading_k.i = ${roundOff(value, 5)}`
+            case "kd" : return `.heading_k.d = ${roundOff(value, 3)}`
+            case "starti" : return `.heading_k.starti = ${roundOff(value, 2)}`
+            case "maxSpeed" : return `.heading_max_voltage = ${roundOff(value * 12, 1)}`  
+        }
+    } else if (constantType === "Turn") {
+        switch (key) {
+            case "kp" : return `.k.p = ${roundOff(value, 3)}`  
+            case "ki" : return `.k.i = ${roundOff(value, 5)}`
+            case "kd" : return `.k.d = ${roundOff(value, 3)}`
+            case "starti" : return `.k.starti = ${roundOff(value, 2)}`
+            case "maxSpeed" : return `.max_voltage = ${roundOff(value * 12, 1)}`  
+        }
+    }
+
+    switch (key) {
+        case "minSpeed" : return `.min_voltage = ${roundOff(value * 12, 1)}`  
+        case "settleTime" : return `.settle_time = ${roundOff(value, 0)}`
+        case "settleError" : return `.settle_error = ${roundOff(value, 2)}`
+        case "timeout" : return `.timeout = ${roundOff(value, 0)}`
+        case "lead" : return `.lead = ${roundOff(value, 2)}`
+        case "setback": return `.setback = ${roundOff(value, 2)}`
+
+    }
+    return ""
+}
+
+export function mikLibToString(path: Path, selected: boolean = false) {
+    let pathString: string = '';
+
+    for (let idx = 0; idx < path.segments.length; idx++) {
+        const control = path.segments[idx];
+
+        if (selected && !control.selected) continue;
+
+        const kind = control.kind;
+
+        const x = roundOff(control.pose.x, 2)
+        const y = roundOff(control.pose.y, 2)
+        const angle = roundOff(control.pose.angle, 2)
+
+        const commandName = control.command.name;
+        const commandPercent = roundOff(control.command.percent, 0);
+        
+        if (idx === 0) {
+            pathString += (
+                `    chassis.set_coordinates(${x}, ${y}, ${angle});`
+            )        
+            continue;
+        }
+        
+        if (kind === "angleTurn") {
+            const constants = getUnequalPIDConstants(getDefaultConstantsForKind(kind).turn, control.constants.turn);
+            const constantsList: string[] = [];
+            for (const k of Object.keys(constants)) {
+                const c = keyToMikLibConstant(k, constants[k], "Turn");
+                if (c !== "") constantsList.push(c);
+            }
+
+            if (commandName !== "") {
+                constantsList.push(`.callback = [](){ ${commandName} }`);
+                if (Number(commandPercent) !== 0) constantsList.push(`.callback_after_percent = ${commandPercent}`);
+            }
+
+            const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");     
+
+            pathString += constantsList.length === 0
+            ? `\n    chassis.turn_to_angle(${angle});`
+            : constantsList.length === 1 
+            ? `\n    chassis.turn_to_angle(${angle}, { ${constantsList[0]} });`
+            : `\n    chassis.turn_to_angle(${angle}, {\n${formattedConstants}\n    });`
+        }
+
+        if (kind === "pointTurn") {
+            const constants = getUnequalPIDConstants(getDefaultConstantsForKind(kind).turn, control.constants.turn);
+            const constantsList: string[] = [];
+            for (const k of Object.keys(constants)) {
+                const c = keyToMikLibConstant(k, constants[k], "Turn");
+                if (c !== "") constantsList.push(c);
+            }
+
+            if (commandName !== "") {
+                constantsList.push(`.callback = [](){ ${commandName} }`);
+                if (Number(commandPercent) !== 0) constantsList.push(`.callback_after_percent = ${commandPercent}`);
+            }
+
+            const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");     
+
+            pathString += constantsList.length === 0
+            ? `\n    chassis.turn_to_point(${angle});`
+            : constantsList.length === 1 
+            ? `\n    chassis.turn_to_point(${angle}, { ${constantsList[0]} });`
+            : `\n    chassis.turn_to_point(${angle}, {\n${formattedConstants}\n    });`
+        }
+    }
+    
+    return pathString;
 }

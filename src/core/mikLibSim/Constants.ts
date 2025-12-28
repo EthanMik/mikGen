@@ -14,7 +14,7 @@ export interface PIDConstants {
     setback: number | null
 }
 
-const PIDConstantsEqual = (a: PIDConstants, b: PIDConstants) => {
+const PIDConstantsEqual = (a: PIDConstants, b: PIDConstants): boolean => {
   return (
     a.maxSpeed === b.maxSpeed &&
     a.minSpeed === b.minSpeed &&
@@ -30,6 +30,29 @@ const PIDConstantsEqual = (a: PIDConstants, b: PIDConstants) => {
   );
 }
 
+export function getUnequalPIDConstants(correctPIDConstants: PIDConstants, differentPIDConstants: PIDConstants): Partial<PIDConstants> {
+  const out: Partial<PIDConstants> = {};
+  const a = correctPIDConstants;
+  const b = differentPIDConstants;
+
+  if (a.maxSpeed !== b.maxSpeed) out.maxSpeed = b.maxSpeed;
+  if (a.minSpeed !== b.minSpeed) out.minSpeed = b.minSpeed;
+
+  if (a.kp !== b.kp) out.kp = b.kp;
+  if (a.ki !== b.ki) out.ki = b.ki;
+  if (a.kd !== b.kd) out.kd = b.kd;
+  if (a.starti !== b.starti) out.starti = b.starti;
+
+  if (a.settleTime !== b.settleTime) out.settleTime = b.settleTime;
+  if (a.settleError !== b.settleError) out.settleError = b.settleError;
+  if (a.timeout !== b.timeout) out.timeout = b.timeout;
+
+  if (a.lead !== b.lead) out.lead = b.lead;
+  if (a.setback !== b.setback) out.setback = b.setback;
+
+  return out;  
+}
+
 export function SegmentConstantsEqual(a: TurnConstants | DriveConstants, b: TurnConstants | DriveConstants): boolean {
   if (isTurnConstants(a) && isTurnConstants(b)) {
     return PIDConstantsEqual(a.turn, b.turn);
@@ -42,7 +65,7 @@ export function SegmentConstantsEqual(a: TurnConstants | DriveConstants, b: Turn
   return false;
 }
 
-function createPIDConstants(values: Partial<PIDConstants> = {}): PIDConstants {
+export function createPIDConstants(values: Partial<PIDConstants> = {}): PIDConstants {
   return {
     maxSpeed: values.maxSpeed ?? null,
     minSpeed: values.minSpeed ?? null,

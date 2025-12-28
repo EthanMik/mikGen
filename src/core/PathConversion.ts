@@ -1,7 +1,6 @@
 import type { PathFormat } from "../formats/PathFormat";
 import { driveToPoint, driveToPose, swingToAngle, turnToAngle, turnToPoint } from "./mikLibSim/DriveMotions";
 import { PID } from "./mikLibSim/PID";
-import { pilonsSegment } from "./ReveiLibSim/driveMotions";
 import { PilonsCorrection } from "./ReveiLibSim/PilonsCorrection";
 import { SimpleStop } from "./ReveiLibSim/SimpleStop";
 import type { Robot } from "./Robot";
@@ -38,14 +37,11 @@ export function convertPathtoSim(path: Path): ((robot: Robot, dt: number) => boo
 
         if (control.kind === "pointDrive") {
             const { drive, heading } = control.constants;
-            const p = new PilonsCorrection(2, 0.5); 
-            const s = new SimpleStop(60, 200, .25);
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
                     pointDrivePID.update(drive);
                     pointHeadingPID.update(heading);
-                    return pilonsSegment(robot, dt, pointDrivePID.maxSpeed, p, s, control.pose.x, control.pose.y, 90, 0);
-                    // return driveToPoint(robot, dt, control.pose.x, control.pose.y, pointDrivePID, pointHeadingPID);
+                    return driveToPoint(robot, dt, control.pose.x, control.pose.y, pointDrivePID, pointHeadingPID);
                 }
             );
         }

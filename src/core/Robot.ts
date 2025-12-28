@@ -115,7 +115,6 @@ export class Robot {
     }
 
     tankDrive(leftCmd: number, rightCmd: number, dt: number) {
-        console.log(leftCmd, rightCmd)
         const b_in = this.trackWidth;
         const v_max_ft = this.maxSpeed;
 

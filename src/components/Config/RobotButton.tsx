@@ -3,6 +3,7 @@ import UserInput from "../Util/NumberInput";
 import { clamp } from "../../core/Util";
 import { robotConstants, robotConstantsStore } from "../../core/Robot";
 import Checkbox from "../Util/Checkbox";
+import NumberInput from "../Util/NumberInput";
 
 export default function RobotButton() {
     const [ isOpen, setOpen ] = useState(false);
@@ -75,11 +76,13 @@ export default function RobotButton() {
                             <div className="flex flex-row items-center justify-between">
                                 <span className="text-[16px]">Width:</span>
                                 <div className="w-25">
-                                    <UserInput 
+                                    <NumberInput 
                                         width={60} 
                                         height={35}
                                         fontSize={16} 
-                                        bounds={[0, 30]} 
+                                        bounds={[0, 30]}
+                                        stepSize={1}
+                                        roundTo={1} 
                                         value={robot.width} 
                                         setValue={updateWidth} 
                                     />
@@ -90,11 +93,13 @@ export default function RobotButton() {
                             <div className="flex flex-row items-center justify-between">
                                 <span className="text-[16px]">Height:</span>
                                 <div className="w-25">
-                                    <UserInput 
+                                    <NumberInput 
                                         width={60} 
                                         height={35}
                                         fontSize={16} 
                                         bounds={[0, 30]} 
+                                        stepSize={1}
+                                        roundTo={1}
                                         value={robot.height} 
                                         setValue={updateHeight} 
                                     />
@@ -105,11 +110,13 @@ export default function RobotButton() {
                             <div className="flex flex-row items-center justify-between">
                                 <span className="text-[16px]">Speed:</span>
                                 <div className="w-25">
-                                    <UserInput 
+                                    <NumberInput 
                                         width={60} 
                                         height={35}
                                         fontSize={16} 
                                         bounds={[0, 100]} 
+                                        stepSize={.5}
+                                        roundTo={2}
                                         value={robot.speed} 
                                         setValue={updateSpeed} 
                                     />
@@ -120,11 +127,13 @@ export default function RobotButton() {
                             <div className="flex flex-row items-center justify-between">
                                 <span className="text-[16px]">Accel:</span>
                                 <div className="w-25">
-                                    <UserInput 
+                                    <NumberInput 
                                         width={60} 
                                         height={35}
                                         fontSize={16} 
                                         bounds={[0, 100]} 
+                                        stepSize={1}
+                                        roundTo={2}
                                         value={robot.accel} 
                                         setValue={updateAccel} 
                                     />

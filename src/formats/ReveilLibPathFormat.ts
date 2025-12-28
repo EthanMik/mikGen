@@ -1,62 +1,62 @@
-import type { Coordinate } from "../core/Types/Coordinate";
-import { PathFormat } from "../formats/PathFormat";
+// import type { Coordinate } from "../core/Types/Coordinate";
+// import { PathFormat } from "../formats/PathFormat";
 
-export class ReveilLibPathFormat extends PathFormat {
+// export class ReveilLibPathFormat extends PathFormat {
   
-  // Correction
-  pilons_correction: string = 'pilons_correction'
+//   // Correction
+//   pilons_correction: string = 'pilons_correction'
 
-  // Power
-  coast_power: string = '0.25'
+//   // Power
+//   coast_power: string = '0.25'
 
-  // Stopping
-  harsh: string = '0.06_s'
-  coast: string = '0.02_s'
-  timeout: string = '0_s'
+//   // Stopping
+//   harsh: string = '0.06_s'
+//   coast: string = '0.02_s'
+//   timeout: string = '0_s'
 
-  // Turn 
-  harsh_turn: string = '0.085';
-  coast_turn: string = '0.23';
-  brake_time: string = '0.1_s';
+//   // Turn 
+//   harsh_turn: string = '0.085';
+//   coast_turn: string = '0.23';
+//   brake_time: string = '0.1_s';
 
-  startToString(position: Coordinate, heading: number): string {
-    return (
-    `
-  drivetrain::odom->set_position({${position.x.toFixed(2)}_in, ${position.y.toFixed(2)}_in, ${heading.toFixed(2)}_deg});
-    `
-    );
-  }
+//   startToString(position: Coordinate, heading: number): string {
+//     return (
+//     `
+//   drivetrain::odom->set_position({${position.x.toFixed(2)}_in, ${position.y.toFixed(2)}_in, ${heading.toFixed(2)}_deg});
+//     `
+//     );
+//   }
 
-  driveToString(position: Coordinate, speed: number, callback: string, toPoint: boolean): string {
-    return (
-    `
-  reckless->go({
-    &PilonsSegment(
-      &ConstantMotion(${speed.toFixed(2)}),
-      ${this.pilons_correction},
-      &SimpleStop(${this.harsh}, ${this.coast}, ${this.coast_power}, ${this.timeout}),
-      {${position.x.toFixed(2)}_in, ${position.y.toFixed(2)}_in}
-    )
-  });
-    `
-    );
-  }
+//   driveToString(position: Coordinate, speed: number, callback: string, toPoint: boolean): string {
+//     return (
+//     `
+//   reckless->go({
+//     &PilonsSegment(
+//       &ConstantMotion(${speed.toFixed(2)}),
+//       ${this.pilons_correction},
+//       &SimpleStop(${this.harsh}, ${this.coast}, ${this.coast_power}, ${this.timeout}),
+//       {${position.x.toFixed(2)}_in, ${position.y.toFixed(2)}_in}
+//     )
+//   });
+//     `
+//     );
+//   }
 
-  turnToString(position: Coordinate, speed: number, callback: string, toPoint: boolean): string {
-    return (
-    `
-  reckless->go({
-    &LookAt(
-      ${speed.toFixed(2)},
-      ${this.coast_power},
-      {${position.x.toFixed(2)}_in, ${position.y.toFixed(2)}_in},
-      0_deg,
-      ${this.harsh_turn},
-      ${this.coast_turn},
-      ${this.brake_time}
-    )
-  });
-    `
-    );
-  }
-}
+//   turnToString(position: Coordinate, speed: number, callback: string, toPoint: boolean): string {
+//     return (
+//     `
+//   reckless->go({
+//     &LookAt(
+//       ${speed.toFixed(2)},
+//       ${this.coast_power},
+//       {${position.x.toFixed(2)}_in, ${position.y.toFixed(2)}_in},
+//       0_deg,
+//       ${this.harsh_turn},
+//       ${this.coast_turn},
+//       ${this.brake_time}
+//     )
+//   });
+//     `
+//     );
+//   }
+// }

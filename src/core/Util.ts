@@ -73,6 +73,10 @@ export function makeId(length: number) {
     return result;
 }
 
+export function trimZeros(s: string) {
+  return s.replace(/\.0+$/u, "").replace(/(\.\d*?[1-9])0+$/u, "$1");
+}
+
 export function interpolatePoses(currentPose: Pose, previousPose: Pose, percent: number): Coordinate | null {
   const x1 = previousPose.x;
   const x2 = currentPose.x;

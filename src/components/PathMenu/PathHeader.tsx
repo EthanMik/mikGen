@@ -2,13 +2,10 @@ import { useState } from "react";
 import eyeOpen from "../../assets/eye-open.svg";
 import eyeClosed from "../../assets/eye-closed.svg";
 import downArrow from "../../assets/down-arrow.svg";
-import plus from "../../assets/plus.svg";
-import copy from "../../assets/copy.svg";
-import { convertPath } from "../../core/PathConversion";
 import { usePathVisibility } from "../../hooks/usePathVisibility";
-import { mikLibFormat } from "../../formats/mikLibFormat";
 import { usePath } from "../../hooks/usePath";
 import AddSegmentButton from "./AddSegmentButton";
+import CopyPathButton from "./CopyPathButton";
 
 type PathConfigHeaderProps = {
   isOpen: boolean,
@@ -16,18 +13,11 @@ type PathConfigHeaderProps = {
 }
 
 export default function PathConfigHeader({isOpen, setOpen} : PathConfigHeaderProps) {
-  const [ path, setPath ] = usePath(); 
   const [ isEyeOpen, setEyeOpen ] = useState(false);
   const [ pathVisible, setPathVisibility ] = usePathVisibility();
 
   const handleOpenOnClick = () => {
     setOpen(prev => !prev);
-  }
-
-  const copyOnClick = () => {
-    const format = new mikLibFormat();
-    const out = convertPath(path, format);
-    navigator.clipboard.writeText(out);
   }
 
   const handleEyeOnClick = () => {
@@ -43,15 +33,8 @@ export default function PathConfigHeader({isOpen, setOpen} : PathConfigHeaderPro
         Path
       </span>
         <div className="flex flex-row gap-[10px] items-center">
-          <button 
-            className="w-[30px] h-[30px] flex items-center justify-center cursor-pointer 
-                      rounded-sm hover:bg-medgray_hover active:scale-95 transition-normal duration-50"
-            onClick={copyOnClick}
-            >
-            <img className="w-[25px] h-[25px] pr-[2px]"
-              src={copy}
-            />
-          </button>
+
+          <CopyPathButton />
 
           <button className="cursor-pointer" 
               onClick={handleEyeOnClick}>

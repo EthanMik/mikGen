@@ -1,3 +1,4 @@
+import { root } from "postcss";
 import type { Robot } from "./Robot";
 
 export interface Snapshot {
@@ -30,9 +31,17 @@ export function precomputePath(
     let safetyIter = 0;
     const maxIter = 60 * simLengthSeconds;
 
-    while (autoIdx < auton.length && safetyIter < maxIter) {
-        const done = auton[autoIdx](robot, dt);
-        if (done) autoIdx++;
+    while (safetyIter < maxIter) {
+
+        if (autoIdx < auton.length) {
+            const done = auton[autoIdx](robot, dt);
+            if (done) autoIdx++;
+        }
+
+        if (autoIdx >= auton.length) {
+            if ((robot.getXVelocity() === 0 && robot.getYVelocity() === 0)) break;
+            robot.tankDrive(0, 0, dt);
+        }
 
         trajectory.push({
             t,
@@ -40,10 +49,11 @@ export function precomputePath(
             y: robot.getY(),
             angle: robot.getAngle()
         });
-
+        
         t += dt;
         safetyIter++;
     }
+    
 
     return {totalTime: t, trajectory: trajectory};    
 }
