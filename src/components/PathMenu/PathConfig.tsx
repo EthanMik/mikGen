@@ -79,7 +79,7 @@ const createDrivePIDGroup = (
       slot: "heading",
       values: headingConstants,
       fields: [
-        { key: "maxSpeed", label: "Max Speed", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } },
+        { key: "maxSpeed", label: "Max Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
         { key: "kp", label: "kP", input: { bounds: [0, 99], stepSize: 0.1, roundTo: 3 } },
         { key: "ki", label: "kI", input: { bounds: [0, 99], stepSize: 0.01, roundTo: 5 } },
         { key: "kd", label: "kD", input: { bounds: [0, 99], stepSize: 0.1, roundTo: 3 } },
@@ -135,7 +135,7 @@ const createDrivePosePIDGroup = (
       values: headingConstants,
       slot: "heading",
       fields: [
-        { key: "maxSpeed", label: "Max Speed", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } },
+        { key: "maxSpeed", label: "Max Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
         { key: "kp", label: "kP", input: { bounds: [0, 99], stepSize: 0.1, roundTo: 3 } },
         { key: "ki", label: "kI", input: { bounds: [0, 99], stepSize: 0.01, roundTo: 5 } },
         { key: "kd", label: "kD", input: { bounds: [0, 99], stepSize: 0.1, roundTo: 3 } },
@@ -201,7 +201,8 @@ export default function PathConfig() {
             {idx > 0 && (c.kind === "pointDrive" || c.kind === "poseDrive") && (
               <MotionList
                 name="Drive"
-                startSpeed={c.constants.drive.maxSpeed * 100}
+                speedScale={12}
+                startSpeed={c.constants.drive.maxSpeed}
                 field={
                   c.kind === "poseDrive" ? 
                   createDrivePosePIDGroup(setPath, c.id, c.constants.drive, c.constants.heading) :
@@ -216,7 +217,8 @@ export default function PathConfig() {
             {idx > 0 && (c.kind === "angleTurn" || c.kind === "pointTurn") && (
               <MotionList
                 name="Turn"
-                startSpeed={c.constants.turn.maxSpeed * 100}
+                speedScale={12}
+                startSpeed={c.constants.turn.maxSpeed}
                 field={createTurnPIDGroup(setPath, c.id, c.constants.turn)}
                 segmentId={c.id}
                 isOpenGlobal={isOpen}
@@ -227,6 +229,7 @@ export default function PathConfig() {
             {idx === 0 && (
               <MotionList
                 name="Start"
+                speedScale={12}
                 startSpeed={0}
                 field={[]}
                 segmentId={c.id}

@@ -62,7 +62,7 @@ export default function RobotButton() {
     return (
         <div ref={menuRef} className={`relative ${isOpen ? "bg-medgray_hover" : "bg-none"} hover:bg-medgray_hover rounded-sm`}>
 
-            <button onClick={handleToggleMenu} className="px-3 py-1 cursor-pointer">
+            <button onClick={handleToggleMenu} className="px-2 py-1 cursor-pointer">
                 <span className="text-[20px]">
                     Robot
                 </span>

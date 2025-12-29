@@ -5,6 +5,8 @@ import type { SetStateAction } from "react";
 import { createAngleTurnSegment, createPointDriveSegment, createPointTurnSegment, createPoseDriveSegment, type Segment } from "../core/Types/Segment";
 import type { Coordinate } from "../core/Types/Coordinate";
 import type { Pose } from "../core/Types/Pose";
+import type { Format } from "../hooks/useFormat";
+import { convertPathToString } from "../formats/PathFormat";
 
 export default function FieldMacros() {
     const MIN_FIELD_X = -100;
@@ -286,6 +288,25 @@ export default function FieldMacros() {
         addSegment(control, setPath);
     }
 
+    const copySelectedPath = (evt: KeyboardEvent, path: Path, format: Format, trigger: () => void) => {
+        if (evt.key.toLowerCase() === "c" && evt.ctrlKey && !evt.shiftKey) {
+            trigger();
+            evt.preventDefault();
+            const out = convertPathToString(path, format, true);
+            navigator.clipboard.writeText(out ?? "");
+        }
+    }
+    
+    const copyAllPath = (evt: KeyboardEvent, path: Path, format: Format, trigger: () => void) => {
+        if (evt.key.toLowerCase() === "c" && evt.shiftKey && evt.ctrlKey) {
+            trigger();
+            evt.preventDefault();
+            const out = convertPathToString(path, format, false);
+            navigator.clipboard.writeText(out ?? "");
+        }
+
+    }
+
     return {
         moveControl,
         unselectPath,
@@ -295,6 +316,8 @@ export default function FieldMacros() {
         moveHeading,
         undoPath,
         redoPath,
+        copyAllPath,
+        copySelectedPath,
         addPointDriveSegment,
         addPointTurnSegment,
         addPoseDriveSegment,

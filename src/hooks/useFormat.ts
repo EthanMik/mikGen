@@ -2,4 +2,7 @@ import { createSharedState } from "../core/SharedState";
 
 export type Format = "mikLib" | "ReveilLib" | "JAR-Template" | "LemLib";
 
-export const useFormat = createSharedState<Format>("mikLib")
+const saved = localStorage.getItem("format");
+const initialData = saved ? JSON.parse(saved) : "mikLib";
+
+export const useFormat = createSharedState<Format>(initialData)

@@ -7,10 +7,11 @@ import { usePose } from "../hooks/usePose";
 import { clamp } from "../core/Util";
 import { useRobotVisibility } from "../hooks/useRobotVisibility";
 import Checkbox from "./Util/Checkbox";
-import { convertPathtoSim } from "../core/PathConversion";
 import Slider from "./Util/Slider";
 import { usePath } from "../hooks/usePath";
 import { PathSimMacros } from "../macros/PathSimMacros";
+import { convertPathToSim } from "../formats/PathFormat";
+import { useFormat } from "../hooks/useFormat";
 
 // This fucking file is the biggest piece of shit i find a new bug every day
 
@@ -40,13 +41,14 @@ export default function PathSimulator() {
     const [playing, setPlaying] = useState<boolean>(false);
     const [robotVisible, setRobotVisibility] = useRobotVisibility();
     const [ path, setPath ] = usePath();
+    const [ format, setFormat ] = useFormat();
     const skip = useRef(false);
 
     const { pauseSimulator, scrubSimulator } = PathSimMacros();
 
     useEffect(() => {
         if (path.segments.length === 0) {
-            computedPath = precomputePath(createRobot(), convertPathtoSim(path));
+            computedPath = precomputePath(createRobot(), convertPathToSim(path, format));
             setPlaying(false);
             setTime(0);
             setValue(0);
@@ -55,7 +57,7 @@ export default function PathSimulator() {
             return;
         }
 
-        computedPath = precomputePath(createRobot(), convertPathtoSim(path));
+        computedPath = precomputePath(createRobot(), convertPathToSim(path, format));
 
         if (!computedPath.trajectory.length || computedPath.totalTime <= 0) return;
 
@@ -66,7 +68,7 @@ export default function PathSimulator() {
 
         setValue((clampedTime / computedPath.totalTime) * 100);
         
-    }, [path, robotk, robotVisible]);
+    }, [path, format, robotk, robotVisible]);
 
     
     useEffect(() => {

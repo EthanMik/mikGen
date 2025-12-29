@@ -56,12 +56,18 @@ const clonePID = (c: PIDConstants): PIDConstants => ({ ...c });
 export function getDefaultConstantsForKind<K extends SegmentKind>(kind: K, driveConstantKind: DriveConstantKind = "both"): SegmentConstantsByKind[K] {
   switch (kind) {
     case "pointDrive":
-    case "poseDrive":
       if (driveConstantKind === "drive") return { drive: clonePID(kOdomDrivePID) } as SegmentConstantsByKind[K];
       if (driveConstantKind === "heading") return { heading: clonePID(kOdomDrivePID) } as SegmentConstantsByKind[K];
       return {
         drive: clonePID(kOdomDrivePID),
         heading: clonePID(kOdomHeadingPID),
+      } as SegmentConstantsByKind[K];
+    case "poseDrive":
+      if (driveConstantKind === "drive") return { drive: clonePID(kBoomerangPID) } as SegmentConstantsByKind[K];
+      if (driveConstantKind === "heading") return { heading: clonePID(kBoomerangPID) } as SegmentConstantsByKind[K];
+      return {
+        drive: clonePID(kBoomerangPID),
+        heading: clonePID(kBoomerangPID),
       } as SegmentConstantsByKind[K];
 
     case "pointTurn":

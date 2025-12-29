@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { usePath } from "../../hooks/usePath";
-import { mikLibToString } from "../../formats/mikLibFormat";
 import { convertPathToString } from "../../formats/PathFormat";
+import { useFormat } from "../../hooks/useFormat";
+import FieldMacros from "../../macros/FieldMacros";
 
 function CopyIcon({ className }: { className?: string }) {
   const href =
@@ -28,10 +29,17 @@ function CopyIcon({ className }: { className?: string }) {
 export default function CopyPathButton() {
   const [isOpen, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [ pathFormat, setPathFormat ] = useFormat();
   const [path] = usePath();
 
   const [flash, setFlash] = useState(false);
   const flashTimeoutRef = useRef<number | null>(null);
+
+  const pathRef = useRef(path);
+  const formatRef = useRef(pathFormat);
+
+  useEffect(() => { pathRef.current = path; }, [path]);
+  useEffect(() => { formatRef.current = pathFormat; }, [pathFormat]);
 
   const triggerFlash = () => {
     setFlash(true);
@@ -41,17 +49,38 @@ export default function CopyPathButton() {
 
   const handleToggleMenu = () => setOpen((prev) => !prev);
 
+  const {
+    copyAllPath,
+    copySelectedPath
+  } = FieldMacros();
+
+  useEffect(() => {
+      const handleKeyDown = (evt: KeyboardEvent) => {
+          const target = evt.target as HTMLElement | null;
+          if (target?.isContentEditable || target?.tagName === "INPUT") return;
+          copyAllPath(evt, pathRef.current, formatRef.current, triggerFlash);
+          copySelectedPath(evt, pathRef.current, formatRef.current, triggerFlash);
+      }
+
+      document.addEventListener('keydown', handleKeyDown)
+
+      return () => {
+          document.removeEventListener('keydown', handleKeyDown)
+      }
+  }, []);
+
   const copyAllOnClick = () => {
     triggerFlash();
-    const out = convertPathToString(path, "mikLib");
+    const out = convertPathToString(path, pathFormat);
     setOpen(false);
-    navigator.clipboard.writeText(out);
+    navigator.clipboard.writeText(out ?? "");
   };
-
+  
   const copySelectedOnClick = () => {
     triggerFlash();
+    const out = convertPathToString(path, pathFormat, true);
     setOpen(false);
-    // navigator.clipboard.writeText(mikLibToString(selectedPath));
+    navigator.clipboard.writeText(out ?? "");
   };
 
   useEffect(() => {

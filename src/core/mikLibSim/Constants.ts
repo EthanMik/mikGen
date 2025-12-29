@@ -83,7 +83,7 @@ export function createPIDConstants(values: Partial<PIDConstants> = {}): PIDConst
 
 
 export const kturnPID = createPIDConstants({
-    maxSpeed: 1,
+    maxSpeed: 12,
     minSpeed: 0,
     kp: .4,
     ki: .03,
@@ -95,7 +95,7 @@ export const kturnPID = createPIDConstants({
 });
 
 export const kDrivePID = createPIDConstants({
-    maxSpeed: .8,
+    maxSpeed: 10,
     minSpeed: 0,
     kp: 1.5,
     ki: 0,
@@ -107,7 +107,7 @@ export const kDrivePID = createPIDConstants({
 });
 
 export const kHeadingPID = createPIDConstants({
-    maxSpeed: .5,
+    maxSpeed: 6,
     minSpeed: 0,
     kp: .4,
     ki: 0,
@@ -119,49 +119,47 @@ export const kHeadingPID = createPIDConstants({
 });
 
 export const kOdomTurnPID = createPIDConstants({
-    maxSpeed: 1,
+    maxSpeed: 12,
     minSpeed: 0,
-    kp: .3,
-    ki: .01,
+    kp: .4,
+    ki: .03,
     kd: 3,
     starti: 15,
-    settleTime: 150,
-    settleError: 1.5,
+    settleTime: 300,
+    settleError: 1,
     timeout: 3000
 });
 
 export const kOdomDrivePID = createPIDConstants({
-    maxSpeed: .666,
+    maxSpeed: 8,
     minSpeed: 0,
     kp: 1.5,
     ki: 0,
-    kd: 12,
-    starti: 0,
-    settleTime: 250,
-    settleError: 2,
+    kd: 10,
+    starti: 0, 
+    settleTime: 300,
+    settleError: 3,
     timeout: 5000,
-    lead: 0.4,
-    setback: 1,
 });
 
 export const kOdomHeadingPID = createPIDConstants({
-    maxSpeed: .833,
-    kp: .3,
+    maxSpeed: 10,
+    kp: .4,
     ki: 0,
     kd: 1,
     starti: 0,
 });
 
 export const kBoomerangPID = createPIDConstants({
-    maxSpeed: .8,
+    maxSpeed: 8,
     minSpeed: 0,
-    kp: .4,
+    kp: 1.5,
     ki: 0,
-    kd: 1,
+    kd: 10,
     starti: 0,
     settleTime: 300,
-    settleError: 1.5,
+    settleError: 3,
     timeout: 5000,
-    lead: 0.4,
-    setback: 2,
+    lead: 0.5,
+    setback: 1,
 });

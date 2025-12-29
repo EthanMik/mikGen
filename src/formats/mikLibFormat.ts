@@ -1,8 +1,12 @@
 import { getUnequalPIDConstants, type PIDConstants } from "../core/mikLibSim/Constants";
+import { driveToPoint, driveToPose, turnToAngle, turnToPoint } from "../core/mikLibSim/DriveMotions";
+import { PID } from "../core/mikLibSim/PID";
+import type { Robot } from "../core/Robot";
 import type { Coordinate } from "../core/Types/Coordinate";
 import { getBackwardsSnapPose, getForwardSnapPose, type Path } from "../core/Types/Path";
 import { getDefaultConstantsForKind } from "../core/Types/Segment";
 import { trimZeros } from "../core/Util";
+import type { Format } from "../hooks/useFormat";
 
 const roundOff = (val: number | undefined | null, digits: number) => {
     if (val === null || val === undefined) return "";
@@ -189,6 +193,94 @@ export function mikLibToString(path: Path, selected: boolean = false) {
             : `\n    chassis.drive_to_pose(${x}, ${y}, ${angle}, {\n${formattedConstants}\n    });`
         }
     }
-    
+
+    if (selected) pathString = pathString.startsWith("\n") ? pathString.slice(1) : pathString;
     return pathString;
+}
+
+export function mikLibToSim(path: Path) {
+    const pointTurnPID = new PID(getDefaultConstantsForKind("pointTurn").turn);
+
+    const angleTurnPID = new PID(getDefaultConstantsForKind("angleTurn").turn);
+
+    const pointDrivePID = new PID(getDefaultConstantsForKind("pointDrive").drive);
+    const pointHeadingPID = new PID(getDefaultConstantsForKind("pointDrive").heading);
+
+    const poseDrivePID = new PID(getDefaultConstantsForKind("poseDrive").drive);
+    const poseHeadingPID = new PID(getDefaultConstantsForKind("poseDrive").heading);
+
+    
+    const auton: ((robot: Robot, dt: number) => boolean)[] = [];
+
+    for (let idx = 0; idx < path.segments.length; idx++) {
+        const control = path.segments[idx];
+
+        if (idx === 0) {
+            auton.push(
+                (robot: Robot, dt: number): boolean => { 
+                    return robot.setPose(control.pose.x, control.pose.y, control.pose.angle);
+                }
+            )
+            continue;
+        }
+
+        if (control.kind === "pointDrive") {
+            const { drive, heading } = control.constants;
+            auton.push(
+                (robot: Robot, dt: number): boolean => { 
+                    pointDrivePID.update(drive);
+                    pointHeadingPID.update(heading);
+                    return driveToPoint(robot, dt, control.pose.x, control.pose.y, pointDrivePID, pointHeadingPID);
+                }
+            );
+        }
+
+        if (control.kind === "poseDrive") {
+            const { drive, heading } = control.constants;
+            auton.push(
+                (robot: Robot, dt: number): boolean => { 
+                    poseDrivePID.update(drive);
+                    poseHeadingPID.update(heading);
+                    return driveToPose(robot, dt, control.pose.x, control.pose.y, control.pose.angle, poseDrivePID, poseHeadingPID);
+                }
+            );
+        }
+        
+        if (control.kind === "pointTurn") {
+            const previousPos = getBackwardsSnapPose(path, idx - 1);
+            const turnToPos = getForwardSnapPose(path, idx);
+
+            const pos: Coordinate =
+            turnToPos
+                ? { x: turnToPos.x ?? 0, y: turnToPos.y ?? 0 }
+                : previousPos
+                ? { x: previousPos.x ?? 0, y: (previousPos.y ?? 0) + 5 }
+                : { x: 0, y: 5 };
+
+            const { turn } = control.constants;
+
+            auton.push(
+                (robot: Robot, dt: number): boolean => { 
+                    pointTurnPID.update(turn);
+                    return turnToPoint(robot, dt, pos.x, pos.y, control.pose.angle ?? 0, pointTurnPID);
+                }
+            );            
+        }
+
+        if (control.kind === "angleTurn") {
+            
+            const { turn } = control.constants;
+
+            auton.push(
+                (robot: Robot, dt: number): boolean => { 
+                    angleTurnPID.update(angleTurnPID)
+                    return turnToAngle(robot, dt, control.pose.angle, angleTurnPID);
+                }
+            );                 
+        }
+
+
+    }
+        
+    return auton;
 }

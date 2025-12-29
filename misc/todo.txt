@@ -32,6 +32,7 @@ Todo List:
 - Add scrubbing steps to settings
 - field dragging and resizing
 - square drag to select 
+- fix not being able to change voltage on the last turn segment 
 
 Docs:
 

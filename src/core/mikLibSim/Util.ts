@@ -21,7 +21,7 @@ export function is_line_settled(desired_X: number, desired_Y: number, desired_an
 }
 
 export function left_voltage_scaling(drive_output: number, heading_output: number) {
-    const ratio = Math.max(Math.abs(drive_output + heading_output), Math.abs(drive_output - heading_output));
+    const ratio = Math.max(Math.abs(drive_output + heading_output), Math.abs(drive_output - heading_output)) / 12;
     if (ratio > 1) {
         return (drive_output + heading_output) / ratio;
     }
@@ -29,7 +29,7 @@ export function left_voltage_scaling(drive_output: number, heading_output: numbe
 }
 
 export function right_voltage_scaling(drive_output: number, heading_output: number) {
-    const ratio = Math.max(Math.abs(drive_output + heading_output), Math.abs(drive_output - heading_output));
+    const ratio = Math.max(Math.abs(drive_output + heading_output), Math.abs(drive_output - heading_output)) / 12;
     if (ratio > 1) {
         return (drive_output - heading_output) / ratio;
     }

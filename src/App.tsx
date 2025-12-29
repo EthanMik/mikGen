@@ -4,8 +4,11 @@ import PathConfig from './components/PathMenu/PathConfig'
 import PathSimulator from './components/PathSimulator'
 import ControlConfig from './components/ControlConfig'
 import Config from './components/Config/Config'
+import useLocalStorageSync from './hooks/useLocalStorageSync'
 
 function App() {
+  useLocalStorageSync();
+
   return (
     <div className="flex flex-row">
       <div

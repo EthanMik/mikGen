@@ -128,11 +128,6 @@ export default function Field({
           document.removeEventListener('keydown', handleKeyDown)
       }
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem("path", JSON.stringify(path));
-  }, [path])
-
   
   const handlePointerMove = (evt: React.PointerEvent<SVGSVGElement>) => {
     if (!drag?.dragging) return

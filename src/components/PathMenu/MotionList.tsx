@@ -25,6 +25,7 @@ export type ConstantListField = {
 type MotionListProps = {
     name: string,
     startSpeed: number, 
+    speedScale: number,
     field: ConstantListField[], 
     segmentId: string,
     isOpenGlobal: boolean,
@@ -33,6 +34,7 @@ type MotionListProps = {
 export default function MotionList({
     name, 
     startSpeed,
+    speedScale,
     field,
     segmentId, 
     isOpenGlobal,
@@ -197,7 +199,7 @@ export default function MotionList({
         const ms = field[0].values?.["maxSpeed"];
         if (typeof ms !== "number") return;
 
-        const next = ms * 100;
+        const next = (ms * 100) / speedScale;
 
         setValue((prev) => (prev === next ? prev : next));
     }, [segment.constants, field]);
@@ -207,7 +209,7 @@ export default function MotionList({
             const v = typeof next === "function" ? (next as (p: number) => number)(prev) : next;
 
             if (field[0]) {
-                field[0].onChange({ maxSpeed: v / 100 } as Partial<any>);
+                field[0].onChange({ maxSpeed: (v / 100) * speedScale } as Partial<any>);
             }
 
             return v;
@@ -279,7 +281,7 @@ export default function MotionList({
                     setValue={setSpeedValue}
                 />
                 <span className="w-10">
-                    {(value / 100).toFixed(2)}
+                    {((value / 100) * speedScale).toFixed(speedScale > 9.9 ? (speedScale > 99.9 ? 0 : 1) : 2)}
                 </span>
 
             </button>

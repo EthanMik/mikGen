@@ -13,7 +13,7 @@ export function turnToAngle(robot: Robot, dt: number, angle: number, turnPID: PI
     }
 
     output = clamp(output, -turnPID.maxSpeed, turnPID.maxSpeed);
-    robot.tankDrive(output, -output, dt);
+    robot.tankDrive(output / 12, -output / 12, dt);
 
     return false;
 }
@@ -33,7 +33,7 @@ export function turnToPoint(robot: Robot, dt: number, x: number, y: number, offs
     }
 
     output = clamp(output, -turnPID.maxSpeed, turnPID.maxSpeed);
-    robot.tankDrive(output, -output, dt);
+    robot.tankDrive(output / 12, -output / 12, dt);
 
     return false;
 }
@@ -48,7 +48,7 @@ export function swingToAngle(robot: Robot, dt: number, angle: number, swingPID: 
     }
 
     output = clamp(output, -swingPID.maxSpeed, swingPID.maxSpeed);
-    robot.tankDrive(output, 0, dt);
+    robot.tankDrive(output / 12, 0, dt);
     return false;
 }
 
@@ -79,7 +79,7 @@ export function driveDistance(robot: Robot, dt: number, distance: number, headin
         return true;
     }
 
-    robot.tankDrive(drive_output + heading_output, drive_output - heading_output, dt);
+    robot.tankDrive((drive_output + heading_output) / 12, (drive_output - heading_output) / 12, dt);
 
     return false;
 }
@@ -129,7 +129,7 @@ export function driveToPoint(robot: Robot, dt: number, x: number, y: number, dri
 
     drive_output = clamp_min_voltage(drive_output, drivePID.minSpeed);
 
-    robot.tankDrive(left_voltage_scaling(drive_output, heading_output), right_voltage_scaling(drive_output, heading_output), dt);
+    robot.tankDrive(left_voltage_scaling(drive_output, heading_output) / 12, right_voltage_scaling(drive_output, heading_output) / 12, dt);
 
     return false;
 }
@@ -201,8 +201,8 @@ export function driveToPose(robot: Robot,dt: number, x: number, y: number, angle
   const final_drive_output = clamp_min_voltage(clamped_drive_output, drivePID.minSpeed);
 
   robot.tankDrive(
-    left_voltage_scaling(final_drive_output, clamped_heading_output),
-    right_voltage_scaling(final_drive_output, clamped_heading_output),
+    left_voltage_scaling(final_drive_output, clamped_heading_output) / 12,
+    right_voltage_scaling(final_drive_output, clamped_heading_output) / 12,
     dt
   );
 
