@@ -30,15 +30,15 @@ export class SimpleStop {
     }
 
     getStopState(currentState: PoseState, targetState: Pose, startState: Pose, dropEarly: number): StopState  {
-        // if (this.timeout !== null) {
-        //     const now = Date.now();
+        if (this.timeout !== null) {
+            const now = Date.now();
 
-        //     if (this.timeInit === null) {
-        //         this.timeInit = now;
-        //     } else if (now > this.timeInit + this.timeout) {
-        //         return "EXIT";
-        //     }
-        // }
+            if (this.timeInit === null) {
+                this.timeInit = now;
+            } else if (now > this.timeInit + this.timeout) {
+                return "EXIT";
+            }
+        }
 
         const longitudinalSpeed = Math.sqrt((currentState.xVel ?? 0) * (currentState.xVel ?? 0) + (currentState.yVel ?? 0) * (currentState.yVel ?? 0));
 
@@ -51,16 +51,13 @@ export class SimpleStop {
 
         const longitudinalDistance = (error.y ?? 0) - dropEarly;
 
-        console.log(longitudinalDistance, this.harshThreshold)
         if (longitudinalDistance < 0) {
             this.stopLastState = "BRAKE";
             return this.harshThreshold > 1 ? "BRAKE" : "EXIT";
         }
 
-        console.log(longitudinalSpeed, this.harshThreshold / 1000, longitudinalDistance)
         if (longitudinalSpeed * (this.harshThreshold / 1000) > longitudinalDistance || this.stopLastState == "BRAKE") {
             this.stopLastState = "BRAKE";
-            console.log("bruh")
             return "BRAKE";
         }
 
