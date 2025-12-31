@@ -3,7 +3,7 @@ import { FIELD_IMG_DIMENSIONS } from "../core/Util";
 import { useField } from "../hooks/useField";
 
 export default function FieldContainer() {
-  const { field } = useField();
+  const [ field ] = useField();
 
   return (
     <Field

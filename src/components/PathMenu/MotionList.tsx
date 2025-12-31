@@ -9,10 +9,11 @@ import Slider from "../Util/Slider";
 import { usePath } from "../../hooks/usePath";
 import CommandList from "./CommandList";
 import { createCommand, type Command } from "../../core/Types/Command";
-import { getDefaultConstantsForKind, isDriveConstants, type DriveConstants, type TurnConstants } from "../../core/Types/Segment";
 import type { ConstantField } from "./ConstantRow";
 import ConstantsList from "./ConstantsList";
 import type { Slot } from "./PathConfig";
+import { getDefaultConstants } from "../../core/Constants";
+import { useFormat } from "../../hooks/useFormat";
 
 export type ConstantListField = {
     header: string,
@@ -49,6 +50,7 @@ export default function MotionList({
     const [ isLocked, setLocked ] = useState(false);
     const [ isOpen, setOpen ] = useState(false);
     const [ command, setCommand ] = useState<Command>(createCommand(''));
+    const [ format, setFormat ] = useFormat();
 
     const normalSelect = () => {
         setPath(prev => ({
@@ -295,7 +297,7 @@ export default function MotionList({
                     values={f.values}
                     isOpenGlobal={isOpenGlobal}
                     onChange={f.onChange}
-                    onReset={() => f.onChange(getDefaultConstantsFromKeys(f.slot, f.fields.map((m) => m.key), getDefaultConstantsForKind(segment.kind)))}
+                    onReset={() => f.onChange(getDefaultConstantsFromKeys(f.slot, f.fields.map((m) => m.key), getDefaultConstants(format, segment.kind)))}
                 />
                 ))}
             </div>

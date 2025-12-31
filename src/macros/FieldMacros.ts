@@ -268,23 +268,23 @@ export default function FieldMacros() {
         });
     }
 
-    const addAngleTurnSegment = (setPath: React.Dispatch<SetStateAction<Path>>) => {
-        const control = createAngleTurnSegment(0);
+    const addAngleTurnSegment = (format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
+        const control = createAngleTurnSegment(format, 0);
         addSegment(control, setPath);
     }
     
-    const addPointTurnSegment = (setPath: React.Dispatch<SetStateAction<Path>>) => {
-        const control = createPointTurnSegment({x: null, y: null, angle: 0})
+    const addPointTurnSegment = (format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
+        const control = createPointTurnSegment(format, {x: null, y: null, angle: 0})
         addSegment(control, setPath);
     }
 
-    const addPoseDriveSegment = (position: Pose, setPath: React.Dispatch<SetStateAction<Path>>) => {
-        const control = createPoseDriveSegment(position)
+    const addPoseDriveSegment = (format: Format, position: Pose, setPath: React.Dispatch<SetStateAction<Path>>) => {
+        const control = createPoseDriveSegment(format, position)
         addSegment(control, setPath);
     }
 
-    const addPointDriveSegment = (position: Coordinate, setPath: React.Dispatch<SetStateAction<Path>>) => {
-        const control = createPointDriveSegment(position)
+    const addPointDriveSegment = (format: Format, position: Coordinate, setPath: React.Dispatch<SetStateAction<Path>>) => {
+        const control = createPointDriveSegment(format, position)
         addSegment(control, setPath);
     }
 

@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useSyncExternalStore } from "react"
 import { robotConstantsStore } from "../core/Robot";
 import type { Coordinate } from "../core/Types/Coordinate";
 import { getBackwardsSnapPose, getForwardSnapPose, type Path } from "../core/Types/Path";
-import { isDriveConstants, segmentsEqual } from "../core/Types/Segment";
+import { segmentsEqual } from "../core/Types/Segment";
 import { calculateHeading, FIELD_REAL_DIMENSIONS, interpolatePoses, toInch, toPX, toRad, vector2Add, vector2Subtract, type Rectangle } from "../core/Util";
 import { usePath } from "../hooks/usePath";
 import { usePathVisibility } from "../hooks/usePathVisibility";
@@ -12,6 +12,7 @@ import RobotView from "./Util/RobotView";
 import type { Pose } from "../core/Types/Pose";
 import { PathSimMacros } from "../macros/PathSimMacros";
 import FieldMacros from "../macros/FieldMacros";
+import { useFormat } from "../hooks/useFormat";
 
 type FieldProps = {
   src: string;
@@ -40,6 +41,7 @@ export default function Field({
   const robot = useSyncExternalStore(robotConstantsStore.subscribe, robotConstantsStore.get);
   const [ robotVisible, setRobotVisibility ] = useRobotVisibility();
   const [ pathVisible, setPathVisibility] = usePathVisibility();
+  const [ format, setFormat ] = useFormat();
 
   type dragProps = { dragging: boolean, lastPos: Coordinate }
   const [drag, setDrag] = useState<dragProps>({dragging: false, lastPos: {x: 0, y: 0}});
@@ -241,26 +243,26 @@ export default function Field({
 
     if (path.segments.length <= 0) {
       const pos = getPressedPositionInch(evt);
-      addPoseDriveSegment({ x: pos.x, y: pos.y, angle: 0 }, setPath);      
+      addPoseDriveSegment(format, { x: pos.x, y: pos.y, angle: 0 }, setPath);      
       return;
     }
 
     if (!evt.ctrlKey && evt.button === 0) {
       const pos = getPressedPositionInch(evt);
-      addPointDriveSegment(pos, setPath);
+      addPointDriveSegment(format, pos, setPath);
     }
     
     if (!evt.ctrlKey && evt.button === 2) {
-      addPointTurnSegment(setPath);
+      addPointTurnSegment(format, setPath);
     }
     
     if (evt.ctrlKey && evt.button == 2) {
-      addAngleTurnSegment(setPath);
+      addAngleTurnSegment(format, setPath);
     }
     
     if (evt.ctrlKey && evt.button === 0) {
       const pos = getPressedPositionInch(evt);
-      addPoseDriveSegment({ x: pos.x, y: pos.y, angle: 0 }, setPath)
+      addPoseDriveSegment(format, { x: pos.x, y: pos.y, angle: 0 }, setPath)
     }
 
   };
@@ -283,7 +285,7 @@ export default function Field({
       return `${pStart.x},${pStart.y} ${pEnd.x},${pEnd.y}`;
     }
 
-    const lead = isDriveConstants(m.constants) && m.constants.drive.lead !== null ? m.constants.drive.lead : 0;
+    const lead = m.kind === "poseDrive" && m.constants.drive.lead !== null ? m.constants.drive.lead : 0;
     const ΘEnd = m.pose.angle;
 
     const h = Math.sqrt(
@@ -494,7 +496,7 @@ export default function Field({
                         filter: active ? "blur(2px)" : "none",
                         transition: "stroke-width 90ms ease-out, opacity 90ms ease-out, filter 90ms ease-out"
                       }}
-                    />
+                    />  
 
                     <line
                       pointerEvents="none"

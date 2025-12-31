@@ -114,6 +114,20 @@ export class Robot {
         return current + Math.sign(diff) * maxDelta;
     }
 
+    // Returns angular velocity in degrees per second
+    public getAngularVelocity(): number {
+        const vL_in = this.vL * 12;
+        const vR_in = this.vR * 12;
+
+        const b_in = this.trackWidth;
+
+        if (b_in === 0) return 0;
+
+        const omegaRad = (vR_in - vL_in) / b_in;
+
+        return toDeg(omegaRad);
+    }
+
     tankDrive(leftCmd: number, rightCmd: number, dt: number) {
         const b_in = this.trackWidth;
         const v_max_ft = this.maxSpeed;

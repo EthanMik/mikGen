@@ -33,7 +33,8 @@ Todo List:
 - field dragging and resizing
 - square drag to select 
 - fix not being able to change voltage on the last turn segment 
-
+- add setting toggle to enable robot position view while simulating path
+- add setting toggle to make it so you can step 1 frame using jl
 Docs:
 
 - A better way to plan VEX Autonoumous - EthanMik Channel

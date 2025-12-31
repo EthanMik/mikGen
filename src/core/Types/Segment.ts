@@ -1,4 +1,7 @@
-import { kBoomerangPID, kOdomDrivePID, kOdomHeadingPID, kOdomTurnPID, kturnPID, SegmentConstantsEqual, type PIDConstants } from "../mikLibSim/Constants";
+import type { Format } from "../../hooks/useFormat";
+import { getDefaultConstants, SegmentConstantsEqual } from "../Constants";
+import type { mikDriveConstants, mikTurnConstants } from "../mikLibSim/Constants";
+import type { ReveilLibConstants } from "../ReveiLibSim/Constants";
 import { makeId } from "../Util";
 import { commandsEqual, createCommand, type Command } from "./Command";
 import type { Coordinate } from "./Coordinate";
@@ -10,36 +13,34 @@ export type SegmentKind =
   | "pointTurn" 
   | "angleTurn";
 
-export type DriveConstantKind = 
-  | "both"
-  | "drive"
-  | "heading";
-
-export type DriveConstants = {
-  drive: PIDConstants;
-  heading: PIDConstants;
+export type ConstantsByFormat = {
+  mikLib: {
+    pointDrive: mikDriveConstants;
+    poseDrive: mikDriveConstants;
+    pointTurn: mikTurnConstants;
+    angleTurn: mikTurnConstants;
+  };
+  ReveilLib: {
+    pointDrive: ReveilLibConstants;
+    poseDrive: ReveilLibConstants;
+    pointTurn: ReveilLibConstants;
+    angleTurn: ReveilLibConstants;
+  };
+  "JAR-Template": {
+    pointDrive: mikDriveConstants;
+    poseDrive: mikDriveConstants;
+    pointTurn: mikTurnConstants;
+    angleTurn: mikTurnConstants;
+  };
+  LemLib: {
+    pointDrive: mikDriveConstants;
+    poseDrive: mikDriveConstants;
+    pointTurn: mikTurnConstants;
+    angleTurn: mikTurnConstants;
+  };
 };
 
-export type TurnConstants = {
-  turn: PIDConstants;
-};
-
-export function isTurnConstants(x: TurnConstants | DriveConstants): x is TurnConstants {
-  return "turn" in x;
-}
-
-export function isDriveConstants(x: TurnConstants | DriveConstants): x is DriveConstants {
-  return "drive" in x;
-}
-
-export type SegmentConstantsByKind = {
-  pointDrive: DriveConstants;
-  poseDrive: DriveConstants;
-  pointTurn: TurnConstants;
-  angleTurn: TurnConstants;
-};
-
-export interface Segment<K extends SegmentKind = SegmentKind> {
+export type Segment<F extends Format = Format, K extends SegmentKind = SegmentKind> = {
   id: string;
   selected: boolean;
   hovered: boolean;
@@ -47,37 +48,12 @@ export interface Segment<K extends SegmentKind = SegmentKind> {
   visible: boolean;
   pose: Pose;
   command: Command;
+  format: F; 
   kind: K;
-  constants: SegmentConstantsByKind[K];
-}
+  constants: ConstantsByFormat[F][K];
+};
 
-const clonePID = (c: PIDConstants): PIDConstants => ({ ...c });
-
-export function getDefaultConstantsForKind<K extends SegmentKind>(kind: K, driveConstantKind: DriveConstantKind = "both"): SegmentConstantsByKind[K] {
-  switch (kind) {
-    case "pointDrive":
-      if (driveConstantKind === "drive") return { drive: clonePID(kOdomDrivePID) } as SegmentConstantsByKind[K];
-      if (driveConstantKind === "heading") return { heading: clonePID(kOdomDrivePID) } as SegmentConstantsByKind[K];
-      return {
-        drive: clonePID(kOdomDrivePID),
-        heading: clonePID(kOdomHeadingPID),
-      } as SegmentConstantsByKind[K];
-    case "poseDrive":
-      if (driveConstantKind === "drive") return { drive: clonePID(kBoomerangPID) } as SegmentConstantsByKind[K];
-      if (driveConstantKind === "heading") return { heading: clonePID(kBoomerangPID) } as SegmentConstantsByKind[K];
-      return {
-        drive: clonePID(kBoomerangPID),
-        heading: clonePID(kBoomerangPID),
-      } as SegmentConstantsByKind[K];
-
-    case "pointTurn":
-      return { turn: clonePID(kturnPID) } as SegmentConstantsByKind[K];
-    case "angleTurn":
-      return { turn: clonePID(kOdomTurnPID) } as SegmentConstantsByKind[K];
-  }
-}
-
-export function createPointDriveSegment(position: Coordinate): Segment<"pointDrive"> {
+export function createPointDriveSegment<F extends Format>(format: F, position: Coordinate): Segment<F, "pointDrive"> {
   return {
     id: makeId(10),
     selected: false,
@@ -85,13 +61,14 @@ export function createPointDriveSegment(position: Coordinate): Segment<"pointDri
     locked: false,
     visible: true,
     pose: { x: position.x, y: position.y, angle: null },
-    command: createCommand(''),
+    command: createCommand(""),
+    format,
     kind: "pointDrive",
-    constants: getDefaultConstantsForKind("pointDrive"),
+    constants: getDefaultConstants(format, "pointDrive"),
   };
 }
 
-export function createPoseDriveSegment(pose: Pose): Segment<"poseDrive"> {
+export function createPoseDriveSegment<F extends Format>(format: F, pose: Pose): Segment<F, "poseDrive"> {
   return {
     id: makeId(10),
     selected: false,
@@ -100,12 +77,13 @@ export function createPoseDriveSegment(pose: Pose): Segment<"poseDrive"> {
     visible: true,
     pose,
     command: createCommand(''),
+    format,
     kind: "poseDrive",
-    constants: getDefaultConstantsForKind("poseDrive"),
+    constants: getDefaultConstants(format, "poseDrive"),
   };
 }
 
-export function createPointTurnSegment(pose: Pose): Segment<"pointTurn"> {
+export function createPointTurnSegment<F extends Format>(format: F, pose: Pose): Segment<F, "pointTurn"> {
   return {
     id: makeId(10),
     selected: false,
@@ -114,12 +92,13 @@ export function createPointTurnSegment(pose: Pose): Segment<"pointTurn"> {
     visible: true,
     pose,
     command: createCommand(''),
+    format,
     kind: "pointTurn",
-    constants: getDefaultConstantsForKind("pointTurn"),
+    constants: getDefaultConstants(format, "pointTurn"),
   };
 }
 
-export function createAngleTurnSegment(heading: number): Segment<"angleTurn"> {
+export function createAngleTurnSegment<F extends Format>(format: F, heading: number): Segment<F, "angleTurn"> {
   return {
     id: makeId(10),
     selected: false,
@@ -128,8 +107,9 @@ export function createAngleTurnSegment(heading: number): Segment<"angleTurn"> {
     visible: true,
     command: createCommand(''),
     pose: { x: null, y: null, angle: heading },
+    format,
     kind: "angleTurn",
-    constants: getDefaultConstantsForKind("angleTurn"),
+    constants: getDefaultConstants(format, "angleTurn"),
   };
 }
 

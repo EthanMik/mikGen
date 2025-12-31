@@ -39,7 +39,7 @@ function usePreloadImages(srcs: string[]) {
 
 export default function FieldButton() {
   const [isOpen, setOpen] = useState(false);
-  const { field, setField } = useField();
+  const [ field, setField ] = useField();
   const menuRef = useRef<HTMLDivElement>(null);
 
   const [isPending, startTransition] = useTransition();
@@ -49,7 +49,6 @@ export default function FieldButton() {
   usePreloadImages(fields.map((f) => f.src));
 
   const handleToggleMenu = () => setOpen((prev) => !prev);
-
   
   const setFieldSmooth = (src: string) => {
     startTransition(() => setField(src));

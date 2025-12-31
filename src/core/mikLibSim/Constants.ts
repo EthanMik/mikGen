@@ -1,4 +1,3 @@
-import { isTurnConstants, type DriveConstants, type TurnConstants } from "../Types/Segment";
 
 export interface PIDConstants {
     maxSpeed: number | null;
@@ -14,7 +13,24 @@ export interface PIDConstants {
     setback: number | null
 }
 
-const PIDConstantsEqual = (a: PIDConstants, b: PIDConstants): boolean => {
+export type mikDriveConstants = {
+  drive: PIDConstants;
+  heading: PIDConstants;
+};
+
+export type mikTurnConstants = {
+  turn: PIDConstants;
+};
+
+export function isMikTurnConstants(x: mikTurnConstants | mikDriveConstants): x is mikTurnConstants {
+  return "turn" in x;
+}
+
+export function isMikDriveConstants(x: mikTurnConstants | mikDriveConstants): x is mikDriveConstants {
+  return "drive" in x;
+}
+
+export const PIDConstantsEqual = (a: PIDConstants, b: PIDConstants): boolean => {
   return (
     a.maxSpeed === b.maxSpeed &&
     a.minSpeed === b.minSpeed &&
@@ -53,17 +69,7 @@ export function getUnequalPIDConstants(correctPIDConstants: PIDConstants, differ
   return out;  
 }
 
-export function SegmentConstantsEqual(a: TurnConstants | DriveConstants, b: TurnConstants | DriveConstants): boolean {
-  if (isTurnConstants(a) && isTurnConstants(b)) {
-    return PIDConstantsEqual(a.turn, b.turn);
-  }
-
-  if (!isTurnConstants(a) && !isTurnConstants(b)) {
-    return PIDConstantsEqual(a.drive, b.drive) && PIDConstantsEqual(a.heading, b.heading);
-  }
-
-  return false;
-}
+export const clonePID = (c: PIDConstants): PIDConstants => ({ ...c });
 
 export function createPIDConstants(values: Partial<PIDConstants> = {}): PIDConstants {
   return {

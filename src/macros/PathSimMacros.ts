@@ -28,10 +28,12 @@ export function PathSimMacros() {
         setPercent: React.Dispatch<React.SetStateAction<number>>,
         setPlaying: React.Dispatch<React.SetStateAction<boolean>>,
         skip: React.RefObject<boolean>,
-        computedPath: PathSim
+        computedPath: PathSim,
+        smallStep: number,
+        largeStep: number,
     ) => {
-        const FAST_SCRUB_STEP = 0.25; // Move 1 second
-        const SLOW_SCRUB_STEP = 0.05;
+        const FAST_SCRUB_STEP = largeStep; // Move 1 second
+        const SLOW_SCRUB_STEP = smallStep;
 
         const scrub = evt.shiftKey
             ? (FAST_SCRUB_STEP / computedPath.totalTime) * 100

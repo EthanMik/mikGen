@@ -42,7 +42,7 @@ export class SimpleStop {
 
         const longitudinalSpeed = Math.sqrt((currentState.xVel ?? 0) * (currentState.xVel ?? 0) + (currentState.yVel ?? 0) * (currentState.yVel ?? 0));
 
-        const posCurrent: Pose = currentState;
+        const posCurrent: Pose = { ...currentState };
 
         const posFinal: Pose = { ...targetState };
         posFinal.angle = toDeg(Math.atan2((posFinal.x ?? 0) - (startState.x ?? 0), (posFinal.y ?? 0) - (startState.y ?? 0)));

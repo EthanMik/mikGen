@@ -1,12 +1,12 @@
+import { getDefaultConstants } from "../core/Constants";
 import { getUnequalPIDConstants, type PIDConstants } from "../core/mikLibSim/Constants";
 import { driveToPoint, driveToPose, turnToAngle, turnToPoint } from "../core/mikLibSim/DriveMotions";
 import { PID } from "../core/mikLibSim/PID";
 import type { Robot } from "../core/Robot";
 import type { Coordinate } from "../core/Types/Coordinate";
 import { getBackwardsSnapPose, getForwardSnapPose, type Path } from "../core/Types/Path";
-import { getDefaultConstantsForKind } from "../core/Types/Segment";
 import { trimZeros } from "../core/Util";
-import type { Format } from "../hooks/useFormat";
+import { formatStore, useFormat } from "../hooks/useFormat";
 
 const roundOff = (val: number | undefined | null, digits: number) => {
     if (val === null || val === undefined) return "";
@@ -22,7 +22,7 @@ const keyToMikLibConstant = (key: string, value: number, constantType: ConstantT
             case "ki" : return `.drive_k.i = ${roundOff(value, 5)}`
             case "kd" : return `.drive_k.d = ${roundOff(value, 3)}`
             case "starti" : return `.drive_k.starti = ${roundOff(value, 2)}`
-            case "maxSpeed" : return `.max_voltage = ${roundOff(value * 12, 1)}`  
+            case "maxSpeed" : return `.max_voltage = ${roundOff(value, 1)}`  
         }
     } else if (constantType === "Heading") {
         switch (key) {
@@ -30,7 +30,7 @@ const keyToMikLibConstant = (key: string, value: number, constantType: ConstantT
             case "ki" : return `.heading_k.i = ${roundOff(value, 5)}`
             case "kd" : return `.heading_k.d = ${roundOff(value, 3)}`
             case "starti" : return `.heading_k.starti = ${roundOff(value, 2)}`
-            case "maxSpeed" : return `.heading_max_voltage = ${roundOff(value * 12, 1)}`  
+            case "maxSpeed" : return `.heading_max_voltage = ${roundOff(value, 1)}`  
         }
     } else if (constantType === "Turn") {
         switch (key) {
@@ -38,12 +38,12 @@ const keyToMikLibConstant = (key: string, value: number, constantType: ConstantT
             case "ki" : return `.k.i = ${roundOff(value, 5)}`
             case "kd" : return `.k.d = ${roundOff(value, 3)}`
             case "starti" : return `.k.starti = ${roundOff(value, 2)}`
-            case "maxSpeed" : return `.max_voltage = ${roundOff(value * 12, 1)}`  
+            case "maxSpeed" : return `.max_voltage = ${roundOff(value, 1)}`  
         }
     }
 
     switch (key) {
-        case "minSpeed" : return `.min_voltage = ${roundOff(value * 12, 1)}`  
+        case "minSpeed" : return `.min_voltage = ${roundOff(value, 1)}`  
         case "settleTime" : return `.settle_time = ${roundOff(value, 0)}`
         case "settleError" : return `.settle_error = ${roundOff(value, 2)}`
         case "timeout" : return `.timeout = ${roundOff(value, 0)}`
@@ -79,7 +79,7 @@ export function mikLibToString(path: Path, selected: boolean = false) {
         }
         
         if (kind === "angleTurn") {
-            const constants = getUnequalPIDConstants(getDefaultConstantsForKind(kind).turn, control.constants.turn);
+            const constants = getUnequalPIDConstants(getDefaultConstants("mikLib", kind).turn, control.constants.turn);
             const constantsList: string[] = [];
             for (const k of Object.keys(constants)) {
                 const c = keyToMikLibConstant(k, constants[k], "Turn");
@@ -101,7 +101,7 @@ export function mikLibToString(path: Path, selected: boolean = false) {
         }
 
         if (kind === "pointTurn") {
-            const constants = getUnequalPIDConstants(getDefaultConstantsForKind(kind).turn, control.constants.turn);
+            const constants = getUnequalPIDConstants(getDefaultConstants("mikLib", kind).turn, control.constants.turn);
             const constantsList: string[] = [];
 
             if (Number(angle) !== 0) constantsList.push(`.angle_offset = ${angle}`)
@@ -138,8 +138,8 @@ export function mikLibToString(path: Path, selected: boolean = false) {
         }
 
         if (kind === "pointDrive") {
-            const driveConstants: Partial<PIDConstants> = getUnequalPIDConstants(getDefaultConstantsForKind(kind).drive, control.constants.drive);
-            const headingConstants: Partial<PIDConstants> = getUnequalPIDConstants(getDefaultConstantsForKind(kind).heading, control.constants.heading);
+            const driveConstants: Partial<PIDConstants> = getUnequalPIDConstants(getDefaultConstants("mikLib", kind).drive, control.constants.drive);
+            const headingConstants: Partial<PIDConstants> = getUnequalPIDConstants(getDefaultConstants("mikLib", kind).heading, control.constants.heading);
             const constantsList: string[] = [];
 
             for (const k of Object.keys(driveConstants)) {
@@ -166,8 +166,9 @@ export function mikLibToString(path: Path, selected: boolean = false) {
         }
 
         if (kind === "poseDrive") {
-            const driveConstants: Partial<PIDConstants> = getUnequalPIDConstants(getDefaultConstantsForKind(kind).drive, control.constants.drive);
-            const headingConstants: Partial<PIDConstants> = getUnequalPIDConstants(getDefaultConstantsForKind(kind).heading, control.constants.heading);
+            const driveConstants: Partial<PIDConstants> = getUnequalPIDConstants(getDefaultConstants("mikLib", kind).drive, control.constants.drive);
+            console.log(driveConstants)
+            const headingConstants: Partial<PIDConstants> = getUnequalPIDConstants(getDefaultConstants("mikLib", kind).heading, control.constants.heading);
             const constantsList: string[] = [];
 
             for (const k of Object.keys(driveConstants)) {
@@ -199,15 +200,15 @@ export function mikLibToString(path: Path, selected: boolean = false) {
 }
 
 export function mikLibToSim(path: Path) {
-    const pointTurnPID = new PID(getDefaultConstantsForKind("pointTurn").turn);
+    const pointTurnPID = new PID(getDefaultConstants("mikLib", "pointTurn").turn);
 
-    const angleTurnPID = new PID(getDefaultConstantsForKind("angleTurn").turn);
+    const angleTurnPID = new PID(getDefaultConstants("mikLib", "angleTurn").turn);
 
-    const pointDrivePID = new PID(getDefaultConstantsForKind("pointDrive").drive);
-    const pointHeadingPID = new PID(getDefaultConstantsForKind("pointDrive").heading);
+    const pointDrivePID = new PID(getDefaultConstants("mikLib", "pointDrive").drive);
+    const pointHeadingPID = new PID(getDefaultConstants("mikLib", "pointDrive").heading);
 
-    const poseDrivePID = new PID(getDefaultConstantsForKind("poseDrive").drive);
-    const poseHeadingPID = new PID(getDefaultConstantsForKind("poseDrive").heading);
+    const poseDrivePID = new PID(getDefaultConstants("mikLib", "poseDrive").drive);
+    const poseHeadingPID = new PID(getDefaultConstants("mikLib", "poseDrive").heading);
 
     
     const auton: ((robot: Robot, dt: number) => boolean)[] = [];

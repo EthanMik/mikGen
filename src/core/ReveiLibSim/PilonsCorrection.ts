@@ -15,12 +15,7 @@ export class PilonsCorrection {
     return Math.round((referenceDeg - angleDeg) / 180) * 180 + angleDeg;
   }
 
-  applyCorrection(
-    currentState: Pose,
-    targetState: Pose,
-    startState: Pose,
-    powers: [number, number]
-  ): [number, number] {
+  applyCorrection(currentState: Pose, targetState: Pose, startState: Pose, powers: [number, number]): [number, number] {
     const posCurrent: Pose = { ...currentState };
     const posFinal: Pose = { ...targetState };
 
