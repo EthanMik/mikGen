@@ -1,54 +1,55 @@
-Units - 
-    Internal:
-        ms 
-        inches
-        inches/s
-    External:
-        ft/s
-        inches
-        ms
-
+Units
+- time (ms)
+- length (inch)
+- speed (inches/s internal ft/s external)
+- accel (inches/s^2 internal ft/s^2 external)
 Todo List:
 
+Bugs:
+- fix turn segments not dragging properly
+- cant change coords on multiselect
+- Make field visual for hovering over turn segments more visible
+- Polish Control Config (segment casting)
+- fix not being able to change voltage on the last turn segment 
+
+Todo:
+- Add Path constants changing, speed and lib specific constants + swing option for mik/jar
 - Add setdefault button to constants
 - Add units to constants
-- fix turn segments not dragging properly
-- fix add segment macro names
-- Add Play button to path segments on the right hand side
-- cant change coords on multiselect
-- Add Path constants changing, speed and lib specific constants + swing option for mik/jar
 - Add file saving, loading unloading
-- Add add segment implementation + right click for turns
-- Make field visual for hovering over turn segments more visible
 - Fix path conversion and make a animation, also make it so if will only copy selected segments
 - add ez reveilib rw lemlib jar mik vexide drive motions
 - link drive motions with formats
+- Fix rev boomerang (may need to swap coordinate frame)
 - Fix undo/redo
-- Add copy and paste
-- Add a segment soft delete button and add a global toggle for it as well as h keybind
-- fix UI not resizing to fit resolution (a bitch to fix)
-- Setting menu: units and coord system if not lazy, holonomic drive
-- Polish Control Config (segment casting)
-- Add scrubbing steps to settings
+- Setting menu
+
+Planned:
 - field dragging and resizing
+- Add Play button to path segments on the right hand side
+- Add cut, copy and paste
+- Add moving segment order by dragging 
+- fix UI not resizing to fit resolution
+- Add scrubbing steps to settings
 - square drag to select 
-- fix not being able to change voltage on the last turn segment 
 - add setting toggle to enable robot position view while simulating path
 - add setting toggle to make it so you can step 1 frame using jl
-Docs:
+- Mecum drive motions ☠️ (robot sim is complete)
 
-- A better way to plan VEX Autonoumous - EthanMik Channel
-- Readthedocs.io showing all the keybinds
-
-Fluff that might get done:
-
+Deciding:
+- Add a segment soft delete button and add a global toggle for it as well as h keybind
 - coordinate mouse hover view
-- Constant Presets that save across cache sessions
 - Turn command animation
+- Constant Presets that save across cache sessions
 - Bezier segments
 - distance segments
 - radial click animations
+- mode in settings to enable driver control so that way you can use drive curves
 
-Stuff that I will only add if someone forces me to:
-
+Maybe:
 -  Multiple paths
+
+Docs:
+- A better way to plan VEX Autonoumous - EthanMik Channel
+- Readthedocs.io showing all the keybinds
+

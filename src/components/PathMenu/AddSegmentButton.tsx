@@ -19,7 +19,9 @@ export default function AddSegmentButton() {
         addPointDriveSegment,
         addPointTurnSegment,
         addPoseDriveSegment,
-        addAngleTurnSegment
+        addAngleTurnSegment,
+        addAngleSwingSegment,
+        addPointSwingSegment,
     } = FieldMacros();
 
 
@@ -64,14 +66,14 @@ export default function AddSegmentButton() {
 
                             <button 
                                 onClick={() => addPointDriveSegment(format, { x: 0, y: 0 }, setPath)}
-                                className="flex pr-1 pl-2 py-0.5 justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
+                                className="flex pr-1 pl-2 py-0.5 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
                                 <span className="text-[16px]">Point</span>
                                 <span className="text-lightgray text-[14px]">LMB</span>
                             </button>
 
                             <button 
                                 onClick={() => addPoseDriveSegment(format, { x: 0, y: 0, angle: 0 }, setPath)}
-                                className="flex pr-1 pl-2 py-0.5 justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
+                                className="flex pr-1 pl-2 py-0.5 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
                                 <span className="text-[16px]">Pose</span>
                                 <span className="text-lightgray text-[14px]">Ctrl+LMB</span>
                             </button>
@@ -89,7 +91,7 @@ export default function AddSegmentButton() {
 
                             <button
                                 onClick={() => addAngleTurnSegment(format, setPath)}
-                                className="flex pr-1 py-0.5 pl-2 justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
+                                className="flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
 
                                 <span className="text-[16px]">Angle</span>
                                 <span className="text-lightgray text-[14px]">RMB</span>
@@ -97,9 +99,30 @@ export default function AddSegmentButton() {
 
                             <button
                                 onClick={() => addPointTurnSegment(format, setPath)} 
-                                className="flex pr-1 py-0.5 pl-2 justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
+                                className="flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
                                 <span className="text-[16px]">Point</span>
                                 <span className="text-lightgray text-[14px]">Ctrl+RMB</span>
+                            </button>
+
+                            {/* Swing Segments */}
+                            <div 
+                                className="flex pl-2 py-0.5 mt-2 mb-1 bg-medgray rounded-sm">
+                                <span className="text-[16px]">Swing Segment:</span>
+                            </div>
+
+                            <button
+                                onClick={() => addAngleSwingSegment(format, setPath)}
+                                className="flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
+
+                                <span className="text-[16px]">Angle</span>
+                                <span className="text-lightgray text-[14px]">Alt+RMB</span>
+                            </button>
+
+                            <button 
+                                onClick={() => addPointSwingSegment(format, setPath)} 
+                                className="flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
+                                <span className="text-[16px]">Point</span>
+                                <span className="text-lightgray text-[14px]">Ctrl+Alt+RMB</span>
                             </button>
                         </div>
         

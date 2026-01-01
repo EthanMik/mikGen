@@ -2,11 +2,11 @@ import type React from "react";
 import { clamp, normalizeDeg } from "../core/Util";
 import type { Path } from "../core/Types/Path";
 import type { SetStateAction } from "react";
-import { createAngleTurnSegment, createPointDriveSegment, createPointTurnSegment, createPoseDriveSegment, type Segment } from "../core/Types/Segment";
+import { createAngleSwingSegment, createAngleTurnSegment, createPointDriveSegment, createPointSwingSegment, createPointTurnSegment, createPoseDriveSegment, type Segment } from "../core/Types/Segment";
 import type { Coordinate } from "../core/Types/Coordinate";
 import type { Pose } from "../core/Types/Pose";
 import type { Format } from "../hooks/useFormat";
-import { convertPathToString } from "../formats/PathFormat";
+import { convertPathToString } from "../Conversion/Conversion";
 
 export default function FieldMacros() {
     const MIN_FIELD_X = -100;
@@ -287,6 +287,16 @@ export default function FieldMacros() {
         const control = createPointDriveSegment(format, position)
         addSegment(control, setPath);
     }
+    
+    const addPointSwingSegment = (format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
+        const control = createPointSwingSegment(format, {x: null, y: null, angle: 0})
+        addSegment(control, setPath);
+    }
+    
+    const addAngleSwingSegment = (format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
+        const control = createAngleSwingSegment(format, 0)
+        addSegment(control, setPath);
+    }
 
     const copySelectedPath = (evt: KeyboardEvent, path: Path, format: Format, trigger: () => void) => {
         if (evt.key.toLowerCase() === "c" && evt.ctrlKey && !evt.shiftKey) {
@@ -321,6 +331,8 @@ export default function FieldMacros() {
         addPointDriveSegment,
         addPointTurnSegment,
         addPoseDriveSegment,
-        addAngleTurnSegment
+        addAngleTurnSegment,
+        addAngleSwingSegment,
+        addPointSwingSegment
     };
 }

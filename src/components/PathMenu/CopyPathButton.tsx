@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { usePath } from "../../hooks/usePath";
-import { convertPathToString } from "../../formats/PathFormat";
+import { convertPathToString } from "../../Conversion/Conversion";
 import { useFormat } from "../../hooks/useFormat";
 import FieldMacros from "../../macros/FieldMacros";
 

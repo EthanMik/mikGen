@@ -13,6 +13,7 @@ import type { Pose } from "../core/Types/Pose";
 import { PathSimMacros } from "../macros/PathSimMacros";
 import FieldMacros from "../macros/FieldMacros";
 import { useFormat } from "../hooks/useFormat";
+import { useRobotPose } from "../hooks/useRobotPose";
 
 type FieldProps = {
   src: string;
@@ -38,6 +39,7 @@ export default function Field({
   const prevPath = useRef<Path>(path);
 
   const [ pose, setPose] = usePose();
+  const [ robotPose, setRobotPose ] = useRobotPose();
   const robot = useSyncExternalStore(robotConstantsStore.subscribe, robotConstantsStore.get);
   const [ robotVisible, setRobotVisibility ] = useRobotVisibility();
   const [ pathVisible, setPathVisibility] = usePathVisibility();
@@ -102,7 +104,9 @@ export default function Field({
           addPointDriveSegment,
           addPointTurnSegment,
           addPoseDriveSegment,
-          addAngleTurnSegment
+          addAngleTurnSegment,
+          addAngleSwingSegment,
+          addPointSwingSegment,
   } = FieldMacros();
 
   const { 
@@ -251,19 +255,24 @@ export default function Field({
       const pos = getPressedPositionInch(evt);
       addPointDriveSegment(format, pos, setPath);
     }
-    
-    if (!evt.ctrlKey && evt.button === 2) {
-      addPointTurnSegment(format, setPath);
-    }
-    
-    if (evt.ctrlKey && evt.button == 2) {
-      addAngleTurnSegment(format, setPath);
-    }
-    
+
     if (evt.ctrlKey && evt.button === 0) {
       const pos = getPressedPositionInch(evt);
       addPoseDriveSegment(format, { x: pos.x, y: pos.y, angle: 0 }, setPath)
     }
+    
+    if (!evt.ctrlKey && !evt.shiftKey && evt.button === 2) {
+      addPointTurnSegment(format, setPath);
+    }
+    
+    if (evt.ctrlKey && !evt.shiftKey && evt.button == 2) {
+      addAngleTurnSegment(format, setPath);
+    }
+    
+    if (evt.ctrlKey && evt.shiftKey && evt.button == 2) {
+      addAngleSwingSegment(format, setPath);
+    }
+    
 
   };
 
@@ -369,6 +378,20 @@ export default function Field({
               height={robot.height}
           />
         }
+
+        {/* Robot */}
+        {!robotVisible && robotPose.map((p, idx) => (
+          <>
+            {path.segments[idx].visible && <RobotView
+              x={p.x}
+              y={p.y}
+              angle={p.angle}
+              width={robot.width}
+              height={robot.height} 
+              bg={"rgba(150, 150, 150, 0.05)"}
+            />}
+          </>
+        ))}
         
         {/* Command Points */}
         <g>
@@ -442,13 +465,10 @@ export default function Field({
                 if (snapPose === null || snapPose.y === null || snapPose.x === null) return null;
                 const active = control.selected; 
                 const hovered = control.hovered;
-                const r = active || hovered ? radius * 1.15 : radius;
-                const thickness = active || hovered ? 3 : 1.5;
+                const r = active ? radius * 1.3 : (hovered ? radius * 1.2 : radius);
+                const thickness = active ? 5 : (hovered ? 4 : 2);
                 const baseStroke = control.pose.x !== null && control.pose.y !== null ? "#1560BDB8" : 
-                active ? (hovered ? "#451717CC" : "#451717")  : "#451717";
-
-                const glowWidth = active || hovered ? thickness * 1 : 0;
-                const glowOpacity = active || hovered ? 0.35 : 0;
+                active ? "rgba(160, 50, 11, .9)"  : (hovered ? "#451717" : "#451717");
 
                 const basePx = toPX(
                   { x: snapPose.x, y: snapPose.y },
@@ -489,24 +509,86 @@ export default function Field({
                       pointerEvents="none"
                       x1={basePx.x} y1={basePx.y} x2={tipPx.x} y2={tipPx.y}
                       stroke={baseStroke}
-                      strokeWidth={glowWidth}
+                      strokeWidth={thickness}
                       strokeLinecap="round"
-                      style={{
-                        opacity: glowOpacity,
-                        filter: active ? "blur(2px)" : "none",
-                        transition: "stroke-width 90ms ease-out, opacity 90ms ease-out, filter 90ms ease-out"
-                      }}
-                    />  
+                    />
+                  </>
+                );
+              })()}
 
-                    <line
+              {/* Render Swing Segments */}
+              {(control.kind === "angleSwing" || control.kind === "pointSwing") && (() => {
+                const snapPose = getBackwardsSnapPose(path, idx);
+                if (snapPose === null || snapPose.y === null || snapPose.x === null) return null;
+                const active = control.selected; 
+                const hovered = control.hovered;
+                const r = active ? radius * 1.3 : (hovered ? radius * 1.2 : radius);
+
+                let angle = control.pose.angle ?? 0;
+                if (control.kind === "pointSwing") {
+                  const desiredPos = getForwardSnapPose(path, idx);
+                  
+                  angle = desiredPos !== null ?  
+                    calculateHeading(snapPose, {x: desiredPos.x ?? 0, y: desiredPos.y ?? 0}) + (control.pose.angle ?? 0) :
+                    angle;
+                }
+
+                const c = control.constants;      
+                const curveLeft = (format === "mikLib" && c.swing.swingDirection == "left");  
+
+                const thickness = active ? 5 : (hovered ? 4 : 2);
+                const baseStroke =
+                  active ? "rgba(160, 50, 11, .9)" : (hovered ? "#451717" : "#451717");
+
+                const inset = thickness * 0.6;
+                const rInner = Math.max(0, r - inset);
+
+                const basePx = toPX(
+                  { x: snapPose.x, y: snapPose.y },
+                  FIELD_REAL_DIMENSIONS,
+                  img
+                );
+
+                const headingInFieldUnits = {
+                  x:
+                    snapPose.x +
+                    ((rInner) * FIELD_REAL_DIMENSIONS.w / img.w) *
+                      Math.sin(toRad(angle)),
+                  y:
+                    snapPose.y +
+                    ((rInner) * FIELD_REAL_DIMENSIONS.h / img.h) *
+                      Math.cos(toRad(angle)),
+                };
+
+                const tipPx = toPX(headingInFieldUnits, FIELD_REAL_DIMENSIONS, img);
+
+                const dx = tipPx.x - basePx.x;
+                const dy = tipPx.y - basePx.y;
+                const len = Math.hypot(dx, dy) || 1;
+
+                const nx = -dy / len;
+                const ny =  dx / len;
+
+                const curveAmount = (active ? 0.45 : hovered ? 0.35 : 0.25) * len;
+
+                const mx = (basePx.x + tipPx.x) / 2;
+                const my = (basePx.y + tipPx.y) / 2;
+                const dir = curveLeft ? 1 : -1;
+
+                const cx = mx + nx * curveAmount * dir;
+                const cy = my + ny * curveAmount * dir;
+
+                const d = `M ${basePx.x} ${basePx.y} Q ${cx} ${cy} ${tipPx.x} ${tipPx.y}`;
+
+                return (
+                  <>
+                    <path
                       pointerEvents="none"
-                      x1={basePx.x} y1={basePx.y} x2={tipPx.x} y2={tipPx.y}
+                      d={d}
+                      fill="none"
                       stroke={baseStroke}
                       strokeWidth={thickness}
                       strokeLinecap="round"
-                      style={{
-                        transition: "stroke 90ms ease-out, stroke-width 90ms ease-out"
-                      }}
                     />
                   </>
                 );

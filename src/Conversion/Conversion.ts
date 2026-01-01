@@ -1,8 +1,10 @@
 import type { Robot } from "../core/Robot";
 import type { Path } from "../core/Types/Path";
 import type { Format } from "../hooks/useFormat";
-import { mikLibToSim, mikLibToString } from "./mikLibFormat";
-import { reveilLibToSim } from "./ReveilLibPathFormat";
+import { mikLibToSim } from "./mikLibToSim";
+import { mikLibToString } from "./mikLibToString";
+import { reveilLibToSim } from "./ReveilLibToSim";
+
 
 export function convertPathToSim(path: Path, format: Format): ((robot: Robot, dt: number) => boolean)[] {
     if (format === "mikLib") {

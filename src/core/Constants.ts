@@ -1,5 +1,5 @@
 import type { Format } from "../hooks/useFormat";
-import { clonePID, kBoomerangPID, kOdomDrivePID, kOdomHeadingPID, kOdomTurnPID, kturnPID, type mikDriveConstants, type mikTurnConstants, type PIDConstants } from "./mikLibSim/Constants";
+import { clonePID, kBoomerangPID, kOdomDrivePID, kOdomHeadingPID, kOdomSwingPID, kOdomTurnPID, kSwingPID, kturnPID, type mikDriveConstants, type mikTurnConstants, type PIDConstants } from "./mikLibSim/Constants";
 import { cloneKRev, kBoomerang, kPilon, kTurn } from "./ReveiLibSim/Constants";
 import type { ConstantsByFormat, SegmentKind } from "./Types/Segment";
 
@@ -9,6 +9,8 @@ export const DEFAULTS = {
     poseDrive:  () => ({ drive: clonePID(kBoomerangPID), heading: clonePID(kOdomHeadingPID) }),
     pointTurn:  () => ({ turn: clonePID(kOdomTurnPID) }),
     angleTurn:  () => ({ turn: clonePID(kturnPID) }),
+    angleSwing: () => ({ swing: clonePID(kSwingPID) }),
+    pointSwing: () => ({ swing: clonePID(kOdomSwingPID) }),
   },
 
   ReveilLib: {
@@ -16,6 +18,8 @@ export const DEFAULTS = {
     poseDrive:  () => cloneKRev(kBoomerang),
     pointTurn:  () => cloneKRev(kTurn),
     angleTurn:  () => cloneKRev(kTurn),
+    angleSwing: () => cloneKRev(kTurn),
+    pointSwing: () => cloneKRev(kTurn),
   },
 
   "JAR-Template": {
@@ -23,6 +27,8 @@ export const DEFAULTS = {
     poseDrive:  () => ({ drive: clonePID(kBoomerangPID), heading: clonePID(kOdomHeadingPID) }),
     pointTurn:  () => ({ turn: clonePID(kOdomTurnPID) }),
     angleTurn:  () => ({ turn: clonePID(kturnPID) }),
+    angleSwing: () => ({ swing: clonePID(kSwingPID) }),
+    pointSwing: () => ({ swing: clonePID(kOdomSwingPID) }),
   },
 
   LemLib: {
@@ -30,6 +36,8 @@ export const DEFAULTS = {
     poseDrive:  () => ({ drive: clonePID(kBoomerangPID), heading: clonePID(kOdomHeadingPID) }),
     pointTurn:  () => ({ turn: clonePID(kOdomTurnPID) }),
     angleTurn:  () => ({ turn: clonePID(kturnPID) }),
+    angleSwing: () => ({ swing: clonePID(kSwingPID) }),
+    pointSwing: () => ({ swing: clonePID(kOdomSwingPID) }),
   },
 };
 
@@ -37,6 +45,7 @@ export function getDefaultConstants<F extends Format, K extends keyof ConstantsB
   const fn = DEFAULTS[format][kind] as () => ConstantsByFormat[F][K];
   return fn();
 }
+
 
 export function SegmentConstantsEqual(a: mikTurnConstants | mikDriveConstants, b: mikTurnConstants | mikDriveConstants): boolean {
     return true;

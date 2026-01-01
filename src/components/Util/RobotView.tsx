@@ -6,6 +6,7 @@ type RobotViewProps = {
     angle: number,
     width: number,
     height: number,
+    bg?: string,
 };
 
 function toPxHeight(value: number) {
@@ -21,7 +22,8 @@ export default function RobotView({
     y,
     angle,
     width,
-    height
+    height,
+    bg,
 }: RobotViewProps) {
 
     const pxWidth = toPxWidth(width);
@@ -32,7 +34,7 @@ export default function RobotView({
     return (
         <g transform={`translate(${pos.x} ${pos.y}) rotate(${normAngle})`}>
             <rect
-                fill="rgba(150, 150, 150, 0.4)"
+                fill={bg ?? "rgba(150, 150, 150, 0.4)"}
                 stroke="black"
                 strokeWidth={.5}            
                 x={-pxWidth / 2}

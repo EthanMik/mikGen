@@ -5,7 +5,7 @@ import MotionList, { type ConstantListField } from "./MotionList";
 import PathConfigHeader from "./PathHeader";
 import type { Path } from "../../core/Types/Path";
 
-export type Slot = "drive" | "heading" | "turn";
+export type Slot = "drive" | "heading" | "turn" | "swing";
 
 const updateConstants = (
   setPath: React.Dispatch<SetStateAction<Path>>,
@@ -183,6 +183,42 @@ const createTurnPIDGroup = (
   ];
 };
 
+const createSwingPIDGroup = (
+  setPath: React.Dispatch<SetStateAction<Path>>,
+  segmentId: string,
+  turnConstants: any
+): ConstantListField[] => {
+
+  const onTurnChange = (partial: Partial<any>) =>
+    updateConstants(setPath, segmentId, "swing", partial);
+
+  return [
+    {
+      header: "Exit Conditions",
+      values: turnConstants,
+      slot: "turn",
+      fields: [
+        { key: "settleError", label: "Settle Error", input: { bounds: [0, 99], stepSize: 0.5, roundTo: 2 } },
+        { key: "settleTime", label: "Settle Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+        { key: "timeout", label: "Timeout", input: { bounds: [0, 9999], stepSize: 100, roundTo: 0 } },
+        { key: "minSpeed", label: "Min Speed", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } },
+      ],
+      onChange: onTurnChange,
+    },
+    {
+      header: "Swing Constants",
+      values: turnConstants,
+      slot: "turn",
+      fields: [
+        { key: "kp", label: "kP", input: { bounds: [0, 99], stepSize: 0.1, roundTo: 3 } },
+        { key: "ki", label: "kI", input: { bounds: [0, 99], stepSize: 0.01, roundTo: 5 } },
+        { key: "kd", label: "kD", input: { bounds: [0, 99], stepSize: 0.1, roundTo: 3 } },
+        { key: "starti", label: "Starti", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
+      ],
+      onChange: onTurnChange,
+    },
+  ];
+};
 
 export default function PathConfig() {
   const [ path, setPath ] = usePath();
@@ -225,6 +261,18 @@ export default function PathConfig() {
               />
             )}
 
+            {/* SWING */}
+            {idx > 0 && (c.kind === "pointSwing" || c.kind === "angleSwing") && (
+              <MotionList
+                name="Swing"
+                speedScale={12}
+                startSpeed={c.constants.swing.maxSpeed}
+                field={createSwingPIDGroup(setPath, c.id, c.constants.swing)}
+                segmentId={c.id}
+                isOpenGlobal={isOpen}
+              />
+            )}
+
             {/* START SEGMENT */}
             {idx === 0 && (
               <MotionList
@@ -238,7 +286,7 @@ export default function PathConfig() {
             )}
             
           </>
-        ))}
+        ))} 
 
       </div>
     </div>

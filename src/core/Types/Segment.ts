@@ -1,6 +1,6 @@
 import type { Format } from "../../hooks/useFormat";
 import { getDefaultConstants, SegmentConstantsEqual } from "../Constants";
-import type { mikDriveConstants, mikTurnConstants } from "../mikLibSim/Constants";
+import type { mikDriveConstants, mikSwingConstants, mikTurnConstants } from "../mikLibSim/Constants";
 import type { ReveilLibConstants } from "../ReveiLibSim/Constants";
 import { makeId } from "../Util";
 import { commandsEqual, createCommand, type Command } from "./Command";
@@ -11,7 +11,9 @@ export type SegmentKind =
   | "pointDrive"
   | "poseDrive"
   | "pointTurn" 
-  | "angleTurn";
+  | "angleTurn"
+  | "angleSwing"
+  | "pointSwing";
 
 export type ConstantsByFormat = {
   mikLib: {
@@ -19,24 +21,32 @@ export type ConstantsByFormat = {
     poseDrive: mikDriveConstants;
     pointTurn: mikTurnConstants;
     angleTurn: mikTurnConstants;
+    angleSwing: mikSwingConstants;
+    pointSwing: mikSwingConstants;
   };
   ReveilLib: {
     pointDrive: ReveilLibConstants;
     poseDrive: ReveilLibConstants;
     pointTurn: ReveilLibConstants;
     angleTurn: ReveilLibConstants;
+    angleSwing: ReveilLibConstants;
+    pointSwing: ReveilLibConstants;
   };
   "JAR-Template": {
     pointDrive: mikDriveConstants;
     poseDrive: mikDriveConstants;
     pointTurn: mikTurnConstants;
     angleTurn: mikTurnConstants;
+    angleSwing: mikSwingConstants;
+    pointSwing: mikSwingConstants;
   };
   LemLib: {
     pointDrive: mikDriveConstants;
     poseDrive: mikDriveConstants;
     pointTurn: mikTurnConstants;
     angleTurn: mikTurnConstants;
+    angleSwing: mikSwingConstants;
+    pointSwing: mikSwingConstants;
   };
 };
 
@@ -110,6 +120,36 @@ export function createAngleTurnSegment<F extends Format>(format: F, heading: num
     format,
     kind: "angleTurn",
     constants: getDefaultConstants(format, "angleTurn"),
+  };
+}
+
+export function createAngleSwingSegment<F extends Format>(format: F, heading: number): Segment<F, "angleSwing"> {
+  return {
+    id: makeId(10),
+    selected: false,
+    hovered: false,
+    locked: false,
+    visible: true,
+    command: createCommand(''),
+    pose: { x: null, y: null, angle: heading },
+    format,
+    kind: "angleSwing",
+    constants: getDefaultConstants(format, "angleSwing"),
+  };
+}
+
+export function createPointSwingSegment<F extends Format>(format: F, pose: Pose): Segment<F, "pointSwing"> {
+  return {
+    id: makeId(10),
+    selected: false,
+    hovered: false,
+    locked: false,
+    visible: true,
+    command: createCommand(''),
+    pose,
+    format,
+    kind: "pointSwing",
+    constants: getDefaultConstants(format, "pointSwing"),
   };
 }
 

@@ -7,12 +7,20 @@ export interface Snapshot {
     angle: number
 }
 
+export interface EndSnapShot {
+    x: number,
+    y: number,
+    angle: number
+}
+
 export interface PathSim {
     totalTime: number,
     trajectory: Snapshot[];
+    endTrajectory: EndSnapShot[];
 }
 
 export let trajectory: Snapshot[] = [];
+export let endTrajectory: EndSnapShot[] = [];
 
 export function precomputePath(
     robot: Robot,
@@ -23,6 +31,8 @@ export function precomputePath(
 
     let autoIdx = 0;
     trajectory = [];
+    endTrajectory = [];
+
 
     const dt = 1 / 60; // Sim is run at 60 hertz
 
@@ -34,7 +44,16 @@ export function precomputePath(
 
         if (autoIdx < auton.length) {
             const done = auton[autoIdx](robot, dt);
-            if (done) autoIdx++;
+            if (done) {
+                endTrajectory.push({
+                    x: robot.getX(),
+                    y: robot.getY(),
+                    angle: robot.getAngle()
+                });
+
+                autoIdx++
+            }
+
         }
 
         if (autoIdx >= auton.length) {
@@ -54,5 +73,5 @@ export function precomputePath(
     }
     
 
-    return {totalTime: t, trajectory: trajectory};    
+    return {totalTime: t, trajectory: trajectory, endTrajectory: endTrajectory};    
 }

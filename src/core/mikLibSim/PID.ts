@@ -1,4 +1,4 @@
-import type { PIDConstants } from "./Constants";
+import type { DriveDirection, PIDConstants, SwingDirection, TurnDirection } from "./Constants";
 
 export class PID {
     public kp: number;
@@ -14,6 +14,10 @@ export class PID {
     public minSpeed: number = 0;
     public lead: number = 0;
     public setback: number = 0;
+
+    public swingDirection: SwingDirection | null
+    public turnDirection: TurnDirection | null
+    public driveDirection: DriveDirection | null
 
     private acculatedError = 0;
     private previousError = 0;
@@ -35,6 +39,10 @@ export class PID {
 
         this.lead = kPID.lead ? kPID.lead : 0;        
         this.setback = kPID.setback ? kPID.setback : 0;   
+
+        this.swingDirection = kPID.swingDirection;
+        this.turnDirection = kPID.turnDirection;
+        this.driveDirection = kPID.driveDirection;
     }
 
     public update(kPID: PIDConstants) {
@@ -51,7 +59,11 @@ export class PID {
         this.minSpeed = kPID.minSpeed ? kPID.minSpeed : 0; 
 
         this.lead = kPID.lead ? kPID.lead : 0;        
-        this.setback = kPID.setback ? kPID.setback : 0;        
+        this.setback = kPID.setback ? kPID.setback : 0;       
+        
+        this.swingDirection = kPID.swingDirection;
+        this.turnDirection = kPID.turnDirection;
+        this.driveDirection = kPID.driveDirection;
     }
 
     public compute(error: number) {
@@ -67,12 +79,12 @@ export class PID {
         this.previousError = error;
 
         if(Math.abs(error) < this.settleError) {
-            this.timeSpentSettled += 10;
+            this.timeSpentSettled += 1/60 * 1000; // sim is run at 60 fps
         } else {
             this.timeSpentSettled = 0;
         }
 
-        this.timeSpentRunning += 10;
+        this.timeSpentRunning += 1/60 * 1000;
 
         return output;
     }
