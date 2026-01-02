@@ -69,13 +69,12 @@ export default function RobotButton() {
             </button>
 
             {isOpen && (
-                <div className="absolute shadow-xs mt-1 shadow-black left-0 top-full w-50 z-40
+                <div className="absolute shadow-xs mt-1 shadow-black left-0 top-full w-40 z-40
                     rounded-sm bg-medgray_hover min-h-2">
-                    <div className="flex flex-col mt-2 pl-3 pr-3 mb-2 gap-2">
+                    <div className="flex flex-col mt-3 pl-3 pr-3 mb-3 gap-3">
                         <div className="flex flex-col gap-2">
                             <div className="flex flex-row items-center justify-between">
-                                <span className="text-[16px]">Width:</span>
-                                <div className="w-25">
+                                <span className="text-[16px]">Width</span>
                                     <NumberInput 
                                         width={60} 
                                         height={35}
@@ -83,16 +82,14 @@ export default function RobotButton() {
                                         bounds={[0, 30]}
                                         stepSize={1}
                                         roundTo={1} 
+                                        units="in"
                                         value={robot.width} 
                                         setValue={updateWidth} 
                                     />
-                                    <span className="pl-2 w-12 text-lightgray text-[14px]">in </span>
-                                </div>
                             </div>
 
                             <div className="flex flex-row items-center justify-between">
-                                <span className="text-[16px]">Height:</span>
-                                <div className="w-25">
+                                <span className="text-[16px]">Height</span>
                                     <NumberInput 
                                         width={60} 
                                         height={35}
@@ -100,16 +97,14 @@ export default function RobotButton() {
                                         bounds={[0, 30]} 
                                         stepSize={1}
                                         roundTo={1}
+                                        units="in"
                                         value={robot.height} 
                                         setValue={updateHeight} 
                                     />
-                                    <span className="pl-2 text-lightgray text-[14px]">in</span>
-                                </div>
                             </div>
 
                             <div className="flex flex-row items-center justify-between">
-                                <span className="text-[16px]">Speed:</span>
-                                <div className="w-25">
+                                <span className="text-[16px]">Speed</span>
                                     <NumberInput 
                                         width={60} 
                                         height={35}
@@ -117,16 +112,14 @@ export default function RobotButton() {
                                         bounds={[0, 100]} 
                                         stepSize={.5}
                                         roundTo={2}
+                                        units="ft/s"
                                         value={robot.speed} 
                                         setValue={updateSpeed} 
                                     />
-                                    <span className="pl-2 text-lightgray text-[14px]">ft/s</span>
-                                </div>
                             </div>
 
                             <div className="flex flex-row items-center justify-between">
-                                <span className="text-[16px]">Accel:</span>
-                                <div className="w-25">
+                                <span className="text-[16px]">Accel</span>
                                     <NumberInput 
                                         width={60} 
                                         height={35}
@@ -134,15 +127,14 @@ export default function RobotButton() {
                                         bounds={[0, 100]} 
                                         stepSize={1}
                                         roundTo={2}
+                                        units="ft/s²"
                                         value={robot.accel} 
                                         setValue={updateAccel} 
                                     />
-                                    <span className="pl-2 text-lightgray text-[14px]">ft/s²</span>
-                                </div>
                             </div>
 
                             <div className="mt-0.5 pt-2 border-t border-gray-500/40 flex flex-row items-center justify-between h-[35px]">
-                            <span className="text-[16px]">Holonomic:</span>
+                            <span className="text-[16px]">Holonomic</span>
 
                             <div className="w-25 flex items-center justify-end">
                                 <label className="flex items-center gap-2 cursor-pointer select-none">

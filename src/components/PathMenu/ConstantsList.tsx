@@ -67,13 +67,14 @@ export default function ConstantsList({
 
 
             {open && (
-                <div className="grid grid-cols-2 min-w-0 gap-1 mt-1 w-[400px]">
+                <div className="grid grid-cols-2 min-w-0 pl-5 gap-2 mt-1 w-[400px]">
                     {fields.map((f) => (
                         <ConstantRow 
                             key={String(f.key)}
-                            label={f.label} 
+                            label={f.label}
                             value={values[f.key]}
                             input={f.input}
+                            units={f.units}
                             onChange={(v: number | null) => onChange({ [f.key]: v } as Partial<any>)}
                         />
                     ))}

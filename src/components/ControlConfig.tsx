@@ -125,31 +125,37 @@ export default function ControlConfig() {
     }
     
     return (
-        <div className="flex flex-row items-center justify-center gap-[10px] bg-medgray w-[500px] h-[65px] rounded-lg">
-            <span style={{ fontSize: 20 }}>X:</span>
-            <NumberInput 
-                width={80}
-                height={40}
-                fontSize={18}
-                setValue={updateXValue} 
-                value={getXValue()} 
-                stepSize={1}
-                roundTo={2}
-                bounds={[-100, 100]}
-            />
-            <span style={{ fontSize: 20 }}>Y:</span>
-            <NumberInput 
-                width={80}
-                height={40}
-                fontSize={18}
-                stepSize={1}
-                roundTo={2}
-                setValue={updateYValue} 
-                value={getYValue()} 
-                bounds={[-100, 100]}
-            />
-            <span style={{ fontSize: 20 }}>θ:</span>
-            <div className="flex items-center flex-row gap-[15px]">
+        <div className="flex flex-row items-center justify-center gap-4 bg-medgray w-[500px] h-[65px] rounded-lg">
+            <div className="flex items-center gap-2">
+                <span style={{ fontSize: 20 }}>X</span>
+                <NumberInput 
+                    width={80}
+                    height={40}
+                    fontSize={18}
+                    setValue={updateXValue} 
+                    value={getXValue()} 
+                    stepSize={1}
+                    roundTo={2}
+                    bounds={[-100, 100]}
+                    units="in"
+                />
+            </div>
+            <div className="flex items-center gap-2">
+                <span style={{ fontSize: 20 }}>Y</span>
+                <NumberInput 
+                    width={80}
+                    height={40}
+                    fontSize={18}
+                    stepSize={1}
+                    roundTo={2}
+                    setValue={updateYValue} 
+                    value={getYValue()} 
+                    bounds={[-100, 100]}
+                    units="in"
+                />
+            </div>
+            <div className="flex items-center gap-2">
+                <span style={{ fontSize: 20 }}>θ</span>
                 <NumberInput 
                     width={80}
                     height={40}
@@ -159,7 +165,11 @@ export default function ControlConfig() {
                     setValue={updateHeadingValue} 
                     value={getHeadingValue()} 
                     bounds={[-Infinity, Infinity]}
+                    units="deg"
                 />
+            </div>
+            
+            <div className="flex items-center flex-row gap-[15px]">
                 <MirrorControl mirrorDirection="x" src={flipHorizontal}/>
                 <MirrorControl mirrorDirection="y" src={flipVertical}/>
             </div>
