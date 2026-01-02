@@ -1,5 +1,5 @@
 import { getDefaultConstants } from "../core/Constants";
-import { getUnequalPIDConstants, type PIDConstants } from "../core/mikLibSim/Constants";
+import { getUnequalPIDConstants, type PIDConstants } from "../core/mikLibSim/MikConstants";
 import type { Coordinate } from "../core/Types/Coordinate";
 import { getBackwardsSnapPose, getForwardSnapPose, type Path } from "../core/Types/Path";
 import { trimZeros } from "../core/Util";

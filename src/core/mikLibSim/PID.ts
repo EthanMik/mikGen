@@ -1,4 +1,4 @@
-import type { DriveDirection, PIDConstants, SwingDirection, TurnDirection } from "./Constants";
+import type { DriveDirection, PIDConstants, SwingDirection, TurnDirection } from "./MikConstants";
 
 export class PID {
     public kp: number;

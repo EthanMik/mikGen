@@ -14,6 +14,7 @@ type SliderProps = {
   OnChangeEnd?: () => void;
 }
 
+/** Uses value on a scale of 0-100 */
 export default function Slider({
   sliderWidth,
   sliderHeight,

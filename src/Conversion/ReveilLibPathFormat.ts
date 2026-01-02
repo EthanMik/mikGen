@@ -1,7 +1,7 @@
 // import type { Coordinate } from "../core/Types/Coordinate";
 // import { PathFormat } from "../formats/PathFormat";
 
-import { kBoomerang, kPilon, kTurn } from "../core/ReveiLibSim/Constants";
+import { kBoomerang, kPilon, kTurn } from "../core/ReveiLibSim/RevConstants";
 import { boomerangSegment } from "../core/ReveiLibSim/DriveMotions/BoomerangSegment";
 import { lookAt } from "../core/ReveiLibSim/DriveMotions/LookAt";
 import { pilonsSegment } from "../core/ReveiLibSim/DriveMotions/PilonsSegment";

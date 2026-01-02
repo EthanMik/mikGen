@@ -1,6 +1,6 @@
 import type { Robot } from "../../Robot";
 import { toDeg } from "../../Util";
-import type { ReveilLibConstants } from "../Constants";
+import type { ReveilLibConstants } from "../RevConstants";
 import { wrapDeg180 } from "../Util";
 import { turnSegment } from "./TurnSegment";
 

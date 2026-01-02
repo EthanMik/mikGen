@@ -2,7 +2,7 @@ import type { Robot } from "../../Robot";
 import type { Pose, PoseState } from "../../Types/Pose";
 import { toRad } from "../../Util";
 import { getConstantMotionPower } from "../ConstantMotion";
-import type { ReveilLibConstants } from "../Constants";
+import type { ReveilLibConstants } from "../RevConstants";
 import { PilonsCorrection } from "../PilonsCorrection";
 import { SimpleStop, type StopState } from "../SimpleStop";
 import { dist } from "../Util";

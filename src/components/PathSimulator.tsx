@@ -63,7 +63,10 @@ export default function PathSimulator() {
         computedPath = precomputePath(createRobot(), convertPathToSim(path, format));
         setRobotPose(computedPath.endTrajectory);
         
-        if (!robotVisible) return;
+        if (!robotVisible) {
+            setPlaying(false);
+            return;
+        };
 
         if (!computedPath.trajectory.length || computedPath.totalTime <= 0) return;
 
@@ -84,7 +87,6 @@ export default function PathSimulator() {
         }
 
         if (!playing) {
-            setRobotVisibility(true);
             setPathPercent(computedPath, value);
         }
     }, [value]);
@@ -110,7 +112,6 @@ export default function PathSimulator() {
     }, []);
 
     const setPathPercent = (path: PathSim, percent: number) => {
-        setRobotVisibility(true);
         if (!path.trajectory.length) return;
 
         percent = clamp(percent, 0, 100) / 100;
@@ -123,7 +124,6 @@ export default function PathSimulator() {
     }
 
     const forceSnapTime = (path: PathSim, t: number) => {
-        setRobotVisibility(true);
         if (!path.trajectory.length) return;
 
         const percent = (t / path.totalTime);
@@ -138,7 +138,6 @@ export default function PathSimulator() {
     };
 
     const setPathTime = (path: PathSim, t: number) => {
-        setRobotVisibility(true);
         if (!path.trajectory.length) return;
 
         t = clamp(t, 0, path.totalTime);
@@ -190,7 +189,13 @@ export default function PathSimulator() {
         <div className="flex bg-medgray w-[575px] h-[65px] rounded-lg 
             items-center justify-center gap-4"
         >
-            <button onClick={() => setPlaying(p => !p)} className="hover:bg-medgray_hover px-1 py-1 rounded-sm">
+            <button onClick={() => {
+                    setPlaying(p => {
+                        if (!p) setRobotVisibility(true);
+                        return !p
+                    });
+                }} 
+                className="hover:bg-medgray_hover px-1 py-1 rounded-sm">
                 {playing ?
                     <img className="w-[25px] h-[25px]" src={pause}/> :
                     <img className="w-[25px] h-[25px]" src={play}/> 
@@ -204,10 +209,13 @@ export default function PathSimulator() {
                 sliderHeight={8} 
                 knobHeight={22} 
                 knobWidth={22}
-                onChangeStart={() => setPlaying(false)}
+                onChangeStart={() => {
+                    setPlaying(false);
+                    setRobotVisibility(true);
+                }}
                 OnChangeEnd={() => {}}
             />
-            <span className="w-35">[{pose?.x?.toFixed(2)}, {pose?.y?.toFixed(2)}, {pose?.angle?.toFixed(0)}]</span>
+            <span className="w-35">[{pose?.x?.toFixed(1)}, {pose?.y?.toFixed(1)}, {pose?.angle?.toFixed(0)}]</span>
             <span className="block">{time.toFixed(2)} s</span>
             <Checkbox checked={robotVisible} setChecked={setRobotVisibility}/>
         </div>        

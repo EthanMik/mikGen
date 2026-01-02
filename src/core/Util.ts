@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Coordinate } from "./Types/Coordinate";
 import type { Pose } from "./Types/Pose";
 
@@ -103,4 +104,83 @@ export function RectangleRectangleCollision(rect1: Rectangle, rect2: Rectangle):
         rect1.y + rect1.h <= rect2.y ||
         rect2.y + rect2.h <= rect1.y 
     );
+}
+
+// chat gpt equal universal equal checker this code may be broken
+export function deepEqual(a: any, b: any): boolean {
+  const seen = new WeakMap<object, WeakSet<object>>();
+
+  const eq = (x: any, y: any): boolean => {
+    if (Object.is(x, y)) return true;
+    if (typeof x !== typeof y) return false;
+    if (x == null || y == null) return false;
+
+    const tx = typeof x;
+    if (tx !== "object" && tx !== "function") return false;
+
+    const ox = x as object;
+    const oy = y as object;
+    let ys = seen.get(ox);
+    if (!ys) {
+      ys = new WeakSet<object>();
+      seen.set(ox, ys);
+    } else if (ys.has(oy)) {
+      return true;
+    }
+    ys.add(oy);
+
+    if (x instanceof Date && y instanceof Date) return x.getTime() === y.getTime();
+    if (x instanceof RegExp && y instanceof RegExp) return x.toString() === y.toString();
+
+    if (x instanceof Map && y instanceof Map) {
+      if (x.size !== y.size) return false;
+      for (const [kx, vx] of x) {
+        if (!y.has(kx)) return false;
+        if (!eq(vx, y.get(kx))) return false;
+      }
+      return true;
+    }
+
+    if (x instanceof Set && y instanceof Set) {
+      if (x.size !== y.size) return false;
+      const yArr = Array.from(y);
+      outer: for (const xv of x) {
+        for (let i = 0; i < yArr.length; i++) {
+          if (eq(xv, yArr[i])) {
+            yArr.splice(i, 1);
+            continue outer;
+          }
+        }
+        return false;
+      }
+      return true;
+    }
+
+    if (Array.isArray(x) || Array.isArray(y)) {
+      if (!Array.isArray(x) || !Array.isArray(y)) return false;
+      if (x.length !== y.length) return false;
+      for (let i = 0; i < x.length; i++) {
+        if (!eq(x[i], y[i])) return false;
+      }
+      return true;
+    }
+
+    if (Object.getPrototypeOf(x) !== Object.getPrototypeOf(y)) return false;
+
+    const xKeys = Reflect.ownKeys(x);
+    const yKeys = Reflect.ownKeys(y);
+    if (xKeys.length !== yKeys.length) return false;
+
+    for (const k of xKeys) {
+      if (!yKeys.includes(k)) return false;
+    }
+
+    for (const k of xKeys) {
+      if (!eq((x as any)[k], (y as any)[k])) return false;
+    }
+
+    return true;
+  };
+
+  return eq(a, b);
 }

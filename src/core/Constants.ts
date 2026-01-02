@@ -1,7 +1,11 @@
+import type { SetStateAction } from "react";
+import type { ConstantListField } from "../components/PathMenu/MotionList";
 import type { Format } from "../hooks/useFormat";
-import { clonePID, kBoomerangPID, kOdomDrivePID, kOdomHeadingPID, kOdomSwingPID, kOdomTurnPID, kSwingPID, kturnPID, type mikDriveConstants, type mikTurnConstants, type PIDConstants } from "./mikLibSim/Constants";
-import { cloneKRev, kBoomerang, kPilon, kTurn } from "./ReveiLibSim/Constants";
+import { clonePID, kBoomerangPID, kOdomDrivePID, kOdomHeadingPID, kOdomSwingPID, kOdomTurnPID, kSwingPID, kturnPID } from "./mikLibSim/MikConstants";
+import { getmikLibConstantsConfig } from "./mikLibSim/MikConstantsConfig";
+import { cloneKRev, kBoomerang, kPilon, kTurn } from "./ReveiLibSim/RevConstants";
 import type { ConstantsByFormat, SegmentKind } from "./Types/Segment";
+import type { Path } from "./Types/Path";
 
 export const DEFAULTS = {
   mikLib: {
@@ -46,16 +50,9 @@ export function getDefaultConstants<F extends Format, K extends keyof ConstantsB
   return fn();
 }
 
-
-export function SegmentConstantsEqual(a: mikTurnConstants | mikDriveConstants, b: mikTurnConstants | mikDriveConstants): boolean {
-    return true;
-//   if (isTurnConstants(a) && isTurnConstants(b)) {
-//     return PIDConstantsEqual(a.turn, b.turn);
-//   }
-
-//   if (!isTurnConstants(a) && !isTurnConstants(b)) {
-//     return PIDConstantsEqual(a.drive, b.drive) && PIDConstantsEqual(a.heading, b.heading);
-//   }
-
-//   return false;
+export function getFormatConstantsConfig(format: Format, path: Path, setPath: React.Dispatch<SetStateAction<Path>>, segmentId: string): ConstantListField[] {
+  switch (format) {
+    case "mikLib": return getmikLibConstantsConfig(path, setPath, segmentId)
+  }
+  return [];
 }

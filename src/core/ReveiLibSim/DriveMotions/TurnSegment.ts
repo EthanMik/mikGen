@@ -1,5 +1,5 @@
 import type { Robot } from "../../Robot";
-import type { ReveilLibConstants } from "../Constants";
+import type { ReveilLibConstants } from "../RevConstants";
 import { copysign1, wrapDeg180 } from "../Util";
 
 type TurnState = "FULLPOWER" | "COAST" | "BRAKE";

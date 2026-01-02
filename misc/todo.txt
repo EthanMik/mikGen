@@ -23,6 +23,7 @@ Todo:
 - Fix rev boomerang (may need to swap coordinate frame)
 - Fix undo/redo
 - Setting menu
+- remove wasd keybind and use scroll
 
 Planned:
 - field dragging and resizing

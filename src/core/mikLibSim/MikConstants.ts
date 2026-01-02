@@ -1,7 +1,7 @@
 
 export type SwingDirection = "right" | "left";
 export type DriveDirection = "forward" | "reverse";
-export type TurnDirection = "clockwise" | "counterclockwise"
+export type TurnDirection = "clockwise" | "counterclockwise";
 
 export interface PIDConstants {
     maxSpeed: number | null;
@@ -148,7 +148,7 @@ export const kOdomHeadingPID = createPIDConstants({
     maxSpeed: 10,
     kp: .4,
     ki: 0,
-    kd: 1,
+    kd: 3,
     starti: 0,
 });
 

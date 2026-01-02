@@ -272,6 +272,10 @@ export default function Field({
     if (evt.ctrlKey && evt.shiftKey && evt.button == 2) {
       addAngleSwingSegment(format, setPath);
     }
+
+    if (evt.ctrlKey && evt.shiftKey && evt.button == 2) {
+      addPointSwingSegment(format, setPath);
+    }
     
 
   };
@@ -382,7 +386,7 @@ export default function Field({
         {/* Robot */}
         {!robotVisible && robotPose.map((p, idx) => (
           <>
-            {path.segments[idx].visible && <RobotView
+            {path.segments[idx]?.visible && <RobotView
               x={p.x}
               y={p.y}
               angle={p.angle}

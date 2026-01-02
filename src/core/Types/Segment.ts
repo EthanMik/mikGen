@@ -1,8 +1,8 @@
 import type { Format } from "../../hooks/useFormat";
-import { getDefaultConstants, SegmentConstantsEqual } from "../Constants";
-import type { mikDriveConstants, mikSwingConstants, mikTurnConstants } from "../mikLibSim/Constants";
-import type { ReveilLibConstants } from "../ReveiLibSim/Constants";
-import { makeId } from "../Util";
+import { getDefaultConstants } from "../Constants";
+import type { mikDriveConstants, mikSwingConstants, mikTurnConstants } from "../mikLibSim/MikConstants";
+import type { ReveilLibConstants } from "../ReveiLibSim/RevConstants";
+import { deepEqual, makeId } from "../Util";
 import { commandsEqual, createCommand, type Command } from "./Command";
 import type { Coordinate } from "./Coordinate";
 import { posesEqual, type Pose } from "./Pose";
@@ -160,6 +160,6 @@ export function segmentsEqual(a: Segment, b: Segment): boolean {
     a.kind === b.kind &&
     posesEqual(a.pose, b.pose) &&
     commandsEqual(a.command, b.command) &&
-    SegmentConstantsEqual(a.constants, b.constants)
+    deepEqual(a.constants, b.constants)
   );
 }
