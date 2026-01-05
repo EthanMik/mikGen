@@ -1,16 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import downArrow from "../../assets/down-arrow.svg";
 import type { ConstantField } from "./ConstantRow";
 import ConstantRow from "./ConstantRow";
+import { deepEqual } from "../../core/Util";
 
 type ConstantsListProps = {
     header: string;
     values: any;
     fields: ConstantField[];
     onChange: (constants: Partial<any>) => void,
+    onSetDefault: (constants: Partial<any>) => void,
     onReset: () => void;
     isOpenGlobal: boolean;
+    defaults: Partial<any>;
 }
 
 export default function ConstantsList({
@@ -18,8 +21,10 @@ export default function ConstantsList({
     values,
     fields,
     onChange,
+    onSetDefault,
     onReset,
     isOpenGlobal,
+    defaults,
 }: ConstantsListProps) {
     const [ open, setOpen ] = useState(false);
 
@@ -27,47 +32,66 @@ export default function ConstantsList({
         setOpen(isOpenGlobal)
     }, [isOpenGlobal])
 
+    const isDirty = !deepEqual(values, defaults);
+
     return (
         <div className="flex flex-col">
-            <div className="flex items-center w-[410px] h-[30px] 
-                rounded-lg justify-between"
+            <div
+            className={`
+                flex items-center w-[410px] h-[35px] rounded-lg justify-between
+                ${isDirty ? "bg-medlightgray " : ""}
+                relative
+            `}
             >
-                <div className="flex pl-2 gap-2">
-                    <button className="cursor-pointer" 
-                        onClick={() => setOpen(!open)}>
-                        { !open ? 
-                            <img className="w-[12px] h-[12px] rotate-270" src={downArrow}/> : 
-                            <img className="w-[12px] h-[12px]" src={downArrow}/>
-                        }
-                    </button>
-                    <span>{header}</span>   
-                </div>
-                <div className="flex pr-5 gap-2">
-                    {/* <button className="bg-medlightgray hover:bg-medgray_hover px-2 rounded-sm">
-                        <span className="text-verylightgray">
-                            Set Default
-                        </span>
-                    </button> */}
 
-                    <button className="
-                        bg-medlightgray hover:bg-medgray_hover px-2 rounded-sm
-                        transition-all duration-100
-                        active:scale-[0.995]
-                        active:bg-medgray_hover/70      
-                        "
-                        onClick={() => onReset()}
-                    >
-                        <span className="text-verylightgray">
-                            Reset
-                        </span>
-                    </button>
+            <div className="flex pl-2 gap-2 items-center">
+                <button className="cursor-pointer" onClick={() => setOpen(!open)}>
+                {!open ? (
+                    <img className="w-[12px] h-[12px] rotate-270" src={downArrow} />
+                ) : (
+                    <img className="w-[12px] h-[12px]" src={downArrow} />
+                )}
+                </button>
 
-                </div>
+                <span className="text-white">{header}</span>
+
             </div>
+
+            <div className="flex pr-5 gap-2">
+                <button
+                className={`
+                    bg-medgray hover:bg-medgray_hover px-2 rounded-sm
+                    transition-all duration-100 active:scale-[0.995] active:bg-medgray_hover/70
+                    ${!isDirty ? "opacity-40 cursor-not-allowed hover:bg-medlightgray" : "cursor-pointer"}
+                `}
+                onClick={() => {
+                    if (!isDirty) return;
+                    onSetDefault(values)
+                }}
+                >
+                <span className="text-verylightgray">Set Default</span>
+                </button>
+
+                <button
+                className={`
+                    bg-medgray hover:bg-medgray_hover px-2 rounded-sm
+                    transition-all duration-100 active:scale-[0.995] active:bg-medgray_hover/70
+                    ${!isDirty ? "opacity-40 cursor-not-allowed hover:bg-medlightgray" : "cursor-pointer"}
+                `}
+                onClick={() => {
+                    if (!isDirty) return;
+                    onReset()
+                }}
+                >
+                <span className="text-verylightgray">Reset</span>
+                </button>
+                
+            </div>
+        </div>
 
 
             {open && (
-                <div className="grid grid-cols-2 min-w-0 pl-5 gap-2 mt-1 w-[400px]">
+                <div className="grid grid-cols-2 min-w-0 pl-5 gap-2 mt-2 w-[400px]">
                     {fields.map((f) => (
                         <ConstantRow 
                             key={String(f.key)}
@@ -76,6 +100,7 @@ export default function ConstantsList({
                             input={f.input}
                             units={f.units}
                             onChange={(v: number | null) => onChange({ [f.key]: v } as Partial<any>)}
+                            labelColor={deepEqual(values[f.key], defaults[f.key]) ? "text-white" : "text-white/50"}
                         />
                     ))}
                 </div>

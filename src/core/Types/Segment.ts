@@ -1,8 +1,8 @@
 import type { Format } from "../../hooks/useFormat";
 import { getDefaultConstants } from "../Constants";
+import { deepEqual, makeId } from "../Util";
 import type { mikDriveConstants, mikSwingConstants, mikTurnConstants } from "../mikLibSim/MikConstants";
 import type { ReveilLibConstants } from "../ReveiLibSim/RevConstants";
-import { deepEqual, makeId } from "../Util";
 import { commandsEqual, createCommand, type Command } from "./Command";
 import type { Coordinate } from "./Coordinate";
 import { posesEqual, type Pose } from "./Pose";

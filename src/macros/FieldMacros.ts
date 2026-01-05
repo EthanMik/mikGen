@@ -38,92 +38,69 @@ export default function FieldMacros() {
 
         setPath((prev) => ({
             ...prev,
-            segments: prev.segments.map((control) =>
-                control.selected
-                    ? {
-                          ...control,
-                          pose: {
-                              ...control.pose,
-                              x: clamp(
-                                  control.pose.x + xScale,
-                                  MIN_FIELD_X,
-                                  MAX_FIELD_X
-                              ),
-                              y: clamp(
-                                  control.pose.y + yScale,
-                                  MIN_FIELD_Y,
-                                  MAX_FIELD_Y
-                              ),
-                          },
-                      }
-                    : control
-            ),
-        }));
-    }
-
-    /** Using keys "WASD" and "Shift + WASD" to move angle of segment  */
-    function moveHeading(
-        evt: KeyboardEvent,
-        setPath: React.Dispatch<React.SetStateAction<Path>>
-    ) {
-        const BASE_HEADING_STEP = 5;
-        const FAST_HEADING_STEP = 10;
-
-        const LARGE_HEADING_STEP = 90;
-        const LARGE_HEADING_STEP_FAST = 180;
-
-        const headingStep = evt.shiftKey ? FAST_HEADING_STEP : BASE_HEADING_STEP;
-        const largeHeadingStep = evt.shiftKey
-            ? LARGE_HEADING_STEP_FAST
-            : LARGE_HEADING_STEP;
-
-        let thetaScale = 0;
-
-        if (evt.key.toLowerCase() === "a") {
-            thetaScale = -headingStep;
-        }
-        if (evt.key.toLowerCase() === "d") {
-            thetaScale = headingStep;
-        }
-
-        if (evt.key.toLowerCase() === "w") {
-            thetaScale = largeHeadingStep;
-        }
-        if (evt.key.toLowerCase() === "s") {
-            thetaScale = -largeHeadingStep;
-        }
-        // if (evt.key === " ") {
-        //   setPath(prev => ({
-        //     ...prev, segments:
-        //       prev.segments.map((c, idx, arr) =>
-        //         c.selected && idx < arr.length - 1 ?
-        //         {
-        //           ...c,
-        //           turnToPos: { x: arr[idx + 1].pose.x, y: arr[idx + 1].pose.y },
-        //           heading: calculateHeading({ x: arr[idx].pose.x, y: arr[idx].pose.y }, { x: arr[idx + 1].pose.x, y: arr[idx + 1].pose.y })
-        //         } :
-        //         c
-        //       )
-        //   }));
-        // }
-
-        if (thetaScale === 0) return;
-
-        setPath((prev) => ({
-            ...prev,
             segments: prev.segments.map((c) =>
                 c.selected
                     ? {
                           ...c,
                           pose: {
                               ...c.pose,
-                              angle:
-                                  c.pose.angle !== null
-                                      ? normalizeDeg(c.pose.angle + thetaScale)
-                                      : c.pose.angle,
+                              x: c.pose.x !== null
+                                ? clamp(
+                                  c.pose.x + xScale,
+                                  MIN_FIELD_X,
+                                  MAX_FIELD_X
+                                ) : c.pose.x,
+                              y: c.pose.y !== null 
+                                ? clamp(
+                                  c.pose.y + yScale,
+                                  MIN_FIELD_Y,
+                                  MAX_FIELD_Y
+                                )
+                                : c.pose.y
+                                  
                           },
                       }
                     : c
+            ),
+        }));
+    }
+
+    /** Use mouse wheel to change angle of selected segment
+     *  - base step: 10°
+     *  - shift step: 90°
+     */
+    function moveHeading(
+        evt: WheelEvent,
+        setPath: React.Dispatch<React.SetStateAction<Path>>
+    ) {
+        const BASE_STEP = 10;
+        const SHIFT_STEP = 90;
+
+        if (!evt.shiftKey) return;
+
+        evt.preventDefault();
+
+        const dir = evt.deltaY < 0 ? 1 : evt.deltaY > 0 ? -1 : 0;
+        if (dir === 0) return;
+
+        const step = evt.ctrlKey ? SHIFT_STEP : BASE_STEP;
+        const thetaScale = dir * step;
+
+        setPath((prev) => ({
+            ...prev,
+            segments: prev.segments.map((c) =>
+            c.selected
+                ? {
+                    ...c,
+                    pose: {
+                    ...c.pose,
+                    angle:
+                        c.pose.angle !== null
+                        ? normalizeDeg(c.pose.angle + thetaScale)
+                        : c.pose.angle,
+                    },
+                }
+                : c
             ),
         }));
     }

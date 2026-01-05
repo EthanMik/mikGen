@@ -1,30 +1,29 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import UserInput from "../Util/NumberInput";
-import { clamp } from "../../core/Util";
-import { robotConstants, robotConstantsStore } from "../../core/Robot";
 import Checkbox from "../Util/Checkbox";
 import NumberInput from "../Util/NumberInput";
+import { robotConstantsStore } from "../../core/Robot";
 
 export default function RobotButton() {
     const [ isOpen, setOpen ] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
-    const robot =  useSyncExternalStore(robotConstantsStore.subscribe, robotConstantsStore.get);
+    
+    const robot =  useSyncExternalStore(robotConstantsStore.subscribe, robotConstantsStore.getState);
     const [ holonomic, setHolonomic ] = useState(false);
 
     const updateWidth = (width: number | null) => {
-        if (width !== null) robotConstantsStore.set({ width: width });   
+        if (width !== null) robotConstantsStore.merge({ width: width });   
     }
 
     const updateHeight = (height: number | null) => {
-        if (height !== null) robotConstantsStore.set({ height: height });
+        if (height !== null) robotConstantsStore.merge({ height: height });
     }
     
     const updateSpeed = (speed: number | null) => {
-        if (speed !== null) robotConstantsStore.set({ speed: speed });
+        if (speed !== null) robotConstantsStore.merge({ speed: speed });
     }
 
     const updateAccel = (accel: number | null) => {
-        if (accel !== null) robotConstantsStore.set({ accel: accel });
+        if (accel !== null) robotConstantsStore.merge({ accel: accel });
     }
 
     const handleToggleMenu = () => {

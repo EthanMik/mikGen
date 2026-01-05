@@ -11,15 +11,14 @@ import CommandList from "./CommandList";
 import { createCommand, type Command } from "../../core/Types/Command";
 import type { ConstantField } from "./ConstantRow";
 import ConstantsList from "./ConstantsList";
-import type { Slot } from "./PathConfig";
 
 export type ConstantListField = {
     header: string,
     values: any,
-    slot: Slot,
     fields: ConstantField[]
     defaults: Partial<any>;
     onChange: (partial: Partial<any>) => void;
+    setDefault: (partial: Partial<any>) => void;
 }
 
 type MotionListProps = {
@@ -204,6 +203,7 @@ export default function MotionList({
         }, {});
     };
 
+
     return (
         <div className="flex flex-col gap-2">
             <button 
@@ -265,10 +265,13 @@ export default function MotionList({
                     key={f.header}
                     header={f.header}
                     fields={f.fields}
-                    values={f.values}
+                    values={getDefaultConstantsFromKeys(f.fields.map((m) => m.key), f.values)}
                     isOpenGlobal={isOpenGlobal}
                     onChange={f.onChange}
                     onReset={() => f.onChange(getDefaultConstantsFromKeys(f.fields.map((m) => m.key), f.defaults))}
+                    onSetDefault={f.setDefault}
+                    defaults={getDefaultConstantsFromKeys(f.fields.map((m) => m.key), f.defaults)}
+
                 />
                 ))}
             </div>

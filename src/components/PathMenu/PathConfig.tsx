@@ -5,6 +5,7 @@ import MotionList from "./MotionList";
 import PathConfigHeader from "./PathHeader";
 import { useFormat } from "../../hooks/useFormat";
 import { getFormatConstantsConfig } from "../../core/Constants";
+import { mikDefaultsStore } from "../../core/mikLibSim/MikConstants";
 
 export default function PathConfig() {
   const [ path, setPath ] = usePath();

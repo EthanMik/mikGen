@@ -16,6 +16,7 @@ export type ConstantField = {
 
 type ConstantRowProps = {
   label: string;
+  labelColor?: string;
   units?: string;
   value: number | null;
   onChange: (v: number | null) => void;
@@ -25,6 +26,7 @@ type ConstantRowProps = {
 export default function ConstantRow({
     label,
     value,
+    labelColor = "text-white",
     units = "",
     onChange,
     input,
@@ -33,7 +35,7 @@ export default function ConstantRow({
         <div className="flex flex-row items-center 
             justify-between h-[30px] pr-2 pl-2 gap-1"
         >
-            <span className="w-[100px]">{label} </span>
+            <span className={`w-[100px] ${labelColor}`}>{label} </span>
             <NumberInput 
                 width={55} 
                 height={30}

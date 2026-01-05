@@ -17,7 +17,7 @@ import { useRobotPose } from "../hooks/useRobotPose";
 // This fucking file is the biggest piece of shit i find a new bug every day
 
 function createRobot(): Robot {
-    const { width, height, speed, accel } = robotConstantsStore.get();
+    const { width, height, speed, accel } = robotConstantsStore.getState();
 
     return new Robot(
         0, // Start x
@@ -39,7 +39,7 @@ export default function PathSimulator() {
     const [time, setTime] = useState<number>(0);
     const [pose, setPose] = usePose()
     const [ robotPose, setRobotPose ] = useRobotPose();
-    const robotk = useSyncExternalStore(robotConstantsStore.subscribe, robotConstantsStore.get);
+    const robotk = useSyncExternalStore(robotConstantsStore.subscribe, robotConstantsStore.getState);
     const [playing, setPlaying] = useState<boolean>(false);
     const [robotVisible, setRobotVisibility] = useRobotVisibility();
     const [ path, setPath ] = usePath();

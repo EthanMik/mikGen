@@ -1,3 +1,4 @@
+import { createObjectStore } from "./Store";
 import { clamp, normalizeDeg, toDeg, toRad } from "./Util";
 
 type RobotConstants = {
@@ -7,31 +8,14 @@ type RobotConstants = {
     accel: number
 }
 
-export const robotConstants: RobotConstants = {
+export const defaultRobotConstants: RobotConstants = {
     width: 14,
     height: 14,
     speed: 6,
     accel: 15
 }
 
-let state: RobotConstants = { ...robotConstants };
-
-const listeners = new Set<() => void>();
-
-export const robotConstantsStore = {
-  get: () => state,
-
-  set: (partial: Partial<RobotConstants>) => {
-    state = { ...state, ...partial };
-    Object.assign(robotConstants, state);
-    listeners.forEach((fn) => fn());
-  },
-
-  subscribe: (fn: () => void) => {
-    listeners.add(fn);
-    return () => listeners.delete(fn);
-  },
-};
+export const robotConstantsStore = createObjectStore<RobotConstants>(defaultRobotConstants);
 
 export class Robot {
     public width: number;

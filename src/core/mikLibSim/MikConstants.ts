@@ -1,3 +1,5 @@
+import { createObjectStore } from "../Store";
+import type { SegmentKind } from "../Types/Segment";
 
 export type SwingDirection = "right" | "left";
 export type DriveDirection = "forward" | "reverse";
@@ -31,14 +33,6 @@ export type mikTurnConstants = {
 
 export type mikSwingConstants = {
     swing: PIDConstants;
-}
-
-export function isMikTurnConstants(x: mikTurnConstants | mikDriveConstants): x is mikTurnConstants {
-    return "turn" in x;
-}
-
-export function isMikDriveConstants(x: mikTurnConstants | mikDriveConstants): x is mikDriveConstants {
-    return "drive" in x;
 }
 
 export const PIDConstantsEqual = (a: PIDConstants, b: PIDConstants): boolean => {
@@ -108,7 +102,7 @@ export function createPIDConstants(values: Partial<PIDConstants> = {}): PIDConst
     };
 }
 
-export const kturnPID = createPIDConstants({
+export const kMikAngleTurn: PIDConstants = createPIDConstants({
     maxSpeed: 12,
     minSpeed: 0,
     kp: .4,
@@ -120,7 +114,7 @@ export const kturnPID = createPIDConstants({
     timeout: 3000
 });
 
-export const kOdomTurnPID = createPIDConstants({
+export const kMikPointTurn: PIDConstants = createPIDConstants({
     maxSpeed: 12,
     minSpeed: 0,
     kp: .4,
@@ -132,7 +126,7 @@ export const kOdomTurnPID = createPIDConstants({
     timeout: 3000
 });
 
-export const kOdomDrivePID = createPIDConstants({
+export const kMikPointDrive: PIDConstants = createPIDConstants({
     maxSpeed: 8,
     minSpeed: 0,
     kp: 1.5,
@@ -144,7 +138,7 @@ export const kOdomDrivePID = createPIDConstants({
     timeout: 5000,
 });
 
-export const kOdomHeadingPID = createPIDConstants({
+export const kMikPointDriveHeading: PIDConstants = createPIDConstants({
     maxSpeed: 10,
     kp: .4,
     ki: 0,
@@ -152,7 +146,7 @@ export const kOdomHeadingPID = createPIDConstants({
     starti: 0,
 });
 
-export const kBoomerangPID = createPIDConstants({
+export const kMikBoomerang: PIDConstants = createPIDConstants({
     maxSpeed: 8,
     minSpeed: 0,
     kp: 1.5,
@@ -166,7 +160,15 @@ export const kBoomerangPID = createPIDConstants({
     setback: 1,
 });
 
-export const kSwingPID = createPIDConstants({
+export const kMikBoomerangHeading: PIDConstants = createPIDConstants({
+    maxSpeed: 10,
+    kp: .4,
+    ki: 0,
+    kd: 3,
+    starti: 0,
+});
+
+export const kMikAngleSwing: PIDConstants = createPIDConstants({
     maxSpeed: 12,
     minSpeed: 0,
     kp: .3,
@@ -179,7 +181,7 @@ export const kSwingPID = createPIDConstants({
     swingDirection: "left"
 })
 
-export const kOdomSwingPID = createPIDConstants({
+export const kMikPointSwing: PIDConstants = createPIDConstants({
     maxSpeed: 12,
     minSpeed: 0,
     kp: .3,

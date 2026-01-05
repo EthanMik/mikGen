@@ -3,6 +3,8 @@ import type { SetStateAction } from "react";
 import { getDefaultConstants } from "../Constants";
 import type { Path } from "../Types/Path";
 import type { ConstantListField } from "../../components/PathMenu/MotionList";
+import type { SegmentKind } from "../Types/Segment";
+import { getMikLibDefaultConstants, mikDefaultsStore, updateMikLibDefaultConstants } from "./MikConstants";
 
 export type Slot = "drive" | "heading" | "turn" | "swing";
 
@@ -27,7 +29,7 @@ const updateConstants = (
           ...constants,
           [slot]: {
             ...bucket,
-            ...(partial as any),
+          ...(partial as any),
           },
         },
       };
@@ -38,6 +40,7 @@ const updateConstants = (
 const createDrivePIDGroup = (
   setPath: React.Dispatch<SetStateAction<Path>>,
   segmentId: string,
+  segmentKind: SegmentKind,
   driveConstants: any,
   headingConstants: any
 ): ConstantListField[] => {
@@ -47,11 +50,20 @@ const createDrivePIDGroup = (
 
   const onHeadingChange = (partial: Partial<any>) =>
     updateConstants(setPath, segmentId, "heading", partial);
+  
+  const setDefaultDrive = (partial: Partial<any>) => {
+    console.log("hmm")
+    console.log(segmentKind, partial)
+    updateMikLibDefaultConstants(segmentKind, partial);
+  }
+  
+  const setDefaultHeading = (partial: Partial<any>) => {
+    updateMikLibDefaultConstants("pointDriveHeading", partial);
+  }
 
   return [
     {
       header: "Exit Conditions",
-      slot: "drive",
       values: driveConstants,
       fields: [
         { key: "settleError", units: "in", label: "Settle Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
@@ -60,34 +72,36 @@ const createDrivePIDGroup = (
         { key: "minSpeed", units: "volt", label: "Min Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
       ],
       onChange: onDriveChange,
-      defaults: getDefaultConstants("mikLib", "pointDrive").drive
+      setDefault: setDefaultDrive,
+      defaults: getMikLibDefaultConstants(segmentKind)
     },
     {
       header: "Drive Constants",
-      slot: "drive",
       values: driveConstants,
       fields: [
+        { key: "maxSpeed", units: "volt", label: "Max Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
         { key: "kp", label: "kP", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
         { key: "ki", label: "kI", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
         { key: "kd", label: "kD", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
         { key: "starti", units: "in",  label: "Starti", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
       ],
       onChange: onDriveChange,
-      defaults: getDefaultConstants("mikLib", "pointDrive").drive
+      setDefault: setDefaultDrive,
+      defaults: getMikLibDefaultConstants(segmentKind)
     },
     {
       header: "Heading Constants",
-      slot: "heading",
       values: headingConstants,
       fields: [
         { key: "maxSpeed", units: "volt", label: "Max Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
         { key: "kp", label: "kP", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 3 } },
         { key: "ki", label: "kI", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
         { key: "kd", label: "kD", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 3 } },
-        { key: "starti", units: "deg", label: "Starti", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
+        { key: "starti", units: "deg", label: "Starti", input: { bounds: [0, 360], stepSize: 1, roundTo: 2 } },
       ],
       onChange: onHeadingChange,
-      defaults: getDefaultConstants("mikLib", "pointDrive").heading
+      setDefault: setDefaultHeading,
+      defaults: getMikLibDefaultConstants("pointDriveHeading")
     },
   ];
 };
@@ -95,6 +109,7 @@ const createDrivePIDGroup = (
 const createDrivePosePIDGroup = (
   setPath: React.Dispatch<SetStateAction<Path>>,
   segmentId: string,
+  segmentKind: SegmentKind,
   driveConstants: any,
   headingConstants: any
 ): ConstantListField[] => {
@@ -109,7 +124,6 @@ const createDrivePosePIDGroup = (
     {
       header: "Exit Conditions",
       values: driveConstants,
-      slot: "drive",
       fields: [
         { key: "settleError", label: "Settle Error", units: "in", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
         { key: "settleTime", label: "Settle Time", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
@@ -117,13 +131,15 @@ const createDrivePosePIDGroup = (
         { key: "minSpeed", label: "Min Speed", units: "volt", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
       ],
       onChange: onDriveChange,
-      defaults: getDefaultConstants("mikLib", "poseDrive").drive
+      setDefault: setDefaultDrive,
+      defaults: getMikLibDefaultConstants(segmentKind)
+      
     },
     {
       header: "Drive Constants",
       values: driveConstants,
-      slot: "drive",
       fields: [
+        { key: "maxSpeed", units: "volt", label: "Max Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
         { key: "kp", label: "kP", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 3 } },
         { key: "ki", label: "kI", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
         { key: "kd", label: "kD", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 3 } },
@@ -132,21 +148,22 @@ const createDrivePosePIDGroup = (
         { key: "setback", label: "Setback", units: "in", input: { bounds: [0, 100], stepSize: .5, roundTo: 1 } },
       ],
       onChange: onDriveChange,
-      defaults: getDefaultConstants("mikLib", "poseDrive").drive
+      setDefault: setDefaultDrive,
+      defaults: getMikLibDefaultConstants(segmentKind)
     },
     {
       header: "Heading Constants",
       values: headingConstants,
-      slot: "heading",
       fields: [
         { key: "maxSpeed", label: "Max Speed", units: "volt", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
         { key: "kp", label: "kP", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 3 } },
         { key: "ki", label: "kI", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
         { key: "kd", label: "kD", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 3 } },
-        { key: "starti", label: "Starti", units: "deg", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
+        { key: "starti", label: "Starti", units: "deg", input: { bounds: [0, 360], stepSize: 1, roundTo: 2 } },
       ],
       onChange: onHeadingChange,
-      defaults: getDefaultConstants("mikLib", "poseDrive").heading
+      setDefault: setDefaultHeading,
+      defaults: getMikLibDefaultConstants("poseDriveHeading")
     },
   ];
 };
@@ -154,17 +171,21 @@ const createDrivePosePIDGroup = (
 const createTurnPIDGroup = (
   setPath: React.Dispatch<SetStateAction<Path>>,
   segmentId: string,
+  segmentKind: SegmentKind,
   turnConstants: any
 ): ConstantListField[] => {
 
   const onTurnChange = (partial: Partial<any>) =>
     updateConstants(setPath, segmentId, "turn", partial);
 
+  const setDefaultTurn = (partial: Partial<any>) => {
+    updateMikLibDefaultConstants(segmentKind, partial);
+  }
+
   return [
     {
       header: "Exit Conditions",
       values: turnConstants,
-      slot: "turn",
       fields: [
         { key: "settleError", label: "Settle Error", units: "deg", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
         { key: "settleTime", label: "Settle Time", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
@@ -172,20 +193,22 @@ const createTurnPIDGroup = (
         { key: "minSpeed", label: "Min Speed", units: "volt", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
       ],
       onChange: onTurnChange,
-      defaults: getDefaultConstants("mikLib", "angleTurn").turn
+      setDefault: setDefaultTurn,
+      defaults: getMikLibDefaultConstants(segmentKind)
     },
     {
       header: "Turn Constants",
       values: turnConstants,
-      slot: "turn",
       fields: [
+        { key: "maxSpeed", units: "volt", label: "Max Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
         { key: "kp", label: "kP", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 3 } },
         { key: "ki", label: "kI", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
         { key: "kd", label: "kD", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 3 } },
-        { key: "starti", label: "Starti", units: "deg", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
+        { key: "starti", label: "Starti", units: "deg", input: { bounds: [0, 360], stepSize: 1, roundTo: 2 } },
       ],
       onChange: onTurnChange,
-      defaults: getDefaultConstants("mikLib", "angleTurn").turn
+      setDefault: setDefaultTurn,
+      defaults: getMikLibDefaultConstants(segmentKind)
     },
   ];
 };
@@ -193,17 +216,21 @@ const createTurnPIDGroup = (
 const createSwingPIDGroup = (
   setPath: React.Dispatch<SetStateAction<Path>>,
   segmentId: string,
+  segmentKind: SegmentKind,
   turnConstants: any
 ): ConstantListField[] => {
 
   const onTurnChange = (partial: Partial<any>) =>
     updateConstants(setPath, segmentId, "swing", partial);
 
+  const setDefaultSwing = (partial: Partial<any>) => {
+    updateMikLibDefaultConstants(segmentKind, partial);
+  }
+
   return [
     {
       header: "Exit Conditions",
       values: turnConstants,
-      slot: "turn",
       fields: [
         { key: "settleError", label: "Settle Error", units: "deg", input: { bounds: [0, 99], stepSize: 0.5, roundTo: 2 } },
         { key: "settleTime", label: "Settle Time", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
@@ -211,20 +238,22 @@ const createSwingPIDGroup = (
         { key: "minSpeed", label: "Min Speed", units: "volt", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
       ],
       onChange: onTurnChange,
-      defaults: getDefaultConstants("mikLib", "angleSwing").swing
+      setDefault: setDefaultSwing,
+      defaults: getMikLibDefaultConstants(segmentKind)
     },
     {
       header: "Swing Constants",
       values: turnConstants,
-      slot: "turn",
       fields: [
+        { key: "maxSpeed", units: "volt", label: "Max Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
         { key: "kp", label: "kP", input: { bounds: [0, 99], stepSize: 0.1, roundTo: 3 } },
         { key: "ki", label: "kI", input: { bounds: [0, 99], stepSize: 0.01, roundTo: 5 } },
         { key: "kd", label: "kD", input: { bounds: [0, 99], stepSize: 0.1, roundTo: 3 } },
-        { key: "starti", label: "Starti", units: "deg", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
+        { key: "starti", label: "Starti", units: "deg", input: { bounds: [0, 360], stepSize: 1, roundTo: 2 } },
       ],
       onChange: onTurnChange,
-      defaults: getDefaultConstants("mikLib", "angleSwing").swing
+      setDefault: setDefaultSwing,
+      defaults: getMikLibDefaultConstants(segmentKind)
     },
   ];
 };
@@ -235,17 +264,17 @@ export function getmikLibConstantsConfig(path: Path, setPath: React.Dispatch<Set
 
     switch (s.kind) {
         case "pointDrive":
-            return createDrivePIDGroup(setPath, segmentId, s.constants.drive, s.constants.heading);
+            return createDrivePIDGroup(setPath, segmentId, s.kind, s.constants.drive, s.constants.heading);
         case "poseDrive":
-            return createDrivePosePIDGroup(setPath, segmentId, s.constants.drive, s.constants.heading);
+            return createDrivePosePIDGroup(setPath, segmentId, s.kind, s.constants.drive, s.constants.heading);
         case "pointTurn":
-            return createTurnPIDGroup(setPath, segmentId, s.constants.turn);
+            return createTurnPIDGroup(setPath, segmentId, s.kind, s.constants.turn);
         case "angleTurn":
-            return createTurnPIDGroup(setPath, segmentId, s.constants.turn);
+            return createTurnPIDGroup(setPath, segmentId, s.kind, s.constants.turn);
         case "angleSwing":
-            return createSwingPIDGroup(setPath, segmentId, s.constants.swing);
+            return createSwingPIDGroup(setPath, segmentId, s.kind, s.constants.swing);
         case "pointSwing":
-            return createSwingPIDGroup(setPath, segmentId, s.constants.swing);
+            return createSwingPIDGroup(setPath, segmentId, s.kind, s.constants.swing);
     }
 
     return [];

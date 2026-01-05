@@ -1,5 +1,5 @@
-import type { Robot } from "../../Robot";
 import { clamp } from "../../Util";
+import type { Robot } from "../../Robot";
 import type { PID } from "../PID";
 import { reduce_negative_180_to_180 } from "../Util";
 

@@ -7,29 +7,24 @@ Units
 - accel (inches/s^2 internal ft/s^2 external)
 
 Bugs:
-- fix turn segments not dragging properly
 - cant change coords on multiselect
-- Make field visual for hovering over turn segments more visible
 - Polish Control Config (segment casting)
+- Fix undo/redo: make it so you can undo more events and make sliders not bog up the queue
 
 Todo:
 - Add Path constants changing, speed and lib specific constants + swing option for mik/jar
 - Add setdefault button to constants
-- Add units to constants also make it so non default constants are grayed out
 - Add buttons next to slider to change direction and left/right swing 
 
 - Add file saving, loading unloading
 - fix rev path conversion, change keybinds so it doesn't conflict with c&p
 - add ez reveilib rw lemlib jar mik vexide drive motions
-- link drive motions with formats
 - Fix rev boomerang (may need to swap coordinate frame)
-- Fix undo/redo
 - Setting menu
-- remove wasd keybind and use scroll
 - make it so field swapping isnt such ass code
 
 Planned:
-- field dragging and resizing
+- field dragging and resizing (add a small home button top right corner)
 - Add Play button to path segments on the right hand side
 - Add cut, copy and paste
 - Add moving segment order by dragging 

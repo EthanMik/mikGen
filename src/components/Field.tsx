@@ -40,7 +40,7 @@ export default function Field({
 
   const [ pose, setPose] = usePose();
   const [ robotPose, setRobotPose ] = useRobotPose();
-  const robot = useSyncExternalStore(robotConstantsStore.subscribe, robotConstantsStore.get);
+  const robot = useSyncExternalStore(robotConstantsStore.subscribe, robotConstantsStore.getState);
   const [ robotVisible, setRobotVisibility ] = useRobotVisibility();
   const [ pathVisible, setPathVisibility] = usePathVisibility();
   const [ format, setFormat ] = useFormat();
@@ -119,19 +119,26 @@ export default function Field({
           if (target?.isContentEditable || target?.tagName === "INPUT") return;
           unselectPath(evt, setPath);
           moveControl(evt, setPath);
-          moveHeading(evt, setPath);
           deleteControl(evt, setPath);
           selectPath(evt, setPath);
           selectInversePath(evt, setPath);
           undoPath(evt, undo, pathStorageRef, pathStoragePtr, setPath);
           redoPath(evt, undo, pathStorageRef, pathStoragePtr, setPath);
           toggleRobotVisibility(evt, setRobotVisibility);
-      }
+        }
 
-      document.addEventListener('keydown', handleKeyDown)
+      const handleWheelDown = (evt: WheelEvent) => {
+        const target = evt.target as HTMLElement | null;
+        if (target?.isContentEditable || target?.tagName === "INPUT") return;
+        moveHeading(evt, setPath);
+      }
+        
+      document.addEventListener('keydown', handleKeyDown);
+      document.addEventListener('wheel', handleWheelDown, {passive: false});
 
       return () => {
-          document.removeEventListener('keydown', handleKeyDown)
+          document.removeEventListener('keydown', handleKeyDown);
+          document.removeEventListener('wheel', handleWheelDown);
       }
   }, []);
   
@@ -145,7 +152,8 @@ export default function Field({
     const next: Path = {
       segments: path.segments.map((c) => {
         if (!c.selected || c.locked) return c;
-
+        if (c.pose.x === null || c.pose.y === null) return c;
+      
         const currentPx = toPX(
           { x: c.pose.x, y: c.pose.y },
           FIELD_REAL_DIMENSIONS,
