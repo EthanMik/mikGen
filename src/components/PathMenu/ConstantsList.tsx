@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useState } from "react";
 import downArrow from "../../assets/down-arrow.svg";
 import type { ConstantField } from "./ConstantRow";
 import ConstantRow from "./ConstantRow";

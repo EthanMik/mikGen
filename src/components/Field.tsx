@@ -9,7 +9,6 @@ import { usePathVisibility } from "../hooks/usePathVisibility";
 import { usePose } from "../hooks/usePose";
 import { useRobotVisibility } from "../hooks/useRobotVisibility";
 import RobotView from "./Util/RobotView";
-import type { Pose } from "../core/Types/Pose";
 import { PathSimMacros } from "../macros/PathSimMacros";
 import FieldMacros from "../macros/FieldMacros";
 import { useFormat } from "../hooks/useFormat";
@@ -269,22 +268,21 @@ export default function Field({
       addPoseDriveSegment(format, { x: pos.x, y: pos.y, angle: 0 }, setPath)
     }
     
-    if (!evt.ctrlKey && !evt.shiftKey && evt.button === 2) {
+    if (!evt.ctrlKey && !evt.altKey && !evt.shiftKey && evt.button === 2) {
       addPointTurnSegment(format, setPath);
     }
     
-    if (evt.ctrlKey && !evt.shiftKey && evt.button == 2) {
+    if (evt.ctrlKey && !evt.altKey && !evt.shiftKey && evt.button == 2) {
       addAngleTurnSegment(format, setPath);
     }
     
-    if (evt.ctrlKey && evt.shiftKey && evt.button == 2) {
-      addAngleSwingSegment(format, setPath);
-    }
-
-    if (evt.ctrlKey && evt.shiftKey && evt.button == 2) {
+    if (!evt.ctrlKey && evt.altKey && evt.button == 2) {
       addPointSwingSegment(format, setPath);
     }
     
+    if (evt.ctrlKey && evt.altKey && evt.button == 2) {
+      addAngleSwingSegment(format, setPath);
+    }
 
   };
 

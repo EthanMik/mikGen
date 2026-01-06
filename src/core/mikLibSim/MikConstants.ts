@@ -1,6 +1,3 @@
-import { createObjectStore } from "../Store";
-import type { SegmentKind } from "../Types/Segment";
-
 export type SwingDirection = "right" | "left";
 export type DriveDirection = "forward" | "reverse";
 export type TurnDirection = "clockwise" | "counterclockwise";
@@ -11,7 +8,7 @@ export interface PIDConstants {
     kp: number | null,  
     ki: number | null, 
     kd: number | null, 
-    starti: number | null, 
+    starti: number | null,  
     settleTime: number | null, 
     settleError: number | null, 
     timeout: number | null

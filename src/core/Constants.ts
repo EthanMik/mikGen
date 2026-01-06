@@ -60,14 +60,6 @@ export function updateDefaultConstants<F extends Format, K extends keyof Constan
         const currentFormatDefaults = prev[format];
         const currentSegmentDefaults = currentFormatDefaults[kind];
 
-        // Perform a safe merge.
-        // If the patch contains nested objects (like { drive: {...} }), we need to merge them 
-        // instead of overwriting the whole 'drive' object if it exists.
-        
-        // Note: This spread handles top-level properties. 
-        // If 'patch' has { drive: { kp: 10 } }, it might overwrite the existing 'drive' if not carefully merged.
-        // We will do a manual check for common nested keys (drive, heading, turn, swing) for safety.
-        
         const mergedSegment: any = { ...currentSegmentDefaults };
         
         const keys = Object.keys(patch) as Array<keyof typeof patch>;
@@ -76,14 +68,12 @@ export function updateDefaultConstants<F extends Format, K extends keyof Constan
             const patchValue = patch[key];
             const existingValue = mergedSegment[key];
 
-            // If both are objects (and not null), merge them
             if (
                 typeof patchValue === 'object' && patchValue !== null &&
                 typeof existingValue === 'object' && existingValue !== null
             ) {
                 mergedSegment[key] = { ...existingValue, ...patchValue };
             } else {
-                // Otherwise just overwrite
                 mergedSegment[key] = patchValue;
             }
         }
@@ -96,6 +86,43 @@ export function updateDefaultConstants<F extends Format, K extends keyof Constan
             }
         };
     });
+}
+
+
+export function updatePathConstants(
+  setPath: React.Dispatch<React.SetStateAction<Path>>,
+  segmentId: string,
+  partial: any
+) {
+  setPath((prev) => ({
+    ...prev,
+    segments: prev.segments.map((s) => {
+      if (s.id !== segmentId) return s;
+
+      const key = Object.keys(partial)[0]; 
+      
+      if (key && typeof partial[key] === 'object' && !Array.isArray(partial[key])) {
+        return {
+          ...s,
+          constants: {
+            ...s.constants,
+            [key]: {
+              ...(s.constants as any)[key],
+              ...partial[key],
+            },
+          } as any,
+        };
+      }
+
+      return {
+        ...s,
+        constants: {
+          ...s.constants,
+          ...partial,
+        } as any,
+      };
+    }),
+  }));
 }
 
 export function getDefaultConstants<F extends Format, K extends keyof ConstantsByFormat[F] & SegmentKind>(format: F, kind: K): ConstantsByFormat[F][K] {
@@ -121,8 +148,8 @@ export function getDefaultConstants<F extends Format, K extends keyof ConstantsB
 }
 
 export function getFormatConstantsConfig(format: Format, path: Path, setPath: React.Dispatch<SetStateAction<Path>>, segmentId: string): ConstantListField[] {
-  switch (format) {
-    case "mikLib": return getmikLibConstantsConfig(path, setPath, segmentId)
-  }
-  return [];
+    switch (format) {
+        case "mikLib": return getmikLibConstantsConfig(format, path, setPath, segmentId)
+    }
+    return [];
 }

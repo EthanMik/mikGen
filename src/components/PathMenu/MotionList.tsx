@@ -5,12 +5,17 @@ import eyeClosed from "../../assets/eye-closed.svg";
 import lockClose from "../../assets/lock-close.svg";
 import lockOpen from "../../assets/lock-open.svg";
 import downArrow from "../../assets/down-arrow.svg";
+import ccw from "../../assets/ccw.svg";
+import cw from "../../assets/cw.svg";
+import cwccw from "../../assets/cwwcw.svg";
 import Slider from "../Util/Slider";
 import { usePath } from "../../hooks/usePath";
 import CommandList from "./CommandList";
 import { createCommand, type Command } from "../../core/Types/Command";
 import type { ConstantField } from "./ConstantRow";
 import ConstantsList from "./ConstantsList";
+import CycleImageButton from "../Util/CycleButton";
+
 
 export type ConstantListField = {
     header: string,
@@ -191,18 +196,17 @@ export default function MotionList({
         setLocked(segment.locked);
     }, [segment.locked])
 
-    const getDefaultConstantsFromKeys = (
+    const getValuesFromKeys = (
         keys: Array<string>,
-        constants: Partial<any>
+        obj: Partial<any>
     ): Partial<any> => {
         return keys.reduce<Partial<any>>((acc, key) => {
-            if (key in (constants ?? {})) {
-                acc[key as any] = (constants as any)[key];
+            if (key in (obj ?? {})) {
+                acc[key as any] = (obj as any)[key];
             }
             return acc;
         }, {});
     };
-
 
     return (
         <div className="flex flex-col gap-2">
@@ -256,24 +260,49 @@ export default function MotionList({
                 {!start && <span className="w-10">
                     {(field[0]?.values?.["maxSpeed"] ?? 0).toFixed(speedScale > 9.9 ? (speedScale > 99.9 ? 0 : 1) : 2)}
                 </span>}
+                                    
+
+                <CycleImageButton 
+                    imageKeys={
+                        [
+                            { src: cw, key: "left"},
+                            { src: ccw, key: "right"},
+                            // { src: cwccw, key: "null"},
+                        ]
+                    }
+                    onKeyChange={
+                        (key: string) => {
+                            field[0]?.onChange({ swingDirection: key })
+                            console.log(key);
+                        }
+                    }
+
+                />
+
+
 
             </button>
             <div className={`flex flex-col ml-10 gap-2 transition-all ${isOpen ? "block" : "hidden"}`}>
                 <CommandList command={command} setCommand={setCommand} />
-                {field.map((f) => (
-                <ConstantsList
-                    key={f.header}
-                    header={f.header}
-                    fields={f.fields}
-                    values={getDefaultConstantsFromKeys(f.fields.map((m) => m.key), f.values)}
-                    isOpenGlobal={isOpenGlobal}
-                    onChange={f.onChange}
-                    onReset={() => f.onChange(getDefaultConstantsFromKeys(f.fields.map((m) => m.key), f.defaults))}
-                    onSetDefault={f.setDefault}
-                    defaults={getDefaultConstantsFromKeys(f.fields.map((m) => m.key), f.defaults)}
+                {field.map((f) => {
+                    const fieldKeys = f.fields.map(m => m.key);
+                    const relevantValues = getValuesFromKeys(fieldKeys, f.values);
+                    const relevantDefaults = getValuesFromKeys(fieldKeys, f.defaults);
 
-                />
-                ))}
+                    return (
+                        <ConstantsList
+                            key={f.header}
+                            header={f.header}
+                            fields={f.fields}
+                            values={relevantValues}
+                            isOpenGlobal={isOpenGlobal}
+                            onChange={f.onChange}
+                            onReset={() => f.onChange(relevantDefaults)}
+                            onSetDefault={f.setDefault}
+                            defaults={relevantDefaults}
+                        />
+                    );
+                })}
             </div>
         </div>
     );

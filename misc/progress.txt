@@ -27,6 +27,7 @@ Planned:
 - field dragging and resizing (add a small home button top right corner)
 - Add Play button to path segments on the right hand side
 - Add cut, copy and paste
+- add ability to add more commands and make them be color coded, revamp command menu to not limit length and allow them to be modifed not just deleted
 - Add moving segment order by dragging 
 - fix UI not resizing to fit resolution
 - Add scrubbing steps to settings
