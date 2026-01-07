@@ -43,22 +43,22 @@ export function toRad(degrees: number) { return (degrees * Math.PI) / 180; }
 
 export function toDeg(radians: number) { return (radians * 180) / Math.PI; }
 
-export function toInch(position: Coordinate, field: Rectangle, img: Rectangle): Coordinate {
-    const sx = field.w / img.w
-    const sy = field.h / img.h 
+  export function toInch(position: Coordinate, field: Rectangle, img: Rectangle): Coordinate {
+      const sx = field.w / img.w
+      const sy = field.h / img.h
 
-    const dx = field.x + sx * (position.x - img.x)
-    const dy = field.y + sy * (-position.y - img.y)
+      const dx = field.x + sx * (position.x - img.x)
+      const dy = field.y + sy * (img.y - position.y)
 
-    return {x: dx, y: dy}
-}
-
+      return { x: dx, y: dy }
+  }
+  
 export function toPX(position: Coordinate, field: Rectangle, img: Rectangle): Coordinate {
     const sx = img.w / field.w
     const sy = img.h / field.h 
 
     const dx = img.x + sx * (position.x - field.x)
-    const dy = img.y + sy * (position.y - field.y)
+    const dy = -img.y + sy * (position.y - field.y)
 
     return {x: dx, y: -dy}
 }

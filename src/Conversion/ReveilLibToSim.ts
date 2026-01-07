@@ -16,8 +16,6 @@ export function reveilLibToSim(path: Path) {
         const y = control.pose.y ?? 0;
         const angle = control.pose.angle ?? 0;
         
-        console.log(control.constants)
-
         if (idx === 0) {
             auton.push(
                 (robot: Robot, dt: number): boolean => { 

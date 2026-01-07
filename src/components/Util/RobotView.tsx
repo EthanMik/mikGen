@@ -1,6 +1,7 @@
-import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, normalizeDeg, toPX } from "../../core/Util";
+import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, normalizeDeg, toPX, type Rectangle } from "../../core/Util";
 
 type RobotViewProps = {
+    img: Rectangle,
     x: number,
     y: number,
     angle: number,
@@ -9,15 +10,16 @@ type RobotViewProps = {
     bg?: string,
 };
 
-function toPxHeight(value: number) {
-    return FIELD_IMG_DIMENSIONS.h / FIELD_REAL_DIMENSIONS.h * value;
+function toPxHeight(imgHeight: number, value: number) {
+    return imgHeight / FIELD_REAL_DIMENSIONS.h * value;
 }
 
-function toPxWidth(value: number) {
-    return FIELD_IMG_DIMENSIONS.w / FIELD_REAL_DIMENSIONS.w * value;
+function toPxWidth(imageWidth: number, value: number) {
+    return imageWidth / FIELD_REAL_DIMENSIONS.w * value;
 }
 
 export default function RobotView({
+    img,
     x,
     y,
     angle,
@@ -26,9 +28,9 @@ export default function RobotView({
     bg,
 }: RobotViewProps) {
 
-    const pxWidth = toPxWidth(width);
-    const pxHeight = toPxHeight(height);
-    const pos = toPX({x: x, y: y}, FIELD_REAL_DIMENSIONS, FIELD_IMG_DIMENSIONS)
+    const pxWidth = toPxWidth(img.w, width);
+    const pxHeight = toPxHeight(img.h, height);
+    const pos = toPX({x: x, y: y}, FIELD_REAL_DIMENSIONS, img)
     const normAngle = normalizeDeg(angle);
 
     return (
