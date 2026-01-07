@@ -9,35 +9,34 @@ Units
 Bugs:
 - cant change coords on multiselect
 - Polish Control Config (segment casting)
+- Fix start segment having the ability to be set to a turn by deleting segments
 - Fix undo/redo: make it so you can undo more events and make sliders not bog up the queue
 
 Todo:
-- Add Path constants changing, speed and lib specific constants + swing option for mik/jar
-- Add setdefault button to constants
-- Add buttons next to slider to change direction and left/right swing 
-
+- write constants + constants config for rev gg yep sim is fucked yay
 - Add file saving, loading unloading
 - fix rev path conversion, change keybinds so it doesn't conflict with c&p
-- add ez reveilib rw lemlib jar mik vexide drive motions
+- add lemlib drive motions - jar template can just use mikLib with small modifications
 - Fix rev boomerang (may need to swap coordinate frame)
 - Setting menu
 - make it so field swapping isnt such ass code
 
 Planned:
+- grouping with button on the group to disable that part of path from sim, renaming group
 - field dragging and resizing (add a small home button top right corner)
-- Add Play button to path segments on the right hand side
 - Add cut, copy and paste
 - add ability to add more commands and make them be color coded, revamp command menu to not limit length and allow them to be modifed not just deleted
-- Add moving segment order by dragging 
+- change segment order by dragging, add when groups are added  
 - fix UI not resizing to fit resolution
 - Add scrubbing steps to settings
-- square drag to select 
+- square drag to select add to path config
+- tooltip when hovering over svg buttons
 - add setting toggle to enable robot position view while simulating path
 - add setting toggle to make it so you can step 1 frame using jl
 - Mecum drive motions ☠️ (robot sim is complete)
 
 Deciding:
-- Add a segment soft delete button and add a global toggle for it as well as h keybind
+- Add Play button to path segments on the right hand side
 - coordinate mouse hover view
 - Turn command animation
 - Constant Presets that save across cache sessions

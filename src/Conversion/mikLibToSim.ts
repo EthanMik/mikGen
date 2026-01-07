@@ -124,7 +124,7 @@ export function mikLibToSim(path: Path) {
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
                     angleSwingPID.update(swing)
-                    return swingToAngle(robot, dt, angle, angleTurnPID);
+                    return swingToAngle(robot, dt, angle, angleSwingPID);
                 }
             );                 
         }

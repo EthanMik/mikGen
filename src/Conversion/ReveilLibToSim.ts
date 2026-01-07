@@ -1,8 +1,8 @@
-import { kBoomerang, kPilon, kTurn } from "../core/ReveiLibSim/RevConstants";
 import { boomerangSegment } from "../core/ReveiLibSim/DriveMotions/BoomerangSegment";
 import { lookAt } from "../core/ReveiLibSim/DriveMotions/LookAt";
 import { pilonsSegment } from "../core/ReveiLibSim/DriveMotions/PilonsSegment";
 import { turnSegment } from "../core/ReveiLibSim/DriveMotions/TurnSegment";
+import { cloneKRev } from "../core/ReveiLibSim/RevConstants";
 import type { Robot } from "../core/Robot";
 import type { Coordinate } from "../core/Types/Coordinate";
 import { getBackwardsSnapPose, getForwardSnapPose, type Path } from "../core/Types/Path";
@@ -15,6 +15,8 @@ export function reveilLibToSim(path: Path) {
         const x = control.pose.x ?? 0;
         const y = control.pose.y ?? 0;
         const angle = control.pose.angle ?? 0;
+        
+        console.log(control.constants)
 
         if (idx === 0) {
             auton.push(
@@ -26,6 +28,7 @@ export function reveilLibToSim(path: Path) {
         }
 
         if (control.kind === "pointDrive") {
+            const kPilon = cloneKRev(control.constants);
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
                     return pilonsSegment(robot, dt, x, y, kPilon);
@@ -34,6 +37,7 @@ export function reveilLibToSim(path: Path) {
         }
 
         if (control.kind === "poseDrive") {
+            const kBoomerang = cloneKRev(control.constants);
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
                     return boomerangSegment(robot, dt, x, y, angle, kBoomerang);
@@ -41,7 +45,7 @@ export function reveilLibToSim(path: Path) {
             );
         }
         
-        if (control.kind === "pointTurn") {
+        if (control.kind === "pointTurn" || control.kind === "pointSwing") {
             const previousPos = getBackwardsSnapPose(path, idx - 1);
             const turnToPos = getForwardSnapPose(path, idx);
 
@@ -52,14 +56,17 @@ export function reveilLibToSim(path: Path) {
                 ? { x: previousPos.x ?? 0, y: (previousPos.y ?? 0) + 5 }
                 : { x: 0, y: 5 };
 
+            const kLook = cloneKRev(control.constants);
+
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
-                    return lookAt(robot, dt, pos.x, pos.y, angle ?? 0, kTurn);
+                    return lookAt(robot, dt, pos.x, pos.y, angle ?? 0, kLook);
                 }
             );            
         }
 
-        if (control.kind === "angleTurn") {
+        if (control.kind === "angleTurn" || control.kind === "pointSwing") {
+            const kTurn = cloneKRev(control.constants);
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
                     return turnSegment(robot, dt, angle, kTurn)

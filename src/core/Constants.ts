@@ -2,12 +2,14 @@
 import type { SetStateAction } from "react";
 import type { ConstantListField } from "../components/PathMenu/MotionList";
 import type { Format } from "../hooks/useFormat";
-import { getmikLibConstantsConfig } from "./mikLibSim/MikConstantsConfig";
-import { cloneKRev, kBoomerang, kPilon, kTurn } from "./ReveiLibSim/RevConstants";
+import { getmikLibConstantsConfig, getMikLibDirectionConfig } from "./mikLibSim/MikConstantsConfig";
+import { cloneKRev, kBoomerang, kLootAt, kPilon, kTurn } from "./ReveiLibSim/RevConstants";
 import type { ConstantsByFormat, SegmentKind } from "./Types/Segment";
 import type { Path } from "./Types/Path";
 import { clonePID, kMikAngleSwing, kMikAngleTurn, kMikBoomerang, kMikBoomerangHeading, kMikPointDrive, kMikPointDriveHeading, kMikPointSwing, kMikPointTurn } from "./mikLibSim/MikConstants";
 import { createObjectStore } from "./Store";
+import type { CycleImageButtonProps } from "../components/Util/CycleButton";
+import { getRevConstantsConfig } from "./ReveiLibSim/RevConstantsConfig";
 
 type DefaultsState = {
     [F in Format]: {
@@ -28,7 +30,7 @@ const INITIAL_DEFAULTS: DefaultsState = {
   ReveilLib: {
     pointDrive: cloneKRev(kPilon),
     poseDrive:  cloneKRev(kBoomerang),
-    pointTurn:  cloneKRev(kTurn),
+    pointTurn:  cloneKRev(kLootAt),
     angleTurn:  cloneKRev(kTurn),
     angleSwing: cloneKRev(kTurn),
     pointSwing: cloneKRev(kTurn),
@@ -149,7 +151,15 @@ export function getDefaultConstants<F extends Format, K extends keyof ConstantsB
 
 export function getFormatConstantsConfig(format: Format, path: Path, setPath: React.Dispatch<SetStateAction<Path>>, segmentId: string): ConstantListField[] {
     switch (format) {
-        case "mikLib": return getmikLibConstantsConfig(format, path, setPath, segmentId)
+        case "mikLib": return getmikLibConstantsConfig(format, path, setPath, segmentId);
+        case "ReveilLib" : return getRevConstantsConfig(format, path, setPath, segmentId);
+    }
+    return [];
+}
+
+export function getFormatDirectionConfig(format: Format, path: Path, setPath: React.Dispatch<SetStateAction<Path>>, segmentId: string): CycleImageButtonProps[] {
+    switch (format) {
+        case "mikLib": return getMikLibDirectionConfig(path, setPath, segmentId)
     }
     return [];
 }

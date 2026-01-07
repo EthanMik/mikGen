@@ -17,41 +17,61 @@
 
 export const cloneKRev = (c: ReveilLibConstants): ReveilLibConstants => ({ ...c });
 
-export const kPilon: ReveilLibConstants =  { 
+function createRevConstants(values: Partial<ReveilLibConstants> = {}): ReveilLibConstants {
+    return {
+        maxSpeed: values.maxSpeed ?? null,
+
+        kCorrection: values.kCorrection ?? null,
+        maxError: values.kCorrection ?? null,
+
+        stopHarshThreshold: values.stopHarshThreshold ?? null,
+        stopCoastThreshold: values.stopCoastThreshold ?? null,
+        stopCoastPower: values.stopCoastPower ?? null,
+        stopTimeout: values.stopTimeout ?? null,
+        brakeTime: values.brakeTime ?? null,
+
+        dropEarly: values.dropEarly ?? null,
+        lead: values.lead ?? null
+    };
+}
+
+export const kPilon: ReveilLibConstants = createRevConstants({ 
     maxSpeed: 1,
     kCorrection: 2,
     maxError: 0.5,
     stopHarshThreshold: 60,
     stopCoastThreshold: 200,
     stopCoastPower: 0.25,
-    stopTimeout: null,
     brakeTime: 250,
     dropEarly: 0, 
-    lead: null,
-}
+});
 
-export const kTurn: ReveilLibConstants =  { 
+export const kTurn: ReveilLibConstants = createRevConstants({ 
     maxSpeed: 0.75,
-    kCorrection: null,
-    maxError: null,
     stopHarshThreshold: 60,
     stopCoastThreshold: 200,
     stopCoastPower: 0.25,
-    stopTimeout: null,
     brakeTime: 100,
     dropEarly: 0,
-    lead: null,
-}
+});
 
-export const kBoomerang: ReveilLibConstants = {
+export const kLootAt: ReveilLibConstants = createRevConstants({ 
+    maxSpeed: 0.75,
+    stopHarshThreshold: 60,
+    stopCoastThreshold: 200,
+    stopCoastPower: 0.25,
+    brakeTime: 100,
+    dropEarly: 0,
+})
+
+export const kBoomerang: ReveilLibConstants = createRevConstants({
     maxSpeed: 0.75,
     kCorrection: 2,
     maxError: 0.5,
     stopHarshThreshold: 60,
     stopCoastThreshold: 200,
     stopCoastPower: 0.25,
-    stopTimeout: null,
     brakeTime: 250,
     dropEarly: 0, 
     lead: 0.4,
-}
+});

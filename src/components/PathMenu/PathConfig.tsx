@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import { usePath } from "../../hooks/usePath";
-import MotionList, { type DirectionField } from "./MotionList";
+import MotionList, { type ConstantListField, type DirectionField } from "./MotionList";
 import PathConfigHeader from "./PathHeader";
 import { useFormat } from "../../hooks/useFormat";
-import { getFormatConstantsConfig, globalDefaultsStore } from "../../core/Constants";
+import { getFormatConstantsConfig, getFormatDirectionConfig, globalDefaultsStore } from "../../core/Constants";
 
 export default function PathConfig() {
   const [ path, setPath ] = usePath();
@@ -31,8 +31,9 @@ export default function PathConfig() {
         flex-col items-center overflow-x-hidden space-y-2">
         {path.segments.map((c, idx) => {
           
-          const fields = getFormatConstantsConfig(format, path, setPath, c.id);
-
+          const constantsFields = getFormatConstantsConfig(format, path, setPath, c.id);
+          const directionFields = getFormatDirectionConfig(format, path, setPath, c.id);
+          
           return (
           <>
             {/* DRIVE */}
@@ -40,7 +41,8 @@ export default function PathConfig() {
               <MotionList
                 name="Drive"
                 speedScale={speedScale}
-                field={fields}
+                field={constantsFields}
+                directionField={directionFields}
                 segmentId={c.id}
                 isOpenGlobal={isOpen}
               />
@@ -51,7 +53,8 @@ export default function PathConfig() {
               <MotionList
                 name="Turn"
                 speedScale={speedScale}
-                field={fields}
+                field={constantsFields}
+                directionField={directionFields}
                 segmentId={c.id}
                 isOpenGlobal={isOpen}
               />
@@ -62,7 +65,8 @@ export default function PathConfig() {
               <MotionList
                 name="Swing"
                 speedScale={speedScale}
-                field={fields}
+                field={constantsFields}
+                directionField={directionFields}
                 segmentId={c.id}
                 isOpenGlobal={isOpen}
               />
@@ -74,6 +78,7 @@ export default function PathConfig() {
                 name="Start"
                 speedScale={speedScale}
                 field={[]}
+                directionField={[]}
                 segmentId={c.id}
                 isOpenGlobal={isOpen}
                 start={true}

@@ -73,8 +73,8 @@ export default function FieldMacros() {
         evt: WheelEvent,
         setPath: React.Dispatch<React.SetStateAction<Path>>
     ) {
-        const BASE_STEP = 10;
-        const SHIFT_STEP = 90;
+        const BASE_STEP = 90;
+        const SHIFT_STEP = 10;
 
         if (!evt.shiftKey) return;
 

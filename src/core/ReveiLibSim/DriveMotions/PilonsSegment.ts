@@ -23,6 +23,7 @@ function cleanupPilonsSegment() {
 export function pilonsSegment(robot: Robot, dt: number, x: number, y: number, constants: ReveilLibConstants) : boolean {                                                
     const dropEarly = constants.dropEarly ?? 0;
     const speed = constants.maxSpeed ?? 0;
+    
     const correction = new PilonsCorrection(constants.kCorrection ?? 0, constants.maxError ?? 0);
 
     if (stop === null) {
@@ -53,7 +54,6 @@ export function pilonsSegment(robot: Robot, dt: number, x: number, y: number, co
 
         if ((brakeElapsed * 1000) >= (constants.brakeTime ?? 0)) {
             cleanupPilonsSegment();
-            brakeElapsed = null;
             return true;
         }
         return false;

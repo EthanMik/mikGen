@@ -2,20 +2,23 @@ import { useState } from "react"
 
 type ImageKey = {
     src: string,
-    key: string
+    key: string | null
 }
 
-type CycleImageButtonProps = {
-    onKeyChange: (key: string) => void;
+export type CycleImageButtonProps = {
+    onKeyChange: (key: string | null) => void;
     imageKeys: [ImageKey, ImageKey, ...ImageKey[]]
+    initialKey: string | null,
 }
 
 export default function CycleImageButton({
     imageKeys,
+    initialKey,
     onKeyChange
 }: CycleImageButtonProps) {
     
-    const [ keyIdx, setKeyIdx ] = useState<number>(0);
+    const intitalIdx = imageKeys.map((k) => k.key).indexOf(initialKey);
+    const [ keyIdx, setKeyIdx ] = useState<number>(intitalIdx ?? 0);
 
     const handleNextCycle = () => {
         setKeyIdx(prev => {
@@ -31,7 +34,7 @@ export default function CycleImageButton({
 
     return (
         <div
-            className="flex item-center w-[22px] h-[22px]"
+            className="flex item-center w-[20px] h-[20px]"
         >
             {imageKeys.map((k, idx) => (
                 <button 

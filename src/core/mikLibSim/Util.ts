@@ -1,4 +1,16 @@
 import { toRad } from "../Util";
+import type { TurnDirection } from "./MikConstants";
+
+export function angle_error(error: number, direction: TurnDirection | null) {
+    if (direction === null) return reduce_negative_180_to_180(error);
+    
+    switch (direction) {
+        case "clockwise":
+            return error < 0 ? error + 360 : error;
+        case "counterclockwise":
+            return error > 0 ? error - 360 : error;
+    }
+}
 
 export function reduce_negative_180_to_180(angle: number) {
     while(!(angle >= -180 && angle < 180)) {

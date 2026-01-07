@@ -39,10 +39,7 @@ export function driveToPoint(robot: Robot, dt: number, x: number, y: number, dri
     let desiredHeading = headingToPoint;
     let driveSign = 1;
 
-    if (drivePID.driveDirection === "forward") {
-        desiredHeading = headingToPoint;
-        driveSign = 1;
-    } else if (drivePID.driveDirection === "reverse") {
+    if (drivePID.driveDirection === "reverse") {
         desiredHeading = reduce_negative_180_to_180(headingToPoint + 180);
         driveSign = -1;
     }

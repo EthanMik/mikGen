@@ -12,8 +12,7 @@ export function swingToPoint(robot: Robot, dt: number, x: number, y: number, off
         toDeg(Math.atan2(
             x - robot.getX(), 
             y - robot.getY())) 
-            - robot.getAngle() + offset);
-        console.log(initialAngle);
+            + offset);
     }
 
     const out = swingToAngle(robot, dt, initialAngle, swingPID);

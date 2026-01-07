@@ -4,7 +4,16 @@ import type { Path } from "../Types/Path";
 import type { ConstantListField } from "../../components/PathMenu/MotionList";
 import type { SegmentKind } from "../Types/Segment";
 import type { Format } from "../../hooks/useFormat";
+import ccw from "../../assets/ccw.svg";
+import cw from "../../assets/cw.svg";
+import cwccw from "../../assets/cwwcw.svg";
+import fwd from "../../assets/fwd.svg"
+import rev from "../../assets/reverse.svg"
+import fwdrev from "../../assets/fwdrev.svg"
+import leftswing from "../../assets/leftswing.svg"
+import rightswing from "../../assets/rightswing.svg"
 import { getDefaultConstants, updateDefaultConstants, updatePathConstants } from "../Constants";
+import type { CycleImageButtonProps } from "../../components/Util/CycleButton";
 
 const createDrivePIDGroup = (
   format: Format,
@@ -133,11 +142,108 @@ const createTurnPIDGroup = (
   ];
 };
 
+type Slot = "drive" | "turn" | "swing";
+
+const getDirectionState = (
+  path: Path,
+  segmentId: string,
+  field: string,
+  slot: Slot
+): string | null  => {
+    const segment = path.segments.find((s) => s.id === segmentId) as any;
+    return segment?.constants?.[slot]?.[field] ?? null; 
+};
+
+const createTurnDirectionGroup = (
+  path: Path, 
+  setPath: React.Dispatch<SetStateAction<Path>>,
+  segmentId: string,
+  slot: Slot,
+): CycleImageButtonProps => {
+  return {
+    imageKeys: [
+      { src: cw, key: "clockwise" },
+      { src: ccw, key: "counterclockwise" },
+      { src: cwccw, key: null },
+    ],
+    onKeyChange: (key: string | null) => {
+      updatePathConstants(setPath, segmentId, { [slot] : { turnDirection: key } })
+    },
+    initialKey: getDirectionState(path, segmentId, "turnDirection", slot)
+  }
+}
+
+const createDriveDirectionGroup = (
+  path: Path, 
+  setPath: React.Dispatch<SetStateAction<Path>>,
+  segmentId: string,
+  slot: Slot,
+): CycleImageButtonProps => {
+
+  return {
+    imageKeys: [
+      { src: fwd, key: "forward" },
+      { src: rev, key: "reverse" },
+      { src: fwdrev, key: null },
+    ],
+    onKeyChange: (key: string | null) => {
+      updatePathConstants(setPath, segmentId, { [slot]: { driveDirection: key } })
+    },
+    initialKey: getDirectionState(path, segmentId, "driveDirection", slot)
+  }
+}
+
+const createSwingDirectionGroup = (
+  path: Path, 
+  setPath: React.Dispatch<SetStateAction<Path>>,
+  segmentId: string,
+  slot: Slot,
+): CycleImageButtonProps => {
+  return {
+    imageKeys: [
+      { src: rightswing, key: "right" },
+      { src: leftswing, key: "left" },
+    ],
+    onKeyChange: (key: string | null) => {
+      updatePathConstants(setPath, segmentId, { [slot]: { swingDirection: key } })
+    },
+    initialKey: getDirectionState(path, segmentId, "swingDirection", slot)
+  }
+}
+
+export function getMikLibDirectionConfig(
+    path: Path, 
+    setPath: React.Dispatch<SetStateAction<Path>>, 
+    segmentId: string,
+): CycleImageButtonProps[] {
+    const s = path.segments.find((c) => c.id === segmentId);
+    if (s === undefined) return [];
+    
+    switch (s.kind) {
+        case "pointDrive":
+        case "poseDrive":
+            return [
+            createDriveDirectionGroup(path, setPath, segmentId, "drive"),
+            ]
+        case "pointTurn":
+        case "angleTurn":
+        return [
+            createTurnDirectionGroup(path, setPath, segmentId, "turn")
+        ]
+        case "angleSwing":
+        case "pointSwing":
+        return [
+            createSwingDirectionGroup(path, setPath, segmentId, "swing"),
+            createTurnDirectionGroup(path, setPath, segmentId, "swing")
+        ]
+    }
+}
+
 export function getmikLibConstantsConfig(
     format: Format, 
     path: Path, 
     setPath: React.Dispatch<SetStateAction<Path>>, 
-    segmentId: string
+    segmentId: string,
 ): ConstantListField[] {
     const s = path.segments.find((c) => c.id === segmentId);
     if (s === undefined) return [];
@@ -154,5 +260,4 @@ export function getmikLibConstantsConfig(
             return createTurnPIDGroup(format, setPath, segmentId, s.kind, s.constants.swing, true);
     }
 
-    return [];
 }

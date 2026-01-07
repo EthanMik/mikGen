@@ -14,7 +14,7 @@ import CommandList from "./CommandList";
 import { createCommand, type Command } from "../../core/Types/Command";
 import type { ConstantField } from "./ConstantRow";
 import ConstantsList from "./ConstantsList";
-import CycleImageButton from "../Util/CycleButton";
+import CycleImageButton, { type CycleImageButtonProps } from "../Util/CycleButton";
 
 
 export type ConstantListField = {
@@ -30,6 +30,7 @@ type MotionListProps = {
     name: string,
     speedScale: number,
     field: ConstantListField[], 
+    directionField: CycleImageButtonProps[],
     segmentId: string,
     isOpenGlobal: boolean,
     start?: boolean,
@@ -39,6 +40,7 @@ export default function MotionList({
     name, 
     speedScale,
     field,
+    directionField,
     segmentId, 
     isOpenGlobal,
     start = false
@@ -210,100 +212,98 @@ export default function MotionList({
 
     return (
         <div className="flex flex-col gap-2">
-            <button 
-                onClick={handleOnClick}
-                onMouseEnter={StartHover}
-                onMouseLeave={EndHover}
-                className={`${selected ? "bg-medlightgray" : ""} 
-                justify-between 
-                items-center 
-                flex flex-row w-[450px] h-[35px] gap-[10px]
-                hover:bg-medgray_hover 
-                rounded-lg pl-4 pr-4
+            <button
+            onClick={handleOnClick}
+            onMouseEnter={StartHover}
+            onMouseLeave={EndHover}
+            className={`${selected ? "bg-medlightgray" : ""} 
+                flex flex-row justify-start items-center
+                w-[450px] h-[35px] gap-[12px]
+                hover:bg-medgray_hover
+                rounded-lg px-4
                 transition-all duration-100
                 active:scale-[0.995]
-              active:bg-medgray_hover/70        
-            `}>
-                <button className="cursor-pointer" 
-                    onClick={() => setOpen(!isOpen)}>
-                    { !isOpen ? 
-                    <img className="w-[15px] h-[15px] rotate-270" src={downArrow}/>
-                    : <img className="w-[15px] h-[15px]" src={downArrow}/>
-                    }
-                </button>
-
-                <button className="cursor-pointer" 
-                onClick={handleEyeOnClick}>
-                <img className="w-[30px] h-[22px]"
-                    src={isEyeOpen ? eyeOpen : eyeClosed}
-                />
-                </button>
-
-                <button className="cursor-pointer" 
-                onClick={handleLockOnClick}>
-                <img className="w-[30px] h-[22px]"
-                    src={isLocked ? lockClose : lockOpen}
-                />
-                </button>
-                <span className="w-[80px] text-left">
-                    {name}
-                </span>
-                {!start ? <Slider 
-                    sliderWidth={250}
-                    sliderHeight={5}
-                    knobHeight={16}
-                    knobWidth={16}
-                    value={(field[0]?.values?.["maxSpeed"] ?? 0) / speedScale * 100} 
-                    setValue={(v: number) => field[0]?.onChange({ maxSpeed: (v / 100) * speedScale })}
-                /> : <div className="w-[290px]"></div>
-                }
-                {!start && <span className="w-10">
-                    {(field[0]?.values?.["maxSpeed"] ?? 0).toFixed(speedScale > 9.9 ? (speedScale > 99.9 ? 0 : 1) : 2)}
-                </span>}
-                                    
-
-                <CycleImageButton 
-                    imageKeys={
-                        [
-                            { src: cw, key: "left"},
-                            { src: ccw, key: "right"},
-                            // { src: cwccw, key: "null"},
-                        ]
-                    }
-                    onKeyChange={
-                        (key: string) => {
-                            field[0]?.onChange({ swingDirection: key })
-                            console.log(key);
-                        }
-                    }
-
-                />
-
-
-
+                active:bg-medgray_hover/70
+            `}
+            >
+            <button
+                className="cursor-pointer shrink-0"
+                onClick={() => setOpen(!isOpen)}
+            >
+                {!isOpen ? (
+                <img className="w-[15px] h-[15px] rotate-270" src={downArrow} />
+                ) : (
+                <img className="w-[15px] h-[15px]" src={downArrow} />
+                )}
             </button>
-            <div className={`flex flex-col ml-10 gap-2 transition-all ${isOpen ? "block" : "hidden"}`}>
+
+            <button className="cursor-pointer shrink-0" onClick={handleEyeOnClick}>
+                <img className="w-[20px] h-[20px]" src={isEyeOpen ? eyeOpen : eyeClosed} />
+            </button>
+
+            <button className="cursor-pointer shrink-0" onClick={handleLockOnClick}>
+                <img className="w-[20px] h-[20px]" src={isLocked ? lockClose : lockOpen} />
+            </button>
+
+            <span className="w-[50px] items-center shrink-0 text-left truncate">{name}</span>
+
+            {!start ? (
+                <Slider
+                sliderWidth={160}
+                sliderHeight={5}
+                knobHeight={16}
+                knobWidth={16}
+                value={(field[0]?.values?.["maxSpeed"] ?? 0) / speedScale * 100}
+                setValue={(v: number) => field[0]?.onChange({ maxSpeed: (v / 100) * speedScale })}
+                />
+            ) : (
+                <div className="w-[230px] shrink-0" />
+            )}
+
+            {!start && (
+                <span className="w-6 shrink-0 text-left tabular-nums pl-1">
+                {(field[0]?.values?.["maxSpeed"] ?? 0).toFixed(speedScale > 9.9 ? (speedScale > 99.9 ? 0 : 1) : 2)}
+                </span>
+            )}
+            <div className="w-[50px] flex flex-row items-center justify-end gap-1.5">
+                {directionField.map((f) => (
+                    <CycleImageButton
+                    imageKeys={f.imageKeys}
+                    onKeyChange={f.onKeyChange}
+                    initialKey={f.initialKey}
+                    />
+                ))}
+
+            </div>
+            </button>
+                <div
+                className={`relative flex flex-col ml-10 gap-2 transition-all ${
+                    isOpen ? "block" : "hidden"
+                }`}
+                >
+                <div className="absolute left-[-13px] top-0 h-full w-[3px] rounded-full bg-medlightgray" />
+
                 <CommandList command={command} setCommand={setCommand} />
                 {field.map((f) => {
-                    const fieldKeys = f.fields.map(m => m.key);
+                    const fieldKeys = f.fields.map((m) => m.key);
                     const relevantValues = getValuesFromKeys(fieldKeys, f.values);
                     const relevantDefaults = getValuesFromKeys(fieldKeys, f.defaults);
 
                     return (
-                        <ConstantsList
-                            key={f.header}
-                            header={f.header}
-                            fields={f.fields}
-                            values={relevantValues}
-                            isOpenGlobal={isOpenGlobal}
-                            onChange={f.onChange}
-                            onReset={() => f.onChange(relevantDefaults)}
-                            onSetDefault={f.setDefault}
-                            defaults={relevantDefaults}
-                        />
+                    <ConstantsList
+                        key={f.header}
+                        header={f.header}
+                        fields={f.fields}
+                        values={relevantValues}
+                        isOpenGlobal={isOpenGlobal}
+                        onChange={f.onChange}
+                        onReset={() => f.onChange(relevantDefaults)}
+                        onSetDefault={f.setDefault}
+                        defaults={relevantDefaults}
+                    />
                     );
                 })}
-            </div>
+                </div>
         </div>
     );
 }

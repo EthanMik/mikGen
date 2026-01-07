@@ -122,7 +122,7 @@ export default function CopyPathButton() {
           className="absolute shadow-xs mt-1 shadow-black right-0 top-full w-50 z-40
                      rounded-sm bg-medgray_hover min-h-2"
         >
-          <div className="flex flex-col mt-2 pl-2 pr-2 mb-2 gap-2">
+          <div className="flex flex-col mt-2 pl-2 pr-2 mb-2 gap-1">
             <button
               className="flex justify-between px-2 py-1 hover:bg-blackgrayhover rounded-sm"
               onClick={copyAllOnClick}
