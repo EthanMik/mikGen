@@ -11,15 +11,17 @@ Bugs:
 - Polish Control Config (segment casting)
 - Fix start segment having the ability to be set to a turn by deleting segments
 - Fix undo/redo: make it so you can undo more events and make sliders not bog up the queue
+- being able to drag a control into no mans land
 
 Todo:
-- write constants + constants config for rev gg yep sim is fucked yay
 - Add file saving, loading unloading
+- write constants + constants config for rev gg yep sim is fucked yay
 - fix rev path conversion, change keybinds so it doesn't conflict with c&p
 - add lemlib drive motions - jar template can just use mikLib with small modifications
 - Fix rev boomerang (may need to swap coordinate frame)
 - Setting menu
 - make it so field swapping isnt such ass code
+- add grid snapping with ctrl + drag
 
 Planned:
 - grouping with button on the group to disable that part of path from sim, renaming group
@@ -27,7 +29,6 @@ Planned:
 - Add cut, copy and paste
 - add ability to add more commands and make them be color coded, revamp command menu to not limit length and allow them to be modifed not just deleted
 - change segment order by dragging, add when groups are added  
-- fix UI not resizing to fit resolution
 - Add scrubbing steps to settings
 - square drag to select add to path config
 - tooltip when hovering over svg buttons

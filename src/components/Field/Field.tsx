@@ -4,7 +4,7 @@ import type { Coordinate } from "../../core/Types/Coordinate";
 import { type Path } from "../../core/Types/Path";
 import homeButton from "../../assets/home.svg"
 import { segmentsEqual } from "../../core/Types/Segment";
-import { FIELD_REAL_DIMENSIONS, toInch, toPX, vector2Add, vector2Subtract, type Rectangle } from "../../core/Util";
+import { clamp, FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, toInch, toPX, vector2Add, vector2Subtract, type Rectangle } from "../../core/Util";
 import { usePath } from "../../hooks/usePath";
 import { usePathVisibility } from "../../hooks/usePathVisibility";
 import { usePose } from "../../hooks/usePose";
@@ -34,7 +34,6 @@ export default function Field() {
   const [pathVisible] = usePathVisibility();
   const [format] = useFormat();
 
-  // Undo/Redo Refs
   const pathStorageRef = useRef<Path[]>([]);
   const pathStoragePtr = useRef<number>(0);
   const undo = useRef(false);
@@ -48,7 +47,6 @@ export default function Field() {
   const fieldDragRef = useRef<Coordinate>( { x: 0, y: 0} );
   const isFieldDragging = useRef(false);
 
-  // --- Logic: Undo/Redo Management ---
   const pathChanged = (): boolean => {
     if (prevPath.current.segments.length !== path.segments.length) return true;
     for (let i = 0; i < path.segments.length; i++) {
@@ -83,12 +81,12 @@ export default function Field() {
     prevPath.current = path;
   }, [path, drag.dragging]);
 
-  // --- Logic: Macros & Event Listeners ---
   const {
     moveControl, moveHeading, deleteControl, unselectPath, selectPath,
     selectInversePath, undoPath, redoPath, addPointDriveSegment,
     addPointTurnSegment, addPoseDriveSegment, addAngleTurnSegment,
-    addAngleSwingSegment, addPointSwingSegment,
+    addAngleSwingSegment, addPointSwingSegment, fieldZoomKeyboard, fieldZoomWheel, 
+    fieldPanWheel
   } = FieldMacros();
 
   const { toggleRobotVisibility } = PathSimMacros();
@@ -104,6 +102,7 @@ export default function Field() {
       selectInversePath(evt, setPath);
       undoPath(evt, undo, pathStorageRef, pathStoragePtr, setPath);
       redoPath(evt, undo, pathStorageRef, pathStoragePtr, setPath);
+      fieldZoomKeyboard(evt, setImg);
       toggleRobotVisibility(evt, setRobotVisibility);
     };
 
@@ -121,6 +120,23 @@ export default function Field() {
       document.removeEventListener("wheel", handleWheelDown);
     };
   }, []);
+
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (svg === null) return;
+
+    const onWheel = (evt: WheelEvent) => {
+      fieldZoomWheel(evt, setImg, svgRef);
+      fieldPanWheel(evt, setImg);
+    };
+
+    svg.addEventListener("wheel", onWheel, { passive: false });
+
+    return () => {
+      svg.removeEventListener("wheel", onWheel);
+    };
+  }, []);
+    
 
     const handleFieldPointerDown = (evt: React.PointerEvent<SVGSVGElement>) => {
         if (evt.button !== 1) return;
@@ -146,7 +162,6 @@ export default function Field() {
         fieldDragRef.current = { x: evt.clientX, y: evt.clientY };
     };
 
-  // --- Logic: Dragging ---
   const handlePointerMove = (evt: React.PointerEvent<SVGSVGElement>) => {
     if (!drag.dragging || !svgRef.current) return;
 
@@ -160,6 +175,13 @@ export default function Field() {
         const currentPx = toPX({ x: c.pose.x, y: c.pose.y }, FIELD_REAL_DIMENSIONS, img);
         const newPx = vector2Add(currentPx, delta);
         const newInch = toInch(newPx, FIELD_REAL_DIMENSIONS, img);
+
+        // if (evt.ctrlKey) {
+        //   newInch = {
+        //     x: Math.round(newInch.x),
+        //     y: Math.round(newInch.y)
+        //   }
+        // }
 
         return { ...c, pose: { ...c.pose, x: newInch.x, y: newInch.y } };
       }),
@@ -246,9 +268,9 @@ export default function Field() {
     <div tabIndex={0} onMouseLeave={endDrag}>
       <svg
         ref={svgRef}
-        viewBox={`${0} ${0} ${img.w} ${img.h}`}
-        width={img.w}
-        height={img.h}
+        viewBox={`${0} ${0} ${FIELD_IMG_DIMENSIONS.w} ${FIELD_IMG_DIMENSIONS.h}`}
+        width={FIELD_IMG_DIMENSIONS.w}
+        height={FIELD_IMG_DIMENSIONS.h}
         className={`${middleMouseDown ? `cursor-grab` : "cursor-default"}`}
         onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
         onPointerDown={(e) => {
@@ -293,9 +315,9 @@ export default function Field() {
           />
         )}
       </svg>
-        {(img.x !== 0 || img.y !== 0) && (
+        {(img.x !== 0 || img.y !== 0 || img.w !== FIELD_IMG_DIMENSIONS.w || img.h !== FIELD_IMG_DIMENSIONS.h) && (
           <button
-            onClick={() => setImg(prev => ({ ...prev, x: 0, y: 0 }))}
+            onClick={() => setImg(prev => ({ ...prev, x: 0, y: 0, w: 575, h: 575 }))}
             className="
               absolute top-22 right-129
               flex

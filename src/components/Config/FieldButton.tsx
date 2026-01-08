@@ -99,7 +99,7 @@ export default function FieldButton() {
       } hover:bg-medgray_hover rounded-sm`}
     >
       <button onClick={handleToggleMenu} className="px-2 py-1 cursor-pointer">
-        <span className="text-[20px]">Field {isPending ? "…" : ""}</span>
+        <span className="text-[20px]">Field</span>
       </button>
 
       {isOpen && (

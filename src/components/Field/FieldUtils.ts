@@ -2,7 +2,7 @@ import type { Coordinate } from "../../core/Types/Coordinate";
 import { getBackwardsSnapPose, type Path } from "../../core/Types/Path";
 import { FIELD_REAL_DIMENSIONS, toInch, toPX, toRad, type Rectangle } from "../../core/Util";
 
-export function pointerToSvg(evt: React.PointerEvent | React.MouseEvent<SVGSVGElement>, svg: SVGSVGElement): Coordinate {
+export function pointerToSvg(evt: React.PointerEvent | React.MouseEvent<SVGSVGElement> | WheelEvent, svg: SVGSVGElement): Coordinate {
   const ctm = svg.getScreenCTM();
   if (ctm) {
     const pt = svg.createSVGPoint();

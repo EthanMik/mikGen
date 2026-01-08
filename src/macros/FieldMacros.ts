@@ -1,5 +1,5 @@
 import type React from "react";
-import { clamp, normalizeDeg } from "../core/Util";
+import { clamp, FIELD_IMG_DIMENSIONS, normalizeDeg, type Rectangle } from "../core/Util";
 import type { Path } from "../core/Types/Path";
 import type { SetStateAction } from "react";
 import { createAngleSwingSegment, createAngleTurnSegment, createPointDriveSegment, createPointSwingSegment, createPointTurnSegment, createPoseDriveSegment, type Segment } from "../core/Types/Segment";
@@ -7,12 +7,13 @@ import type { Coordinate } from "../core/Types/Coordinate";
 import type { Pose } from "../core/Types/Pose";
 import type { Format } from "../hooks/useFormat";
 import { convertPathToString } from "../Conversion/Conversion";
+import { pointerToSvg } from "../components/Field/FieldUtils";
 
 export default function FieldMacros() {
-    const MIN_FIELD_X = -100;
-    const MIN_FIELD_Y = -100;
-    const MAX_FIELD_X = 100;
-    const MAX_FIELD_Y = 100;
+    const MIN_FIELD_X = -999;
+    const MIN_FIELD_Y = -999;
+    const MAX_FIELD_X = 999;
+    const MAX_FIELD_Y = 999 ;
 
     /** Using keys "←↑↓→" and "Shift + ←↑↓→" to move segments  */
     function moveControl(
@@ -245,6 +246,90 @@ export default function FieldMacros() {
         });
     }
 
+    const fieldZoomKeyboard = (evt: KeyboardEvent, setImg: React.Dispatch<SetStateAction<Rectangle>>) => {
+        const ZOOM_STEP = 200;
+
+        let dir = 0;
+
+        if (!evt.ctrlKey) return;
+        if (evt.key === "=") dir = 1;
+        if (evt.key === "-") dir = -1;
+
+        if (evt.key === "0") {
+            setImg(FIELD_IMG_DIMENSIONS);
+            return;         
+        }
+        
+        evt.preventDefault();
+        evt.stopPropagation();
+
+        setImg((prev) => {
+            const aspectRatio = prev.w / prev.h;
+            
+            const newW = Math.max(100, prev.w + (ZOOM_STEP * dir));
+            const newH = newW / aspectRatio;
+
+            return {
+                ...prev,
+                w: clamp(newW, 0, FIELD_IMG_DIMENSIONS.w * 3),
+                h: clamp(newH, 0, FIELD_IMG_DIMENSIONS.h * 3),
+            };
+        });
+    }
+    
+    const fieldZoomWheel = (evt: WheelEvent, setImg: React.Dispatch<SetStateAction<Rectangle>>, svgRef: React.RefObject<SVGSVGElement | null>) => {
+        if (evt.shiftKey || !evt.ctrlKey || svgRef.current === null) return;
+
+        evt.preventDefault();
+        evt.stopPropagation();
+  
+        const cursorPos = pointerToSvg(evt, svgRef.current);
+  
+        const zoomSpeed = 1; 
+        const delta = -evt.deltaY * zoomSpeed;
+  
+        setImg((prev) => {
+            const aspectRatio = prev.w / prev.h;
+
+            const newW = Math.max(100, prev.w + delta);
+            const newH = newW / aspectRatio;
+
+            const fx = (cursorPos.x - prev.x) / prev.w;
+            const fy = (cursorPos.y - prev.y) / prev.h;
+
+            const newX = clamp(cursorPos.x - fx * newW, -9999, 9999);
+            const newY = clamp(cursorPos.y - fy * newH, -9999, 9999);
+
+            const maxWidth = FIELD_IMG_DIMENSIONS.w * 3;
+            const maxHeight = FIELD_IMG_DIMENSIONS.w * 3;
+
+            if (newW >= maxWidth || newH >= maxHeight) return prev;
+
+            return {
+                x: newX,
+                y: newY,
+                w: newW,
+                h: newH,
+            };
+        });        
+    }
+
+    const fieldPanWheel = (evt: WheelEvent, setImg: React.Dispatch<SetStateAction<Rectangle>>) => {
+        if (evt.shiftKey || evt.ctrlKey) return;
+
+        evt.preventDefault();
+        
+        const panSpeed = 1.0;
+        const dx = -evt.deltaX * panSpeed;
+        const dy = -evt.deltaY * panSpeed;
+
+        setImg((prev) => ({
+            ...prev,
+            x: clamp(prev.x + dx, -9999, 9999),
+            y: clamp(prev.y + dy, -9999, 9999),
+        }));
+    }
+
     const addAngleTurnSegment = (format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
         const control = createAngleTurnSegment(format, 0);
         addSegment(control, setPath);
@@ -304,6 +389,9 @@ export default function FieldMacros() {
         undoPath,
         redoPath,
         copyAllPath,
+        fieldZoomKeyboard,
+        fieldZoomWheel,
+        fieldPanWheel,
         copySelectedPath,
         addPointDriveSegment,
         addPointTurnSegment,

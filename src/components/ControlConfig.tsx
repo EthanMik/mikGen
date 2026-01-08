@@ -136,7 +136,7 @@ export default function ControlConfig() {
                     value={getXValue()} 
                     stepSize={1}
                     roundTo={2}
-                    bounds={[-100, 100]}
+                    bounds={[-999, 999]}
                     units="in"
                 />
             </div>
@@ -150,7 +150,7 @@ export default function ControlConfig() {
                     roundTo={2}
                     setValue={updateYValue} 
                     value={getYValue()} 
-                    bounds={[-100, 100]}
+                    bounds={[-999, 999]}
                     units="in"
                 />
             </div>

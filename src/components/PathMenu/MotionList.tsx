@@ -243,26 +243,29 @@ export default function MotionList({
             </button>
 
             <span className="w-[50px] items-center shrink-0 text-left truncate">{name}</span>
+            
+            <div className="shrink-0">
+                {!start ? (
+                    <Slider
+                    sliderWidth={160}
+                    sliderHeight={5}
+                    knobHeight={16}
+                    knobWidth={16}
+                    value={(field[0]?.values?.["maxSpeed"] ?? 0) / speedScale * 100}
+                    setValue={(v: number) => field[0]?.onChange({ maxSpeed: (v / 100) * speedScale })}
+                    />
+                ) : (
+                    <div className="w-[230px] shrink-0" />
+                )}
 
-            {!start ? (
-                <Slider
-                sliderWidth={160}
-                sliderHeight={5}
-                knobHeight={16}
-                knobWidth={16}
-                value={(field[0]?.values?.["maxSpeed"] ?? 0) / speedScale * 100}
-                setValue={(v: number) => field[0]?.onChange({ maxSpeed: (v / 100) * speedScale })}
-                />
-            ) : (
-                <div className="w-[230px] shrink-0" />
-            )}
+            </div>
 
             {!start && (
                 <span className="w-6 shrink-0 text-left tabular-nums pl-1">
                 {(field[0]?.values?.["maxSpeed"] ?? 0).toFixed(speedScale > 9.9 ? (speedScale > 99.9 ? 0 : 1) : 2)}
                 </span>
             )}
-            <div className="w-[50px] flex flex-row items-center justify-end gap-1.5">
+            <div className="w-full flex flex-row items-center justify-end gap-2.5">
                 {directionField.map((f) => (
                     <CycleImageButton
                     imageKeys={f.imageKeys}

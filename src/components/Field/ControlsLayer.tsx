@@ -1,7 +1,7 @@
 import React from "react";
 import type { Path } from "../../core/Types/Path";
 import { getBackwardsSnapPose, getForwardSnapPose } from "../../core/Types/Path";
-import { calculateHeading, toPX, toRad, FIELD_REAL_DIMENSIONS, type Rectangle } from "../../core/Util";
+import { calculateHeading, toPX, toRad, FIELD_REAL_DIMENSIONS, type Rectangle, FIELD_IMG_DIMENSIONS } from "../../core/Util";
 
 type ControlsLayerProps = {
   path: Path;
@@ -12,6 +12,11 @@ type ControlsLayerProps = {
 };
 
 export default function ControlsLayer({ path, img, radius, format, onPointerDown }: ControlsLayerProps) {
+  const imgDefaultSize = (FIELD_IMG_DIMENSIONS.w + FIELD_IMG_DIMENSIONS.h) / 2; 
+  const imgRealSize = (img.w + img.h) / 2
+  const scale = imgRealSize / imgDefaultSize;
+  radius = radius * scale;
+
   return (
     <>
       {path.segments.map((control, idx) => (
@@ -28,7 +33,7 @@ export default function ControlsLayer({ path, img, radius, format, onPointerDown
                   cy={toPX({ x: control.pose.x, y: control.pose.y }, FIELD_REAL_DIMENSIONS, img).y}
                   r={control.hovered ? radius * 1.2 : radius}
                   fill={control.selected ? "rgba(180, 50, 11, .75)" : "rgba(160, 32, 7, .5)"}
-                  strokeWidth={idx === path.segments.length - 1 ? 2 : 0}
+                  strokeWidth={idx === path.segments.length - 1 ? 2 * scale : 0}
                 />
               )}
 
@@ -64,7 +69,7 @@ export default function ControlsLayer({ path, img, radius, format, onPointerDown
                     pointerEvents="none"
                     x1={basePx.x} y1={basePx.y} x2={tipPx.x} y2={tipPx.y}
                     stroke={baseStroke}
-                    strokeWidth={thickness}
+                    strokeWidth={thickness * scale}
                     strokeLinecap="round"
                   />
                 );
@@ -116,7 +121,7 @@ export default function ControlsLayer({ path, img, radius, format, onPointerDown
                     d={`M ${basePx.x} ${basePx.y} Q ${cx} ${cy} ${tipPx.x} ${tipPx.y}`}
                     fill="none"
                     stroke={baseStroke}
-                    strokeWidth={thickness}
+                    strokeWidth={thickness * scale}
                     strokeLinecap="round"
                   />
                 );
