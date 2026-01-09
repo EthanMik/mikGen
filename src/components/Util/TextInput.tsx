@@ -9,6 +9,7 @@ type TextInputProps = {
   value: string;
   setValue: (value: string) => void;
   units?: string;
+  focus?: boolean;
   setText?: (text: string) => void;
 };
 
@@ -18,6 +19,7 @@ export default function TextInput({
   width,
   height,
   value,
+  focus,
   setValue,
   setText,
   units = "",
@@ -29,6 +31,11 @@ export default function TextInput({
   const [labelW, setLabelW] = useState(0);
 
   const inputRef = useRef<HTMLInputElement>(null);
+
+  if (focus && inputRef.current !== null) {
+    inputRef.current?.focus();
+    focus = false;
+  }
 
   displayRef.current = edit !== null ? edit : displayRef.current;
   setText?.(edit);
@@ -50,11 +57,6 @@ export default function TextInput({
       executeValue();
       evt.currentTarget.blur();
     }
-  };
-
-  const handleBlur = (evt: React.FocusEvent<HTMLInputElement>) => {
-    executeValue();
-    evt.currentTarget.blur();
   };
 
   const stroke = 2;
@@ -123,7 +125,6 @@ export default function TextInput({
         value={displayRef.current}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        onBlur={handleBlur}
       />
 
       <svg

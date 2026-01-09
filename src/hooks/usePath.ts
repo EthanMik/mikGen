@@ -2,7 +2,7 @@ import { createSharedState } from "../core/SharedState";
 import type { Path } from "../core/Types/Path";
 
 const saved = localStorage.getItem("path");
-const initialData = false ? JSON.parse(saved) : { 
+const initialData = saved ? JSON.parse(saved) : { 
     name: "",
     segments: [] 
 };

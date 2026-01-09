@@ -1,19 +1,41 @@
 import { useEffect, useRef, useState } from "react";
 import { usePath } from "../../hooks/usePath";
 import FileRenamePopup from "./FileRenamePopup";
+import { useGetFileFormat } from "../../hooks/useGetFileFormat";
+import { useFormat } from "../../hooks/useFormat";
+import { useFileFormat, type FileFormat } from "../../hooks/useFileFormat";
+import { INITIAL_DEFAULTS } from "../../core/DefaultConstants";
+import { defaultRobotConstants } from "../../core/Robot";
+import { useField } from "../../hooks/useField";
 
 
 export default function FileButton() {
     const menuRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const renameResolveRef = useRef<((name: string | null) => void) | null>(null);
+    const fileHandleRef = useRef<FileSystemFileHandle | null>(null);
     
-    const [isOpen, setOpen] = useState(false);
+    const [ isOpen, setOpen ] = useState(false);
     const [ popupOpen, setPopupOpen ] = useState(false);
     const [ path, setPath ] = usePath();
+    const [ field, ] = useField();
+    const [ format, ] = useFormat();
+    const [ , setFileFormat ] = useFileFormat();
+    
+    const fileText = useGetFileFormat();
+
+    const [ label, setLabel ] = useState("");
+
+    const getFileName = (fileName = ""): string => {
+        const pathName = fileName === "" ? path.name : fileName;
+        if (pathName === "" || pathName === null || pathName === undefined) {
+            return format.slice(0, 3) + "Path";
+        }
+
+        return pathName;
+    }   
 
     const updatePathName = (name: string) => {
-        console.log(name);
         setPath(prev => ({
             ...prev,
             name: name
@@ -35,13 +57,68 @@ export default function FileButton() {
     }
 
     const handleNewFile = () => {
-        console.log("New File");
+        setFileFormat({
+                format: format,
+                field: field,
+                defaults: INITIAL_DEFAULTS[format],
+                path: { segments: [], name: "" },
+                robot: defaultRobotConstants,
+                commands: []
+            }
+        );
+        // Clear the file handle when creating a new file
+        fileHandleRef.current = null;
         setOpen(false);
     }
 
-    const handleOpenFile = () => {
-        fileInputRef.current?.click();
+    const handleOpenFile = async () => {
         setOpen(false);
+        
+        // Check if File System Access API is supported
+        if (!('showOpenFilePicker' in window)) {
+            console.error('File System Access API not supported');
+            // Fallback to traditional file input
+            fileInputRef.current?.click();
+            return;
+        }
+
+        try {
+            const [handle] = await window.showOpenFilePicker({
+                types: [
+                    {
+                        description: 'Text Files',
+                        accept: {
+                            'text/plain': ['.txt'],
+                        },
+                    },
+                    {
+                        description: 'JSON Files',
+                        accept: {
+                            'application/json': ['.json'],
+                        },
+                    },
+                    {
+                        description: 'CSV Files',
+                        accept: {
+                            'text/csv': ['.csv'],
+                        },
+                    },
+                ],
+                multiple: false,
+            });
+
+            // Store the file handle for future saves
+            fileHandleRef.current = handle;
+
+            const file = await handle.getFile();
+            const content = await file.text();
+            setFileFormat(JSON.parse(content) as FileFormat);
+        } catch (error) {
+            // User cancelled the open dialog or other error
+            if ((error as Error).name !== 'AbortError') {
+                console.error('Error opening file:', error);
+            }
+        }
     }
 
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,21 +127,89 @@ export default function FileButton() {
             const reader = new FileReader();
             reader.onload = (e) => {
                 const content = e.target?.result as string;
-                // TODO: Do something with the file content
-                console.log("File opened:", file.name, content);
+                setFileFormat(JSON.parse(content) as FileFormat);
             };
             reader.readAsText(file);
+            
+            // Clear file handle since we used the fallback method
+            fileHandleRef.current = null;
         }
     }
 
-    const handleSave = () => {
+    const handleSave = async () => {
+        setOpen(false);
+        
+        // Check if File System Access API is supported
+        if (!('showSaveFilePicker' in window)) {
+            console.error('File System Access API not supported');
+            // Fallback to download
+            handleDownload();
+            return;
+        }
 
+        try {
+            // If we already have a file handle, use it
+            if (fileHandleRef.current) {
+                const writable = await fileHandleRef.current.createWritable();
+                await writable.write(JSON.stringify(fileText));
+                await writable.close();
+            } else {
+                // If no file handle exists, use Save As
+                await handleSaveAs();
+            }
+        } catch (error) {
+            console.error('Error saving file:', error);
+        }
     }
 
-    const handleSaveAs = () => {
+    const handleSaveAs = async () => {
+        setOpen(false);
+        setLabel("Save As:");
+        // Check if File System Access API is supported
+        if (!('showSaveFilePicker' in window)) {
+            console.error('File System Access API not supported');
+            // Fallback to download with rename
+            handleDownloadAs();
+            return;
+        }
 
+        try {
+            const name = await requestFileName();
+            if (name === null) return;
+            
+            const handle = await window.showSaveFilePicker({
+                suggestedName: `${getFileName(name)}.txt`,
+                types: [
+                    {
+                        description: 'Text Files',
+                        accept: {
+                            'text/plain': ['.txt'],
+                        },
+                    },
+                    {
+                        description: 'JSON Files',
+                        accept: {
+                            'application/json': ['.json'],
+                        },
+                    },
+                ],
+            });
+
+            // Store the file handle for future saves
+            fileHandleRef.current = handle;
+
+            const writable = await handle.createWritable();
+            await writable.write(JSON.stringify(fileText));
+            await writable.close();
+        } catch (error) {
+            // User cancelled the save dialog or other error
+            if ((error as Error).name !== 'AbortError') {
+                console.error('Error saving file:', error);
+            }
+        }
     }
 
+    // Downloading text
     const downloadText = (content: string, filename: string) => {
         const blob = new Blob([content], { type: "text/plain" });
         const url = URL.createObjectURL(blob);
@@ -76,18 +221,17 @@ export default function FileButton() {
     };
 
     const handleDownload = () => {
-        downloadText("nothing", `${path.name}.txt`)
-
+        downloadText(JSON.stringify(fileText), `${getFileName()}.txt`)
         setOpen(false);
     }
 
     const handleDownloadAs = async () => {
         setOpen(false);
+        setLabel("Download As:");
         const name = await requestFileName();
         if (name === null) return; 
         
-        const content = "This is hardcoded text to download";
-        downloadText(content, `${name}.txt`);
+        downloadText(JSON.stringify(fileText), `${getFileName(name)}.txt`);
     }
 
     useEffect(() => {
@@ -144,6 +288,7 @@ export default function FileButton() {
             </button>
 
         {popupOpen && <FileRenamePopup 
+            label={label}
             open={popupOpen}
             setOpen={setPopupOpen}
             onEnter={updatePathName}

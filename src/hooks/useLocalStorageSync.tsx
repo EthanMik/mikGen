@@ -4,9 +4,9 @@ import { usePath } from "./usePath";
 import { useField } from "./useField";
 
 export default function useLocalStorageSync() {
-    const [path, setPath] = usePath();
-    const [format, setFormat] = useFormat();
-    const [ field, setField ] = useField();
+    const [ path, ] = usePath();
+    const [ format, ] = useFormat();
+    const [ field,  ] = useField();
 
     useEffect(() => {
         localStorage.setItem("path", JSON.stringify(path));

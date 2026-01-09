@@ -8,11 +8,13 @@ import React, { useEffect, useRef, useState } from "react";
 
 type FileRenamePopupProps = {
     onEnter: (text: string) => void;
-    open: boolean
-    setOpen: React.Dispatch<SetStateAction<boolean>>
+    open: boolean;
+    label: string;
+    setOpen: React.Dispatch<SetStateAction<boolean>>;
 }
 
 export default function FileRenamePopup({
+    label,
     onEnter,
     open,
     setOpen
@@ -20,7 +22,7 @@ export default function FileRenamePopup({
     const [ path,  ] = usePath();
     const [ format, ] = useFormat();
     
-    const intialName = path.name === "" ? (format.slice(0, 3) + "Path") : path.name
+    const intialName = (path.name === "" || path.name === undefined || path.name === null) ? (format.slice(0, 3) + "Path") : path.name
     
     const [ text, setText ] = useState(intialName);
     
@@ -65,18 +67,20 @@ export default function FileRenamePopup({
             { open && 
                 <div 
                     className="
-                    fixed inset-0 w-screen h-screen bg-black/1 backdrop-blur-[7px] z-30 
-                    overflow-x-hidden"
-                >
+                        fixed inset-0 z-30
+                        bg-black/10 backdrop-blur-[7px]
+                        grid place-items-center
+                        overflow-x-hidden"
+                    >
                     <div 
                         className="
-                            overflow-x-hidden
-                            fixed top-1/2 left-1/2
-                            -translate-y-[80%] -translate-x-1/2 origin-center
-                            bg-medgray_hover w-auto h-auto pr-4 pl-4 pb-4 pt-4 z-48
-                            flex justify-center items-center
+                            relative
+                            -translate-y-[15%]
+                            bg-medgray_hover w-auto h-auto p-4
+                            flex flex-col gap-2
                             shadow-xs shadow-blackgray
-                            rounded-lg flex-col"
+                            rounded-lg
+                        "
                         ref={popupRef}
                         >
                         <div className="flex flex-col gap-2 text-start ">
@@ -91,7 +95,7 @@ export default function FileRenamePopup({
                                 </img>
                             </button>
                             <span className="text-[18px] text-white">
-                                Download As:
+                                {label}
                             </span>
         
                             <div className="flex flex-row gap-1">
@@ -106,6 +110,7 @@ export default function FileRenamePopup({
                                         onEnter(text);
                                         setOpen(false);
                                     }}
+                                    focus={true}
                                     setText={setText}
                                 />
                                 <button

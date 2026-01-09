@@ -17,7 +17,7 @@ export type DefaultConstant = {
     }
 };
 
-const INITIAL_DEFAULTS: DefaultConstant = {
+export const INITIAL_DEFAULTS: DefaultConstant = {
   mikLib: {
     pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
     poseDrive:  { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
