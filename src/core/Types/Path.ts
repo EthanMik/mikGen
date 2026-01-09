@@ -1,7 +1,8 @@
 import type { Segment } from "./Segment";
 
 export interface Path {
-  segments: Segment[];
+    name: string,
+    segments: Segment[];
 }
 
 export const getBackwardsSnapPose = (path: Path, idx: number) => {

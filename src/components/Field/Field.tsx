@@ -3,8 +3,8 @@ import { robotConstantsStore } from "../../core/Robot";
 import type { Coordinate } from "../../core/Types/Coordinate";
 import { type Path } from "../../core/Types/Path";
 import homeButton from "../../assets/home.svg"
-import { segmentsEqual } from "../../core/Types/Segment";
-import { clamp, FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, toInch, toPX, vector2Add, vector2Subtract, type Rectangle } from "../../core/Util";
+import { segmentsEqual, type Segment } from "../../core/Types/Segment";
+import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, toInch, toPX, vector2Add, vector2Subtract, type Rectangle } from "../../core/Util";
 import { usePath } from "../../hooks/usePath";
 import { usePathVisibility } from "../../hooks/usePathVisibility";
 import { usePose } from "../../hooks/usePose";
@@ -18,11 +18,11 @@ import RobotLayer from "./RobotLayer";
 import PathLayer from "./PathLayer";
 import ControlsLayer from "./ControlsLayer";
 import CommandLayer from "./CommandLayer";
-import { useField } from "../../hooks/useField";
+import { getFieldSrcFromKey, useField } from "../../hooks/useField";
 
 export default function Field() {
   const [ img, setImg ] = useState<Rectangle>( { x: 0, y: 0, w: 575, h: 575 })
-  const [ src ] = useField();
+  const [ fieldKey ] = useField();
 
   const svgRef = useRef<SVGSVGElement | null>(null);
 
@@ -168,8 +168,8 @@ export default function Field() {
     const posSvg = pointerToSvg(evt, svgRef.current);
     const delta = vector2Subtract(posSvg, drag.lastPos);
 
-    const next: Path = {
-      segments: path.segments.map((c) => {
+    const next: Segment[] = (
+      path.segments.map((c) => {
         if (!c.selected || c.locked || c.pose.x === null || c.pose.y === null) return c;
 
         const currentPx = toPX({ x: c.pose.x, y: c.pose.y }, FIELD_REAL_DIMENSIONS, img);
@@ -184,11 +184,14 @@ export default function Field() {
         // }
 
         return { ...c, pose: { ...c.pose, x: newInch.x, y: newInch.y } };
-      }),
-    };
+      })
+    );
 
     setDrag((prev) => ({ ...prev, lastPos: posSvg }));
-    setPath(next);
+    setPath(prev => ({
+      ...prev,
+      segments: next
+    }));
   };
 
   const endDrag = () => {
@@ -290,7 +293,7 @@ export default function Field() {
           endDrag()
         }}
       >
-        <image href={src} x={img.x} y={img.y} width={img.w} height={img.h} />
+        <image href={getFieldSrcFromKey(fieldKey)} x={img.x} y={img.y} width={img.w} height={img.h} />
         
         <PathLayer path={path} img={img} visible={pathVisible} />
 

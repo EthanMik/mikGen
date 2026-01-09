@@ -1,4 +1,4 @@
-import { getDefaultConstants } from "../core/Constants";
+import { getDefaultConstants } from "../core/DefaultConstants";
 import { getUnequalPIDConstants, type PIDConstants } from "../core/mikLibSim/MikConstants";
 import type { Coordinate } from "../core/Types/Coordinate";
 import { getBackwardsSnapPose, getForwardSnapPose, type Path } from "../core/Types/Path";

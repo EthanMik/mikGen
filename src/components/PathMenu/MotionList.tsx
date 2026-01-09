@@ -208,19 +208,20 @@ export default function MotionList({
     };
 
     return (
-        <div className="flex flex-col gap-2">
+        <div className={`flex flex-col gap-2 mt-[1px]`}>
             <button
             onClick={handleOnClick}
             onMouseEnter={StartHover}
             onMouseLeave={EndHover}
             className={`${selected ? "bg-medlightgray" : ""} 
                 flex flex-row justify-start items-center
-                w-[450px] h-[35px] gap-[12px]
+                w-[450px] h-[35px] gap-[12px] outline-1
                 hover:bg-medgray_hover
-                rounded-lg px-4
+                rounded-lg pl-4 pr-4
                 transition-all duration-100
                 active:scale-[0.995]
                 active:bg-medgray_hover/70
+                ${isOpen ? ( !selected ? "outline-medlightgray scale-[0.995]" : "outline-transparent") : "outline-transparent"}
             `}
             >
             <button
@@ -244,28 +245,26 @@ export default function MotionList({
 
             <span className="w-[50px] items-center shrink-0 text-left truncate">{name}</span>
             
-            <div className="shrink-0">
-                {!start ? (
-                    <Slider
-                    sliderWidth={160}
-                    sliderHeight={5}
-                    knobHeight={16}
-                    knobWidth={16}
-                    value={(field[0]?.values?.["maxSpeed"] ?? 0) / speedScale * 100}
-                    setValue={(v: number) => field[0]?.onChange({ maxSpeed: (v / 100) * speedScale })}
-                    />
-                ) : (
-                    <div className="w-[230px] shrink-0" />
-                )}
+            {!start ? (
+                <Slider
+                sliderWidth={210}
+                sliderHeight={5}
+                knobHeight={16}
+                knobWidth={16}
+                value={(field[0]?.values?.["maxSpeed"] ?? 0) / speedScale * 100}
+                setValue={(v: number) => field[0]?.onChange({ maxSpeed: (v / 100) * speedScale })}
+                />
+            ) : (
+                <div className="w-[230px]" />
+            )}
 
-            </div>
 
             {!start && (
                 <span className="w-6 shrink-0 text-left tabular-nums pl-1">
                 {(field[0]?.values?.["maxSpeed"] ?? 0).toFixed(speedScale > 9.9 ? (speedScale > 99.9 ? 0 : 1) : 2)}
                 </span>
             )}
-            <div className="w-full flex flex-row items-center justify-end gap-2.5">
+            {directionField.length !== 0 && <div className="w-max flex flex-row items-center justify-end gap-2.5 pl-[12px]">
                 {directionField.map((f) => (
                     <CycleImageButton
                     imageKeys={f.imageKeys}
@@ -274,14 +273,14 @@ export default function MotionList({
                     />
                 ))}
 
-            </div>
+            </div>}
             </button>
                 <div
-                className={`relative flex flex-col ml-10 gap-2 transition-all ${
+                className={`relative flex flex-col ml-9 gap-2 transition-all ${
                     isOpen ? "block" : "hidden"
                 }`}
                 >
-                <div className="absolute left-[-13px] top-0 h-full w-[3px] rounded-full bg-medlightgray" />
+                <div className="absolute left-[-16px] top-0 h-full w-[4px] rounded-full bg-medlightgray" />
 
                 <CommandList command={command} setCommand={setCommand} />
                 {field.map((f) => {

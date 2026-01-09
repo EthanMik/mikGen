@@ -100,8 +100,8 @@ export default function PathSimulator() {
             const target = evt.target as HTMLElement | null;
             if (target?.isContentEditable || target?.tagName === "INPUT") return;
             pauseSimulator(evt, setPlaying)
-            // scrubSimulator(evt, setValue, setPlaying, skip, computedPath, 0.05, 0.25);
-            scrubSimulator(evt, setValue, setPlaying, skip, computedPath, 1/60, 0.25);
+            scrubSimulator(evt, setValue, setPlaying, skip, computedPath, 0.05, 0.25);
+            // scrubSimulator(evt, setValue, setPlaying, skip, computedPath, 1/60, 0.25);
         }
 
         document.addEventListener('keydown', handleKeyDown)
@@ -205,7 +205,7 @@ export default function PathSimulator() {
             <Slider 
                 value={value} 
                 setValue={setValue} 
-                sliderWidth={200} // 375
+                sliderWidth={373} // 375
                 sliderHeight={8} 
                 knobHeight={22} 
                 knobWidth={22}
@@ -215,7 +215,7 @@ export default function PathSimulator() {
                 }}
                 OnChangeEnd={() => {}}
             />
-            <span className="w-35">[{pose?.x?.toFixed(1)}, {pose?.y?.toFixed(1)}, {pose?.angle?.toFixed(0)}]</span>
+            {/* <span className="w-35">[{pose?.x?.toFixed(1)}, {pose?.y?.toFixed(1)}, {pose?.angle?.toFixed(0)}]</span> */}
             <span className="block">{time.toFixed(2)} s</span>
             <Checkbox checked={robotVisible} setChecked={setRobotVisibility}/>
         </div>        

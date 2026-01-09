@@ -11,13 +11,13 @@ import { createObjectStore } from "./Store";
 import type { CycleImageButtonProps } from "../components/Util/CycleButton";
 import { getRevConstantsConfig } from "./ReveiLibSim/RevConstantsConfig";
 
-type DefaultsState = {
+export type DefaultConstant = {
     [F in Format]: {
         [K in keyof ConstantsByFormat[F] & SegmentKind]: ConstantsByFormat[F][K];
     }
 };
 
-const INITIAL_DEFAULTS: DefaultsState = {
+const INITIAL_DEFAULTS: DefaultConstant = {
   mikLib: {
     pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
     poseDrive:  { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
@@ -55,7 +55,7 @@ const INITIAL_DEFAULTS: DefaultsState = {
   },
 };
 
-export const globalDefaultsStore = createObjectStore<DefaultsState>(INITIAL_DEFAULTS);
+export const globalDefaultsStore = createObjectStore<DefaultConstant>(INITIAL_DEFAULTS);
 
 export function updateDefaultConstants<F extends Format, K extends keyof ConstantsByFormat[F] & SegmentKind>(format: F, kind: K, patch: Partial<ConstantsByFormat[F][K]>) {
     globalDefaultsStore.setState((prev) => {

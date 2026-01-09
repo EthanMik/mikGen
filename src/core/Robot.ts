@@ -1,7 +1,7 @@
 import { createObjectStore } from "./Store";
 import { clamp, normalizeDeg, toDeg, toRad } from "./Util";
 
-type RobotConstants = {
+export type RobotConstants = {
     width: number,
     height: number,
     speed: number,

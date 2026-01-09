@@ -1,5 +1,5 @@
 import type { Format } from "../../hooks/useFormat";
-import { getDefaultConstants } from "../Constants";
+import { getDefaultConstants } from "../DefaultConstants";
 import { deepEqual, makeId } from "../Util";
 import type { mikDriveConstants, mikSwingConstants, mikTurnConstants } from "../mikLibSim/MikConstants";
 import type { ReveilLibConstants } from "../ReveiLibSim/RevConstants";

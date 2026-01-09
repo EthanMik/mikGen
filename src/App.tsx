@@ -55,13 +55,13 @@ export default function App() {
   }, []);
 
   return (
-    <div ref={viewportRef} className="w-screen h-screen pl-[10px] pr-[10px]">
+    <div ref={viewportRef} className="w-screen h-screen">
       <div
         ref={contentRef}
         style={{ transform: `scale(${scale})`, transformOrigin: "top left" }}
         className="inline-flex w-max h-max origin-top-left"
       >
-        <div className="flex flex-col gap-[10px] pl-[10px] pt-[10px]">
+        <div className="flex flex-col gap-[10px] ml-[10px] pl-[10px] pt-[10px]">
           <Config />
           <Field />
           <PathSimulator />

@@ -4,7 +4,7 @@ import { usePath } from "../../hooks/usePath";
 import MotionList, { type ConstantListField, type DirectionField } from "./MotionList";
 import PathConfigHeader from "./PathHeader";
 import { useFormat } from "../../hooks/useFormat";
-import { getFormatConstantsConfig, getFormatDirectionConfig, globalDefaultsStore } from "../../core/Constants";
+import { getFormatConstantsConfig, getFormatDirectionConfig, globalDefaultsStore } from "../../core/DefaultConstants";
 
 export default function PathConfig() {
   const [ path, setPath ] = usePath();

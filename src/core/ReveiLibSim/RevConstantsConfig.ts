@@ -5,7 +5,7 @@ import type { Format } from "../../hooks/useFormat";
 import type { Path } from "../Types/Path";
 import type { SegmentKind } from "../Types/Segment";
 import type { ConstantListField } from "../../components/PathMenu/MotionList";
-import { getDefaultConstants, updateDefaultConstants, updatePathConstants } from "../Constants";
+import { getDefaultConstants, updateDefaultConstants, updatePathConstants } from "../DefaultConstants";
 
 const createDrivePIDGroup = (
   format: Format,

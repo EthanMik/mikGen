@@ -1,4 +1,4 @@
-import { getDefaultConstants } from "../core/Constants";
+import { getDefaultConstants } from "../core/DefaultConstants";
 import { driveToPoint } from "../core/mikLibSim/DriveMotions/DriveToPoint";
 import { driveToPose } from "../core/mikLibSim/DriveMotions/DriveToPose";
 import { swingToAngle } from "../core/mikLibSim/DriveMotions/SwingToAngle";

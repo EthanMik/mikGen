@@ -12,7 +12,7 @@ import rev from "../../assets/reverse.svg"
 import fwdrev from "../../assets/fwdrev.svg"
 import leftswing from "../../assets/leftswing.svg"
 import rightswing from "../../assets/rightswing.svg"
-import { getDefaultConstants, updateDefaultConstants, updatePathConstants } from "../Constants";
+import { getDefaultConstants, updateDefaultConstants, updatePathConstants } from "../DefaultConstants";
 import type { CycleImageButtonProps } from "../../components/Util/CycleButton";
 
 const createDrivePIDGroup = (
