@@ -12,6 +12,10 @@ Bugs:
 - Fix start segment having the ability to be set to a turn by deleting segments
 - Fix undo/redo: make it so you can undo more events and make sliders not bog up the queue
 - being able to drag a control into no mans land
+- end point does not show up with a turn segment on top
+- FIX FORMAT SWAPPING
+- fix keybind names on addsegmentbutton
+- make it so when you drag a segment the cursor goes to grab
 
 Todo:
 - Add file saving, loading unloading
@@ -22,6 +26,7 @@ Todo:
 - Setting menu
 - make it so field swapping isnt such ass code
 - add grid snapping with ctrl + drag
+- make it so when there are no modifiers on motion list it stretches to fit
 
 Planned:
 - grouping with button on the group to disable that part of path from sim, renaming group
@@ -35,6 +40,9 @@ Planned:
 - add setting toggle to enable robot position view while simulating path
 - add setting toggle to make it so you can step 1 frame using jl
 - Mecum drive motions ☠️ (robot sim is complete)
+- google analytics
+- make it so operators work in number input
+- add example paths
 
 Deciding:
 - Add Play button to path segments on the right hand side
