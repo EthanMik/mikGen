@@ -49,7 +49,7 @@ export default function AddSegmentButton() {
             </button>
 
             {isOpen && (
-                <div className="absolute shadow-xs mt-1 shadow-black right-0 top-full w-40 z-40
+                <div className="absolute shadow-xs mt-1 shadow-black right-0 top-full w-45 z-40
                     rounded-sm bg-medgray_hover min-h-2">
                     <div className="flex flex-col mt-2 pl-2 pr-2 mb-2 gap-2">
                         <div className="flex flex-col">
@@ -94,14 +94,14 @@ export default function AddSegmentButton() {
                                 className="flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
 
                                 <span className="text-[16px]">Angle</span>
-                                <span className="text-lightgray text-[14px]">RMB</span>
+                                <span className="text-lightgray text-[14px]">CTRL+RMB</span>
                             </button>
 
                             <button
                                 onClick={() => addPointTurnSegment(format, setPath)} 
                                 className="flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
                                 <span className="text-[16px]">Point</span>
-                                <span className="text-lightgray text-[14px]">Ctrl+RMB</span>
+                                <span className="text-lightgray text-[14px]">RMB</span>
                             </button>
 
                             {/* Swing Segments */}
@@ -115,14 +115,14 @@ export default function AddSegmentButton() {
                                 className="flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
 
                                 <span className="text-[16px]">Angle</span>
-                                <span className="text-lightgray text-[14px]">Alt+RMB</span>
+                                <span className="text-lightgray text-[14px]">Ctrl+Alt+RMB</span>
                             </button>
 
                             <button 
                                 onClick={() => addPointSwingSegment(format, setPath)} 
                                 className="flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
                                 <span className="text-[16px]">Point</span>
-                                <span className="text-lightgray text-[14px]">Ctrl+Alt+RMB</span>
+                                <span className="text-lightgray text-[14px]">Alt+RMB</span>
                             </button>
                         </div>
         

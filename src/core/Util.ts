@@ -10,7 +10,7 @@ export interface Rectangle {
     h: number;
 }
 
-export const FIELD_REAL_DIMENSIONS: Rectangle = { x: -72, y: 72, w: 144, h: 144 };
+export const FIELD_REAL_DIMENSIONS: Rectangle = { x: -72, y: 72, w: 145.2756, h: 145.2756 };
 export const FIELD_IMG_DIMENSIONS: Rectangle = { x: 0, y: 0, w: 575, h: 575 };
 
 export function vector2Subtract(a: Coordinate, b: Coordinate): Coordinate {

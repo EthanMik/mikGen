@@ -7,30 +7,31 @@ Units
 - accel (inches/s^2 internal ft/s^2 external)
 
 Bugs:
-- FIX FIELD SIZE
+- Fix undo/redo: make it so you can undo more events and make sliders not bog up the queue
+- Make it so all important events are saved in local storage
+
 - cant change coords on multiselect
 - Polish Control Config (segment casting)
 - Fix start segment having the ability to be set to a turn by deleting segments
-- Fix undo/redo: make it so you can undo more events and make sliders not bog up the queue
 - being able to drag a control into no mans land
 - end point does not show up with a turn segment on top
-- FIX FORMAT SWAPPING
+- FIX FORMAT SWAPPING BRICKING APP
 - fix keybind names on addsegmentbutton
 - make it so when you drag a segment the cursor goes to grab
+- Fix undo redo to work on entire app data tree
+- Fix rev coord math
 
 Todo:
-- Add file saving, loading unloading
-- write constants + constants config for rev gg yep sim is fucked yay
 - fix rev path conversion, change keybinds so it doesn't conflict with c&p
 - add lemlib drive motions - jar template can just use mikLib with small modifications
 - Fix rev boomerang (may need to swap coordinate frame)
 - Setting menu
 - make it so field swapping isnt such ass code
 - add grid snapping with ctrl + drag
+- add indicator for unsaved path
 
 Planned:
 - grouping with button on the group to disable that part of path from sim, renaming group
-- field dragging and resizing (add a small home button top right corner)
 - Add cut, copy and paste
 - add ability to add more commands and make them be color coded, revamp command menu to not limit length and allow them to be modifed not just deleted
 - change segment order by dragging, add when groups are added  

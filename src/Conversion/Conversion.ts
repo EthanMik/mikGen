@@ -4,6 +4,7 @@ import type { Format } from "../hooks/useFormat";
 import { mikLibToSim } from "./mikLibToSim";
 import { mikLibToString } from "./mikLibToString";
 import { reveilLibToSim } from "./ReveilLibToSim";
+import { reveilLibToString } from "./ReveilLibToString";
 
 
 export function convertPathToSim(path: Path, format: Format): ((robot: Robot, dt: number) => boolean)[] {
@@ -22,5 +23,8 @@ export function convertPathToSim(path: Path, format: Format): ((robot: Robot, dt
 export function convertPathToString(path: Path, format: Format, selected = false) {
     if (format === "mikLib") {
         return mikLibToString(path, selected);
+    }
+    if (format === "ReveilLib") {
+        return reveilLibToString(path, selected);
     }
 }

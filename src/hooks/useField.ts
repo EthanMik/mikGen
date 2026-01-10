@@ -5,7 +5,7 @@ import pushbackV5MatchField from "../assets/pushback-matchv5.png"
 import emptyField from "../assets/empty-field.png";
 
 const saved = localStorage.getItem("field");
-const initialData = saved ? JSON.parse(saved) : "";
+const initialData = saved ? JSON.parse(saved) : "v5-match";
 
 export const useField = createSharedState<string>(initialData);
 
