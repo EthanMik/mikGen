@@ -16,7 +16,7 @@ export class SimpleStop {
     constructor (harshThreshold: number, coastThreshold: number, coastPower: number, timeout: number | null = null) {
         this.harshThreshold = harshThreshold;
         this.coastThreshold = coastThreshold;
-        this.coastPower = coastPower;
+        this.coastPower = Math.abs(coastPower);
         this.timeout = timeout;
     }
 
@@ -43,13 +43,15 @@ export class SimpleStop {
         const longitudinalSpeed = Math.sqrt((currentState.xVel ?? 0) * (currentState.xVel ?? 0) + (currentState.yVel ?? 0) * (currentState.yVel ?? 0));
 
         const posCurrent: Pose = { ...currentState };
-
+        
         const posFinal: Pose = { ...targetState };
         posFinal.angle = toDeg(Math.atan2((posFinal.x ?? 0) - (startState.x ?? 0), (posFinal.y ?? 0) - (startState.y ?? 0)));
 
         const error: Pose = to_relative(posCurrent, posFinal);
-
+        
         const longitudinalDistance = (error.y ?? 0) - dropEarly;
+        
+        console.log(longitudinalSpeed, longitudinalDistance)
 
         if (longitudinalDistance < 0) {
             this.stopLastState = "BRAKE";

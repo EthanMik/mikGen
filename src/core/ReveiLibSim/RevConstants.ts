@@ -22,7 +22,7 @@ function createRevConstants(values: Partial<ReveilLibConstants> = {}): ReveilLib
         maxSpeed: values.maxSpeed ?? null,
 
         kCorrection: values.kCorrection ?? null,
-        maxError: values.kCorrection ?? null,
+        maxError: values.maxError ?? null,
 
         stopHarshThreshold: values.stopHarshThreshold ?? null,
         stopCoastThreshold: values.stopCoastThreshold ?? null,

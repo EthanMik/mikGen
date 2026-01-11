@@ -4,6 +4,7 @@ import { getConstantMotionPower } from "../ConstantMotion";
 import type { ReveilLibConstants } from "../RevConstants";
 import { PilonsCorrection } from "../PilonsCorrection";
 import { SimpleStop, type StopState } from "../SimpleStop";
+import { wrapDeg180 } from "../Util";
 
 type PilonSegmentStatus = "DRIVE" | "BRAKE" | "EXIT";
 
@@ -31,17 +32,18 @@ export function pilonsSegment(robot: Robot, dt: number, x: number, y: number, co
     }
 
     if (pilonsSegmentStartPoint === null) {
-        pilonsSegmentStartPoint = { x: robot.getX(), y: robot.getY(), angle: robot.getAngle() };
+        pilonsSegmentStartPoint = { x: robot.getX(), y: robot.getY(), angle: wrapDeg180(robot.getAngle()) };
     }
 
-    const currentState: PoseState = { x: robot.getX(), y: robot.getY(), angle: robot.getAngle(), xVel: robot.getXVelocity(), yVel: robot.getYVelocity() } 
+    const currentState: PoseState = { x: robot.getX(), y: robot.getY(), angle: wrapDeg180(robot.getAngle()), xVel: robot.getXVelocity(), yVel: robot.getYVelocity() } 
     const targetPoint: Pose = { x: x, y: y, angle: 0 };
-    const newState: StopState = stop.getStopState(currentState, targetPoint, pilonsSegmentStartPoint, dropEarly)
     const startPoint = { ...pilonsSegmentStartPoint };
+    const newState: StopState = stop.getStopState(currentState, targetPoint, startPoint, dropEarly)
 
     if (pilonsSegmentLastStatus == "EXIT" || newState == "EXIT") {
         robot.tankDrive(0, 0, dt);
         cleanupPilonsSegment();
+        console.log("BREAK")
         return true;
     }
 
@@ -54,12 +56,13 @@ export function pilonsSegment(robot: Robot, dt: number, x: number, y: number, co
 
         if ((brakeElapsed * 1000) >= (constants.brakeTime ?? 0)) {
             cleanupPilonsSegment();
+            console.log("BREAK")
             return true;
         }
         return false;
     }
 
-    const pows: [number, number] = getConstantMotionPower(speed, currentState, targetPoint);
+    const pows: [number, number] = getConstantMotionPower(speed, startPoint, targetPoint);
 
     if (newState == "COAST") {
         let power = stop.getCoastPower();

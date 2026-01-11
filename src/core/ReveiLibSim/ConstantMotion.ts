@@ -3,16 +3,16 @@ import { toRad } from "../Util";
 
 export function getConstantMotionPower(
   power: number,
-  currentState: Pose,
+  startState: Pose,
   targetState: Pose
 ): [number, number] {
-  const theta = toRad(currentState.angle ?? 0);
+  const theta = toRad(startState.angle ?? 0);
 
   const xFacing = Math.sin(theta);
   const yFacing = Math.cos(theta);
 
-  const dx = (targetState.x ?? 0) - (currentState.x ?? 0);
-  const dy = (targetState.y ?? 0) - (currentState.y ?? 0);
+  const dx = (targetState.x ?? 0) - (startState.x ?? 0);
+  const dy = (targetState.y ?? 0) - (startState.y ?? 0);
 
   const longitudinal = xFacing * dx + yFacing * dy;
   const newPower = longitudinal < 0 ? -power : power;

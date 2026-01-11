@@ -100,7 +100,7 @@ export function boomerangSegment(robot: Robot, dt: number, x: number, y: number,
         return false;
     }
 
-    const pows: [number, number] = getConstantMotionPower(speed, currentState, carrotPoint);
+    const pows: [number, number] = getConstantMotionPower(speed, startPoint, carrotPoint);
 
     if (newState == "COAST") {
         let power = stop.getCoastPower();

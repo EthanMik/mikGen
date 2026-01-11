@@ -1,5 +1,5 @@
 import type { Pose } from "../Types/Pose";
-import { toRad } from "../Util";
+import { normalizeDeg, toRad } from "../Util";
 
 export function to_relative(currentPose: Pose, referencePose: Pose): Pose {
   const dx = (referencePose.x ?? 0) - (currentPose.x ?? 0);
