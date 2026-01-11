@@ -22,13 +22,11 @@ Bugs:
 - Fix rev coord math
 - Fix simple stop timeout
 - algos not being reset when they fuck up
+- Fix file opening not working on firefox
 
 Todo:
-- fix rev path conversion, change keybinds so it doesn't conflict with c&p
 - add lemlib drive motions - jar template can just use mikLib with small modifications
-- Fix rev boomerang (may need to swap coordinate frame)
 - Setting menu
-- make it so field swapping isnt such ass code
 - add grid snapping with ctrl + drag
 - add indicator for unsaved path
 

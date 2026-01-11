@@ -1,4 +1,5 @@
 import FileButton from "../File/FileButton";
+import SettingsButton from "../Settings/SettingsButton";
 import CommandButton from "./CommandButton";
 import FieldButton from "./FieldButton";
 import FormatButton from "./FormatButton";
@@ -12,9 +13,7 @@ export default function Config() {
             <FormatButton />
             <RobotButton/>
             <CommandButton/>
-            <span className="text-[20px] px-2 py-1">
-                Settings
-            </span>
+            <SettingsButton />
         </div>
     );
 }

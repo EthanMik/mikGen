@@ -30,11 +30,6 @@ export default function RobotButton() {
         setOpen((prev) => !prev)
     }
 
-    const close = (evt: React.KeyboardEvent) => {
-        if (evt.key === "Escape") {
-            setOpen(false);
-        }
-    }
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
