@@ -29,15 +29,21 @@ export function reveilLibToString(path: Path, selected: boolean = false) {
         const commandName = control.command.name;
         const commandPercent = roundOff(control.command.percent, 0);
 
-        if (commandName !== "") {
-            startWrapper = true
-        }
+        if (commandName === "") startWrapper = true;
+        if (idx === path.segments.length - 1) startWrapper = false;
         
+
         if (idx === 0) {
             pathString += (
                 ` odom->set_position({${x}_in, ${y}_in, ${angle}_deg});`
             )        
             continue;
+        }
+
+        if (startWrapper) {
+            pathString += (
+                `\n  reckless->go({`
+            )
         }
         
         if (kind === "angleTurn" || kind === "angleSwing") {
@@ -98,6 +104,12 @@ export function reveilLibToString(path: Path, selected: boolean = false) {
       {${x}_in, ${y}_in, ${angle}_deg}, ${roundOff(k.dropEarly, 2)}_in
     ),`
             )     
+        }
+
+        if (!startWrapper) {
+            pathString += (
+                `\n });`
+            )            
         }
 
         startWrapper = false;

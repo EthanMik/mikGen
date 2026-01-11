@@ -67,44 +67,87 @@ export default function FieldMacros() {
     }
 
     /** Use mouse wheel to change angle of selected segment
-     *  - base step: 10°
-     *  - shift step: 90°
+     *  - base step: 5° (ctrl)
+     *  - shift step: 90° (shift only)
      */
+    let bigAccum = 0;
+    let smallAccum = 0;
+
+    let bigLocked = false;
+    let bigIdleTimer: ReturnType<typeof setTimeout> | null = null;
+
     function moveHeading(
         evt: WheelEvent,
-        setPath: React.Dispatch<React.SetStateAction<Path>>
+        setPath: React.Dispatch<React.SetStateAction<Path>>,
     ) {
         const BASE_STEP = 90;
-        const SHIFT_STEP = 10;
+        const SMALL_STEP = 5;
+
+        const BIG_TICK_PX = 10;
+        const SMALL_TICK_PX = 20;
+
+        const BIG_IDLE_MS = 120;
 
         if (!evt.shiftKey) return;
-
         evt.preventDefault();
 
-        const dir = evt.deltaY < 0 ? 1 : evt.deltaY > 0 ? -1 : 0;
-        if (dir === 0) return;
+        let dy = evt.deltaY;
+        if (evt.deltaMode === 1) dy *= 16;
+        if (evt.deltaMode === 2) dy *= 800;
+        if (dy === 0) return;
 
-        const step = evt.ctrlKey ? SHIFT_STEP : BASE_STEP;
-        const thetaScale = dir * step;
-
-        setPath((prev) => ({
+        const apply = (degDelta: number) => {
+            setPath((prev) => ({
             ...prev,
             segments: prev.segments.map((c) =>
-            c.selected
+                c.selected
                 ? {
                     ...c,
                     pose: {
-                    ...c.pose,
-                    angle:
+                        ...c.pose,
+                        angle:
                         c.pose.angle !== null
-                        ? normalizeDeg(c.pose.angle + thetaScale)
-                        : c.pose.angle,
+                            ? normalizeDeg(c.pose.angle + degDelta)
+                            : c.pose.angle,
                     },
-                }
+                    }
                 : c
             ),
-        }));
+            }));
+        };
+
+        if (evt.ctrlKey) {
+            smallAccum += dy;
+
+            if (Math.abs(smallAccum) < SMALL_TICK_PX) return;
+
+            const dir = smallAccum < 0 ? 1 : -1;
+            smallAccum = 0;
+
+            apply(dir * SMALL_STEP);
+            return;
+        }
+
+
+        if (bigIdleTimer) clearTimeout(bigIdleTimer);
+        bigIdleTimer = setTimeout(() => {
+            bigLocked = false;
+            bigAccum = 0;
+        }, BIG_IDLE_MS);
+
+        if (bigLocked) return;
+
+        bigAccum += dy;
+        if (Math.abs(bigAccum) < BIG_TICK_PX) return;
+
+        const dir = bigAccum < 0 ? 1 : -1;
+
+        bigAccum = 0;
+        bigLocked = true; 
+
+        apply(dir * BASE_STEP);
     }
+
 
     /** Using key "Escape" to unselect whole path */
     function unselectPath(
@@ -162,6 +205,7 @@ export default function FieldMacros() {
         if (evt.key === "Backspace" || evt.key === "Delete") {
             setPath((prev) => ({
                 segments: prev.segments.filter((c) => !c.selected || c.locked),
+                name: prev.name
             }));
         }
     }
