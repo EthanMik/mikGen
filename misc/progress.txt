@@ -15,13 +15,12 @@ Bugs:
 - make it so when you drag a segment the cursor goes to grab
 - Fix undo redo to work on entire app data tree (still need to do commands)
 - Fix rev coord math
-- Fix simple stop timeout
+- Fix simple stop timeout not using dt
 - algos not being reset when they fuck up
 - Fix file opening not working on firefox
 - move all local storage into file format like wtf am i doing
 
 Todo:
-- Add cut, copy and paste
 - add lemlib drive motions - jar template can just use mikLib with small modifications
 - add indicator for unsaved path
 
