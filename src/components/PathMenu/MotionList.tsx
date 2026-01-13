@@ -309,6 +309,8 @@ export default function MotionList({
                     isOpen ? "block" : "hidden"
                 }`}
                 >
+                    
+                { /* Vertical Line */ }
                 <div className="absolute left-[-16px] top-0 h-full w-[4px] rounded-full bg-medlightgray" />
 
                 <CommandList command={command} setCommand={setCommand} />

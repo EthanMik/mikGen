@@ -69,6 +69,7 @@ export default function Field() {
     const handleKeyDown = (evt: KeyboardEvent) => {
       const target = evt.target as HTMLElement | null;
       if (target?.isContentEditable || target?.tagName === "INPUT") return;
+      if (evt.ctrlKey && evt.key.toLowerCase() === "r") return;
       unselectPath(evt, setPath);
       moveControl(evt, setPath);
       deleteControl(evt, setPath);
@@ -168,7 +169,6 @@ export default function Field() {
         let newX = sx === null ? null : sx + dx;
         let newY = sy === null ? null : sy + dy;
 
-        // Round to nearest whole number if ctrl is held or the move is very small
         if (newX !== null && newY !== null) {
           if (evt.ctrlKey || smallMove) {
             newX = Math.round(newX);
@@ -355,7 +355,7 @@ export default function Field() {
               w-[20px]
               h-[20px]
               bg-medgray
-              z-50
+              z-10
               cursor-pointer
               transition
             "

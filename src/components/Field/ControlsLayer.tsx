@@ -40,7 +40,7 @@ export default function ControlsLayer({ path, img, radius, format, onPointerDown
               {/* Turn Indicator (Line) */}
               {["angleTurn", "pointTurn", "poseDrive"].includes(control.kind) && (() => {
                 const snapPose = getBackwardsSnapPose(path, idx);
-                if (!snapPose?.x || !snapPose?.y) return null;
+                if (snapPose?.x === null || snapPose?.y === null || snapPose === null) return null;
 
                 const active = control.selected;
                 const hovered = control.hovered;
@@ -53,7 +53,9 @@ export default function ControlsLayer({ path, img, radius, format, onPointerDown
 
                 if (control.kind === "pointTurn") {
                   const desiredPos = getForwardSnapPose(path, idx);
-                  angle = desiredPos ? calculateHeading(snapPose, { x: desiredPos.x ?? 0, y: desiredPos.y ?? 0 }) + (control.pose.angle ?? 0) : angle;
+                  if (desiredPos?.y === null || desiredPos?.x === null || desiredPos === null) return null;
+                  
+                  angle = calculateHeading({ x: snapPose.x, y: snapPose.y }, { x: desiredPos.x ?? 0, y: desiredPos.y ?? 0 }) + (angle);
                 }
 
                 const tipPx = toPX(

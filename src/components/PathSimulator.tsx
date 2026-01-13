@@ -37,13 +37,13 @@ let computedPath: PathSim;
 export default function PathSimulator() {
     const [value, setValue] = useState<number>(0);
     const [time, setTime] = useState<number>(0);
-    const [pose, setPose] = usePose()
-    const [ robotPose, setRobotPose ] = useRobotPose();
+    const [, setPose] = usePose()
+    const [ , setRobotPose ] = useRobotPose();
     const robotk = useSyncExternalStore(robotConstantsStore.subscribe, robotConstantsStore.getState);
     const [playing, setPlaying] = useState<boolean>(false);
     const [robotVisible, setRobotVisibility] = useRobotVisibility();
-    const [ path, setPath ] = usePath();
-    const [ format, setFormat ] = useFormat();
+    const [ path,  ] = usePath();
+    const [ format,  ] = useFormat();
     const skip = useRef(false);
 
     const { pauseSimulator, scrubSimulator } = PathSimMacros();

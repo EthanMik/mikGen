@@ -7,17 +7,13 @@ Units
 - accel (inches/s^2 internal ft/s^2 external)
 
 Bugs:
-- Fix undo/redo: make it so you can undo more events and make sliders not bog up the queue
-- Make it so all important events are saved in local storage
-
 - Fix start segment having the ability to be set to a turn by deleting segments
 - cant change coords on multiselect
 - Polish Control Config (segment casting)
 - end point does not show up with a turn segment on top
 - FIX FORMAT SWAPPING BRICKING APP
-- fix keybind names on addsegmentbutton
 - make it so when you drag a segment the cursor goes to grab
-- Fix undo redo to work on entire app data tree
+- Fix undo redo to work on entire app data tree (still need to do commands)
 - Fix rev coord math
 - Fix simple stop timeout
 - algos not being reset when they fuck up
@@ -27,7 +23,6 @@ Bugs:
 Todo:
 - Add cut, copy and paste
 - add lemlib drive motions - jar template can just use mikLib with small modifications
-- add grid snapping with ctrl + drag
 - add indicator for unsaved path
 
 Planned:

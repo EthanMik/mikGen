@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import downArrow from "../../assets/down-arrow.svg";
 import type { ConstantField } from "./ConstantRow";
 import ConstantRow from "./ConstantRow";
 import { deepEqual } from "../../core/Util";
-import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 
 type ConstantsListProps = {
     header: string;
@@ -92,20 +91,22 @@ export default function ConstantsList({
 
 
             {open && (
-                <div className="grid grid-cols-2 min-w-0 pl-5 gap-2 mt-2 w-[400px]">
-                    {fields.map((f) => (
-                        <ConstantRow 
-                            key={String(f.key)}
-                            label={f.label}
-                            value={values[f.key]}
-                            input={f.input}
-                            units={f.units}
-                            onChange={(v: number | null) => onChange({ [f.key]: v } as Partial<any>)}
-                            labelColor={deepEqual(values[f.key], defaults[f.key]) ? "text-white" : "text-white/50"}
-                        />
-                    ))}
-                </div>
-
+                <Fragment>
+                    <div className="relative grid grid-cols-2 min-w-0 pl-5 gap-2 mt-2 w-[400px]">
+                        {/* <div className="absolute left-[11px] top-0 h-full w-[4px] rounded-full bg-medlightgray" /> */}
+                        {fields.map((f) => (
+                            <ConstantRow 
+                                key={String(f.key)}
+                                label={f.label}
+                                value={values[f.key]}
+                                input={f.input}
+                                units={f.units}
+                                onChange={(v: number | null) => onChange({ [f.key]: v } as Partial<any>)}
+                                labelColor={deepEqual(values[f.key], defaults[f.key]) ? "text-white" : "text-white/50"}
+                            />
+                        ))}
+                    </div>
+                </Fragment>
             )}
         </div>
     );

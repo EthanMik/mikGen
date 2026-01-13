@@ -25,4 +25,7 @@ export const DEFAULT_FORMAT: FileFormat = {
     commands: []
 }
 
-export const useFileFormat = createSharedState<FileFormat>(DEFAULT_FORMAT);
+const saved = localStorage.getItem("appState");
+const initialData = saved ? JSON.parse(saved) : DEFAULT_FORMAT;
+
+export const useFileFormat = createSharedState<FileFormat>(initialData);

@@ -6,9 +6,8 @@ export function PathSimMacros() {
         evt: KeyboardEvent,
         setVisibility: React.Dispatch<SetStateAction<boolean>>,
     ) {        
-        if (evt.key.toLowerCase() === "r") {
+        if (evt.key.toLowerCase() === "r" && !evt.ctrlKey) {
             setVisibility((v) => !v);
-            evt.stopPropagation();
         }
     }
 
