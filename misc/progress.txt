@@ -10,10 +10,9 @@ Bugs:
 - Fix undo/redo: make it so you can undo more events and make sliders not bog up the queue
 - Make it so all important events are saved in local storage
 
+- Fix start segment having the ability to be set to a turn by deleting segments
 - cant change coords on multiselect
 - Polish Control Config (segment casting)
-- Fix start segment having the ability to be set to a turn by deleting segments
-- being able to drag a control into no mans land
 - end point does not show up with a turn segment on top
 - FIX FORMAT SWAPPING BRICKING APP
 - fix keybind names on addsegmentbutton
@@ -23,16 +22,17 @@ Bugs:
 - Fix simple stop timeout
 - algos not being reset when they fuck up
 - Fix file opening not working on firefox
+- move all local storage into file format like wtf am i doing
 
 Todo:
+- Add cut, copy and paste
 - add lemlib drive motions - jar template can just use mikLib with small modifications
-- Setting menu
 - add grid snapping with ctrl + drag
 - add indicator for unsaved path
 
 Planned:
 - grouping with button on the group to disable that part of path from sim, renaming group
-- Add cut, copy and paste
+
 - add ability to add more commands and make them be color coded, revamp command menu to not limit length and allow them to be modifed not just deleted
 - change segment order by dragging, add when groups are added  
 - Add scrubbing steps to settings

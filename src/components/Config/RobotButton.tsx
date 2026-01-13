@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Checkbox from "../Util/Checkbox";
 import NumberInput from "../Util/NumberInput";
 import { robotConstantsStore } from "../../core/Robot";
+import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 
 export default function RobotButton() {
     const [ isOpen, setOpen ] = useState(false);
@@ -11,19 +12,27 @@ export default function RobotButton() {
     const [ holonomic, setHolonomic ] = useState(false);
 
     const updateWidth = (width: number | null) => {
-        if (width !== null) robotConstantsStore.merge({ width: width });   
+        if (width !== null) {
+            robotConstantsStore.merge({ width: width });   
+        }
     }
-
+    
     const updateHeight = (height: number | null) => {
-        if (height !== null) robotConstantsStore.merge({ height: height });
+        if (height !== null) {
+            robotConstantsStore.merge({ height: height });
+        }
     }
     
     const updateSpeed = (speed: number | null) => {
-        if (speed !== null) robotConstantsStore.merge({ speed: speed });
+        if (speed !== null) {
+            robotConstantsStore.merge({ speed: speed });
+        }
     }
-
+    
     const updateAccel = (accel: number | null) => {
-        if (accel !== null) robotConstantsStore.merge({ accel: accel });
+        if (accel !== null) {
+            robotConstantsStore.merge({ accel: accel });
+        }
     }
 
     const handleToggleMenu = () => {
@@ -68,7 +77,7 @@ export default function RobotButton() {
                     <div className="flex flex-col mt-3 pl-3 pr-3 mb-3 gap-3">
                         <div className="flex flex-col gap-2">
                             <div className="flex flex-row items-center justify-between">
-                                <span className="text-[16px]">Width</span>
+                            <span className="text-[16px]">Width</span>
                                     <NumberInput 
                                         width={60} 
                                         height={35}
@@ -79,6 +88,7 @@ export default function RobotButton() {
                                         units="in"
                                         value={robot.width} 
                                         setValue={updateWidth} 
+                                        addToHistory={(width: number) => AddToUndoHistory({robot: {...robot, width: width}})}
                                     />
                             </div>
 
@@ -94,6 +104,7 @@ export default function RobotButton() {
                                         units="in"
                                         value={robot.height} 
                                         setValue={updateHeight} 
+                                        addToHistory={(height: number) => AddToUndoHistory({robot: {...robot, height: height}})}
                                     />
                             </div>
 
@@ -109,6 +120,7 @@ export default function RobotButton() {
                                         units="ft/s"
                                         value={robot.speed} 
                                         setValue={updateSpeed} 
+                                        addToHistory={(speed: number) => AddToUndoHistory( { robot: { ...robot, speed: speed}} )}
                                     />
                             </div>
 
@@ -124,11 +136,12 @@ export default function RobotButton() {
                                         units="ft/s²"
                                         value={robot.accel} 
                                         setValue={updateAccel} 
+                                        addToHistory={(accel: number) => AddToUndoHistory( {robot: { ...robot, accel: accel }} )}
                                     />
                             </div>
 
                             <div className="mt-0.5 pt-2 border-t border-gray-500/40 flex flex-row items-center justify-between h-[35px]">
-                            <span className="text-[16px]">Holonomic</span>
+                            <span className="text-[16px] line-through">Holonomic</span>
 
                             <div className="w-25 flex items-center justify-end">
                                 <label className="flex items-center gap-2 cursor-pointer select-none">

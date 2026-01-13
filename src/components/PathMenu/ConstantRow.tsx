@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
+import { usePath } from "../../hooks/usePath";
 import NumberInput from "../Util/NumberInput";
 
 export type NumberInputSettings = {
@@ -31,6 +33,7 @@ export default function ConstantRow({
     onChange,
     input,
 } : ConstantRowProps) {
+    const [ path, ] = usePath();
     return (        
         <div className="flex flex-row items-center 
             justify-between h-[30px] pr-2 pl-2 gap-1"
@@ -46,6 +49,7 @@ export default function ConstantRow({
                 bounds={input?.bounds ?? [0, 100]}
                 stepSize={input?.stepSize ?? 1}
                 roundTo={input?.roundTo ?? 5}
+                addToHistory={ () => AddToUndoHistory({path: path}) }                
             />
         </div>
     );

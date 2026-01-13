@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useFormat, type Format } from "../../hooks/useFormat";
+import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 
 type PathFormats = {
   name: string,
@@ -17,11 +18,15 @@ export default function FormatButton() {
   const [isOpen, setOpen] = useState(false);
   const [ format, setFormat ] = useFormat();
   const menuRef = useRef<HTMLDivElement>(null);
+  const prevFormatRef = useRef<Format>(format);
 
   const handleToggleMenu = () => setOpen((prev) => !prev);
   
   const handleClickItem = (format: Format) => {
     setFormat(format);
+    if (prevFormatRef.current !== format) {
+      AddToUndoHistory({ format: format })
+    }
   };
 
   useEffect(() => {

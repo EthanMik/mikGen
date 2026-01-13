@@ -12,6 +12,7 @@ import { createCommand, type Command } from "../../core/Types/Command";
 import type { ConstantField } from "./ConstantRow";
 import ConstantsList from "./ConstantsList";
 import CycleImageButton, { type CycleImageButtonProps } from "../Util/CycleButton";
+import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 
 
 export type ConstantListField = {
@@ -253,6 +254,12 @@ export default function MotionList({
                 knobWidth={16}
                 value={(field[0]?.values?.["maxSpeed"] ?? 0) / speedScale * 100}
                 setValue={(v: number) => field[0]?.onChange({ maxSpeed: (v / 100) * speedScale })}
+                // onChangeStart={ () => AddToUndoHistory( {path: path} )}
+                OnChangeEnd={ () => AddToUndoHistory({ 
+                    path: { 
+                        ...path, 
+                        segments:  path.segments.map((s) => (s.id === segmentId ? segment.constants["maxSpeed"] = value : s)),
+                    }})}
                 />
             ) : (
                 <div className="w-[230px]" />

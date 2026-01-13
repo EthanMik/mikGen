@@ -1,13 +1,14 @@
-import type { DefaultConstant } from "../core/DefaultConstants"
-import type { RobotConstants } from "../core/Robot"
+import { INITIAL_DEFAULTS, type DefaultConstant } from "../core/DefaultConstants"
+import { defaultRobotConstants, type RobotConstants } from "../core/Robot"
 import { createSharedState } from "../core/SharedState"
 import type { Command } from "../core/Types/Command"
 import type { Path } from "../core/Types/Path"
+import type { FieldType } from "./useField"
 import type { Format } from "./useFormat"
 
 export type FileFormat = {
     format: Format,
-    field: string,
+    field: FieldType,
     defaults: DefaultConstant[Format],
     path: Path,
     robot: RobotConstants
@@ -15,4 +16,13 @@ export type FileFormat = {
     // settings: 
 }
 
-export const useFileFormat = createSharedState<FileFormat | null>(null);
+export const DEFAULT_FORMAT: FileFormat = {
+    format: "mikLib",
+    field: "v5-match",
+    // defaults: INITIAL_DEFAULTS["mikLib"],
+    path: { segments: [], name: "" },
+    robot: defaultRobotConstants,
+    commands: []
+}
+
+export const useFileFormat = createSharedState<FileFormat>(DEFAULT_FORMAT);

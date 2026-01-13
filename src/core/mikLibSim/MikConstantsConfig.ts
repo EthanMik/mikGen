@@ -14,9 +14,11 @@ import leftswing from "../../assets/leftswing.svg"
 import rightswing from "../../assets/rightswing.svg"
 import { getDefaultConstants, updateDefaultConstants, updatePathConstants } from "../DefaultConstants";
 import type { CycleImageButtonProps } from "../../components/Util/CycleButton";
+import { AddToUndoHistory } from "../Undo/UndoHistory";
 
 const createDrivePIDGroup = (
   format: Format,
+  path: Path,
   setPath: React.Dispatch<SetStateAction<Path>>,
   segmentId: string,
   segmentKind: SegmentKind,
@@ -251,7 +253,7 @@ export function getmikLibConstantsConfig(
     switch (s.kind) {
         case "pointDrive":
         case "poseDrive":
-            return createDrivePIDGroup(format, setPath, segmentId, s.kind, s.constants.drive, s.constants.heading);
+            return createDrivePIDGroup(format, path, setPath, segmentId, s.kind, s.constants.drive, s.constants.heading);
         case "pointTurn":
         case "angleTurn":
             return createTurnPIDGroup(format, setPath, segmentId, s.kind, s.constants.turn, false);

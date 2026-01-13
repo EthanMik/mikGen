@@ -4,13 +4,12 @@ import pushbackSkillsField from "../assets/pushback-skills.png";
 import pushbackV5MatchField from "../assets/pushback-matchv5.png"
 import emptyField from "../assets/empty-field.png";
 
-const saved = localStorage.getItem("field");
-const initialData = saved ? JSON.parse(saved) : "v5-match";
+export type FieldType = "v5-match" | "v5-skills" | "vexu-match" | "empty" | "separator"
 
-export const useField = createSharedState<string>(initialData);
+export const useField = createSharedState<FieldType>("v5-match");
 
 type Field = {
-  key: string;
+  key: FieldType;
   src: string;
   name: string;
 };

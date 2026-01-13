@@ -15,7 +15,7 @@ export default function CommandList({
     setCommand
 }: CommandListProps) {
     const [ value, setValue ] = useState(0);
-    const [ commands, setCommands ] = useCommand();
+    const [ commands,  ] = useCommand();
 
     const [ item, setItem ] = useState<DropdownItem>({name: "", id: makeId(10)})
 

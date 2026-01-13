@@ -43,7 +43,7 @@ export function pilonsSegment(robot: Robot, dt: number, x: number, y: number, co
     if (pilonsSegmentLastStatus == "EXIT" || newState == "EXIT") {
         robot.tankDrive(0, 0, dt);
         cleanupPilonsSegment();
-        console.log("BREAK")
+        // console.log("BREAK")
         return true;
     }
 
@@ -56,7 +56,7 @@ export function pilonsSegment(robot: Robot, dt: number, x: number, y: number, co
 
         if ((brakeElapsed * 1000) >= (constants.brakeTime ?? 0)) {
             cleanupPilonsSegment();
-            console.log("BREAK")
+            // console.log("BREAK")
             return true;
         }
         return false;

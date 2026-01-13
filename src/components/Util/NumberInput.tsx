@@ -8,6 +8,7 @@ type NumberInputProps = {
   value: number | null;
   units?: string;
   setValue: (value: number | null) => void;
+  addToHistory?: (value: number) => void;
   bounds: [number, number];
   stepSize: number;
   roundTo: number;
@@ -21,6 +22,7 @@ export default function NumberInput({
   height,
   value,
   setValue,
+  addToHistory,
   bounds,
   units = "",
   stepSize = 1,
@@ -48,17 +50,35 @@ export default function NumberInput({
     resetValue();
   }, [value]);
 
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevClampedNum = useRef<number | null>(null);
+
+  const addToHistoryCheck = (value: number | null ) => {
+    if (prevClampedNum.current !== value && value !== null) {
+      console.log(value, prevClampedNum.current)
+      addToHistory?.(value);
+    }
+    prevClampedNum.current = value;
+  }
+
   const stepInput = useCallback((stepDirection: Direction) => {
       if (value === null) return;
 
       const next =
-        stepDirection === 1 ? value + stepSize : value - stepSize;
-
+      stepDirection === 1 ? value + stepSize : value - stepSize;
+      
       const clamped = clamp(next, bounds[0], bounds[1]);
       if (clamped === undefined) return;
-
+      
       setValue(clamped);
-    },
+
+      if (timerRef.current) clearTimeout(timerRef.current);
+  
+      timerRef.current = setTimeout(() => {
+        addToHistoryCheck(clamped);
+      }, 1000);
+
+    },    
     [value, stepSize, bounds, setValue]
   );
 
@@ -98,6 +118,8 @@ export default function NumberInput({
     if (clampNum === undefined) return;
 
     setValue(clampNum);
+    addToHistoryCheck(clampNum);
+
     displayRef.current = trimZeros(clampNum.toFixed(roundTo));
   };
 

@@ -3,10 +3,7 @@ import { createStore } from "../core/Store";
 
 export type Format = "mikLib" | "ReveilLib" | "JAR-Template" | "LemLib";
 
-const saved = localStorage.getItem("format") as Format;
-const initialData = saved ? JSON.parse(saved) : "mikLib";
-
-export const formatStore = createStore<Format>(initialData);
+export const formatStore = createStore<Format>("mikLib");
 
 export function useFormat(): [Format, (f: Format) => void] {
   const format = useSyncExternalStore(

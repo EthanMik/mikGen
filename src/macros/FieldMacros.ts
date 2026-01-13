@@ -8,6 +8,8 @@ import type { Pose } from "../core/Types/Pose";
 import type { Format } from "../hooks/useFormat";
 import { convertPathToString } from "../Conversion/Conversion";
 import { pointerToSvg } from "../components/Field/FieldUtils";
+import type { FileFormat } from "../hooks/useFileFormat";
+import { AddToUndoHistory, redoHistory, undoHistory } from "../core/Undo/UndoHistory";
 
 export default function FieldMacros() {
     const MIN_FIELD_X = -999;
@@ -37,38 +39,49 @@ export default function FieldMacros() {
 
         evt.preventDefault();
 
+        setPath(prev => {
+            const newSegments = (
+                prev.segments.map((c) =>
+                    c.selected
+                        ? {
+                            ...c,
+                            pose: {
+                                ...c.pose,
+                                x: c.pose.x !== null
+                                    ? clamp(
+                                    c.pose.x + xScale,
+                                    MIN_FIELD_X,
+                                    MAX_FIELD_X
+                                    ) : c.pose.x,
+                                y: c.pose.y !== null 
+                                    ? clamp(
+                                    c.pose.y + yScale,
+                                    MIN_FIELD_Y,
+                                    MAX_FIELD_Y
+                                    )
+                                    : c.pose.y
+                                    
+                            },
+                        }
+                        : c
+                )
+            );  
+            AddToUndoHistory({ path: { ...prev, segments: newSegments }})
+
+            return {
+                ...prev,
+                segments: newSegments
+            }
+        })
+
         setPath((prev) => ({
             ...prev,
-            segments: prev.segments.map((c) =>
-                c.selected
-                    ? {
-                          ...c,
-                          pose: {
-                              ...c.pose,
-                              x: c.pose.x !== null
-                                ? clamp(
-                                  c.pose.x + xScale,
-                                  MIN_FIELD_X,
-                                  MAX_FIELD_X
-                                ) : c.pose.x,
-                              y: c.pose.y !== null 
-                                ? clamp(
-                                  c.pose.y + yScale,
-                                  MIN_FIELD_Y,
-                                  MAX_FIELD_Y
-                                )
-                                : c.pose.y
-                                  
-                          },
-                      }
-                    : c
-            ),
         }));
     }
 
     /** Use mouse wheel to change angle of selected segment
-     *  - base step: 5° (ctrl)
-     *  - shift step: 90° (shift only)
+     * - base step: 5° (ctrl)
+     * - shift step: 90° (shift only)
      */
     let bigAccum = 0;
     let smallAccum = 0;
@@ -86,7 +99,7 @@ export default function FieldMacros() {
         const BIG_TICK_PX = 10;
         const SMALL_TICK_PX = 20;
 
-        const BIG_IDLE_MS = 120;
+        const BIG_IDLE_MS = 50;
 
         if (!evt.shiftKey) return;
         evt.preventDefault();
@@ -97,23 +110,29 @@ export default function FieldMacros() {
         if (dy === 0) return;
 
         const apply = (degDelta: number) => {
-            setPath((prev) => ({
-            ...prev,
-            segments: prev.segments.map((c) =>
-                c.selected
-                ? {
-                    ...c,
-                    pose: {
-                        ...c.pose,
-                        angle:
-                        c.pose.angle !== null
-                            ? normalizeDeg(c.pose.angle + degDelta)
-                            : c.pose.angle,
-                    },
-                    }
-                : c
-            ),
-            }));
+            setPath((prev) => {
+                const newSegments = prev.segments.map((c) =>
+                    c.selected
+                        ? {
+                            ...c,
+                            pose: {
+                                ...c.pose,
+                                angle:
+                                    c.pose.angle !== null
+                                        ? normalizeDeg(c.pose.angle + degDelta)
+                                        : c.pose.angle,
+                            },
+                        }
+                        : c
+                );
+
+                AddToUndoHistory({ path: { ...prev, segments: newSegments } });
+
+                return {
+                    ...prev,
+                    segments: newSegments,
+                };
+            });
         };
 
         if (evt.ctrlKey) {
@@ -154,14 +173,19 @@ export default function FieldMacros() {
         evt: KeyboardEvent,
         setPath: React.Dispatch<React.SetStateAction<Path>>
     ) {
-        if (evt.key === "Escape")
-            setPath((prevSegment) => ({
-                ...prevSegment,
-                segments: prevSegment.segments.map((c) => ({
+        if (evt.key === "Escape") {
+            setPath((prev) => {
+                const newSegments = prev.segments.map((c) => ({
                     ...c,
                     selected: false,
-                })),
-            }));
+                }));
+                
+                return {
+                    ...prev,
+                    segments: newSegments,
+                };
+            });
+        }
     }
 
     /** Using keys "ctrl + a" to select whole path */
@@ -171,13 +195,17 @@ export default function FieldMacros() {
     ) {
         if (!evt.shiftKey && evt.ctrlKey && evt.key.toLowerCase() === "a") {
             evt.preventDefault();
-            setPath((prevSegment) => ({
-                ...prevSegment,
-                segments: prevSegment.segments.map((c) => ({
+            setPath((prev) => {
+                const newSegments = prev.segments.map((c) => ({
                     ...c,
                     selected: true,
-                })),
-            }));
+                }));
+
+                return {
+                    ...prev,
+                    segments: newSegments,
+                };
+            });
         }
     }
 
@@ -187,13 +215,17 @@ export default function FieldMacros() {
     ) {
         if (evt.shiftKey && evt.ctrlKey && evt.key.toLowerCase() === "a") {
             evt.preventDefault();
-            setPath((prevSegment) => ({
-                ...prevSegment,
-                segments: prevSegment.segments.map((c) => ({
+            setPath((prev) => {
+                const newSegments = prev.segments.map((c) => ({
                     ...c,
                     selected: !c.selected,
-                })),
-            }));
+                }));
+
+                return {
+                    ...prev,
+                    segments: newSegments,
+                };
+            });
         }
     }
 
@@ -203,61 +235,57 @@ export default function FieldMacros() {
         setPath: React.Dispatch<React.SetStateAction<Path>>
     ) {
         if (evt.key === "Backspace" || evt.key === "Delete") {
-            setPath((prev) => ({
-                segments: prev.segments.filter((c) => !c.selected || c.locked),
-                name: prev.name
-            }));
+            setPath((prev) => {
+                const newSegments = prev.segments.filter((c) => !c.selected || c.locked);
+
+                AddToUndoHistory({ path: { ...prev, segments: newSegments } });
+
+                return {
+                    ...prev,
+                    segments: newSegments,
+                };
+            });
         }
     }
 
-    function undoPath(
-        evt: KeyboardEvent,
-        undo: React.RefObject<boolean>,
-        pathStorageRef: React.RefObject<Path[]>,
-        pathStoragePtr: React.RefObject<number>,
-        setPath: React.Dispatch<React.SetStateAction<Path>>
-    ) {
-        if (evt.ctrlKey && evt.key.toLowerCase() === "z") {
-            const storage = pathStorageRef.current;
-            const ptr = pathStoragePtr.current;
-
-            if (!storage.length || storage.length <= 0 || ptr > storage.length || ptr <= 0)
-                return;
-
-            undo.current = true;
-
-            const last = storage[ptr - 1];
-            pathStoragePtr.current = ptr - 1;
-
-            setPath(last);
-        }
+    function performUndo(setFileFormat: React.Dispatch<React.SetStateAction<FileFormat>>) {
+        if (undoHistory.length <= 1) return;
+        
+        setFileFormat((current) => {
+            redoHistory.push(undoHistory.pop()!);
+            
+            const previousSnapshot = undoHistory[undoHistory.length - 1];
+            
+            return { ...current, ...previousSnapshot };
+        });
     }
 
-    function redoPath(
+    function performRedo(setFileFormat: React.Dispatch<React.SetStateAction<FileFormat>>) {
+        if (redoHistory.length === 0) return;
+        
+        setFileFormat((current) => {
+            const nextSnapshot = redoHistory.pop()!;
+            
+            undoHistory.push(nextSnapshot);
+            
+            return { ...current, ...nextSnapshot };
+        });
+    }
+
+    function undo(
         evt: KeyboardEvent,
-        undo: React.RefObject<boolean>,
-        pathStorageRef: React.RefObject<Path[]>,
-        pathStoragePtr: React.RefObject<number>,
-        setPath: React.Dispatch<React.SetStateAction<Path>>
+        setFileFormat: React.Dispatch<React.SetStateAction<FileFormat>>,
     ) {
-        if (evt.ctrlKey && evt.key.toLowerCase() === "y") {
-            const storage = pathStorageRef.current;
-            const ptr = pathStoragePtr.current;
-
-            if (
-                !storage.length ||
-                storage.length <= 0 ||
-                ptr >= storage.length - 1 ||
-                ptr < 0
-            )
-                return;
-
-            undo.current = true;
-
-            const last = storage[ptr + 1];
-            pathStoragePtr.current = ptr + 1;
-
-            setPath(last);
+        if (evt.ctrlKey) {
+            const key = evt.key.toLowerCase();
+            if (key === "z" && !evt.shiftKey) {
+                evt.preventDefault();
+                performUndo(setFileFormat);
+            }
+            else if ((key === "z" && evt.shiftKey) || key === "y") {
+                evt.preventDefault();
+                performRedo(setFileFormat);
+            }
         }
     }
 
@@ -282,6 +310,8 @@ export default function FieldMacros() {
             const controls = inserted.map(c =>
                 c === newControl ? c : { ...c, selected: false }
             );
+            
+            AddToUndoHistory({ path: { ...prev, segments: controls } });
         
             return {
                 ...prev,
@@ -430,8 +460,7 @@ export default function FieldMacros() {
         selectInversePath,
         deleteControl,
         moveHeading,
-        undoPath,
-        redoPath,
+        undo,
         copyAllPath,
         fieldZoomKeyboard,
         fieldZoomWheel,

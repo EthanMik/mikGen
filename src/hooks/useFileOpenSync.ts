@@ -9,25 +9,20 @@ import { useCommand } from "./useCommands";
 
 export function useFileOpenSync() {
     const [ fileFormat, ] = useFileFormat();
-
     const [ format , setFormat ] = useFormat();
     const [ , setField ] = useField();
     const [ , setPath ] = usePath();
     const [ , setCommands ] = useCommand(); 
-
+    
     useEffect(() => {
-        if (fileFormat === null || fileFormat === undefined) return;
-
         const file = fileFormat as FileFormat;
-
-        setFormat(file.format);
-        setField(file.field);
-        setPath(file.path);
-        setCommands(file.commands);
-        robotConstantsStore.merge(file.robot);
-        globalDefaultsStore.merge( { [format]: file.defaults })
-
-
+        console.log(file)
+        
+        if ('format' in file && file.format !== undefined) setFormat(file.format);
+        if ('field' in file && file.field !== undefined) setField(file.field);
+        if ('path' in file && file.path !== undefined) setPath(file.path);
+        if ('commands' in file && file.commands !== undefined) setCommands(file.commands);
+        if ('robot' in file && file.robot !== undefined) robotConstantsStore.merge(file.robot);
+        if ('defaults' in file && file.defaults !== undefined) globalDefaultsStore.merge( { [format]: file.defaults })
     }, [fileFormat])
-
 }

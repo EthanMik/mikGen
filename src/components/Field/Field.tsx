@@ -1,9 +1,8 @@
 import React, { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { robotConstantsStore } from "../../core/Robot";
 import type { Coordinate } from "../../core/Types/Coordinate";
-import { type Path } from "../../core/Types/Path";
 import homeButton from "../../assets/home.svg"
-import { segmentsEqual, type Segment } from "../../core/Types/Segment";
+import { type Segment } from "../../core/Types/Segment";
 import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, toInch, toPX, vector2Add, vector2Subtract, type Rectangle } from "../../core/Util";
 import { usePath } from "../../hooks/usePath";
 import { usePathVisibility } from "../../hooks/usePathVisibility";
@@ -19,6 +18,8 @@ import PathLayer from "./PathLayer";
 import ControlsLayer from "./ControlsLayer";
 import CommandLayer from "./CommandLayer";
 import { getFieldSrcFromKey, useField } from "../../hooks/useField";
+import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
+import { useFileFormat } from "../../hooks/useFileFormat";
 
 export default function Field() {
   const [ img, setImg ] = useState<Rectangle>( { x: 0, y: 0, w: 575, h: 575 })
@@ -33,57 +34,23 @@ export default function Field() {
   const [robotVisible, setRobotVisibility] = useRobotVisibility();
   const [pathVisible] = usePathVisibility();
   const [format] = useFormat();
+  const [ fileFormat, setFileFormat ] = useFileFormat();
 
-  const pathStorageRef = useRef<Path[]>([]);
-  const pathStoragePtr = useRef<number>(0);
-  const undo = useRef(false);
-  const prevPath = useRef<Path>(path);
   const startDrag = useRef(false);
   const radius = 17;
 
   type dragProps = { dragging: boolean; lastPos: Coordinate };
   const [ drag, setDrag] = useState<dragProps>({ dragging: false, lastPos: { x: 0, y: 0 } });
+  const dragHistoryActive = useRef(false);
+  const dragDidMove = useRef(false);
+
   const [ middleMouseDown, setMiddleMouseDown ] = useState(false)
   const fieldDragRef = useRef<Coordinate>( { x: 0, y: 0} );
   const isFieldDragging = useRef(false);
 
-  const pathChanged = (): boolean => {
-    if (prevPath.current.segments.length !== path.segments.length) return true;
-    for (let i = 0; i < path.segments.length; i++) {
-      if (!segmentsEqual(path.segments[i], prevPath.current.segments[i])) return true;
-    }
-    return false;
-  };
-
-  useEffect(() => {
-    const changed = pathChanged();
-
-    if (undo.current) {
-      undo.current = false;
-      prevPath.current = path;
-      return;
-    }
-
-    if (changed && pathStoragePtr.current < pathStorageRef.current.length - 1) {
-      pathStorageRef.current = pathStorageRef.current.slice(0, pathStoragePtr.current + 1);
-    }
-
-    if (changed && (!drag.dragging || startDrag.current)) {
-      startDrag.current = false;
-      pathStorageRef.current = [
-        ...pathStorageRef.current.slice(0, pathStorageRef.current.length - 1),
-        prevPath.current,
-        path,
-      ];
-      pathStoragePtr.current = pathStorageRef.current.length - 1;
-    }
-
-    prevPath.current = path;
-  }, [path, drag.dragging]);
-
   const {
     moveControl, moveHeading, deleteControl, unselectPath, selectPath,
-    selectInversePath, undoPath, redoPath, addPointDriveSegment,
+    selectInversePath, undo, addPointDriveSegment,
     addPointTurnSegment, addPoseDriveSegment, addAngleTurnSegment,
     addAngleSwingSegment, addPointSwingSegment, fieldZoomKeyboard, fieldZoomWheel, 
     fieldPanWheel
@@ -100,8 +67,9 @@ export default function Field() {
       deleteControl(evt, setPath);
       selectPath(evt, setPath);
       selectInversePath(evt, setPath);
-      undoPath(evt, undo, pathStorageRef, pathStoragePtr, setPath);
-      redoPath(evt, undo, pathStorageRef, pathStoragePtr, setPath);
+      // undoPath(evt, undo, pathStorageRef, pathStoragePtr, setPath);
+      // redoPath(evt, undo, pathStorageRef, pathStoragePtr, setPath);
+      undo(evt, setFileFormat)
       fieldZoomKeyboard(evt, setImg);
       toggleRobotVisibility(evt, setRobotVisibility);
     };
@@ -120,7 +88,7 @@ export default function Field() {
       document.removeEventListener("wheel", handleWheelDown);
     };
   }, []);
-
+  
   useEffect(() => {
     const svg = svgRef.current;
     if (svg === null) return;
@@ -168,6 +136,8 @@ export default function Field() {
     const posSvg = pointerToSvg(evt, svgRef.current);
     const delta = vector2Subtract(posSvg, drag.lastPos);
 
+    if (delta.x !== 0 || delta.y !== 0) dragDidMove.current = true;
+
     const next: Segment[] = (
       path.segments.map((c) => {
         if (!c.selected || c.locked || c.pose.x === null || c.pose.y === null) return c;
@@ -195,8 +165,14 @@ export default function Field() {
   };
 
   const endDrag = () => {
-    isFieldDragging.current = false;
     setDrag({ dragging: false, lastPos: { x: 0, y: 0 } });
+    if (dragHistoryActive.current && dragDidMove.current) {
+      AddToUndoHistory({ path: path });
+    }
+  
+    dragHistoryActive.current = false;
+    dragDidMove.current = false;
+    isFieldDragging.current = false;
   }
 
   const selectSegment = (controlId: string, shifting: boolean) => {
@@ -228,6 +204,12 @@ export default function Field() {
     if (evt.button !== 0 || !svgRef.current) return;
     evt.stopPropagation();
     (evt.currentTarget as Element).setPointerCapture(evt.pointerId);
+
+    if (!dragHistoryActive.current) {
+      AddToUndoHistory({ path: path });
+      dragHistoryActive.current = true;
+      dragDidMove.current = false;
+    }
 
     const posSvg = pointerToSvg(evt, svgRef.current);
     if (!drag.dragging) selectSegment(controlId, evt.shiftKey);

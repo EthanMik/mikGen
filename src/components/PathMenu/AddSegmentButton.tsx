@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import plus from "../../assets/plus.svg"
 import { usePath } from "../../hooks/usePath";
-import { createAngleTurnSegment, type Segment } from "../../core/Types/Segment";
 import FieldMacros from "../../macros/FieldMacros";
 import { useFormat } from "../../hooks/useFormat";
 

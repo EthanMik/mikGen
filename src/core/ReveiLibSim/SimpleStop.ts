@@ -51,7 +51,7 @@ export class SimpleStop {
         
         const longitudinalDistance = (error.y ?? 0) - dropEarly;
         
-        console.log(longitudinalSpeed, longitudinalDistance)
+        // console.log(longitudinalSpeed, longitudinalDistance)
 
         if (longitudinalDistance < 0) {
             this.stopLastState = "BRAKE";

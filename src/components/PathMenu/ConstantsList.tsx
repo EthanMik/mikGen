@@ -4,6 +4,7 @@ import downArrow from "../../assets/down-arrow.svg";
 import type { ConstantField } from "./ConstantRow";
 import ConstantRow from "./ConstantRow";
 import { deepEqual } from "../../core/Util";
+import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 
 type ConstantsListProps = {
     header: string;
