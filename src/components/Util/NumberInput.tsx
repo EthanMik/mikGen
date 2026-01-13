@@ -51,7 +51,7 @@ export default function NumberInput({
   }, [value]);
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const prevClampedNum = useRef<number | null>(null);
+  const prevClampedNum = useRef<number | null>(value);
 
   const addToHistoryCheck = (value: number | null ) => {
     if (prevClampedNum.current !== value && value !== null) {
@@ -76,7 +76,7 @@ export default function NumberInput({
   
       timerRef.current = setTimeout(() => {
         addToHistoryCheck(clamped);
-      }, 1000);
+      }, 400);
 
     },    
     [value, stepSize, bounds, setValue]
@@ -207,7 +207,10 @@ export default function NumberInput({
         value={displayRef.current}
         onChange={handleChange}
         onMouseEnter={() => setIsHovering(true)}
-        onMouseLeave={() => setIsHovering(false)}
+        onMouseLeave={() => {
+          setIsHovering(false)
+          executeValue();
+        }}
         onKeyDown={handleKeyDown}
         onBlur={handleBlur}
       />

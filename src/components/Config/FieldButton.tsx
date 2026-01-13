@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useTransition } from "react";
-import { fieldMap, useField } from "../../hooks/useField";
+import { fieldMap, useField, type FieldType } from "../../hooks/useField";
+import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 
 const imageCache: { [key: string]: HTMLImageElement } = {};
 
@@ -45,6 +46,7 @@ export default function FieldButton() {
   const [, startTransition] = useTransition();
 
   const hoverTimer = useRef<number | null>(null);
+  const prevField = useRef<FieldType>(fieldKey);
 
   usePreloadImagesOnMount(fieldMap.map((f) => f.src));
 
@@ -58,15 +60,18 @@ export default function FieldButton() {
     setOpen((prev) => !prev);
   };
   
-  const setFieldSmooth = (key: string) => {
+  const setFieldSmooth = (key: FieldType) => {
+    if (key !== prevField.current) {
+        AddToUndoHistory({ field: key });
+    }
     startTransition(() => setFieldKey(key));
   };
 
-  if (fieldKey === "" || fieldKey === undefined) {
+  if (fieldKey === undefined) {
     setFieldSmooth(fieldMap[0].key);
   }
 
-  const handleHover = (key: string) => {
+  const handleHover = (key: FieldType) => {
     if (hoverTimer.current) window.clearTimeout(hoverTimer.current);
     hoverTimer.current = window.setTimeout(() => {
       setFieldSmooth(key);

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import eyeOpen from "../../assets/eye-open.svg";
 import eyeClosed from "../../assets/eye-closed.svg";
 import lockClose from "../../assets/lock-close.svg";
@@ -13,6 +13,8 @@ import type { ConstantField } from "./ConstantRow";
 import ConstantsList from "./ConstantsList";
 import CycleImageButton, { type CycleImageButtonProps } from "../Util/CycleButton";
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
+import { globalDefaultsStore } from "../../core/DefaultConstants";
+import { useFormat } from "../../hooks/useFormat";
 
 
 export type ConstantListField = {
@@ -52,6 +54,10 @@ export default function MotionList({
     const [ isLocked, setLocked ] = useState(false);
     const [ isOpen, setOpen ] = useState(false);
     const [ command, setCommand ] = useState<Command>(createCommand(''));
+    const [ format ] = useFormat();
+
+    const pathRef = useRef(path);
+    pathRef.current = path
 
     const normalSelect = () => {
         setPath(prev => ({
@@ -159,34 +165,26 @@ export default function MotionList({
         }))        
     }, [command])
 
+    const toggleSegment = (patch: (s: any) => any) => {
+        setPath(prev => {
+            
+            const next = {
+                ...prev,
+                segments: prev.segments.map(s => (s.id === segmentId ? patch(s) : s)),
+            };
+            
+            AddToUndoHistory({ path: next });
+            return next;
+        });
+    };
+
     const handleEyeOnClick = () => {
-      setEyeOpen((visible) => {
-        setPath(prev => ({
-            ...prev,
-            segments: prev.segments.map(control =>
-                control.id === segmentId
-                ? { ...control, visible: !visible }
-                : control
-            ),
-        }));
-        return !visible
-      })
-    }
+        toggleSegment(s => ({ ...s, visible: !s.visible }));
+    };
 
     const handleLockOnClick = () => {
-      setLocked((locked) => {
-        setPath(prev => ({
-            ...prev,
-            segments: prev.segments.map(control =>
-                control.id === segmentId
-                ? { ...control, locked: !locked }
-                : control
-            ),
-        }));
-
-        return !locked
-      })
-    }
+        toggleSegment(s => ({ ...s, locked: !s.locked }));
+    };
 
     useEffect(() => {
         setEyeOpen(segment.visible);
@@ -207,6 +205,15 @@ export default function MotionList({
             return acc;
         }, {});
     };
+
+    const updateUndoRef = useRef(false);
+
+    useEffect(() => {
+        if (updateUndoRef.current) {
+            AddToUndoHistory({ path: path });
+            updateUndoRef.current = false;
+        }
+    }, [path])
 
     return (
         <div className={`flex flex-col gap-2 mt-[1px]`}>
@@ -248,18 +255,29 @@ export default function MotionList({
             
             {!start ? (
                 <Slider
-                sliderWidth={210}
-                sliderHeight={5}
-                knobHeight={16}
-                knobWidth={16}
-                value={(field[0]?.values?.["maxSpeed"] ?? 0) / speedScale * 100}
-                setValue={(v: number) => field[0]?.onChange({ maxSpeed: (v / 100) * speedScale })}
-                // onChangeStart={ () => AddToUndoHistory( {path: path} )}
-                OnChangeEnd={ () => AddToUndoHistory({ 
-                    path: { 
-                        ...path, 
-                        segments:  path.segments.map((s) => (s.id === segmentId ? segment.constants["maxSpeed"] = value : s)),
-                    }})}
+                    sliderWidth={210}
+                    sliderHeight={5}
+                    knobHeight={16}
+                    knobWidth={16}
+                    value={(field[0]?.values?.["maxSpeed"] ?? 0) / speedScale * 100}
+                    
+                    setValue={(v: number) => field[0]?.onChange({ maxSpeed: (v / 100) * speedScale })}
+                    
+                    OnChangeEnd={(sliderValue: number) => {
+                        const currentPath = pathRef.current;
+                        const realValue = (sliderValue / 100) * speedScale;
+
+                        AddToUndoHistory({
+                            path: {
+                            ...currentPath,
+                            segments: currentPath.segments.map((s) => 
+                                s.id === segmentId 
+                                ? { ...s, constants: { ...s.constants, maxSpeed: realValue } } 
+                                : s
+                            ),
+                            }
+                        });
+                    }}
                 />
             ) : (
                 <div className="w-[230px]" />
@@ -272,11 +290,15 @@ export default function MotionList({
                 </span>
             )}
             {directionField.length !== 0 && <div className="w-max flex flex-row items-center justify-end gap-2.5 pl-[12px]">
-                {directionField.map((f) => (
+                {directionField.map((f, i) => (
                     <CycleImageButton
-                    imageKeys={f.imageKeys}
-                    onKeyChange={f.onKeyChange}
-                    initialKey={f.initialKey}
+                        key={i}
+                        imageKeys={f.imageKeys}
+                        onKeyChange={(key: string | null) => {
+                            updateUndoRef.current = true;
+                            f.onKeyChange(key);
+                        }}
+                        value={f.value}
                     />
                 ))}
 
@@ -303,8 +325,18 @@ export default function MotionList({
                         values={relevantValues}
                         isOpenGlobal={isOpenGlobal}
                         onChange={f.onChange}
-                        onReset={() => f.onChange(relevantDefaults)}
-                        onSetDefault={f.setDefault}
+                        onReset={() => {
+                            AddToUndoHistory({path: path})
+                            f.onChange(relevantDefaults)
+                        }}
+                        onSetDefault={(constants: Partial<any>) => {
+                            AddToUndoHistory({
+                            defaults: {
+                                [format]: structuredClone(globalDefaultsStore.getState()[format]),
+                            } as any,
+                            });
+                            f.setDefault(constants);
+                        }}
                         defaults={relevantDefaults}
                     />
                     );

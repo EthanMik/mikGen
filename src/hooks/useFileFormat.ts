@@ -19,7 +19,7 @@ export type FileFormat = {
 export const DEFAULT_FORMAT: FileFormat = {
     format: "mikLib",
     field: "v5-match",
-    // defaults: INITIAL_DEFAULTS["mikLib"],
+    defaults: INITIAL_DEFAULTS["mikLib"],
     path: { segments: [], name: "" },
     robot: defaultRobotConstants,
     commands: []

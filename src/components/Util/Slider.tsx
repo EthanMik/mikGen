@@ -11,7 +11,7 @@ type SliderProps = {
   value: number,
   setValue: (value: number) => void; 
   onChangeStart?: () => void;
-  OnChangeEnd?: () => void;
+  OnChangeEnd?: (value: number) => void;
 }
 
 /** Uses value on a scale of 0-100 */
@@ -41,16 +41,16 @@ export default function Slider({
   }
 
   const startDrag = (evt: React.MouseEvent) => {
+    onChangeStart?.();
     evt.preventDefault();
 
     
     const move = (evt: MouseEvent) => {
-      onChangeStart?.();
       handleMove(evt.clientX)
     }
 
     const stop = () => {
-      OnChangeEnd?.();
+      OnChangeEnd?.(value);
       window.removeEventListener("mouseup", stop);
       window.removeEventListener("mousemove", move);
     }

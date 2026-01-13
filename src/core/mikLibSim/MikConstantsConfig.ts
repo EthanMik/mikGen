@@ -171,7 +171,7 @@ const createTurnDirectionGroup = (
     onKeyChange: (key: string | null) => {
       updatePathConstants(setPath, segmentId, { [slot] : { turnDirection: key } })
     },
-    initialKey: getDirectionState(path, segmentId, "turnDirection", slot)
+    value: getDirectionState(path, segmentId, "turnDirection", slot)
   }
 }
 
@@ -191,7 +191,7 @@ const createDriveDirectionGroup = (
     onKeyChange: (key: string | null) => {
       updatePathConstants(setPath, segmentId, { [slot]: { driveDirection: key } })
     },
-    initialKey: getDirectionState(path, segmentId, "driveDirection", slot)
+    value: getDirectionState(path, segmentId, "driveDirection", slot)
   }
 }
 
@@ -209,7 +209,7 @@ const createSwingDirectionGroup = (
     onKeyChange: (key: string | null) => {
       updatePathConstants(setPath, segmentId, { [slot]: { swingDirection: key } })
     },
-    initialKey: getDirectionState(path, segmentId, "swingDirection", slot)
+    value: getDirectionState(path, segmentId, "swingDirection", slot)
   }
 }
 

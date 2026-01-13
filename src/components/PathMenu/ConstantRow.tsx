@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { useEffect, useReducer, useRef } from "react";
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 import { usePath } from "../../hooks/usePath";
 import NumberInput from "../Util/NumberInput";
@@ -34,6 +35,16 @@ export default function ConstantRow({
     input,
 } : ConstantRowProps) {
     const [ path, ] = usePath();
+
+    const undoRef = useRef(false);
+
+    useEffect(() => {
+      if (undoRef.current) {
+        AddToUndoHistory( { path: path});
+        undoRef.current = false;
+      }
+    }, [path])
+
     return (        
         <div className="flex flex-row items-center 
             justify-between h-[30px] pr-2 pl-2 gap-1"
@@ -49,7 +60,7 @@ export default function ConstantRow({
                 bounds={input?.bounds ?? [0, 100]}
                 stepSize={input?.stepSize ?? 1}
                 roundTo={input?.roundTo ?? 5}
-                addToHistory={ () => AddToUndoHistory({path: path}) }                
+                addToHistory={ () => { undoRef.current = true; } }                
             />
         </div>
     );

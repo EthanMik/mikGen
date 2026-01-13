@@ -7,8 +7,8 @@ import { useFormat } from "../../hooks/useFormat";
 export default function AddSegmentButton() {
     const [ isOpen, setOpen ] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
-    const [ path, setPath] = usePath();
-    const [ format, setFormat ] = useFormat();
+    const [ , setPath] = usePath();
+    const [ format,  ] = useFormat();
 
     const handleToggleMenu = () => {
         setOpen((prev) => !prev)
