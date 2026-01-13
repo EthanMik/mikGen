@@ -29,7 +29,7 @@ function CopyIcon({ className }: { className?: string }) {
 export default function CopyPathButton() {
   const [isOpen, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const [ pathFormat, setPathFormat ] = useFormat();
+  const [ pathFormat,  ] = useFormat();
   const [path] = usePath();
 
   const [flash, setFlash] = useState(false);

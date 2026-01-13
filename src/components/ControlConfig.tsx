@@ -15,7 +15,7 @@ function MirrorControl({
     src,
     mirrorDirection
 }: MirrorControlProps) {
-    const [ path, setPath ] = usePath();
+    const [ , setPath ] = usePath();
 
     const mirrorX = () => {
         setPath(prev => ({

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import "./App.css";
 import PathConfig from "./components/PathMenu/PathConfig";
 import PathSimulator from "./components/PathSimulator";

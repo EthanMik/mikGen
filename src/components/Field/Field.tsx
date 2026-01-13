@@ -21,6 +21,7 @@ import { getFieldSrcFromKey, useField } from "../../hooks/useField";
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 import { useFileFormat } from "../../hooks/useFileFormat";
 import type { Path } from "../../core/Types/Path";
+import { useClipboard } from "../../hooks/useClipboard";
 
 export default function Field() {
   const [ img, setImg ] = useState<Rectangle>( { x: 0, y: 0, w: 575, h: 575 })
@@ -36,6 +37,7 @@ export default function Field() {
   const [pathVisible] = usePathVisibility();
   const [format] = useFormat();
   const [ , setFileFormat ] = useFileFormat();
+  const [ clipboard, setClipboard ] = useClipboard();
 
   const startDrag = useRef(false);
   const radius = 17;
@@ -60,7 +62,7 @@ export default function Field() {
     selectInversePath, undo, addPointDriveSegment,
     addPointTurnSegment, addPoseDriveSegment, addAngleTurnSegment,
     addAngleSwingSegment, addPointSwingSegment, fieldZoomKeyboard, fieldZoomWheel, 
-    fieldPanWheel
+    fieldPanWheel, cut, copy, paste
   } = FieldMacros();
 
   const { toggleRobotVisibility } = PathSimMacros();
@@ -72,10 +74,14 @@ export default function Field() {
       if (evt.ctrlKey && evt.key.toLowerCase() === "r") return;
       unselectPath(evt, setPath);
       moveControl(evt, setPath);
+      cut(evt, path, setClipboard, setPath);
+      copy(evt, path, setClipboard);
+      paste(evt, setPath, clipboard);
       deleteControl(evt, setPath);
       selectPath(evt, setPath);
       selectInversePath(evt, setPath);
-      undo(evt, setFileFormat)
+      undo(evt, setFileFormat);
+      
       fieldZoomKeyboard(evt, setImg);
       toggleRobotVisibility(evt, setRobotVisibility);
     };
@@ -93,7 +99,24 @@ export default function Field() {
       document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("wheel", handleWheelDown);
     };
-  }, []);
+  // Re-register handlers when any of these dependencies change so the
+  // keyboard callbacks always see the latest `path` / `clipboard` state.
+  }, [
+    path,
+    clipboard,
+    setClipboard,
+    setPath,
+    setFileFormat,
+    moveControl,
+    moveHeading,
+    deleteControl,
+    unselectPath,
+    selectPath,
+    selectInversePath,
+    undo,
+    fieldZoomKeyboard,
+    toggleRobotVisibility,
+  ]);
   
   useEffect(() => {
     const svg = svgRef.current;

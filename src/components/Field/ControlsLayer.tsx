@@ -92,7 +92,7 @@ export default function ControlsLayer({ path, img, radius, format, onPointerDown
                  if (control.kind === "pointSwing") {
                     const desiredPos = getForwardSnapPose(path, idx);
                     angle = desiredPos !== null ?  
-                      calculateHeading(snapPose, {x: desiredPos.x ?? 0, y: desiredPos.y ?? 0}) + (control.pose.angle ?? 0) :
+                      calculateHeading({ x: snapPose.x, y: snapPose.y }, {x: desiredPos.x ?? 0, y: desiredPos.y ?? 0}) + (control.pose.angle ?? 0) :
                       angle;
                   }
 
@@ -133,5 +133,5 @@ export default function ControlsLayer({ path, img, radius, format, onPointerDown
         </g>
       ))}
     </>
-  );
+);
 }
