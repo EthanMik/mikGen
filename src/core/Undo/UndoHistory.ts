@@ -16,19 +16,7 @@ export function AddToUndoHistory(snapshot: Partial<FileFormat>) {
     console.log(snapshot);
     
     const previousState = undoHistory[undoHistory.length - 1];
-
-    const fullState: Partial<FileFormat> = {
-        ...previousState,
-        ...snapshot,
-
-        ...(snapshot.path
-        ? { path: structuredClone(snapshot.path) }
-        : null),
-
-        ...(snapshot.defaults
-        ? { defaults: structuredClone({ ...(previousState as any).defaults, ...(snapshot as any).defaults }) }
-        : null),
-    };
+    const fullState = { ...previousState, ...snapshot };
     
     undoHistory.push(fullState)
     redoHistory.length = 0; 
