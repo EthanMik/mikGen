@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect } from "react";
 import { useFileFormat, type FileFormat } from "./useFileFormat";
 import { useFormat } from "./useFormat";
@@ -23,6 +24,9 @@ export function useFileOpenSync() {
         if ('path' in file && file.path !== undefined) setPath(file.path);
         if ('commands' in file && file.commands !== undefined) setCommands(file.commands);
         if ('robot' in file && file.robot !== undefined) robotConstantsStore.merge(file.robot);
-        if ('defaults' in file && file.defaults !== undefined) globalDefaultsStore.merge( { [format]: file.defaults })
+        if ('defaults' in file && file.defaults !== undefined) {
+            const targetFormat = (file as FileFormat).format ?? format;
+            globalDefaultsStore.merge({ [targetFormat]: (file as FileFormat).defaults } as any);
+        }
     }, [fileFormat])
 }

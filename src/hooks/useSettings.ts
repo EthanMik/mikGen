@@ -1,5 +1,7 @@
 import { createSharedState } from "../core/SharedState";
 
+
+
 type Settings = {
     ghostRobots: boolean
 }

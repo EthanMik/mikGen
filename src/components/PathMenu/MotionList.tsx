@@ -330,12 +330,10 @@ export default function MotionList({
                             f.onChange(relevantDefaults)
                         }}
                         onSetDefault={(constants: Partial<any>) => {
-                            AddToUndoHistory({
-                            defaults: {
-                                [format]: structuredClone(globalDefaultsStore.getState()[format]),
-                            } as any,
-                            });
                             f.setDefault(constants);
+                            AddToUndoHistory({
+                                defaults: structuredClone(globalDefaultsStore.getState()[format]) as any,
+                            });
                         }}
                         defaults={relevantDefaults}
                     />

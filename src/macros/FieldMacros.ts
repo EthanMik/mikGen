@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type React from "react";
-import { clamp, FIELD_IMG_DIMENSIONS, normalizeDeg, type Rectangle } from "../core/Util";
+import { clamp, FIELD_IMG_DIMENSIONS, mergeDeep, normalizeDeg, type Rectangle } from "../core/Util";
 import type { Path } from "../core/Types/Path";
 import type { SetStateAction } from "react";
 import { createAngleSwingSegment, createAngleTurnSegment, createPointDriveSegment, createPointSwingSegment, createPointTurnSegment, createPoseDriveSegment, type Segment } from "../core/Types/Segment";
@@ -255,8 +256,8 @@ export default function FieldMacros() {
             redoHistory.push(undoHistory.pop()!);
             
             const previousSnapshot = undoHistory[undoHistory.length - 1];
-            
-            return { ...current, ...previousSnapshot };
+
+            return mergeDeep(current, previousSnapshot as any);
         });
     }
 
@@ -267,8 +268,8 @@ export default function FieldMacros() {
             const nextSnapshot = redoHistory.pop()!;
             
             undoHistory.push(nextSnapshot);
-            
-            return { ...current, ...nextSnapshot };
+
+            return mergeDeep(current, nextSnapshot as any);
         });
     }
 

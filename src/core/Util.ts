@@ -107,6 +107,30 @@ export function RectangleRectangleCollision(rect1: Rectangle, rect2: Rectangle):
     );
 }
 
+const isPlainObject = (v: any) => v && typeof v === "object" && !Array.isArray(v);
+
+// chat gpt equal universal merger this code may be broken
+export function mergeDeep(base: any, patch: any): any {
+    if (!isPlainObject(base) || !isPlainObject(patch)) {
+        return patch === undefined ? base : patch;
+    }
+
+    const out: any = { ...base };
+
+    for (const key of Object.keys(patch)) {
+        const patchValue = (patch as any)[key];
+        const baseValue = (base as any)[key];
+
+        if (isPlainObject(patchValue) && isPlainObject(baseValue)) {
+            out[key] = mergeDeep(baseValue, patchValue);
+        } else {
+            out[key] = patchValue;
+        }
+    }
+
+    return out;
+};
+
 // chat gpt equal universal equal checker this code may be broken
 export function deepEqual(a: any, b: any): boolean {
   const seen = new WeakMap<object, WeakSet<object>>();

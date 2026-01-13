@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { robotConstantsStore } from "../../core/Robot";
 import type { Coordinate } from "../../core/Types/Coordinate";
-import homeButton from "../../assets/home.svg"
+import homeButton from "../../assets/home.svg";
 import { type Segment } from "../../core/Types/Segment";
-import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, toInch, toPX, vector2Add, vector2Subtract, type Rectangle } from "../../core/Util";
+import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, toInch, type Rectangle } from "../../core/Util";
 import { usePath } from "../../hooks/usePath";
 import { usePathVisibility } from "../../hooks/usePathVisibility";
 import { usePose } from "../../hooks/usePose";
@@ -20,6 +20,7 @@ import CommandLayer from "./CommandLayer";
 import { getFieldSrcFromKey, useField } from "../../hooks/useField";
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 import { useFileFormat } from "../../hooks/useFileFormat";
+import type { Path } from "../../core/Types/Path";
 
 export default function Field() {
   const [ img, setImg ] = useState<Rectangle>( { x: 0, y: 0, w: 575, h: 575 })
@@ -34,7 +35,7 @@ export default function Field() {
   const [robotVisible, setRobotVisibility] = useRobotVisibility();
   const [pathVisible] = usePathVisibility();
   const [format] = useFormat();
-  const [ fileFormat, setFileFormat ] = useFileFormat();
+  const [ , setFileFormat ] = useFileFormat();
 
   const startDrag = useRef(false);
   const radius = 17;
@@ -43,6 +44,12 @@ export default function Field() {
   const [ drag, setDrag] = useState<dragProps>({ dragging: false, lastPos: { x: 0, y: 0 } });
   const dragHistoryActive = useRef(false);
   const dragDidMove = useRef(false);
+  
+  const dragStartSnapshot = useRef<Path | null>(null);
+  const dragStartPushed = useRef(false);
+  const lastReleasedSnapshot = useRef<Path | null>(null);
+  const dragStartPointerInch = useRef<Coordinate | null>(null);
+  const dragStartPositions = useRef<Record<string, { x: number | null; y: number | null }>>({});
 
   const [ middleMouseDown, setMiddleMouseDown ] = useState(false)
   const fieldDragRef = useRef<Coordinate>( { x: 0, y: 0} );
@@ -67,8 +74,6 @@ export default function Field() {
       deleteControl(evt, setPath);
       selectPath(evt, setPath);
       selectInversePath(evt, setPath);
-      // undoPath(evt, undo, pathStorageRef, pathStoragePtr, setPath);
-      // redoPath(evt, undo, pathStorageRef, pathStoragePtr, setPath);
       undo(evt, setFileFormat)
       fieldZoomKeyboard(evt, setImg);
       toggleRobotVisibility(evt, setRobotVisibility);
@@ -134,26 +139,44 @@ export default function Field() {
     if (!drag.dragging || !svgRef.current) return;
 
     const posSvg = pointerToSvg(evt, svgRef.current);
-    const delta = vector2Subtract(posSvg, drag.lastPos);
+    const posInch = toInch(posSvg, FIELD_REAL_DIMENSIONS, img);
 
-    if (delta.x !== 0 || delta.y !== 0) dragDidMove.current = true;
+    const start = dragStartPointerInch.current;
+    if (!start) return;
+
+    let dx = posInch.x - start.x;
+    let dy = posInch.y - start.y;
+
+    const smallMove = Math.abs(dx) < 1 && Math.abs(dy) < 1;
+
+    if (evt.ctrlKey) {
+      dx = Math.round(dx);
+      dy = Math.round(dy);
+    }
+
+    if (dx !== 0 || dy !== 0) dragDidMove.current = true;
 
     const next: Segment[] = (
       path.segments.map((c) => {
-        if (!c.selected || c.locked || c.pose.x === null || c.pose.y === null) return c;
+        if (!c.selected || c.locked) return c;
 
-        const currentPx = toPX({ x: c.pose.x, y: c.pose.y }, FIELD_REAL_DIMENSIONS, img);
-        const newPx = vector2Add(currentPx, delta);
-        const newInch = toInch(newPx, FIELD_REAL_DIMENSIONS, img);
+        const startPos = dragStartPositions.current[c.id];
+        if (!startPos) return c;
+        const sx = startPos.x;
+        const sy = startPos.y;
 
-        // if (evt.ctrlKey) {
-        //   newInch = {
-        //     x: Math.round(newInch.x),
-        //     y: Math.round(newInch.y)
-        //   }
-        // }
+        let newX = sx === null ? null : sx + dx;
+        let newY = sy === null ? null : sy + dy;
 
-        return { ...c, pose: { ...c.pose, x: newInch.x, y: newInch.y } };
+        // Round to nearest whole number if ctrl is held or the move is very small
+        if (newX !== null && newY !== null) {
+          if (evt.ctrlKey || smallMove) {
+            newX = Math.round(newX);
+            newY = Math.round(newY);
+          }
+        }
+
+        return { ...c, pose: { ...c.pose, x: newX, y: newY } };
       })
     );
 
@@ -162,16 +185,23 @@ export default function Field() {
       ...prev,
       segments: next
     }));
+
   };
 
   const endDrag = () => {
     setDrag({ dragging: false, lastPos: { x: 0, y: 0 } });
-    if (dragHistoryActive.current && dragDidMove.current) {
-      AddToUndoHistory({ path: path });
-    }
-  
     dragHistoryActive.current = false;
+
+    if (dragDidMove.current) {
+      AddToUndoHistory({ path: structuredClone(path) });
+      lastReleasedSnapshot.current = structuredClone(path);
+    }
+
     dragDidMove.current = false;
+    dragStartSnapshot.current = null;
+    dragStartPushed.current = false;
+    dragStartPointerInch.current = null;
+    dragStartPositions.current = {};
     isFieldDragging.current = false;
   }
 
@@ -206,13 +236,25 @@ export default function Field() {
     (evt.currentTarget as Element).setPointerCapture(evt.pointerId);
 
     if (!dragHistoryActive.current) {
-      AddToUndoHistory({ path: path });
+      setPath((prev) => {
+        dragStartSnapshot.current = structuredClone(prev);
+        return prev;
+      });
+      dragStartPushed.current = false;
       dragHistoryActive.current = true;
       dragDidMove.current = false;
     }
 
     const posSvg = pointerToSvg(evt, svgRef.current);
     if (!drag.dragging) selectSegment(controlId, evt.shiftKey);
+
+    const startInch = toInch(posSvg, FIELD_REAL_DIMENSIONS, img);
+    dragStartPointerInch.current = structuredClone(startInch);
+    const startPositions: Record<string, { x: number | null; y: number | null }> = {};
+    for (const s of path.segments) {
+      startPositions[s.id] = { x: s.pose.x, y: s.pose.y };
+    }
+    dragStartPositions.current = startPositions;
 
     startDrag.current = true;
     setDrag({ dragging: true, lastPos: posSvg });
