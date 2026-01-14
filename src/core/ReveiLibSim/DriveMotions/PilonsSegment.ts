@@ -42,7 +42,7 @@ export function pilonsSegment(robot: Robot, dt: number, x: number, y: number, co
     }
 
     const revRobotPos = toRevCoordinate(robot.getX(), robot.getY());
-    console.log(revRobotPos)
+    // console.log(revRobotPos)
 
     const currentState: PoseState = { x: revRobotPos.x, y: revRobotPos.y, angle: wrapDeg180(robot.getAngle()), xVel: robot.getXVelocity(), yVel: robot.getYVelocity() } 
     const targetPoint: Pose = { x: x, y: y, angle: 0 };

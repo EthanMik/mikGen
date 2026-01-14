@@ -14,10 +14,17 @@ export function PathSimMacros() {
     /** Using key "P" to start and stop simulator */
     const pauseSimulator = (
         evt: KeyboardEvent,
-        setPlaying: React.Dispatch<React.SetStateAction<boolean>>
+        setPlaying: React.Dispatch<React.SetStateAction<boolean>>,
+        setVisibility: React.Dispatch<SetStateAction<boolean>>,
     ) => {
         if (evt.key.toLowerCase() === "k") {
-            setPlaying((v) => !v);
+            setPlaying((v) => {
+                const newState = !v;
+                if (newState) {
+                    setVisibility(true);
+                }
+                return newState;
+            });
             evt.stopPropagation();
         }
     };

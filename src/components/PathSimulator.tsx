@@ -99,7 +99,7 @@ export default function PathSimulator() {
         const handleKeyDown = (evt: KeyboardEvent) => {
             const target = evt.target as HTMLElement | null;
             if (target?.isContentEditable || target?.tagName === "INPUT") return;
-            pauseSimulator(evt, setPlaying)
+            pauseSimulator(evt, setPlaying, setRobotVisibility)
             scrubSimulator(evt, setValue, setPlaying, skip, computedPath, 0.05, 0.25);
             // scrubSimulator(evt, setValue, setPlaying, skip, computedPath, 1/60, 0.25);
         }
