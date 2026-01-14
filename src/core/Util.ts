@@ -33,6 +33,20 @@ export function calculateHeading(currentPos: Coordinate, desiredPos: Coordinate)
   return toDeg(Math.atan2(dPos.x, dPos.y));
 }
 
+export function rotatePoint(point: Coordinate, angle: number): Coordinate {
+  const s = Math.sin(toRad(angle));
+  const c = Math.cos(toRad(angle));
+
+  const x = point.x;
+  const y = point.y;
+
+  const xr = x * c - y * s;
+  const yr = x * s + y * c;
+
+  return { x: xr, y: yr };
+}
+
+
 export function normalizeDeg(angle: number) { return ((angle % 360) + 360) % 360; }
 
 export function clamp(value: number, min: number, max: number) {

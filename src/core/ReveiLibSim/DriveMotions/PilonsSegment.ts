@@ -4,7 +4,7 @@ import { getConstantMotionPower } from "../ConstantMotion";
 import type { ReveilLibConstants } from "../RevConstants";
 import { PilonsCorrection } from "../PilonsCorrection";
 import { SimpleStop, type StopState } from "../SimpleStop";
-import { wrapDeg180 } from "../Util";
+import { toRevCoordinate, wrapDeg180 } from "../Util";
 
 type PilonSegmentStatus = "DRIVE" | "BRAKE" | "EXIT";
 
@@ -21,7 +21,12 @@ function cleanupPilonsSegment() {
     stop = null;
 }
 
-export function pilonsSegment(robot: Robot, dt: number, x: number, y: number, constants: ReveilLibConstants) : boolean {                                                
+export function pilonsSegment(robot: Robot, dt: number, x: number, y: number, constants: ReveilLibConstants) : boolean {             
+    // Convert to rev coords
+    const revCoords = toRevCoordinate(x, y);
+    x = revCoords.x;
+    y = revCoords.y;
+
     const dropEarly = constants.dropEarly ?? 0;
     const speed = constants.maxSpeed ?? 0;
     
@@ -32,10 +37,14 @@ export function pilonsSegment(robot: Robot, dt: number, x: number, y: number, co
     }
 
     if (pilonsSegmentStartPoint === null) {
-        pilonsSegmentStartPoint = { x: robot.getX(), y: robot.getY(), angle: wrapDeg180(robot.getAngle()) };
+        const revRobotPos = toRevCoordinate(robot.getX(), robot.getY());
+        pilonsSegmentStartPoint = { x: revRobotPos.x, y: revRobotPos.y, angle: wrapDeg180(robot.getAngle()) };
     }
 
-    const currentState: PoseState = { x: robot.getX(), y: robot.getY(), angle: wrapDeg180(robot.getAngle()), xVel: robot.getXVelocity(), yVel: robot.getYVelocity() } 
+    const revRobotPos = toRevCoordinate(robot.getX(), robot.getY());
+    console.log(revRobotPos)
+
+    const currentState: PoseState = { x: revRobotPos.x, y: revRobotPos.y, angle: wrapDeg180(robot.getAngle()), xVel: robot.getXVelocity(), yVel: robot.getYVelocity() } 
     const targetPoint: Pose = { x: x, y: y, angle: 0 };
     const startPoint = { ...pilonsSegmentStartPoint };
     const newState: StopState = stop.getStopState(currentState, targetPoint, startPoint, dropEarly)

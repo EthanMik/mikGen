@@ -1,4 +1,4 @@
-import type { Pose } from "../Types/Pose";
+import type { Pose, PoseState } from "../Types/Pose";
 import { toDeg, toRad } from "../Util";
 import { to_relative } from "./Util";
 
@@ -15,26 +15,46 @@ export class PilonsCorrection {
     return Math.round((referenceDeg - angleDeg) / 180) * 180 + angleDeg;
   }
 
-  applyCorrection(currentState: Pose, targetState: Pose, startState: Pose, powers: [number, number]): [number, number] {
-    const posCurrent: Pose = { ...currentState };
-    const posFinal: Pose = { ...targetState };
+  applyCorrection(
+    currentState: PoseState,
+    targetState: Pose,
+    startState: Pose,
+    powers: [number, number],
+  ): [number, number] {
+    const posCurrent: Pose = {
+      x: currentState.x,
+      y: currentState.y,
+      angle: currentState.angle,
+    };
 
-    const dy = (posFinal.y ?? 0) - (startState.y ?? 0);
-    const dx = (posFinal.x ?? 0) - (startState.x ?? 0);
-    posFinal.angle = toDeg(Math.atan2(dx, dy));
+    const dy = (targetState.y ?? 0) - (startState.y ?? 0);
+    const dx = (targetState.x ?? 0) - (startState.x ?? 0);
 
-    posFinal.angle = this.nearSemicircleDeg(posFinal.angle ?? 0, startState.angle ?? 0);
+    const posFinal: Pose = {
+      x: targetState.x,
+      y: targetState.y,
+      angle: toDeg(Math.atan2(dy, dx)),
+    };
+
+    posFinal.angle = this.nearSemicircleDeg(
+      posFinal.angle ?? 0,
+      startState.angle ?? 0,
+    );
 
     const error: Pose = to_relative(posCurrent, posFinal);
-    let errorAngleDeg = -(error.angle ?? 0) + toDeg(Math.atan2(error.x ?? 0, error.y ?? 0));
+
+    let errorAngleDeg =
+      -(error.angle ?? 0) + toDeg(Math.atan2(error.y ?? 0, error.x ?? 0));
 
     errorAngleDeg = this.nearSemicircleDeg(errorAngleDeg, 0);
 
-    const lineError = -(error.x ?? 0) + (error.y ?? 0) * Math.tan(toRad(error.angle ?? 0));
+    const thetaRad = toRad(error.angle ?? 0);
+    const lineErr = (error.y ?? 0) + (error.x ?? 0) * Math.tan(thetaRad);
+
     let correction =
-      Math.abs(lineError) > Math.abs(this.maxError)
+      Math.abs(lineErr) > Math.abs(this.maxError)
         ? this.kCorrection * toRad(errorAngleDeg)
-        : 0;
+        : 0.0;
 
     if (powers[0] < 0) correction = -correction;
 

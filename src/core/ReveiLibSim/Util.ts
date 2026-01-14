@@ -1,17 +1,27 @@
+import type { Coordinate } from "../Types/Coordinate";
 import type { Pose } from "../Types/Pose";
-import { toRad } from "../Util";
+import { rotatePoint, toRad } from "../Util";
 
 export function to_relative(currentPose: Pose, referencePose: Pose): Pose {
-  const dx = (referencePose.x ?? 0) - (currentPose.x ?? 0);
-  const dy = (referencePose.y ?? 0) - (currentPose.y ?? 0);
+  const x_shift = (currentPose.x ?? 0) - (referencePose.x ?? 0);
+  const y_shift = (currentPose.y ?? 0) - (referencePose.y ?? 0);
 
   const psi = toRad(referencePose.angle ?? 0);
 
   return {
-    x: dx * Math.cos(psi) - dy * Math.sin(psi),
-    y: dx * Math.sin(psi) + dy * Math.cos(psi),
+    x: x_shift * Math.cos(psi) + y_shift * Math.sin(psi),
+    y: x_shift * -Math.sin(psi) + y_shift * Math.cos(psi),
     angle: (currentPose.angle ?? 0) - (referencePose.angle ?? 0),
   };
+}
+
+export const toRevCoordinate = (x: number, y: number): Coordinate => {
+  return rotatePoint({ x: x, y: -y }, 90);
+}
+
+export const fromRevCoordinate = (x: number, y: number): Coordinate => {
+  const rotated = rotatePoint({ x: x, y: y }, -90);
+  return { x: rotated.x, y: -rotated.y };
 }
 
 export const wrapDeg180 = (deg: number) => {

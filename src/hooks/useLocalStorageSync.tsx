@@ -33,7 +33,7 @@ export default function useLocalStorageSync() {
             defaults: defaultsStore[format]
         };
 
-        // localStorage.setItem("appState", JSON.stringify(newAppState));
+        localStorage.setItem("appState", JSON.stringify(newAppState));
 
     }, [path, field, format, commands, robotStore, defaultsStore]);
 }

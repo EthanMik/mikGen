@@ -29,45 +29,67 @@ export class SimpleStop {
         this.stopLastState = "GO";
     }
 
-    getStopState(currentState: PoseState, targetState: Pose, startState: Pose, dropEarly: number): StopState  {
-        if (this.timeout !== null) {
-            const now = Date.now();
-
-            if (this.timeInit === null) {
-                this.timeInit = now;
-            } else if (now > this.timeInit + this.timeout) {
-                return "EXIT";
-            }
-        }
-
-        const longitudinalSpeed = Math.sqrt((currentState.xVel ?? 0) * (currentState.xVel ?? 0) + (currentState.yVel ?? 0) * (currentState.yVel ?? 0));
-
-        const posCurrent: Pose = { ...currentState };
-        
-        const posFinal: Pose = { ...targetState };
-        posFinal.angle = toDeg(Math.atan2((posFinal.x ?? 0) - (startState.x ?? 0), (posFinal.y ?? 0) - (startState.y ?? 0)));
-
-        const error: Pose = to_relative(posCurrent, posFinal);
-        
-        const longitudinalDistance = (error.y ?? 0) - dropEarly;
-        
-        // console.log(longitudinalSpeed, longitudinalDistance)
-
-        if (longitudinalDistance < 0) {
-            this.stopLastState = "BRAKE";
-            return this.harshThreshold > 1 ? "BRAKE" : "EXIT";
-        }
-
-        if (longitudinalSpeed * (this.harshThreshold / 1000) > longitudinalDistance || this.stopLastState == "BRAKE") {
-            this.stopLastState = "BRAKE";
-            return "BRAKE";
-        }
-
-        if (longitudinalSpeed * (this.coastThreshold / 1000) > longitudinalDistance || this.stopLastState == "COAST") {
-            this.stopLastState = "COAST";
-            return "COAST";
-        }
-
-        return "GO";
+  getStopState(
+    currentState: PoseState,
+    targetState: Pose,
+    startState: Pose,
+    dropEarly: number,
+  ): StopState {
+    if (this.timeout !== null && this.timeout > 0) {
+      const now = Date.now();
+      if (this.timeInit !== null) {
+        if (now > this.timeInit + this.timeout) return "EXIT";
+      } else {
+        this.timeInit = now;
+      }
     }
+
+    const xv = currentState.xVel ?? 0;
+    const yv = currentState.yVel ?? 0;
+    const longitudinalSpeed = Math.sqrt(xv * xv + yv * yv);
+
+    const posCurrent: Pose = {
+      x: currentState.x,
+      y: currentState.y,
+      angle: currentState.angle,
+    };
+
+    const posFinal: Pose = {
+      x: targetState.x,
+      y: targetState.y,
+      angle: toDeg(
+        Math.atan2(
+          (targetState.y ?? 0) - (startState.y ?? 0),
+          (targetState.x ?? 0) - (startState.x ?? 0),
+        ),
+      ),
+    };
+
+    const error: Pose = to_relative(posCurrent, posFinal);
+
+    const longitudinalDistance = -(error.x ?? 0) - dropEarly;
+
+    if (longitudinalDistance < 0) {
+      this.stopLastState = "BRAKE";
+      return this.harshThreshold > 1 ? "BRAKE" : "EXIT";
+    }
+
+    if (
+      longitudinalSpeed * (this.harshThreshold / 1000) > longitudinalDistance ||
+      this.stopLastState === "BRAKE"
+    ) {
+      this.stopLastState = "BRAKE";
+      return "BRAKE";
+    }
+
+    if (
+      longitudinalSpeed * (this.coastThreshold / 1000) > longitudinalDistance ||
+      this.stopLastState === "COAST"
+    ) {
+      this.stopLastState = "COAST";
+      return "COAST";
+    }
+
+    return "GO";
+  }
 }
