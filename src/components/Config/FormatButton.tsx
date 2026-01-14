@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useFormat, type Format } from "../../hooks/useFormat";
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 import { usePath } from "../../hooks/usePath";
-import { getDefaultConstants } from "../../core/DefaultConstants";
+import { getDefaultConstants, globalDefaultsStore } from "../../core/DefaultConstants";
 
 type PathFormats = {
   name: string,
@@ -19,7 +19,7 @@ const FORMATS: PathFormats[] = [
 export default function FormatButton() {
   const [isOpen, setOpen] = useState(false);
   const [ format, setFormat ] = useFormat();
-  const [, setPath ] = usePath();
+  const [path, setPath ] = usePath();
 
   const menuRef = useRef<HTMLDivElement>(null);
   const prevFormatRef = useRef<Format>(format);
@@ -28,19 +28,25 @@ export default function FormatButton() {
   
   const handleClickItem = (format: Format) => {
     setFormat(format);
-    setPath(prev => ({
-      ...prev,
-      segments: prev.segments.map((s) => ({
-        ...s,
-        format: format,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        constants: getDefaultConstants(format, s.kind as any) as any,
-      })),
-    }));
+    setPath(prev => {
+      const newPath = {
+        ...prev,
+        segments: prev.segments.map((s) => ({
+          ...s,
+          format: format,
+          constants: getDefaultConstants(format, s.kind),
+        }))
+      }
 
-    if (prevFormatRef.current !== format) {
-      AddToUndoHistory({ format: format })
-    }
+      if (prevFormatRef.current !== format) {
+        AddToUndoHistory({ format: format, defaults: structuredClone(globalDefaultsStore.getState()[format]), path: newPath });
+      }
+
+      return {
+        ...newPath
+      };
+    });
+
     prevFormatRef.current = format;
   };
 

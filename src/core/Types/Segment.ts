@@ -2,7 +2,7 @@ import type { Format } from "../../hooks/useFormat";
 import { getDefaultConstants } from "../DefaultConstants";
 import { deepEqual, makeId } from "../Util";
 import type { mikDriveConstants, mikSwingConstants, mikTurnConstants } from "../mikLibSim/MikConstants";
-import type { ReveilLibConstants } from "../ReveiLibSim/RevConstants";
+import type { revDriveConstants, ReveilLibConstants, revTurnConstants } from "../ReveiLibSim/RevConstants";
 import { commandsEqual, createCommand, type Command } from "./Command";
 import type { Coordinate } from "./Coordinate";
 import { posesEqual, type Pose } from "./Pose";
@@ -25,12 +25,12 @@ export type ConstantsByFormat = {
     pointSwing: mikSwingConstants;
   };
   ReveilLib: {
-    pointDrive: ReveilLibConstants;
-    poseDrive: ReveilLibConstants;
-    pointTurn: ReveilLibConstants;
-    angleTurn: ReveilLibConstants;
-    angleSwing: ReveilLibConstants;
-    pointSwing: ReveilLibConstants;
+    pointDrive: revDriveConstants;
+    poseDrive: revDriveConstants;
+    pointTurn: revTurnConstants;
+    angleTurn: revTurnConstants;
+    angleSwing: revTurnConstants;
+    pointSwing: revTurnConstants;
   };
   "JAR-Template": {
     pointDrive: mikDriveConstants;

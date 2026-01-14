@@ -15,6 +15,14 @@
     lead: number | null;
 }
 
+export type revDriveConstants = {
+    drive: ReveilLibConstants;
+};
+
+export type revTurnConstants = {
+    turn: ReveilLibConstants;
+};
+
 export const cloneKRev = (c: ReveilLibConstants): ReveilLibConstants => ({ ...c });
 
 function createRevConstants(values: Partial<ReveilLibConstants> = {}): ReveilLibConstants {

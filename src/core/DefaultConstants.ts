@@ -28,12 +28,12 @@ export const INITIAL_DEFAULTS: DefaultConstant = {
   },
 
   ReveilLib: {
-    pointDrive: cloneKRev(kPilon),
-    poseDrive:  cloneKRev(kBoomerang),
-    pointTurn:  cloneKRev(kLootAt),
-    angleTurn:  cloneKRev(kTurn),
-    angleSwing: cloneKRev(kTurn),
-    pointSwing: cloneKRev(kTurn),
+    pointDrive: { drive: cloneKRev(kPilon) },
+    poseDrive:  { drive: cloneKRev(kBoomerang) },
+    pointTurn:  { turn: cloneKRev(kLootAt) },
+    angleTurn:  { turn: cloneKRev(kTurn) },
+    angleSwing: { turn: cloneKRev(kTurn) },
+    pointSwing: { turn: cloneKRev(kTurn) },
   },
 
   "JAR-Template": {

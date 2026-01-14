@@ -16,10 +16,10 @@ const createDrivePIDGroup = (
 ): ConstantListField[] => {
 
   const onDriveChange = (partial: Partial<any>) =>
-    updatePathConstants(setPath, segmentId, partial);
+    updatePathConstants(setPath, segmentId, { drive: partial });
   
   const setDefaultDrive = (partial: Partial<any>) => {
-    updateDefaultConstants(format, segmentKind, partial as any);
+    updateDefaultConstants(format, segmentKind, { drive: partial } as any);
   }
 
   const currentDefaults: any = getDefaultConstants(format, segmentKind);
@@ -39,7 +39,7 @@ const createDrivePIDGroup = (
     ],
     onChange: onDriveChange,
     setDefault: setDefaultDrive,
-    defaults: currentDefaults
+    defaults: currentDefaults?.drive ?? {}
     },
     {
         header: "Stop Constants",
@@ -53,7 +53,7 @@ const createDrivePIDGroup = (
       ],
       onChange: onDriveChange,
       setDefault: setDefaultDrive,
-      defaults: currentDefaults
+      defaults: currentDefaults?.drive ?? {}
     },
   ];
 };
@@ -67,10 +67,10 @@ const createTurnPIDGroup = (
 ): ConstantListField[] => {
   
   const onChange = (partial: Partial<any>) =>
-    updatePathConstants(setPath, segmentId, partial);
+    updatePathConstants(setPath, segmentId, { turn: partial });
 
   const setDefault = (partial: Partial<any>) => {
-    updateDefaultConstants(format, segmentKind, partial as any);
+    updateDefaultConstants(format, segmentKind, { turn: partial } as any);
   }
 
   const currentDefaults: any = getDefaultConstants(format, segmentKind);
@@ -93,7 +93,7 @@ const createTurnPIDGroup = (
       ],
       onChange: onChange,
       setDefault: setDefault,
-      defaults: currentDefaults
+      defaults: currentDefaults?.turn ?? {}
     },
   ];
 };
@@ -110,13 +110,13 @@ export function getRevConstantsConfig(
     switch (s.kind) {
         case "pointDrive":
         case "poseDrive":
-            return createDrivePIDGroup(format, setPath, segmentId, s.kind, s.constants);
+            return createDrivePIDGroup(format, setPath, segmentId, s.kind, s.constants.drive);
         case "pointTurn":
         case "angleTurn":
-            return createTurnPIDGroup(format, setPath, segmentId, s.kind, s.constants);
+            return createTurnPIDGroup(format, setPath, segmentId, s.kind, s.constants.turn);
         case "angleSwing":
         case "pointSwing":
-            return createTurnPIDGroup(format, setPath, segmentId, s.kind, s.constants);
+            return createTurnPIDGroup(format, setPath, segmentId, s.kind, s.constants.turn);
     }
 
 }

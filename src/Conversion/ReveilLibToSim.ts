@@ -26,7 +26,7 @@ export function reveilLibToSim(path: Path) {
         }
 
         if (control.kind === "pointDrive") {
-            const kPilon = cloneKRev(control.constants);
+            const kPilon = cloneKRev(control.constants.drive);
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
                     return pilonsSegment(robot, dt, x, y, kPilon);
@@ -35,7 +35,7 @@ export function reveilLibToSim(path: Path) {
         }
 
         if (control.kind === "poseDrive") {
-            const kBoomerang = cloneKRev(control.constants);
+            const kBoomerang = cloneKRev(control.constants.drive);
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
                     return boomerangSegment(robot, dt, x, y, angle, kBoomerang);
@@ -54,7 +54,7 @@ export function reveilLibToSim(path: Path) {
                 ? { x: previousPos.x ?? 0, y: (previousPos.y ?? 0) + 5 }
                 : { x: 0, y: 5 };
 
-            const kLook = cloneKRev(control.constants);
+            const kLook = cloneKRev(control.constants.turn);
 
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
@@ -64,7 +64,7 @@ export function reveilLibToSim(path: Path) {
         }
 
         if (control.kind === "angleTurn" || control.kind === "pointSwing") {
-            const kTurn = cloneKRev(control.constants);
+            const kTurn = cloneKRev(control.constants.turn);
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
                     return turnSegment(robot, dt, angle, kTurn)

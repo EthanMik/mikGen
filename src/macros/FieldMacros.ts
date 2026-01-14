@@ -322,7 +322,6 @@ export default function FieldMacros() {
         setPath: React.Dispatch<SetStateAction<Path>>,
         clipboard: Segment[]
     ) => {
-        console.log(clipboard);
         if (evt.key.toLowerCase() === "v" && evt.ctrlKey) {
             setPath(prev => {
                 let selectedIndex = prev.segments.findIndex(c => c.selected);
