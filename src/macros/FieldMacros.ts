@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type React from "react";
-import { clamp, FIELD_IMG_DIMENSIONS, mergeDeep, normalizeDeg, type Rectangle } from "../core/Util";
+import { clamp, FIELD_IMG_DIMENSIONS, mergeDeep, normalizeDeg, makeId, type Rectangle } from "../core/Util";
 import type { Path } from "../core/Types/Path";
 import type { SetStateAction } from "react";
 import { createAngleSwingSegment, createAngleTurnSegment, createPointDriveSegment, createPointSwingSegment, createPointTurnSegment, createPoseDriveSegment, type Segment } from "../core/Types/Segment";
@@ -290,6 +290,75 @@ export default function FieldMacros() {
         }
     }
 
+    const copy = (
+        evt: KeyboardEvent,
+        path: Path,
+        setClipboard: React.Dispatch<SetStateAction<Segment[]>>
+    ) => {
+        if (evt.key.toLowerCase() === "c" && evt.ctrlKey) {
+            const segments = path.segments.filter(s => s.selected);
+            if (segments === undefined) return; 
+            setClipboard(structuredClone(segments));
+        }
+    }
+
+    const cut = (
+        evt: KeyboardEvent,
+        path: Path,
+        setClipboard: React.Dispatch<SetStateAction<Segment[]>>,
+        setPath:React.Dispatch<SetStateAction<Path>>
+    ) => {
+        if (evt.key.toLowerCase() === "x" && evt.ctrlKey) {
+            const segments = path.segments.filter(s => s.selected);
+            if (segments === undefined) return; 
+            setClipboard(structuredClone(segments));
+            const del = new KeyboardEvent("keydown", { key: "Delete"});
+            deleteControl(del, setPath);
+        }
+    }
+
+    const paste = (
+        evt: KeyboardEvent,
+        setPath: React.Dispatch<SetStateAction<Path>>,
+        clipboard: Segment[]
+    ) => {
+        console.log(clipboard);
+        if (evt.key.toLowerCase() === "v" && evt.ctrlKey) {
+            setPath(prev => {
+                let selectedIndex = prev.segments.findIndex(c => c.selected);
+                selectedIndex = selectedIndex === -1 ? selectedIndex = prev.segments.length : selectedIndex + 1;
+            
+                const oldSegments = prev.segments;
+                const newSegments = clipboard.map((s) => ({
+                    ...structuredClone(s),
+                    id: makeId(10),
+                    selected: !s.locked,
+                    hovered: false,
+                    command: s.command ? { ...s.command, id: makeId(10) } : s.command
+                }));
+                
+                const inserted: Segment[] = [
+                    ...oldSegments.slice(0, selectedIndex),
+                    ...newSegments,
+                    ...oldSegments.slice(selectedIndex)
+                ]
+    
+                const pastedSet = new Set(newSegments);
+                const controls = inserted.map(s =>
+                    pastedSet.has(s) ? s : { ...s, selected: false }
+                );
+                
+                AddToUndoHistory({ path: { ...prev, segments: inserted } });
+            
+                return {
+                    ...prev,
+                    segments: controls,
+                };
+            });        
+        }
+
+    }
+
     const addSegment = (segment: Segment, setPath: React.Dispatch<SetStateAction<Path>>) => {
         setPath(prev => {
             let selectedIndex = prev.segments.findIndex(c => c.selected);
@@ -462,6 +531,9 @@ export default function FieldMacros() {
         deleteControl,
         moveHeading,
         undo,
+        cut,
+        copy,
+        paste,
         copyAllPath,
         fieldZoomKeyboard,
         fieldZoomWheel,

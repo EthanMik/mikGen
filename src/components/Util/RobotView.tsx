@@ -1,4 +1,4 @@
-import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, normalizeDeg, toPX, type Rectangle } from "../../core/Util";
+import { FIELD_REAL_DIMENSIONS, normalizeDeg, toPX, type Rectangle } from "../../core/Util";
 
 type RobotViewProps = {
     img: Rectangle,

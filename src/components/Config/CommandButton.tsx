@@ -84,7 +84,7 @@ type RemoveCommandButtonProps = {
 }
 
 function RemoveCommandButton({commandId}: RemoveCommandButtonProps) {
-    const [ commands, setCommand ] = useCommand();
+    const [ , setCommand ] = useCommand();
 
     const handleDeleteOnClick = () => {
         setCommand((prev) => prev.filter((c) => c.id !== commandId))
@@ -107,7 +107,7 @@ function RemoveCommandButton({commandId}: RemoveCommandButtonProps) {
 
 export default function CommandButton() {
     const [ isOpen, setOpen ] = useState(false);
-    const [ commands, setCommand ] = useCommand();
+    const [ commands,  ] = useCommand();
     const menuRef = useRef<HTMLDivElement>(null);
 
     

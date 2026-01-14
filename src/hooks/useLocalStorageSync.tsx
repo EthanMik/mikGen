@@ -4,7 +4,6 @@ import { useFormat } from "./useFormat";
 import { useField } from "./useField";
 import { usePath } from "./usePath";
 import { useCommand } from "./useCommands";
-import { useAppState } from "./useAppState";
 import { robotConstantsStore } from "../core/Robot";
 import { globalDefaultsStore } from "../core/DefaultConstants";
 import type { FileFormat } from "./useFileFormat";
@@ -12,7 +11,6 @@ import type { FileFormat } from "./useFileFormat";
 
 export default function useLocalStorageSync() {
     const [ settings, ] = useSettings();
-    const [ appState, ] = useAppState();
     const [ format,  ] = useFormat();
     const [ field,  ] = useField();
     const [ path, ] = usePath();
@@ -35,7 +33,7 @@ export default function useLocalStorageSync() {
             defaults: defaultsStore[format]
         };
 
-        localStorage.setItem("appState", JSON.stringify(newAppState));
+        // localStorage.setItem("appState", JSON.stringify(newAppState));
 
     }, [path, field, format, commands, robotStore, defaultsStore]);
 }

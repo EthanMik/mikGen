@@ -3,18 +3,18 @@ import eyeOpen from "../../assets/eye-open.svg";
 import eyeClosed from "../../assets/eye-closed.svg";
 import downArrow from "../../assets/down-arrow.svg";
 import { usePathVisibility } from "../../hooks/usePathVisibility";
-import { usePath } from "../../hooks/usePath";
 import AddSegmentButton from "./AddSegmentButton";
 import CopyPathButton from "./CopyPathButton";
 
 type PathConfigHeaderProps = {
+  name: string
   isOpen: boolean,
   setOpen: React.Dispatch<React.SetStateAction<boolean>>,
 }
 
-export default function PathConfigHeader({isOpen, setOpen} : PathConfigHeaderProps) {
+export default function PathConfigHeader({name, isOpen, setOpen} : PathConfigHeaderProps) {
   const [ isEyeOpen, setEyeOpen ] = useState(false);
-  const [ pathVisible, setPathVisibility ] = usePathVisibility();
+  const [ , setPathVisibility ] = usePathVisibility();
 
   const handleOpenOnClick = () => {
     setOpen(prev => !prev);
@@ -30,7 +30,7 @@ export default function PathConfigHeader({isOpen, setOpen} : PathConfigHeaderPro
   return (
     <div className="w-full flex flex-row items-center justify-between">
       <span className="block text-[20px]">
-        Path
+        {name}
       </span>
         <div className="flex flex-row gap-[10px] items-center">
 

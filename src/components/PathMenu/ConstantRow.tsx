@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useReducer, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 import { usePath } from "../../hooks/usePath";
 import NumberInput from "../Util/NumberInput";

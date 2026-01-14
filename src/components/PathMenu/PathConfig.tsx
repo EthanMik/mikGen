@@ -1,15 +1,33 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import { usePath } from "../../hooks/usePath";
-import MotionList, { type ConstantListField, type DirectionField } from "./MotionList";
+import MotionList from "./MotionList";
 import PathConfigHeader from "./PathHeader";
-import { useFormat } from "../../hooks/useFormat";
+import { useFormat, type Format } from "../../hooks/useFormat";
 import { getFormatConstantsConfig, getFormatDirectionConfig, globalDefaultsStore } from "../../core/DefaultConstants";
+
+const getName = (format: Format) => {
+  switch (format) {
+    case "mikLib": return "mikLib Path";
+    case "ReveilLib": return "ReveilLib Path";
+    case "JAR-Template": return "JAR-Template Path";
+    case "LemLib": return "LemLib Path";
+  }
+}
+
+const getSpeed = (format: Format): number => {
+  switch (format) {
+    case "mikLib": return 12;
+    case "ReveilLib": return 1;
+    case "JAR-Template": return 12;
+    case "LemLib": return 127;
+  }
+}
 
 export default function PathConfig() {
   const [ path, setPath ] = usePath();
   const [ isOpen, setOpen ] = useState(false);
-  const [ format, setFormat ] = useFormat();
+  const [ format,  ] = useFormat();
 
   const [ , forceUpdate ] = useState({});
   useEffect(() => {
@@ -19,13 +37,12 @@ export default function PathConfig() {
     return () => unsubscribe();
   }, []);
 
-  let speedScale = 1;
-  if (format === "mikLib" || format === "JAR-Template") speedScale = 12;
-  if (format === "LemLib") speedScale = 127;
-  
+  const speedScale = getSpeed(format);
+  const name = getName(format);
+
   return (
     <div className="bg-medgray w-[500px] h-[650px] rounded-lg p-[15px] flex flex-col">
-      <PathConfigHeader isOpen={isOpen} setOpen={setOpen} />
+      <PathConfigHeader name={name} isOpen={isOpen} setOpen={setOpen} />
 
       <div className="mt-[10px] flex-1 min-h-2 overflow-y-auto 
         flex-col items-center overflow-x-hidden space-y-2">
