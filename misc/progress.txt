@@ -26,6 +26,7 @@ Todo:
 - add indicator for unsaved path
 
 Planned:
+- saving undo history to local storage?
 - grouping with button on the group to disable that part of path from sim, renaming group
 
 - add ability to add more commands and make them be color coded, revamp command menu to not limit length and allow them to be modifed not just deleted
