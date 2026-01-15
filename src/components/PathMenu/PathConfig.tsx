@@ -5,6 +5,7 @@ import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 import PathConfigHeader from "./PathHeader";
 import { useFormat, type Format } from "../../hooks/useFormat";
 import { getFormatConstantsConfig, getFormatDirectionConfig, globalDefaultsStore } from "../../core/DefaultConstants";
+import GroupList from "./GroupList";
 
 const getName = (format: Format) => {
   switch (format) {
@@ -44,23 +45,23 @@ export default function PathConfig() {
 
   const moveSegment = (fromId: string | null, toIndex: number) => {
     if (!fromId) return;
+
     setPath(prev => {
       const segments = [...prev.segments];
       const fromIdx = segments.findIndex(s => s.id === fromId);
       if (fromIdx === -1) return prev;
 
       const [seg] = segments.splice(fromIdx, 1);
-      if (toIndex === 0) {
+      if (segments[toIndex]?.kind === "group") {
+        console.log(seg.groupId)
+        seg.groupId = segments[toIndex].groupId;
+      }
+
+      if (toIndex === 0 && seg.kind !== "start" && seg.kind !== "group") {
         seg.kind = "start";
-        if (seg.pose.x === null) { 
-          seg.pose.x = 0;
-        }
-        if (seg.pose.y === null) {
-          seg.pose.y = 0;
-        }
-        if (seg.pose.angle === null) {
-          seg.pose.angle = 0;
-        }
+        if (seg.pose.x === null) seg.pose.x = 0;
+        if (seg.pose.y === null) seg.pose.y = 0;
+        if (seg.pose.angle === null) seg.pose.angle = 0;
       }
 
       if (toIndex === 0 && seg.kind === "start") {
@@ -96,19 +97,26 @@ export default function PathConfig() {
             onDragOver={(e) => { e.preventDefault(); setOverIndex(idx); }}
             onDrop={(e) => { e.preventDefault(); moveSegment(draggingId, idx); setDraggingId(null); setOverIndex(null); }}
           >
-            {/* insertion line before an item when dragging */}
-            {overIndex === idx && draggingId !== null && (
+            {overIndex === idx && draggingId !== null && c.kind !== "group" && (
               <div className="w-[435px] h-[2px] bg-white rounded-full mx-auto ml-2 mb-2" />
             )}
 
-            {idx > 0 && (c.kind === undefined) && (
-              <div className="w-full h-6 bg-red-600/60 rounded-sm flex items-center justify-center">
-                <span className="text-white text-[14px]">Error: Segment kind is undefined</span>
-              </div>
+            {idx > 0 && (c.kind === "group") && (
+              <GroupList 
+                name="Group 1"
+                segmentId={c.id}
+                isOpenGlobal={isOpen}
+                draggable={true}
+                selected={overIndex === idx}
+                onDragStart={() => setDraggingId(c.id)}
+                onDragEnd={() => { setDraggingId(null); setOverIndex(null); }}
+                onDragEnter={() => setOverIndex(idx)}
+                draggingId={draggingId}              
+              />
             )}
             
             {/* DRIVE */}
-            {idx > 0 && (c.kind === "pointDrive" || c.kind === "poseDrive") && (
+            {idx > 0 && ( (c.kind === "pointDrive" || c.kind === "poseDrive") && c.groupId == null ) && (
               <MotionList
                 name="Drive"
                 speedScale={speedScale}
@@ -125,7 +133,7 @@ export default function PathConfig() {
             )}
 
             {/* TURN */}
-            {idx > 0 && (c.kind === "angleTurn" || c.kind === "pointTurn") && (
+            {idx > 0 && ( (c.kind === "angleTurn" || c.kind === "pointTurn") && c.groupId == null ) && (
               <MotionList
                 name="Turn"
                 speedScale={speedScale}
@@ -142,7 +150,7 @@ export default function PathConfig() {
             )}
 
             {/* SWING */}
-            {idx > 0 && (c.kind === "pointSwing" || c.kind === "angleSwing") && (
+            {idx > 0 && ( (c.kind === "pointSwing" || c.kind === "angleSwing") && c.groupId == null ) && (
               <MotionList
                 name="Swing"
                 speedScale={speedScale}
@@ -168,7 +176,7 @@ export default function PathConfig() {
                 segmentId={c.id}
                 isOpenGlobal={isOpen}
                 start={true}
-                draggable={false}
+                draggable={true}
                 onDragStart={() => setDraggingId(c.id)}
                 onDragEnd={() => { setDraggingId(null); setOverIndex(null); }}
                 onDragEnter={() => setOverIndex(idx)}

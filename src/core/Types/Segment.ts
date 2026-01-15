@@ -82,6 +82,8 @@ export function createSegmentGroup(): Partial<Segment> {
     disabled: false,
     selected: false,
     hovered: false,
+    locked: false,
+    visible: true,
     pose: { x: null, y: null, angle: null },
     kind: "group",
   }

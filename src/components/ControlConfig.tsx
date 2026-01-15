@@ -95,7 +95,17 @@ export default function ControlConfig() {
 
     const updateXValue = (newX: number | null) => {
         const selectedCount = path.segments.filter(c => c.selected).length;
-        if (selectedCount !== 1) return
+        if (selectedCount !== 1) return;
+
+        const selectedSegment = path.segments.find(c => c.selected);
+        if (selectedSegment === undefined) return;
+
+        if (selectedSegment.kind === "angleSwing" || 
+            selectedSegment.kind === "pointSwing" || 
+            selectedSegment.kind === "angleTurn" || 
+            selectedSegment.kind === "pointTurn"
+        ) return;
+
         setPath(prev => ({
                     ...prev,
                     segments: prev.segments.map(control =>
@@ -112,6 +122,12 @@ export default function ControlConfig() {
 
         const selectedSegment = path.segments.find(c => c.selected);
         if (selectedSegment === undefined) return;
+
+        if (selectedSegment.kind === "angleSwing" || 
+            selectedSegment.kind === "pointSwing" || 
+            selectedSegment.kind === "angleTurn" || 
+            selectedSegment.kind === "pointTurn"
+        ) return;
 
         setPath(prev => ({
                     ...prev,

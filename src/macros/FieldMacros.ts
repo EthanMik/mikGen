@@ -237,9 +237,20 @@ export default function FieldMacros() {
     ) {
         if (evt.key === "Backspace" || evt.key === "Delete") {
             setPath((prev) => {
-                const newSegments = prev.segments.filter((c) => !c.selected || c.locked);
+                const allSelected = prev.segments.length > 0 && prev.segments.every((s) => s.selected);
 
-                AddToUndoHistory({ path: { ...prev, segments: newSegments } });
+                const newSegments = prev.segments.filter((c, i) => {
+                    if (c.locked) return true;
+                    if (!c.selected) return true;
+
+                    if (i === 0 && prev.segments.length > 1 && !allSelected) return true;
+
+                    return false;
+                });
+
+                if (newSegments.length !== prev.segments.length) {
+                    AddToUndoHistory({ path: { ...prev, segments: newSegments } });
+                }
 
                 return {
                     ...prev,

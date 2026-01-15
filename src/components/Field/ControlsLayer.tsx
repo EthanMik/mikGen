@@ -2,6 +2,7 @@ import React from "react";
 import type { Path } from "../../core/Types/Path";
 import { getBackwardsSnapPose, getForwardSnapPose } from "../../core/Types/Path";
 import { calculateHeading, toPX, toRad, FIELD_REAL_DIMENSIONS, type Rectangle, FIELD_IMG_DIMENSIONS } from "../../core/Util";
+import type { Coordinate } from "../../core/Types/Coordinate";
 
 type ControlsLayerProps = {
   path: Path;
@@ -52,10 +53,17 @@ export default function ControlsLayer({ path, img, radius, format, onPointerDown
                 let angle = control.pose.angle ?? 0;
 
                 if (control.kind === "pointTurn") {
-                  const desiredPos = getForwardSnapPose(path, idx);
-                  if (desiredPos?.y === null || desiredPos?.x === null || desiredPos === null) return null;
+                  const previousPos = getBackwardsSnapPose(path, idx - 1);
+                  const turnToPos = getForwardSnapPose(path, idx);
+
+                  const pos: Coordinate =
+                  turnToPos
+                      ? { x: turnToPos.x ?? 0, y: turnToPos.y ?? 0 }
+                      : previousPos
+                      ? { x: previousPos.x ?? 0, y: (previousPos.y ?? 0) + 5 }
+                      : { x: 0, y: 5 };
                   
-                  angle = calculateHeading({ x: snapPose.x, y: snapPose.y }, { x: desiredPos.x ?? 0, y: desiredPos.y ?? 0 }) + (angle);
+                  angle = calculateHeading({ x: snapPose.x, y: snapPose.y }, { x: pos.x, y: pos.y }) + (angle);
                 }
 
                 const tipPx = toPX(

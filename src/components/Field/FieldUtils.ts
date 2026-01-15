@@ -42,6 +42,7 @@ export const getSegmentLines = (idx: number, path: Path, img: Rectangle): string
     return `${pStart.x},${pStart.y} ${pEnd.x},${pEnd.y}`;
   }
 
+  if (m.constants?.drive === undefined) return "";
   const lead = m.constants.drive.lead ?? 0;
   if (m.kind !== "poseDrive") return "";
 
