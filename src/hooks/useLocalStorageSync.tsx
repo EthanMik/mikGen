@@ -1,4 +1,4 @@
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { useSettings } from "./useSettings";
 import { useFormat } from "./useFormat";
 import { useField } from "./useField";
@@ -8,7 +8,6 @@ import { robotConstantsStore } from "../core/Robot";
 import { globalDefaultsStore } from "../core/DefaultConstants";
 import type { FileFormat } from "./useFileFormat";
 import { undoHistory } from "../core/Undo/UndoHistory";
-
 
 export default function useLocalStorageSync() {
     const [ settings, ] = useSettings();
@@ -24,7 +23,14 @@ export default function useLocalStorageSync() {
         localStorage.setItem("ghostRobots", settings.ghostRobots ? "true" : "false");
     }, [settings.ghostRobots]);
 
+    const skipFirstState = useRef(true);
+    
     useEffect(() => {
+        if (skipFirstState.current) {
+            skipFirstState.current = false;
+            return;
+        }
+
         const newAppState: FileFormat = {
             format,
             field,
@@ -33,6 +39,8 @@ export default function useLocalStorageSync() {
             robot: robotStore,
             defaults: defaultsStore[format]
         };
+
+        console.log(newAppState.path)
 
         localStorage.setItem("appState", JSON.stringify(newAppState));
 

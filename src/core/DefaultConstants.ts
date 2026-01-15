@@ -10,6 +10,7 @@ import { clonePID, kMikAngleSwing, kMikAngleTurn, kMikBoomerang, kMikBoomerangHe
 import { createObjectStore } from "./Store";
 import type { CycleImageButtonProps } from "../components/Util/CycleButton";
 import { getRevConstantsConfig } from "./ReveiLibSim/RevConstantsConfig";
+import { DEFAULT_FORMAT } from "../hooks/useFileFormat";
 
 export type DefaultConstant = {
     [F in Format]: {

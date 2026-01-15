@@ -2,7 +2,10 @@
 import { DEFAULT_FORMAT, type FileFormat } from "../../hooks/useFileFormat";
 import { mergeDeep } from "../Util";
 
-export const undoHistory: Partial<FileFormat>[] = [DEFAULT_FORMAT];
+const saved = localStorage.getItem("appState");
+const initialData = saved ? JSON.parse(saved) : DEFAULT_FORMAT;
+
+export const undoHistory: Partial<FileFormat>[] = [ initialData ];
 
 export const redoHistory: Partial<FileFormat>[] = [];
 

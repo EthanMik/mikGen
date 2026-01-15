@@ -1,7 +1,7 @@
 import { boomerangSegment, cleanupBoomerangSegment } from "../core/ReveiLibSim/DriveMotions/BoomerangSegment";
-import { lookAt } from "../core/ReveiLibSim/DriveMotions/LookAt";
+import { cleanUplookAt, lookAt } from "../core/ReveiLibSim/DriveMotions/LookAt";
 import { cleanupPilonsSegment, pilonsSegment } from "../core/ReveiLibSim/DriveMotions/PilonsSegment";
-import { turnSegment } from "../core/ReveiLibSim/DriveMotions/TurnSegment";
+import { cleanupTurnSegment, turnSegment } from "../core/ReveiLibSim/DriveMotions/TurnSegment";
 import { cloneKRev } from "../core/ReveiLibSim/RevConstants";
 import type { Robot } from "../core/Robot";
 import type { Coordinate } from "../core/Types/Coordinate";
@@ -57,7 +57,7 @@ export function reveilLibToSim(path: Path) {
                 : { x: 0, y: 5 };
 
             const kLook = cloneKRev(control.constants.turn);
-
+            cleanUplookAt();
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
                     return lookAt(robot, dt, pos.x, pos.y, angle ?? 0, kLook);
@@ -67,6 +67,7 @@ export function reveilLibToSim(path: Path) {
 
         if (control.kind === "angleTurn" || control.kind === "pointSwing") {
             const kTurn = cloneKRev(control.constants.turn);
+            cleanupTurnSegment();
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
                     return turnSegment(robot, dt, angle, kTurn)

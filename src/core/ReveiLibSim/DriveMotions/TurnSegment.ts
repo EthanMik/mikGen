@@ -14,6 +14,10 @@ type TurnSegmentValues = {
   status: TurnState;
 };
 
+export function cleanupTurnSegment() {
+  turnSegmentValues = undefined;
+}
+
 const initTurnSegment = (startAngle: number, angleGoal: number): TurnSegmentValues => {
   const startDeg = wrapDeg180(startAngle);
   const goalDeg  = wrapDeg180(angleGoal);
@@ -47,13 +51,13 @@ export function turnSegment(robot: Robot, dt: number, angle: number, constants: 
 
   if (Math.abs(t.targetRelativeOriginal) < 5) {
     robot.tankDrive(0, 0, dt);
-    turnSegmentValues = undefined;
+    cleanupTurnSegment();
     return true;
   }
 
   if (copysign1(targetRel) !== copysign1(t.targetRelativeOriginal)) {
     robot.tankDrive(0, 0, dt);
-    turnSegmentValues = undefined;
+    cleanupTurnSegment();
     return true;
   }
 

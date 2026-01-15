@@ -6,6 +6,10 @@ import { turnSegment } from "./TurnSegment";
 
 let lookAtAngle: number | null = null;
 
+export function cleanUplookAt() {
+    lookAtAngle = null;
+}
+
 export function lookAt(robot: Robot, dt: number, x: number, y: number, offset: number, constants: ReveilLibConstants) {
     if (lookAtAngle === null) {
         const computedAngle = wrapDeg180(toDeg(Math.atan2(x - robot.getX(), y - robot.getY())) + offset);
@@ -22,7 +26,7 @@ export function lookAt(robot: Robot, dt: number, x: number, y: number, offset: n
     const state = turnSegment(robot, dt, lookAtAngle, constants); 
 
     if (state) {
-        lookAtAngle = null;
+        cleanUplookAt();
         return true
     }
 
