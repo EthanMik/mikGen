@@ -38,7 +38,7 @@ export default function ControlsLayer({ path, img, radius, format, onPointerDown
               )}
 
               {/* Turn Indicator (Line) */}
-              {["angleTurn", "pointTurn", "poseDrive"].includes(control.kind) && (() => {
+              {["angleTurn", "pointTurn", "poseDrive", "start"].includes(control.kind) && (() => {
                 const snapPose = getBackwardsSnapPose(path, idx);
                 if (snapPose?.x === null || snapPose?.y === null || snapPose === null) return null;
 

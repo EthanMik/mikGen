@@ -43,11 +43,11 @@ export function reveilLibToString(path: Path, selected: boolean = false) {
             continue;
         }
 
-        if (startWrapper) {
-            pathString += (
-                `\n  reckless->go({`
-            )
-        }
+        // if (startWrapper) {
+        //     pathString += (
+        //         `\n  reckless->go({`
+        //     )
+        // }
         
         if (kind === "angleTurn" || kind === "angleSwing") {
             const k = control.constants.turn as ReveilLibConstants;
@@ -113,13 +113,13 @@ export function reveilLibToString(path: Path, selected: boolean = false) {
             )     
         }
 
-        if (!startWrapper) {
-            pathString += (
-                `\n });`
-            )            
-        }
+        // if (!startWrapper) {
+        //     pathString += (
+        //         `\n });`
+        //     )            
+        // }
 
-        startWrapper = false;
+        // startWrapper = false;
     }
 
     if (selected) pathString = pathString.startsWith("\n") ? pathString.slice(1) : pathString;

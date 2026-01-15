@@ -13,7 +13,9 @@ export type SegmentKind =
   | "pointTurn" 
   | "angleTurn"
   | "angleSwing"
-  | "pointSwing";
+  | "pointSwing"
+  | "start"
+  | "group";
 
 export type ConstantsByFormat = {
   mikLib: {
@@ -23,6 +25,8 @@ export type ConstantsByFormat = {
     angleTurn: mikTurnConstants;
     angleSwing: mikSwingConstants;
     pointSwing: mikSwingConstants;
+    start: undefined;
+    group: undefined;
   };
   ReveilLib: {
     pointDrive: revDriveConstants;
@@ -31,6 +35,8 @@ export type ConstantsByFormat = {
     angleTurn: revTurnConstants;
     angleSwing: revTurnConstants;
     pointSwing: revTurnConstants;
+    start: undefined;
+    group: undefined;
   };
   "JAR-Template": {
     pointDrive: mikDriveConstants;
@@ -39,6 +45,8 @@ export type ConstantsByFormat = {
     angleTurn: mikTurnConstants;
     angleSwing: mikSwingConstants;
     pointSwing: mikSwingConstants;
+    start: undefined;
+    group: undefined;
   };
   LemLib: {
     pointDrive: mikDriveConstants;
@@ -47,21 +55,37 @@ export type ConstantsByFormat = {
     angleTurn: mikTurnConstants;
     angleSwing: mikSwingConstants;
     pointSwing: mikSwingConstants;
+    start: undefined;
+    group: undefined;
   };
 };
 
 export type Segment<F extends Format = Format, K extends SegmentKind = SegmentKind> = {
   id: string;
+  groupId?: string;
+  disabled: boolean;
   selected: boolean;
   hovered: boolean;
   locked: boolean;
   visible: boolean;
   pose: Pose;
   command: Command;
-  format: F; 
+  format: F;
   kind: K;
   constants: ConstantsByFormat[F][K];
 };
+
+export function createSegmentGroup(): Partial<Segment> {
+  return {
+    id: makeId(10),
+    groupId: makeId(10),
+    disabled: false,
+    selected: false,
+    hovered: false,
+    pose: { x: null, y: null, angle: null },
+    kind: "group",
+  }
+}
 
 export function createPointDriveSegment<F extends Format>(format: F, position: Coordinate): Segment<F, "pointDrive"> {
   return {
@@ -69,6 +93,7 @@ export function createPointDriveSegment<F extends Format>(format: F, position: C
     selected: false,
     hovered: false,
     locked: false,
+    disabled: false,
     visible: true,
     pose: { x: position.x, y: position.y, angle: null },
     command: createCommand(""),
@@ -83,6 +108,7 @@ export function createPoseDriveSegment<F extends Format>(format: F, pose: Pose):
     id: makeId(10),
     selected: false,
     hovered: false,
+    disabled: false,
     locked: false,
     visible: true,
     pose,
@@ -99,6 +125,7 @@ export function createPointTurnSegment<F extends Format>(format: F, pose: Pose):
     selected: false,
     hovered: false,
     locked: false,
+    disabled: false,
     visible: true,
     pose,
     command: createCommand(''),
@@ -114,6 +141,7 @@ export function createAngleTurnSegment<F extends Format>(format: F, heading: num
     selected: false,
     hovered: false,
     locked: false,
+    disabled: false,
     visible: true,
     command: createCommand(''),
     pose: { x: null, y: null, angle: heading },
@@ -129,6 +157,7 @@ export function createAngleSwingSegment<F extends Format>(format: F, heading: nu
     selected: false,
     hovered: false,
     locked: false,
+    disabled: false,
     visible: true,
     command: createCommand(''),
     pose: { x: null, y: null, angle: heading },
@@ -144,6 +173,7 @@ export function createPointSwingSegment<F extends Format>(format: F, pose: Pose)
     selected: false,
     hovered: false,
     locked: false,
+    disabled: false,
     visible: true,
     command: createCommand(''),
     pose,

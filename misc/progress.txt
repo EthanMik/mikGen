@@ -7,9 +7,11 @@ Units
 - accel (inches/s^2 internal ft/s^2 external)
 
 Bugs:
-- Fix start segment having the ability to be set to a turn by deleting segments
-- cant change coords on multiselect
 - Polish Control Config (segment casting)
+- Fix start segment having the ability to be set to a turn by deleting segments
+- turn to point not showing up when there are no segments in front 
+
+- cant change coords on multiselect
 - end point does not show up with a turn segment on top
 - FIX FORMAT SWAPPING BRICKING APP
 - make it so when you drag a segment the cursor goes to grab
@@ -18,7 +20,6 @@ Bugs:
 - Fix simple stop timeout not using dt
 - algos not being reset when they fuck up
 - Fix file opening not working on firefox
-- move all local storage into file format like wtf am i doing
 
 Todo:
 - add lemlib drive motions - jar template can just use mikLib with small modifications
@@ -56,4 +57,3 @@ Maybe:
 Docs:
 - A better way to plan VEX Autonoumous - EthanMik Channel
 - Readthedocs.io showing all the keybinds
-

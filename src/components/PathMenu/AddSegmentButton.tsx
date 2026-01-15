@@ -21,6 +21,7 @@ export default function AddSegmentButton() {
         addAngleTurnSegment,
         addAngleSwingSegment,
         addPointSwingSegment,
+        addSegmentGroup,
     } = FieldMacros();
 
 
@@ -48,15 +49,15 @@ export default function AddSegmentButton() {
             </button>
 
             {isOpen && (
-                <div className="absolute shadow-xs mt-1 shadow-black right-0 top-full w-45 z-40
+                <div className="absolute shadow-xs mt-1 shadow-black right-0 top-full w-60 z-40
                     rounded-sm bg-medgray_hover min-h-2">
                     <div className="flex flex-col mt-2 pl-2 pr-2 mb-2 gap-2">
                         <div className="flex flex-col">
 
                             {/* Drive Segments */}
-                            <div className="flex pl-2 mt-1 py-0.5 mb-1 bg-medgray rounded-sm">
+                            {/* <div className="flex pl-2 mt-1 py-0.5 mb-1 bg-medgray rounded-sm">
                                 <span className="text-[16px]">Drive Segment:</span>
-                            </div>
+                            </div> */}
 
                             {/* <button className="flex pr-1 pl-2 py-0.5 justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
                                 <span className="text-[16px]">Distance</span>
@@ -66,14 +67,14 @@ export default function AddSegmentButton() {
                             <button 
                                 onClick={() => addPointDriveSegment(format, { x: 0, y: 0 }, setPath)}
                                 className="flex pr-1 pl-2 py-0.5 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
-                                <span className="text-[16px]">Point</span>
+                                <span className="text-[16px]">Drive to Point</span>
                                 <span className="text-lightgray text-[14px]">LMB</span>
                             </button>
 
                             <button 
                                 onClick={() => addPoseDriveSegment(format, { x: 0, y: 0, angle: 0 }, setPath)}
                                 className="flex pr-1 pl-2 py-0.5 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
-                                <span className="text-[16px]">Pose</span>
+                                <span className="text-[16px]">Drive to Pose</span>
                                 <span className="text-lightgray text-[14px]">Ctrl+LMB</span>
                             </button>
 
@@ -83,46 +84,58 @@ export default function AddSegmentButton() {
                             </button> */}
 
                             {/* Turn Segments */}
-                            <div 
+                            <div className="mt-1 border-t border-gray-500/40 flex flex-row items-center justify-between h-[4px]"></div>
+                            {/* <div 
                                 className="flex pl-2 py-0.5 mt-2 mb-1 bg-medgray rounded-sm">
                                 <span className="text-[16px]">Turn Segment:</span>
-                            </div>
+                            </div> */}
 
                             <button
                                 onClick={() => addAngleTurnSegment(format, setPath)}
                                 className="flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
 
-                                <span className="text-[16px]">Angle</span>
+                                <span className="text-[16px]">Turn to Angle</span>
                                 <span className="text-lightgray text-[14px]">CTRL+RMB</span>
                             </button>
 
                             <button
                                 onClick={() => addPointTurnSegment(format, setPath)} 
                                 className="flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
-                                <span className="text-[16px]">Point</span>
+                                <span className="text-[16px]">Turn to Point</span>
                                 <span className="text-lightgray text-[14px]">RMB</span>
                             </button>
 
                             {/* Swing Segments */}
-                            <div 
+                            <div className="mt-1 border-t border-gray-500/40 flex flex-row items-center justify-between h-[4px]"></div>
+                            {/* <div 
                                 className="flex pl-2 py-0.5 mt-2 mb-1 bg-medgray rounded-sm">
                                 <span className="text-[16px]">Swing Segment:</span>
-                            </div>
+                            </div> */}
 
                             <button
                                 onClick={() => addAngleSwingSegment(format, setPath)}
                                 className="flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
 
-                                <span className="text-[16px]">Angle</span>
+                                <span className="text-[16px]">Swing to Angle</span>
                                 <span className="text-lightgray text-[14px]">Ctrl+Alt+RMB</span>
                             </button>
 
                             <button 
                                 onClick={() => addPointSwingSegment(format, setPath)} 
                                 className="flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
-                                <span className="text-[16px]">Point</span>
+                                <span className="text-[16px]">Swing to Point</span>
                                 <span className="text-lightgray text-[14px]">Alt+RMB</span>
                             </button>
+
+                            <div className="mt-1 border-t border-gray-500/40 flex flex-row items-center justify-between h-[4px]"></div>
+
+                            <button 
+                                onClick={() => addSegmentGroup(setPath)}
+                                className="flex pr-1 pl-2 py-0.5 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
+                                <span className="text-[16px]">Segment Group</span>
+                                <span className="text-lightgray text-[14px]"></span>
+                            </button>
+
                         </div>
         
                     </div>

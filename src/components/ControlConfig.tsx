@@ -70,25 +70,32 @@ export default function ControlConfig() {
     const [ path, setPath ] = usePath(); 
 
     const getXValue = (): number | null => {
+        const selectedCount = path.segments.filter(c => c.selected).length;
+        if (selectedCount !== 1) return null;
         const x: number | null | undefined = path.segments.find(c => c.selected)?.pose.x;
         if (x === null || x === undefined) return null;
         return x
     }
 
     const getYValue = (): number | null => {
+        const selectedCount = path.segments.filter(c => c.selected).length;
+        if (selectedCount !== 1) return null;
         const y: number | null | undefined = path.segments.find(c => c.selected)?.pose.y;
         if (y === null || y === undefined) return null;
         return y
     }
 
     const getHeadingValue = (): number | null => {
+        const selectedCount = path.segments.filter(c => c.selected).length;
+        if (selectedCount !== 1) return null;
         const heading: number | null | undefined = path.segments.find(c => c.selected)?.pose.angle;
         if (heading === null || heading === undefined) return null;
         return heading;
     }
 
     const updateXValue = (newX: number | null) => {
-        // if (newX === null) return;
+        const selectedCount = path.segments.filter(c => c.selected).length;
+        if (selectedCount !== 1) return
         setPath(prev => ({
                     ...prev,
                     segments: prev.segments.map(control =>
@@ -100,7 +107,12 @@ export default function ControlConfig() {
     }
 
     const updateYValue = (newY: number | null) => {
-        // if (newY === null) return;
+        const selectedCount = path.segments.filter(c => c.selected).length;
+        if (selectedCount !== 1) return
+
+        const selectedSegment = path.segments.find(c => c.selected);
+        if (selectedSegment === undefined) return;
+
         setPath(prev => ({
                     ...prev,
                     segments: prev.segments.map(control =>
@@ -112,16 +124,35 @@ export default function ControlConfig() {
     }
 
     const updateHeadingValue = (newHeading: number | null) => {
-        if (newHeading === null) return;
-        newHeading = normalizeDeg(newHeading);
-        setPath(prev => ({
+        const selectedCount = path.segments.filter(c => c.selected).length;
+        if (selectedCount !== 1) return
+
+        const selectedSegment = path.segments.find(c => c.selected);
+        if (selectedSegment === undefined) return;
+
+        if (newHeading === null && selectedSegment.kind !== "poseDrive") return;
+        if (newHeading !== null) newHeading = normalizeDeg(newHeading);
+        setPath(prev => {
+                let kind = selectedSegment.kind;
+                if (selectedSegment.kind === "poseDrive" && newHeading === null) {
+                    kind = "pointDrive";
+                }
+                if (selectedSegment.kind === "pointDrive" && newHeading !== null) {
+                    kind = "poseDrive";
+                }
+
+                return {
                     ...prev,
                     segments: prev.segments.map(control =>
                         control.selected
-                        ? { ...control, pose: { ...control.pose, angle: newHeading, }, }
+                        ? { ...control, 
+                            pose: { ...control.pose, angle: newHeading, }, 
+                            kind: kind
+                        }
                         : control
                     ),
-                }));
+                }
+            });
     }
     
     return (

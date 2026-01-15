@@ -34,6 +34,11 @@ type MotionListProps = {
     segmentId: string,
     isOpenGlobal: boolean,
     start?: boolean,
+    draggable?: boolean,
+    onDragStart?: (e: React.DragEvent<HTMLButtonElement>) => void,
+    onDragEnd?: (e: React.DragEvent<HTMLButtonElement>) => void,
+    onDragEnter?: () => void,
+    draggingId?: string | null,
 }
 
 export default function MotionList({
@@ -44,6 +49,11 @@ export default function MotionList({
     segmentId, 
     isOpenGlobal,
     start = false
+    , draggable = false,
+    onDragStart,
+    onDragEnd,
+    onDragEnter,
+    draggingId = null,
 }: MotionListProps) {
     const [ path, setPath ] = usePath(); 
 
@@ -163,7 +173,7 @@ export default function MotionList({
                 : {...segment}
             )
         }))        
-    }, [command])
+    }, [command, segmentId, setPath])
 
     const toggleSegment = (patch: (s: any) => any) => {
         setPath(prev => {
@@ -218,6 +228,16 @@ export default function MotionList({
     return (
         <div className={`flex flex-col gap-2 mt-[1px]`}>
             <button
+            draggable={draggable}
+            onDragStart={(e) => {
+                if (e.dataTransfer) {
+                    e.dataTransfer.setData('text/plain', segmentId);
+                    e.dataTransfer.effectAllowed = 'move';
+                }
+                if (onDragStart) onDragStart(e);
+            }}
+            onDragEnd={(e) => { if (onDragEnd) onDragEnd(e); }}
+            onDragEnter={() => { if (onDragEnter) onDragEnter(); }}
             onClick={handleOnClick}
             onMouseEnter={StartHover}
             onMouseLeave={EndHover}
@@ -230,6 +250,7 @@ export default function MotionList({
                 active:scale-[0.995]
                 active:bg-medgray_hover/70
                 ${isOpen ? ( !selected ? "outline-medlightgray scale-[0.995]" : "outline-transparent") : "outline-transparent"}
+                ${draggingId === segmentId ? "opacity-50 border-1 border-medlightgray" : ""}
             `}
             >
             <button
