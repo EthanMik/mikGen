@@ -29,7 +29,7 @@ const createDrivePIDGroup = (
       header: segmentKind === "poseDrive" ? "Boomerang Constants" : "Pilons Constants",
       values: driveConstants,
       fields: [
-        { key: "maxSpeed", units: "percent", label: "Max Speed", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 1 } },
+        { key: "maxSpeed", units: "percent", label: "Max Speed", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } },
         { key: "kCorrection", label: "kCorrection", input: { bounds: [0, 100], stepSize: .5, roundTo: 1 } },
         { key: "maxError", units: "in", label: "Max Error", input: { bounds: [0, 100], stepSize: .25, roundTo: 2 } },
 
@@ -45,7 +45,7 @@ const createDrivePIDGroup = (
         header: "Stop Constants",
         values: driveConstants,
         fields: [
-        { key: "stopCoastPower", units: "percent", label: "Coast Power", input: { bounds: [0, 1], stepSize: .1, roundTo: 1 } },
+        { key: "stopCoastPower", units: "percent", label: "Coast Power", input: { bounds: [0, 1], stepSize: .1, roundTo: 2 } },
         { key: "stopCoastThreshold", units: "ms", label: "Coast Thresh", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
         { key: "stopHarshThreshold", units: "ms", label: "Harsh Thresh", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
         { key: "brakeTime", units: "ms", label: "Brake Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
@@ -80,8 +80,8 @@ const createTurnPIDGroup = (
       header: segmentKind === "angleTurn" ? "Turn Constants" : "Look At Constants" ,
       values: turnConstants,
       fields: [
-        { key: "maxSpeed", units: "percent", label: "Max Speed", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 1 } },
-        { key: "stopCoastPower", units: "percent", label: "Coast Power", input: { bounds: [0, 1], stepSize: .1, roundTo: 1 } },
+        { key: "maxSpeed", units: "percent", label: "Max Speed", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } },
+        { key: "stopCoastPower", units: "percent", label: "Coast Power", input: { bounds: [0, 1], stepSize: .1, roundTo: 2 } },
         { key: "stopCoastThreshold", label: "kCoast", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
         { key: "stopHarshThreshold", label: "kHarsh", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
         { key: "brakeTime", units: "ms", label: "Brake Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },

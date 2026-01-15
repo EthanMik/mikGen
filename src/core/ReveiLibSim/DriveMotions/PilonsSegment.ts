@@ -4,7 +4,7 @@ import { getConstantMotionPower } from "../ConstantMotion";
 import type { ReveilLibConstants } from "../RevConstants";
 import { PilonsCorrection } from "../PilonsCorrection";
 import { SimpleStop, type StopState } from "../SimpleStop";
-import { toRevCoordinate, wrapDeg180 } from "../Util";
+import { toRevCoordinate, toRevVelocity, wrapDeg180 } from "../Util";
 
 type PilonSegmentStatus = "DRIVE" | "BRAKE" | "EXIT";
 
@@ -13,7 +13,7 @@ let pilonsSegmentLastStatus: PilonSegmentStatus = "DRIVE";
 let stop: SimpleStop | null = null;
 let brakeElapsed: number | null = null;
 
-function cleanupPilonsSegment() {
+export function cleanupPilonsSegment() {
     pilonsSegmentLastStatus = "DRIVE";
     pilonsSegmentStartPoint = null;
     brakeElapsed = null;
@@ -42,9 +42,9 @@ export function pilonsSegment(robot: Robot, dt: number, x: number, y: number, co
     }
 
     const revRobotPos = toRevCoordinate(robot.getX(), robot.getY());
-    // console.log(revRobotPos)
+    const revRobotVel = toRevVelocity(robot.getXVelocity(), robot.getYVelocity());
 
-    const currentState: PoseState = { x: revRobotPos.x, y: revRobotPos.y, angle: wrapDeg180(robot.getAngle()), xVel: robot.getXVelocity(), yVel: robot.getYVelocity() } 
+    const currentState: PoseState = { x: revRobotPos.x, y: revRobotPos.y, angle: wrapDeg180(robot.getAngle()), xVel: revRobotVel.xVel, yVel: revRobotVel.yVel } 
     const targetPoint: Pose = { x: x, y: y, angle: 0 };
     const startPoint = { ...pilonsSegmentStartPoint };
     const newState: StopState = stop.getStopState(currentState, targetPoint, startPoint, dropEarly)

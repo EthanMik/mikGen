@@ -1,4 +1,5 @@
 import type { ReveilLibConstants } from "../core/ReveiLibSim/RevConstants";
+import { toRevCoordinate } from "../core/ReveiLibSim/Util";
 import type { Coordinate } from "../core/Types/Coordinate";
 import { getBackwardsSnapPose, getForwardSnapPose, type Path } from "../core/Types/Path";
 import { trimZeros } from "../core/Util";
@@ -20,11 +21,13 @@ export function reveilLibToString(path: Path, selected: boolean = false) {
 
         const kind = control.kind;
 
-        const x = roundOff(control.pose.x, 2);
-        const y = roundOff(control.pose.y, 2);
-        const angle = roundOff(control.pose.angle, 2);
+        const revCoords = toRevCoordinate(control.pose.x ?? 0, control.pose.y ?? 0);
+        console.log(revCoords);
+        console.log(control.pose.x, control.pose.y);
+        const x = roundOff(revCoords.x, 2);
+        const y = roundOff(revCoords.y, 2);
 
-        const k = control.constants as ReveilLibConstants;
+        const angle = roundOff(control.pose.angle, 2);
 
         const commandName = control.command.name;
         const commandPercent = roundOff(control.command.percent, 0);
@@ -47,6 +50,7 @@ export function reveilLibToString(path: Path, selected: boolean = false) {
         }
         
         if (kind === "angleTurn" || kind === "angleSwing") {
+            const k = control.constants.turn as ReveilLibConstants;
             pathString += (
                 `
     &TurnSegment(
@@ -58,6 +62,7 @@ export function reveilLibToString(path: Path, selected: boolean = false) {
         }
 
         if (kind === "pointTurn" || kind === "pointSwing") {
+            const k = control.constants.turn as ReveilLibConstants;
             const previousPos = getBackwardsSnapPose(path, idx - 1);
             const turnToPos = getForwardSnapPose(path, idx);
 
@@ -82,6 +87,7 @@ export function reveilLibToString(path: Path, selected: boolean = false) {
         }
 
         if (kind === "pointDrive") {
+            const k = control.constants.drive as ReveilLibConstants;
             pathString += (
                 `
     &PilonsSegment(
@@ -94,6 +100,7 @@ export function reveilLibToString(path: Path, selected: boolean = false) {
         }
 
         if (kind === "poseDrive") {
+            const k = control.constants.drive as ReveilLibConstants;
             pathString += (
                 `
     &BoomerangSegment(

@@ -5,7 +5,7 @@ import { getConstantMotionPower } from "../ConstantMotion";
 import type { ReveilLibConstants } from "../RevConstants";
 import { PilonsCorrection } from "../PilonsCorrection";
 import { SimpleStop, type StopState } from "../SimpleStop";
-import { dist } from "../Util";
+import { dist, toRevCoordinate } from "../Util";
 
 type boomerangStatus = "DRIVE" | "BRAKE" | "EXIT";
 
@@ -13,14 +13,15 @@ let boomerangStartPoint: Pose | null = null;
 let boomerangDirection: number = 1;
 
 let boomerangClose: boolean = false;
-let boomerangCarrot: Pose;
+let boomerangFrozenCarrot: Pose | null = null;
 
 let boomerangLastStatus: boomerangStatus = "DRIVE";
 
 let stop: SimpleStop | null = null;
+let correction: PilonsCorrection | null = null;
 let brakeElapsed: number | null = null;
 
-function cleanupBoomerangSegment() {
+export function cleanupBoomerangSegment() {
     boomerangLastStatus = "DRIVE";
     boomerangDirection = 1;
     boomerangClose = false;
@@ -33,50 +34,68 @@ function cleanupBoomerangSegment() {
 export function boomerangSegment(robot: Robot, dt: number, x: number, y: number, angle: number, constants: ReveilLibConstants) : boolean {                                                
     const dropEarly = constants.dropEarly ?? 0;
     const speed = constants.maxSpeed ?? 0;
-    const correction = new PilonsCorrection(constants.kCorrection ?? 0, constants.maxError ?? 0);
     const lead = constants.lead ?? 0;
 
+    const revTargetPos = toRevCoordinate(x, y);
+    x = revTargetPos.x;
+    y = revTargetPos.y;
+    const revRobotPos = toRevCoordinate(robot.getX(), robot.getY());
+    
     // Initialize values
-    if (stop === null) {
+    if (stop === null || correction === null) {
         stop = new SimpleStop(constants.stopHarshThreshold ?? 0, constants.stopCoastThreshold ?? 0, constants.stopCoastPower ?? 0, constants.stopTimeout);
+        correction = new PilonsCorrection(constants.kCorrection ?? 0, constants.maxError ?? 0);
     }
 
     if (boomerangStartPoint === null) {
         boomerangStartPoint = { x: robot.getX(), y: robot.getY(), angle: robot.getAngle() };
-        const xFacing = Math.sin(toRad(robot.getAngle()));
-        const yFacing = Math.cos(toRad(robot.getAngle()));
-    
-        const initialLongDistance = xFacing * (x - robot.getX()) + yFacing * (y - robot.getY());
-    
-        if (initialLongDistance < 0) boomerangDirection = -1;
+
+        const theta0 = toRad(boomerangStartPoint.angle ?? 0);
+        const xi_facing = Math.cos(theta0);
+        const yi_facing = Math.sin(theta0);
+
+        const initialLongitudinal =
+        xi_facing * (x - (boomerangStartPoint.x ?? 0)) +
+        yi_facing * (y - (boomerangStartPoint.y ?? 0));
+
+        if (initialLongitudinal < 0) boomerangDirection = -1;
     }
 
-    const currentState: PoseState = { x: robot.getX(), y: robot.getY(), angle: robot.getAngle(), xVel: robot.getXVelocity(), yVel: robot.getYVelocity() };
-    const currentPose: Pose = { x: robot.getX(), y: robot.getY(), angle: robot.getAngle() };
-    const targetPoint: Pose = { x: x, y: y, angle: angle };
-    const startPoint = { ...boomerangStartPoint };
+    const startPoint: Pose = { ...boomerangStartPoint };
 
-    const currentD = dist(robot.getX(), robot.getY(), x, y)
+    const currentState: PoseState = {
+        x: revRobotPos.x,
+        y: revRobotPos.y,
+        angle: robot.getAngle(),
+        xVel: robot.getXVelocity(),
+        yVel: robot.getYVelocity(),
+    };
+
+    const currentPose: Pose = { x: revRobotPos.x, y: revRobotPos.y, angle: robot.getAngle() };
+    const targetPoint: Pose = { x, y, angle };
+
+    const currentD = dist(currentPose.x ?? 0, currentPose.y ?? 0, x, y);
 
     let newState: StopState;
-
     if (boomerangClose) {
-        newState = stop.getStopState(currentState, targetPoint, boomerangCarrot, dropEarly)
+            newState = stop.getStopState(
+            currentState,
+            targetPoint,
+            boomerangFrozenCarrot ?? currentPose,
+            dropEarly,
+        );
     } else {
         newState = "GO";
-
         if (Math.abs(currentD) < 7.5) {
-            boomerangClose = true;
-            boomerangCarrot = { ...currentPose };
+        boomerangClose = true;
+        boomerangFrozenCarrot = { ...currentPose };
         }
     }
-
-    console.log(newState)
     
 
-    const carrotX = x - boomerangDirection * lead * currentD * Math.sin(toRad(angle));
-    const carrotY = y - boomerangDirection * lead * currentD * Math.cos(toRad(angle));
-
+    const th = toRad(angle);
+    const carrotX = x - boomerangDirection * lead * currentD * Math.cos(th);
+    const carrotY = y - boomerangDirection * lead * currentD * Math.sin(th);
     const carrotPoint: Pose = { x: carrotX, y: carrotY, angle: 0 };
 
     if (boomerangLastStatus == "EXIT" || newState == "EXIT") {

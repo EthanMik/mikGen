@@ -7,6 +7,7 @@ import { useCommand } from "./useCommands";
 import { robotConstantsStore } from "../core/Robot";
 import { globalDefaultsStore } from "../core/DefaultConstants";
 import type { FileFormat } from "./useFileFormat";
+import { undoHistory } from "../core/Undo/UndoHistory";
 
 
 export default function useLocalStorageSync() {
@@ -35,5 +36,5 @@ export default function useLocalStorageSync() {
 
         localStorage.setItem("appState", JSON.stringify(newAppState));
 
-    }, [path, field, format, commands, robotStore, defaultsStore]);
+    }, [undoHistory.length]);
 }

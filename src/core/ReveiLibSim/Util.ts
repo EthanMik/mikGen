@@ -19,6 +19,8 @@ export const toRevCoordinate = (x: number, y: number): Coordinate => {
   return rotatePoint({ x: x, y: -y }, 90);
 }
 
+export const toRevVelocity = (xVel: number, yVel: number) => ({ xVel: yVel, yVel: xVel });
+
 export const fromRevCoordinate = (x: number, y: number): Coordinate => {
   const rotated = rotatePoint({ x: x, y: y }, -90);
   return { x: rotated.x, y: -rotated.y };

@@ -1,6 +1,6 @@
-import { boomerangSegment } from "../core/ReveiLibSim/DriveMotions/BoomerangSegment";
+import { boomerangSegment, cleanupBoomerangSegment } from "../core/ReveiLibSim/DriveMotions/BoomerangSegment";
 import { lookAt } from "../core/ReveiLibSim/DriveMotions/LookAt";
-import { pilonsSegment } from "../core/ReveiLibSim/DriveMotions/PilonsSegment";
+import { cleanupPilonsSegment, pilonsSegment } from "../core/ReveiLibSim/DriveMotions/PilonsSegment";
 import { turnSegment } from "../core/ReveiLibSim/DriveMotions/TurnSegment";
 import { cloneKRev } from "../core/ReveiLibSim/RevConstants";
 import type { Robot } from "../core/Robot";
@@ -27,6 +27,7 @@ export function reveilLibToSim(path: Path) {
 
         if (control.kind === "pointDrive") {
             const kPilon = cloneKRev(control.constants.drive);
+            cleanupPilonsSegment();
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
                     return pilonsSegment(robot, dt, x, y, kPilon);
@@ -36,6 +37,7 @@ export function reveilLibToSim(path: Path) {
 
         if (control.kind === "poseDrive") {
             const kBoomerang = cloneKRev(control.constants.drive);
+            cleanupBoomerangSegment();
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
                     return boomerangSegment(robot, dt, x, y, angle, kBoomerang);

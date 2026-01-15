@@ -42,17 +42,8 @@ export const getSegmentLines = (idx: number, path: Path, img: Rectangle): string
     return `${pStart.x},${pStart.y} ${pEnd.x},${pEnd.y}`;
   }
 
-  let lead = 0;
+  const lead = m.constants.drive.lead ?? 0;
   if (m.kind !== "poseDrive") return "";
-
-  switch (m.format) {
-    case "mikLib" : 
-        lead = m.constants.drive.lead ?? 0;
-        break;
-    case "ReveilLib" : 
-        lead = m.constants.lead ?? 0;
-        break;
-  }
 
   const ΘEnd = m.pose.angle ?? 0;
 
