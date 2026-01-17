@@ -40,7 +40,7 @@ export default function App() {
       const padding = 16;
       const s = Math.min((vw - padding) / cw, (vh - padding) / ch);
 
-      setScale(clamp(s, 1, 1.5));
+      setScale(clamp(s, 0.75, 2));
     };
 
     compute();

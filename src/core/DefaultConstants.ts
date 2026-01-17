@@ -164,3 +164,21 @@ export function getFormatDirectionConfig(format: Format, path: Path, setPath: Re
     }
     return [];
 }
+
+export function getFormatPathName(format: Format) {
+  switch (format) {
+    case "mikLib": return "mikLib Path";
+    case "ReveilLib": return "ReveilLib Path";
+    case "JAR-Template": return "JAR-Template Path";
+    case "LemLib": return "LemLib Path";
+  }
+}
+
+export function getFormatSpeed(format: Format): number {
+  switch (format) {
+    case "mikLib": return 12;
+    case "ReveilLib": return 1;
+    case "JAR-Template": return 12;
+    case "LemLib": return 127;
+  }
+}

@@ -1,29 +1,10 @@
 import { useState, useEffect } from "react";
 import { usePath } from "../../hooks/usePath";
 import MotionList from "./MotionList";
-import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 import PathConfigHeader from "./PathHeader";
 import { useFormat, type Format } from "../../hooks/useFormat";
-import { getFormatConstantsConfig, getFormatDirectionConfig, globalDefaultsStore } from "../../core/DefaultConstants";
+import { getFormatConstantsConfig, getFormatDirectionConfig, getFormatPathName, getFormatSpeed, globalDefaultsStore } from "../../core/DefaultConstants";
 import GroupList from "./GroupList";
-
-const getName = (format: Format) => {
-  switch (format) {
-    case "mikLib": return "mikLib Path";
-    case "ReveilLib": return "ReveilLib Path";
-    case "JAR-Template": return "JAR-Template Path";
-    case "LemLib": return "LemLib Path";
-  }
-}
-
-const getSpeed = (format: Format): number => {
-  switch (format) {
-    case "mikLib": return 12;
-    case "ReveilLib": return 1;
-    case "JAR-Template": return 12;
-    case "LemLib": return 127;
-  }
-}
 
 export default function PathConfig() {
   const [ path, setPath ] = usePath();
@@ -40,44 +21,8 @@ export default function PathConfig() {
     return () => unsubscribe();
   }, []);
 
-  const speedScale = getSpeed(format);
-  const name = getName(format);
-
-  const moveSegment = (fromId: string | null, toIndex: number) => {
-    if (!fromId) return;
-
-    setPath(prev => {
-      const segments = [...prev.segments];
-      const fromIdx = segments.findIndex(s => s.id === fromId);
-      if (fromIdx === -1) return prev;
-
-      const [seg] = segments.splice(fromIdx, 1);
-      if (segments[toIndex]?.kind === "group") {
-        console.log(seg.groupId)
-        seg.groupId = segments[toIndex].groupId;
-      }
-
-      if (toIndex === 0 && seg.kind !== "start" && seg.kind !== "group") {
-        seg.kind = "start";
-        if (seg.pose.x === null) seg.pose.x = 0;
-        if (seg.pose.y === null) seg.pose.y = 0;
-        if (seg.pose.angle === null) seg.pose.angle = 0;
-      }
-
-      if (toIndex === 0 && seg.kind === "start") {
-        seg.kind = "poseDrive";
-      }
-
-      let insertIdx = toIndex;
-      if (fromIdx < toIndex) insertIdx = toIndex - 1;
-
-      segments.splice(insertIdx, 0, seg);
-
-      const next = { ...prev, segments };
-      AddToUndoHistory({ path: next });
-      return next;
-    });
-  };
+  const speedScale = getFormatSpeed(format);
+  const name = getFormatPathName(format);
 
   return (
     <div className="bg-medgray w-[500px] h-[650px] rounded-lg p-[15px] flex flex-col">
@@ -187,10 +132,25 @@ export default function PathConfig() {
           </div>
         )})}
 
-        {overIndex === path.segments.length && draggingId !== null && (
-          <div className="w-[435px] h-[2px] bg-white rounded-full mx-auto ml-2 mb-2" />
-        )}
-
+        <div
+          className="w-full relative"
+          onDragOver={(e) => {
+            e.preventDefault();
+            setOverIndex(path.segments.length);
+          }}
+          onDragEnter={() => setOverIndex(path.segments.length)}
+          onDrop={(e) => {
+            e.preventDefault();
+            moveSegment(draggingId, path.segments.length);
+            setDraggingId(null);
+            setOverIndex(null);
+          }}
+        >
+          {overIndex === path.segments.length && draggingId !== null && (
+            <div className="w-[435px] h-[2px] bg-white rounded-full mx-auto ml-2 mb-2" />
+          )}
+          <div className="h-6" />
+        </div>
       </div>
     </div>
   );

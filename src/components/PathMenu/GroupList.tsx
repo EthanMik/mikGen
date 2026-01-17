@@ -7,6 +7,9 @@ import lockOpen from "../../assets/lock-open.svg";
 import downArrow from "../../assets/down-arrow.svg";
 import { usePath } from "../../hooks/usePath";
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
+import { getFormatConstantsConfig, getFormatDirectionConfig } from "../../core/DefaultConstants";
+import { useFormat, type Format } from "../../hooks/useFormat";
+import MotionList from "./MotionList";
 
 
 type GroupListProps = {
@@ -33,6 +36,7 @@ export default function GroupList({
     draggingId = null,
 }: GroupListProps) {
     const [ path, setPath ] = usePath(); 
+    const [ format ] = useFormat();
 
     const segment = path.segments.find(s => s.id === segmentId)!;
 
@@ -177,6 +181,70 @@ export default function GroupList({
         }
     }, [path])
 
+    const [ dragId, setDraggingId ] = useState<string | null>(null);
+    const [ overIndex, setOverIndex ] = useState<number | null>(null);
+
+    const moveSegment = (fromId: string | null, toIndex: number) => {
+        if (!fromId) return;
+
+        setPath((prev) => {
+        const original = prev.segments;
+        const fromIdx = original.findIndex((s) => s.id === fromId);
+        if (fromIdx === -1) return prev;
+
+        const dropTarget =
+            toIndex >= 0 && toIndex < original.length ? original[toIndex] : null;
+
+        const droppedOnGroup = dropTarget?.kind === "group";
+        const targetGroupId = droppedOnGroup ? dropTarget!.groupId : null;
+        let desiredIndex = droppedOnGroup ? toIndex + 1 : toIndex;
+
+        if (desiredIndex < 0) desiredIndex = 0;
+        if (desiredIndex > original.length) desiredIndex = original.length;
+
+        const segments = [...original];
+        const [seg] = segments.splice(fromIdx, 1);
+
+        if (targetGroupId != null && seg.kind !== "group") {
+            seg.groupId = targetGroupId;
+        }
+
+        if (desiredIndex === 0 && seg.kind !== "start" && seg.kind !== "group") {
+            seg.kind = "start";
+            if (seg.pose.x === null) seg.pose.x = 0;
+            if (seg.pose.y === null) seg.pose.y = 0;
+            if (seg.pose.angle === null) seg.pose.angle = 0;
+        }
+
+        if (desiredIndex === 0 && seg.kind === "start") {
+            seg.kind = "poseDrive";
+        }
+
+        let insertIdx = desiredIndex;
+        if (fromIdx < desiredIndex) insertIdx = desiredIndex - 1;
+
+        if (insertIdx < 0) insertIdx = 0;
+        if (insertIdx > segments.length) insertIdx = segments.length;
+
+        segments.splice(insertIdx, 0, seg);
+
+        const next = { ...prev, segments };
+        AddToUndoHistory({ path: next });
+        return next;
+        });
+    }; 
+        
+    const getSpeed = (format: Format): number => {
+        switch (format) {
+            case "mikLib": return 12;
+            case "ReveilLib": return 1;
+            case "JAR-Template": return 12;
+            case "LemLib": return 127;
+        }
+    }
+
+    const speedScale = getSpeed(format);
+
     return (
         <div className={`flex flex-col gap-2 mt-[1px]`}>
             <button
@@ -232,15 +300,123 @@ export default function GroupList({
             </div>
 
             </button>
+
                 <div
                 className={`relative flex flex-col ml-9 gap-2 transition-all ${
                     isOpen ? "block" : "hidden"
                 }`}
                 >
-                    
-                { /* Vertical Line */ }
-                <div className="absolute left-[-16px] top-0 h-full w-[4px] rounded-full bg-medlightgray" />
+                    { /* Vertical Line */ }
+                    <div className="absolute left-[-16px] top-0 h-full w-[4px] rounded-full bg-medlightgray" />
 
+                    {path.segments.filter(c => c.groupId === segment.groupId).map((c, idx) => {
+                        
+                        const constantsFields = getFormatConstantsConfig(format, path, setPath, c.id);
+                        const directionFields = getFormatDirectionConfig(format, path, setPath, c.id);
+                        
+                        return (
+                        <div
+                            key={c.id}
+                            className="w-full relative"
+                            onDragOver={(e) => { e.preventDefault(); setOverIndex(idx); }}
+                            onDrop={(e) => { e.preventDefault(); moveSegment(dragId, idx); setDraggingId(null); setOverIndex(null); }}
+                        >
+                        {overIndex === idx && dragId !== null && c.kind !== "group" && (
+                            <div className="w-[435px] h-[2px] bg-white rounded-full mx-auto ml-2 mb-2" />
+                        )}
+            
+                        
+                        {/* DRIVE */}
+                        {idx > 0 && ( (c.kind === "pointDrive" || c.kind === "poseDrive") ) && (
+                            <MotionList
+                                name="Drive"
+                                speedScale={speedScale}
+                                field={constantsFields}
+                                directionField={directionFields}
+                                segmentId={c.id}
+                                isOpenGlobal={isOpenGlobal}
+                                draggable={true}
+                                onDragStart={() => setDraggingId(c.id)}
+                                onDragEnd={() => { setDraggingId(null); setOverIndex(null); }}
+                                onDragEnter={() => setOverIndex(idx)}
+                                draggingId={dragId}
+                            />
+                        )}
+            
+                        {/* TURN */}
+                        {idx > 0 && ( (c.kind === "angleTurn" || c.kind === "pointTurn")) && (
+                            <MotionList
+                            name="Turn"
+                            speedScale={speedScale}
+                            field={constantsFields}
+                            directionField={directionFields}
+                            segmentId={c.id}
+                            isOpenGlobal={isOpenGlobal}
+                            draggable={true}
+                            onDragStart={() => setDraggingId(c.id)}
+                            onDragEnd={() => { setDraggingId(null); setOverIndex(null); }}
+                            onDragEnter={() => setOverIndex(idx)}
+                            draggingId={dragId}
+                            />
+                        )}
+            
+                        {/* SWING */}
+                        {idx > 0 && ( (c.kind === "pointSwing" || c.kind === "angleSwing")) && (
+                            <MotionList
+                                name="Swing"
+                                speedScale={speedScale}
+                                field={constantsFields}
+                                directionField={directionFields}
+                                segmentId={c.id}
+                                isOpenGlobal={isOpenGlobal}
+                                draggable={true}
+                                onDragStart={() => setDraggingId(c.id)}
+                                onDragEnd={() => { setDraggingId(null); setOverIndex(null); }}
+                                onDragEnter={() => setOverIndex(idx)}
+                                draggingId={dragId}
+                            />
+                        )}
+            
+                        {/* START SEGMENT */}
+                        {/* {idx === 0 && (
+                            <MotionList
+                                name="Start"
+                                speedScale={speedScale}
+                                field={[]}
+                                directionField={[]}
+                                segmentId={c.id}
+                                isOpenGlobal={isOpenGlobal}
+                                start={true}
+                                draggable={true}
+                                onDragStart={() => setDraggingId(c.id)}
+                                onDragEnd={() => { setDraggingId(null); setOverIndex(null); }}
+                                onDragEnter={() => setOverIndex(idx)}
+                                draggingId={dragId}
+                            />
+                        )} */}
+            
+                        </div>
+                    )})}
+
+                    <div
+                        className="w-full relative"
+                        onDragOver={(e) => {
+                            e.preventDefault();
+                            setOverIndex(path.segments.length);
+                        }}
+                        onDragEnter={() => setOverIndex(path.segments.length)}
+                        onDrop={(e) => {
+                            e.preventDefault();
+                            moveSegment(draggingId, path.segments.length);
+                            setDraggingId(null);
+                            setOverIndex(null);
+                        }}
+                        >
+                        {overIndex === path.segments.length && draggingId !== null && (
+                            <div className="w-[435px] h-[2px] bg-white rounded-full mx-auto ml-2 mb-2" />
+                        )}
+                        <div className="h-6" />
+                    </div>
 
                 </div>
         </div>
