@@ -39,6 +39,7 @@ type MotionListProps = {
     onDragEnd?: (e: React.DragEvent<HTMLButtonElement>) => void,
     onDragEnter?: () => void,
     draggingId?: string | null,
+    shrink?: boolean,
 }
 
 export default function MotionList({
@@ -54,6 +55,7 @@ export default function MotionList({
     onDragEnd,
     onDragEnter,
     draggingId = null,
+    shrink = false,
 }: MotionListProps) {
     const [ path, setPath ] = usePath(); 
 
@@ -241,9 +243,10 @@ export default function MotionList({
             onClick={handleOnClick}
             onMouseEnter={StartHover}
             onMouseLeave={EndHover}
+            style={{ width: `${!shrink ? 450 : 400}px` }}
             className={`${selected ? "bg-medlightgray" : ""} 
                 flex flex-row justify-start items-center
-                w-[450px] h-[35px] gap-[12px] outline-1
+                h-[35px] gap-[12px] outline-1
                 hover:bg-medgray_hover
                 rounded-lg pl-4 pr-4
                 transition-all duration-100
@@ -259,7 +262,7 @@ export default function MotionList({
             >
                 {!isOpen ? (
                 <img className="w-[15px] h-[15px] rotate-270" src={downArrow} />
-                ) : (
+                ) : (~
                 <img className="w-[15px] h-[15px]" src={downArrow} />
                 )}
             </button>
@@ -276,7 +279,7 @@ export default function MotionList({
             
             {!start ? (
                 <Slider
-                    sliderWidth={210}
+                    sliderWidth={!shrink ? 210 : 160}
                     sliderHeight={5}
                     knobHeight={16}
                     knobWidth={16}

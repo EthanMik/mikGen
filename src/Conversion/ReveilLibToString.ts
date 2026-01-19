@@ -11,8 +11,7 @@ const roundOff = (val: number | undefined | null | string, digits: number) => {
 
 export function reveilLibToString(path: Path, selected: boolean = false) {
     let pathString: string = '';
-
-    let startWrapper = true;
+    let startWrapper = false;
 
     for (let idx = 0; idx < path.segments.length; idx++) {
         const control = path.segments[idx];
@@ -20,32 +19,36 @@ export function reveilLibToString(path: Path, selected: boolean = false) {
         if (selected && !control.selected) continue;
 
         const kind = control.kind;
-    chassis.set_coordinates(-39.22, -30.8, 0);
         const revCoords = toRevCoordinate(control.pose.x ?? 0, control.pose.y ?? 0);
         const x = roundOff(revCoords.x, 2);
         const y = roundOff(revCoords.y, 2);
 
         const angle = roundOff(control.pose.angle, 2);
 
-        const commandName = control.command.name;
-        const commandPercent = roundOff(control.command.percent, 0);
-
-        if (commandName === "") startWrapper = true;
-        if (idx === path.segments.length - 1) startWrapper = false;
+        // const commandName = control.command.name; 
+        // const commandPercent = roundOff(control.command.percent, 0);
         
 
         if (idx === 0) {
             pathString += (
-                ` odom->set_position({${x}_in, ${y}_in, ${angle}_deg});`
+                `  odom->set_position({${x}_in, ${y}_in, ${angle}_deg});`
             )        
             continue;
         }
 
-        // if (startWrapper) {
-        //     pathString += (
-        //         `\n  reckless->go({`
-        //     )
-        // }
+
+        if (control.groupId !== undefined && !startWrapper) {
+            pathString += (
+                `\n  reckless->go({`
+            )
+            startWrapper = true;
+        }
+
+        if (control.groupId === undefined) {
+            pathString += (
+                `\n  reckless->go({`
+            )
+        }
         
         if (kind === "angleTurn" || kind === "angleSwing") {
             const k = control.constants.turn as ReveilLibConstants;
@@ -111,13 +114,19 @@ export function reveilLibToString(path: Path, selected: boolean = false) {
             )     
         }
 
-        // if (!startWrapper) {
-        //     pathString += (
-        //         `\n });`
-        //     )            
-        // }
+        if (startWrapper && path.segments[idx + 1]?.groupId !== control.groupId) {
+            pathString += (
+                `\n  });`
+            )            
+            startWrapper = false;
+        }
 
-        // startWrapper = false;
+        if (control.groupId === undefined) {
+            pathString += (
+                `\n  });`
+            )        
+        }
+
     }
 
     if (selected) pathString = pathString.startsWith("\n") ? pathString.slice(1) : pathString;

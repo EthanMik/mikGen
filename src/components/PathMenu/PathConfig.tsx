@@ -110,7 +110,7 @@ export default function PathConfig() {
 
             {idx > 0 && isGroup && (
               <GroupList 
-                name="Group 1"
+                name="Group"
                 segmentId={c.id}
                 isOpenGlobal={isOpen}
                 draggable={true}

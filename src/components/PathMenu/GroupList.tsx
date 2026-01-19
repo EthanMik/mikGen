@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useEffect, useRef, useState } from "react";
 import eyeOpen from "../../assets/eye-open.svg";
 import eyeClosed from "../../assets/eye-closed.svg";
 import lockClose from "../../assets/lock-close.svg";
@@ -23,7 +24,6 @@ type GroupListProps = {
     onDragEnter?: () => void,
     setDraggingId?: React.Dispatch<React.SetStateAction<string | null>>,
     draggingId?: string | null,
-    // New props for header drop zone
     headerDropZone?: GroupDropZone,
     onHeaderDropZoneChange?: (zone: GroupDropZone) => void,
 }
@@ -35,7 +35,6 @@ export default function GroupList({
     draggable = false,
     onDragStart,
     onDragEnd,
-    onDragEnter,
     setDraggingId,
     draggingId = null,
     headerDropZone = null,
@@ -45,6 +44,21 @@ export default function GroupList({
     const [ format ] = useFormat();
 
     const segment = path.segments.find(s => s.id === segmentId)!;
+    
+    const inputRef = useRef<HTMLInputElement>(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [value, setValue] = useState(name);
+
+    const handleFocus = () => {
+        setIsEditing(true);
+    };
+
+    const handleBlur = () => {
+        setIsEditing(false);
+        // if (onNameChange) {
+        //     onNameChange(value);
+        // }
+    };
 
     const setGlobalDraggingId = setDraggingId ?? (() => {});
     const [ localOverIndex, setLocalOverIndex ] = useState<number | null>(null);
@@ -77,44 +91,18 @@ export default function GroupList({
         }
     }, [draggingId]);
 
-    const handleOnClick = (evt: React.PointerEvent<HTMLButtonElement>) => {
-        // Groups are not selectable - only toggle open/close
-        evt.preventDefault();
-    }
-
-    const StartHover = () => {
-        setPath(prev => ({
-            ...prev, 
-            segments: prev.segments.map(
-                segment => segment.id === segmentId
-                ? {...segment, hovered: true } 
-                : {...segment, hovered: false }
-            )
-        }));        
-    }
     
-    const EndHover = () => {
-        setPath(prev => ({
-            ...prev, 
-            segments: prev.segments.map(
-                segment => segment.id === segmentId
-                ? {...segment, hovered: false } 
-                : {...segment, hovered: false }
-            )
-        }));        
-    }
-
     useEffect(() => {
         setOpen(isOpenGlobal)
     }, [isOpenGlobal])
-
-
+    
+    
     const toggleSegment = (patch: (s: any) => any) => {
         setPath(prev => {
             
             const next = {
                 ...prev,
-                segments: prev.segments.map(s => (s.id === segmentId ? patch(s) : s)),
+                segments: prev.segments.map(s => (s.groupId === groupKey ? patch(s) : s)),
             };
             
             AddToUndoHistory({ path: next });
@@ -122,12 +110,34 @@ export default function GroupList({
         });
     };
 
-    const handleEyeOnClick = () => {
+    const handleOnClick = (evt: React.PointerEvent<HTMLButtonElement>) => {
+        toggleSegment(s => ({ ...s, selected: !s.selected }));
+        evt.preventDefault();
+    }
+
+    const handleEyeOnClick = (evt: React.MouseEvent<HTMLButtonElement>) => {
         toggleSegment(s => ({ ...s, visible: !s.visible }));
+        evt.stopPropagation();
     };
 
-    const handleLockOnClick = () => {
+    const handleLockOnClick = (evt: React.MouseEvent<HTMLButtonElement>) => {
         toggleSegment(s => ({ ...s, locked: !s.locked }));
+        evt.stopPropagation();
+    };
+
+    const handleGroupOnHoverStart = (evt: React.MouseEvent<HTMLButtonElement>) => {
+        toggleSegment(s => ({ ...s, hovered: true }));
+        evt.stopPropagation();        
+    }
+
+    const handleGroupOnHoverEnd = (evt: React.MouseEvent<HTMLButtonElement>) => {
+        toggleSegment(s => ({ ...s, hovered: false }));
+        evt.stopPropagation();        
+    }
+    
+    const handleDropDownOnClick = (evt: React.MouseEvent<HTMLButtonElement>) => {
+        setOpen(prev => !prev);
+        evt.stopPropagation();
     };
 
     useEffect(() => {
@@ -205,24 +215,12 @@ export default function GroupList({
         e.preventDefault();
         e.stopPropagation();
         
-        // Guard against multiple drop events
-        if (dropHandledRef.current) {
-            console.log('[GroupList BUTTON Drop] Already handled, skipping');
-            return;
-        }
         if (!draggingId || draggingId === segmentId) return;
         
         // Mark as handled immediately
         dropHandledRef.current = true;
         
         const zone = getDropZone(e);
-        console.log('[GroupList BUTTON Drop]', { 
-            segmentId, 
-            zone, 
-            draggingId,
-            groupName: name,
-            timestamp: Date.now()
-        });
         
         const headerGlobalIdx = path.segments.findIndex(s => s.id === segmentId);
         if (headerGlobalIdx === -1) return;
@@ -279,24 +277,6 @@ export default function GroupList({
 
     // Handle drop on the outer container (for when cursor is slightly above the button)
     const handleContainerDrop = (e: React.DragEvent<HTMLDivElement>) => {
-        // Guard against multiple drop events
-        if (dropHandledRef.current) {
-            console.log('[GroupList CONTAINER Drop] Already handled, skipping');
-            return;
-        }
-        
-        console.log('[GroupList CONTAINER Drop]', { 
-            segmentId, 
-            headerDropZone, 
-            draggingId,
-            groupName: name 
-        });
-        
-        // Only handle if we have an active header drop zone
-        if (headerDropZone === null) {
-            console.log('[GroupList CONTAINER Drop] No headerDropZone, not handling');
-            return;
-        }
         
         e.preventDefault();
         e.stopPropagation();
@@ -308,11 +288,6 @@ export default function GroupList({
         
         const headerGlobalIdx = path.segments.findIndex(s => s.id === segmentId);
         if (headerGlobalIdx === -1) return;
-
-        console.log('[GroupList CONTAINER Drop] Handling drop', { 
-            headerDropZone, 
-            headerGlobalIdx 
-        });
 
         // Clear dragging state FIRST to prevent re-entry
         const currentDraggingId = draggingId;
@@ -381,8 +356,8 @@ export default function GroupList({
             onDrop={handleHeaderDrop}
             onDragLeave={handleHeaderDragLeave}
             onClick={handleOnClick}
-            onMouseEnter={StartHover}
-            onMouseLeave={EndHover}
+            onMouseEnter={handleGroupOnHoverStart}
+            onMouseLeave={handleGroupOnHoverEnd}
             className={`${isHoveringInto ? "bg-medlightgray" : ""}
                 flex flex-row justify-start items-center
                 w-[450px] h-[35px] gap-[12px] outline-1
@@ -397,8 +372,8 @@ export default function GroupList({
             `}
             >
             <button
+                onClick={handleDropDownOnClick}
                 className="cursor-pointer shrink-0"
-                onClick={() => setOpen(!isOpen)}
             >
                 {!isOpen ? (
                 <img className="w-[15px] h-[15px] rotate-270" src={downArrow} />
@@ -408,7 +383,39 @@ export default function GroupList({
             </button>
 
 
-            <span className="w-[90px] items-center text-[17px] shrink-0 text-left truncate">{name}</span>
+        <input
+            ref={inputRef}
+            value={value}
+            onClick={(e) => {
+                if (isEditing) e.stopPropagation();
+            }}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            onChange={(e) => {
+                e.stopPropagation();
+                setValue(e.target.value);
+            }}
+            onKeyDown={(e) => {
+                if (isEditing) e.stopPropagation();
+                if (e.key === "Enter") {
+                    inputRef.current?.blur();
+                }
+                if (e.key === "Escape") {
+                    setValue(name);
+                    inputRef.current?.blur();
+                }
+            }}
+            onMouseDown={(e) => {
+                if (isEditing) e.stopPropagation();
+            }}
+            name={name}
+            className={`w-[90px] items-center text-[17px] shrink-0 text-left truncate 
+                outline-none border rounded px-1 transition-colors
+                ${isEditing 
+                    ? 'bg-medgray_hover' 
+                    : 'bg-transparent border-transparent cursor-pointer'
+                }`}
+        />
             
             <div className="flex flex-row w-full gap-2 justify-end">
                 <button className="cursor-pointer shrink-0 justify-end" onClick={handleEyeOnClick}>
@@ -435,7 +442,7 @@ export default function GroupList({
 
                     {/* Top drop zone - for dropping at the very top of the group */}
                     <div
-                        className="w-full relative h-4"
+                        className="w-full relative h-2"
                         onDragOver={(e) => { 
                             e.preventDefault(); 
                             e.stopPropagation(); 
@@ -460,7 +467,7 @@ export default function GroupList({
                         }}
                     >
                         {(localOverIndex === -1 || headerDropZone === "below") && draggingId !== null && draggingId !== segmentId && (
-                            <div className="w-[435px] h-[2px] bg-white rounded-full mx-auto ml-2 absolute bottom-0" />
+                            <div className="w-[390px] h-[2px] bg-white rounded-full mx-auto ml-2 absolute bottom-0" />
                         )}
                     </div>
 
@@ -493,7 +500,7 @@ export default function GroupList({
                                 onDrop={(e) => handleChildDrop(e, globalIdx)}
                             >
                                 {localOverIndex === localIdx && draggingId !== null && !isDraggingThis && (
-                                    <div className="w-[435px] h-[2px] bg-white rounded-full mx-auto ml-2 mb-2" />
+                                    <div className="w-[390px] h-[2px] bg-white rounded-full mx-auto ml-2 mb-2" />
                                 )}
 
                                 {(c.kind === "pointDrive" || c.kind === "poseDrive") && (
@@ -509,6 +516,7 @@ export default function GroupList({
                                         onDragEnd={() => { setGlobalDraggingId(null); setLocalOverIndex(null); }}
                                         onDragEnter={() => { if (draggingId !== c.id) setLocalOverIndex(localIdx); }}
                                         draggingId={draggingId}
+                                        shrink={true}
                                     />
                                 )}
 
@@ -525,6 +533,7 @@ export default function GroupList({
                                         onDragEnd={() => { setGlobalDraggingId(null); setLocalOverIndex(null); }}
                                         onDragEnter={() => { if (draggingId !== c.id) setLocalOverIndex(localIdx); }}
                                         draggingId={draggingId}
+                                        shrink={true}
                                     />
                                 )}
 
@@ -541,6 +550,7 @@ export default function GroupList({
                                         onDragEnd={() => { setGlobalDraggingId(null); setLocalOverIndex(null); }}
                                         onDragEnter={() => { if (draggingId !== c.id) setLocalOverIndex(localIdx); }}
                                         draggingId={draggingId}
+                                        shrink={true}
                                     />
                                 )}
                             </div>
@@ -549,7 +559,7 @@ export default function GroupList({
 
                     {/* Bottom drop zone - for dropping at the very bottom of the group */}
                     <div
-                        className="w-full relative h-6"
+                        className="w-[390px] relative h-2"
                         onDragOver={(e) => { 
                             e.preventDefault(); 
                             e.stopPropagation(); 
