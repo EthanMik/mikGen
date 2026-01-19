@@ -4,7 +4,7 @@ import MotionList from "./MotionList";
 import PathConfigHeader from "./PathHeader";
 import { useFormat } from "../../hooks/useFormat";
 import { getFormatConstantsConfig, getFormatDirectionConfig, getFormatPathName, getFormatSpeed, globalDefaultsStore } from "../../core/DefaultConstants";
-import GroupList from "./GroupList";
+import GroupList, { type GroupDropZone } from "./GroupList";
 import { moveSegment } from "./PathConfigUtils";
 
 export default function PathConfig() {
@@ -13,6 +13,12 @@ export default function PathConfig() {
   const [ overIndex, setOverIndex ] = useState<number | null>(null);
   const [ isOpen, setOpen ] = useState(false);
   const [ format,  ] = useFormat();
+  
+  // Track which group's header drop zone is active, and what zone
+  const [ activeGroupDropZone, setActiveGroupDropZone ] = useState<{
+    groupId: string;
+    zone: GroupDropZone;
+  } | null>(null);
 
   const [ , forceUpdate ] = useState({});
   useEffect(() => {
@@ -22,8 +28,25 @@ export default function PathConfig() {
     return () => unsubscribe();
   }, []);
 
+  // Clear group drop zone when dragging ends
+  useEffect(() => {
+    if (draggingId === null) {
+      setActiveGroupDropZone(null);
+    }
+  }, [draggingId]);
+
   const speedScale = getFormatSpeed(format);
   const name = getFormatPathName(format);
+
+  const handleGroupDropZoneChange = (groupId: string) => (zone: GroupDropZone) => {
+    if (zone === null) {
+      setActiveGroupDropZone(null);
+    } else {
+      setActiveGroupDropZone({ groupId, zone });
+      // Clear the parent overIndex when we have an active group zone
+      setOverIndex(null);
+    }
+  };
 
   return (
     <div className="bg-medgray w-[500px] h-[650px] rounded-lg p-[15px] flex flex-col">
@@ -36,39 +59,68 @@ export default function PathConfig() {
           const constantsFields = getFormatConstantsConfig(format, path, setPath, c.id);
           const directionFields = getFormatDirectionConfig(format, path, setPath, c.id);
           
+          // Check if this is a group and if we should skip showing the normal drop indicator
+          const isGroup = c.kind === "group";
+          const groupDropZone = isGroup && activeGroupDropZone?.groupId === c.id 
+            ? activeGroupDropZone.zone 
+            : null;
+          
+          // Don't show the normal overIndex indicator for groups (they handle their own)
+          // Also don't show indicator at position 0 (before start segment)
+          const showNormalDropIndicator = overIndex === idx && 
+            draggingId !== null && 
+            !isGroup &&
+            idx > 0;
+          
           return (
           <div
             key={c.id}
             className="w-full relative"
             onDragOver={(e) => {
               if (e.defaultPrevented) return;
+              // Don't set overIndex if a group has an active drop zone
+              if (activeGroupDropZone !== null) return;
               e.preventDefault();
               setOverIndex(idx);
             }}
             onDrop={(e) => {
+              console.log('[PathConfig Drop]', { 
+                defaultPrevented: e.defaultPrevented,
+                activeGroupDropZone,
+                idx,
+                draggingId,
+                segmentKind: c.kind
+              });
               if (e.defaultPrevented) return;
+              // Don't handle drop if a group has an active drop zone
+              if (activeGroupDropZone !== null) {
+                console.log('[PathConfig Drop] Skipping - activeGroupDropZone is set');
+                return;
+              }
               e.preventDefault();
+              console.log('[PathConfig Drop] Executing moveSegment');
               moveSegment(setPath, draggingId, idx);
               setDraggingId(null);
               setOverIndex(null);
             }}
           >
-            {overIndex === idx && draggingId !== null && c.kind !== "group" && (
+            {showNormalDropIndicator && (
               <div className="w-[435px] h-[2px] bg-white rounded-full mx-auto ml-2 mb-2" />
             )}
 
-            {idx > 0 && (c.kind === "group") && (
+            {idx > 0 && isGroup && (
               <GroupList 
                 name="Group 1"
                 segmentId={c.id}
                 isOpenGlobal={isOpen}
                 draggable={true}
-                selected={overIndex === idx}
                 onDragStart={() => setDraggingId(c.id)}
-                onDragEnd={() => { setDraggingId(null); setOverIndex(null); }}
+                onDragEnd={() => { setDraggingId(null); setOverIndex(null); setActiveGroupDropZone(null); }}
                 onDragEnter={() => setOverIndex(idx)}
                 setDraggingId={setDraggingId}        
-                draggingId={draggingId}      
+                draggingId={draggingId}
+                headerDropZone={groupDropZone}
+                onHeaderDropZoneChange={handleGroupDropZoneChange(c.id)}
               />
             )}
             
@@ -133,10 +185,7 @@ export default function PathConfig() {
                 segmentId={c.id}
                 isOpenGlobal={isOpen}
                 start={true}
-                draggable={true}
-                onDragStart={() => setDraggingId(c.id)}
-                onDragEnd={() => { setDraggingId(null); setOverIndex(null); }}
-                onDragEnter={() => setOverIndex(idx)}
+                draggable={false}
                 draggingId={draggingId}
               />
             )}

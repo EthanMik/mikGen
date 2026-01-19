@@ -20,10 +20,8 @@ export function reveilLibToString(path: Path, selected: boolean = false) {
         if (selected && !control.selected) continue;
 
         const kind = control.kind;
-
+    chassis.set_coordinates(-39.22, -30.8, 0);
         const revCoords = toRevCoordinate(control.pose.x ?? 0, control.pose.y ?? 0);
-        console.log(revCoords);
-        console.log(control.pose.x, control.pose.y);
         const x = roundOff(revCoords.x, 2);
         const y = roundOff(revCoords.y, 2);
 
