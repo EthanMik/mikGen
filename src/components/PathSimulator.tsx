@@ -217,7 +217,12 @@ export default function PathSimulator() {
                 }}
                 OnChangeEnd={() => {}}
             />
-            {settings.robotPosition &&  <span className="w-50">[{pose?.x?.toFixed(1)}, {pose?.y?.toFixed(1)}, {pose?.angle?.toFixed(0)}]</span>}
+            {settings.robotPosition &&  
+                <span className="w-50">
+                    {format !== "ReveilLib"} ? [{pose?.x?.toFixed(1)}, {pose?.y?.toFixed(1)}, {pose?.angle?.toFixed(0)}] :
+                    [{pose?.y?.toFixed(1)}, {pose?.x?.toFixed(1)}, {pose?.angle?.toFixed(0)}]
+                </span>
+            }
             <span className="block">{time.toFixed(2)} s</span>
             <Checkbox checked={robotVisible} setChecked={setRobotVisibility}/>
         </div>        
