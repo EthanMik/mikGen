@@ -18,8 +18,10 @@ Bugs:
 - Fix undo redo to work on entire app data tree (still need to do commands)
 - Fix file opening not working on firefox
 - make it so rev coords are flipped on control config
-
+- hovering segment adds to undo history
 - make it so when you drag a segment it restarts it
+- make it so renaming group with segments inside does not reset all constants lmao
+- make it so time change does not affect width of playback slider
 
 Todo:
 - add lemlib drive motions - jar template can just use mikLib with small modifications

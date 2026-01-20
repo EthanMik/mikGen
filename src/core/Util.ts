@@ -123,6 +123,7 @@ export function RectangleRectangleCollision(rect1: Rectangle, rect2: Rectangle):
 
 const isPlainObject = (v: any) => v && typeof v === "object" && !Array.isArray(v);
 
+
 // chat gpt equal universal merger this code may be broken
 export function mergeDeep(base: any, patch: any): any {
     if (!isPlainObject(base) || !isPlainObject(patch)) {

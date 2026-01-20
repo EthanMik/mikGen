@@ -27,7 +27,7 @@ export function precomputePath(
     auton: ((robot: Robot, dt: number) => boolean)[], 
 ): PathSim 
 {   
-    const simLengthSeconds = 120;
+    const simLengthSeconds = 99;
 
     let autoIdx = 0;
     trajectory = [];

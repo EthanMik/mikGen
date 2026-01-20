@@ -11,3 +11,7 @@
     --color-medlightgray: #4A4A4A;
     --color-accent: #500000;
 }
+
+* {
+  font-family: sans-serif !important;
+}
