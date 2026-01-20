@@ -11,7 +11,7 @@ export class SimpleStop {
     timeout: number | null = null;
     stopLastState: StopState = "GO";
 
-    private timeInit: number | null = null;
+    private timeElsapsed: number = 0;
     
     constructor (harshThreshold: number, coastThreshold: number, coastPower: number, timeout: number | null = null) {
         this.harshThreshold = harshThreshold;
@@ -25,7 +25,7 @@ export class SimpleStop {
     }
 
     reset() {
-        this.timeInit = null;
+        this.timeElsapsed = 0;
         this.stopLastState = "GO";
     }
 
@@ -34,14 +34,11 @@ export class SimpleStop {
     targetState: Pose,
     startState: Pose,
     dropEarly: number,
+    dt: number
   ): StopState {
     if (this.timeout !== null && this.timeout > 0) {
-      const now = Date.now();
-      if (this.timeInit !== null) {
-        if (now > this.timeInit + this.timeout) return "EXIT";
-      } else {
-        this.timeInit = now;
-      }
+      this.timeElsapsed += (dt / 1000);
+      if (this.timeElsapsed > this.timeout) return "EXIT";
     }
 
     const xv = currentState.xVel ?? 0;

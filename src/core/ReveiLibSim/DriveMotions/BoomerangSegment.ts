@@ -83,6 +83,7 @@ export function boomerangSegment(robot: Robot, dt: number, x: number, y: number,
             targetPoint,
             boomerangFrozenCarrot ?? currentPose,
             dropEarly,
+            dt
         );
     } else {
         newState = "GO";

@@ -20,7 +20,6 @@ export function lookAt(robot: Robot, dt: number, x: number, y: number, offset: n
         const offset2 = angle2 - robot.getAngle();
     
         lookAtAngle = (Math.abs(offset1) < Math.abs(offset2)) ? angle1 : angle2;
-        console.log(lookAtAngle);
     }
 
     const state = turnSegment(robot, dt, lookAtAngle, constants); 

@@ -262,7 +262,7 @@ export default function MotionList({
             >
                 {!isOpen ? (
                 <img className="w-[15px] h-[15px] rotate-270" src={downArrow} />
-                ) : (~
+                ) : (
                 <img className="w-[15px] h-[15px]" src={downArrow} />
                 )}
             </button>

@@ -81,8 +81,8 @@ export function reveilLibToString(path: Path, selected: boolean = false) {
                 `
     &LookAt(
       ${roundOff(k.maxSpeed, 2)}, ${roundOff(k.stopCoastPower, 2)},
-      {${turnX}_in, ${turnY}_in}, ${roundOff(k.dropEarly, 2)}_deg
-      ${roundOff((k.stopHarshThreshold ?? 0) / 1000, 3)}, ${roundOff((k.stopCoastThreshold ?? 0) / 1000, 2)}, ${roundOff(k.brakeTime, 2)}_ms,
+      {${turnX}_in, ${turnY}_in}, ${roundOff(angle, 2)}_deg, ${roundOff(k.dropEarly, 2)}_deg,
+      ${roundOff((k.stopHarshThreshold ?? 0) / 1000, 3)}, ${roundOff((k.stopCoastThreshold ?? 0) / 1000, 2)}, ${roundOff(k.brakeTime, 2)}_ms
     ),`
             )
         }

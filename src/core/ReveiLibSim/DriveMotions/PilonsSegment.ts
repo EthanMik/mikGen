@@ -47,7 +47,7 @@ export function pilonsSegment(robot: Robot, dt: number, x: number, y: number, co
     const currentState: PoseState = { x: revRobotPos.x, y: revRobotPos.y, angle: wrapDeg180(robot.getAngle()), xVel: revRobotVel.xVel, yVel: revRobotVel.yVel } 
     const targetPoint: Pose = { x: x, y: y, angle: 0 };
     const startPoint = { ...pilonsSegmentStartPoint };
-    const newState: StopState = stop.getStopState(currentState, targetPoint, startPoint, dropEarly)
+    const newState: StopState = stop.getStopState(currentState, targetPoint, startPoint, dropEarly, dt)
 
     if (pilonsSegmentLastStatus == "EXIT" || newState == "EXIT") {
         robot.tankDrive(0, 0, dt);
