@@ -13,6 +13,7 @@ import { PathSimMacros } from "../macros/PathSimMacros";
 import { convertPathToSim } from "../Conversion/Conversion";
 import { useFormat } from "../hooks/useFormat";
 import { useRobotPose } from "../hooks/useRobotPose";
+import { useSettings } from "../hooks/useSettings";
 
 // This fucking file is the biggest piece of shit i find a new bug every day
 
@@ -37,7 +38,7 @@ let computedPath: PathSim;
 export default function PathSimulator() {
     const [value, setValue] = useState<number>(0);
     const [time, setTime] = useState<number>(0);
-    const [, setPose] = usePose()
+    const [ pose, setPose] = usePose()
     const [ , setRobotPose ] = useRobotPose();
     const robotk = useSyncExternalStore(robotConstantsStore.subscribe, robotConstantsStore.getState);
     const [playing, setPlaying] = useState<boolean>(false);
@@ -45,6 +46,7 @@ export default function PathSimulator() {
     const [ path,  ] = usePath();
     const [ format,  ] = useFormat();
     const skip = useRef(false);
+    const [ settings ] = useSettings(); 
 
     const { pauseSimulator, scrubSimulator } = PathSimMacros();
 
@@ -205,7 +207,7 @@ export default function PathSimulator() {
             <Slider 
                 value={value} 
                 setValue={setValue} 
-                sliderWidth={373} // 375
+                sliderWidth={!settings.robotPosition ? 373 : 150} // 375
                 sliderHeight={8} 
                 knobHeight={22} 
                 knobWidth={22}
@@ -215,7 +217,7 @@ export default function PathSimulator() {
                 }}
                 OnChangeEnd={() => {}}
             />
-            {/* <span className="w-35">[{pose?.x?.toFixed(1)}, {pose?.y?.toFixed(1)}, {pose?.angle?.toFixed(0)}]</span> */}
+            {settings.robotPosition &&  <span className="w-50">[{pose?.x?.toFixed(1)}, {pose?.y?.toFixed(1)}, {pose?.angle?.toFixed(0)}]</span>}
             <span className="block">{time.toFixed(2)} s</span>
             <Checkbox checked={robotVisible} setChecked={setRobotVisibility}/>
         </div>        

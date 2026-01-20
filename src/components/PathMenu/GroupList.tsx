@@ -52,33 +52,27 @@ export default function GroupList({
     const handleFocus = () => {
         setIsEditing(true);
     };
-
-    const handleBlur = () => {
-        setIsEditing(false);
-        // if (onNameChange) {
-        //     onNameChange(value);
-        // }
-    };
-
+    
     const setGlobalDraggingId = setDraggingId ?? (() => {});
     const [ localOverIndex, setLocalOverIndex ] = useState<number | null>(null);
-
+    
     const groupKey = segment.groupId ?? segment.id;
-
+    
     const indexById = new Map(path.segments.map((s, i) => [s.id, i] as const));
-
+    
     const children = path.segments.filter(
         (s) => s.groupId === groupKey && s.kind !== "group"
     );
-
+    
 
     const [ isEyeOpen, setEyeOpen ] = useState(true);
     const [ isLocked, setLocked ] = useState(false);
     const [ isOpen, setOpen ] = useState(false);
-
+    const [ selected, setSelected ] = useState(false);
+    
     const pathRef = useRef(path);
     pathRef.current = path;
-
+    
     const headerRef = useRef<HTMLButtonElement>(null);
     
     // Ref to prevent duplicate drop handling
@@ -90,7 +84,7 @@ export default function GroupList({
             dropHandledRef.current = false;
         }
     }, [draggingId]);
-
+    
     
     useEffect(() => {
         setOpen(isOpenGlobal)
@@ -109,9 +103,26 @@ export default function GroupList({
             return next;
         });
     };
+    
+    const handleBlur = () => {
+        setIsEditing(false);
+        toggleSegment(s => ({ ...s, constants: value}))
+    };
 
     const handleOnClick = (evt: React.PointerEvent<HTMLButtonElement>) => {
-        toggleSegment(s => ({ ...s, selected: !s.selected }));
+        setPath(prev => {
+            const selectedState = segment.selected;
+            const next = {
+                ...prev,
+                segments: prev.segments.map(s => (s.groupId === groupKey || s.id === segmentId 
+                    ? { ...s, selected: !selectedState } 
+                    : { ...s, selected: false } 
+                )),
+            };
+            
+            AddToUndoHistory({ path: next });
+            return next;
+        });
         evt.preventDefault();
     }
 
@@ -358,7 +369,9 @@ export default function GroupList({
             onClick={handleOnClick}
             onMouseEnter={handleGroupOnHoverStart}
             onMouseLeave={handleGroupOnHoverEnd}
-            className={`${isHoveringInto ? "bg-medlightgray" : ""}
+            className={
+                `${isHoveringInto ? "bg-lightgray" : ""}
+                ${segment.selected ? "bg-medlightgray" : ""}
                 flex flex-row justify-start items-center
                 w-[450px] h-[35px] gap-[12px] outline-1
                 bg-medgray
@@ -415,11 +428,12 @@ export default function GroupList({
                 }}
                 name={name}
                 size={Math.max(value.length, 1)}
-                style={{ width: `${Math.max(value.length, 1)}ch` }}
+                style={{ width: `${Math.max(value.length, 1) + 1}ch` }}
                 className={`items-center text-[17px] shrink-0 text-left truncate 
-                    outline-none px-1 transition-colors border-none
+                    outline-none px-1 transition-colors border-none rounded-sm
+                    
                     ${isEditing 
-                        ? 'bg-medgray_hover cursor-text' 
+                        ? 'bg-blackgrayhover cursor-text' 
                         : 'bg-transparent cursor-default'
                     }`}
             />

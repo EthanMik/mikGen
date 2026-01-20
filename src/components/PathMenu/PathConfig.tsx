@@ -84,21 +84,8 @@ export default function PathConfig() {
               setOverIndex(idx);
             }}
             onDrop={(e) => {
-              console.log('[PathConfig Drop]', { 
-                defaultPrevented: e.defaultPrevented,
-                activeGroupDropZone,
-                idx,
-                draggingId,
-                segmentKind: c.kind
-              });
               if (e.defaultPrevented) return;
-              // Don't handle drop if a group has an active drop zone
-              if (activeGroupDropZone !== null) {
-                console.log('[PathConfig Drop] Skipping - activeGroupDropZone is set');
-                return;
-              }
               e.preventDefault();
-              console.log('[PathConfig Drop] Executing moveSegment');
               moveSegment(setPath, draggingId, idx);
               setDraggingId(null);
               setOverIndex(null);
@@ -110,7 +97,7 @@ export default function PathConfig() {
 
             {idx > 0 && isGroup && (
               <GroupList 
-                name="Group"
+                name={c.constants as string}
                 segmentId={c.id}
                 isOpenGlobal={isOpen}
                 draggable={true}

@@ -21,7 +21,8 @@ export default function useLocalStorageSync() {
 
     useEffect(() => {
         localStorage.setItem("ghostRobots", settings.ghostRobots ? "true" : "false");
-    }, [settings.ghostRobots]);
+        localStorage.setItem("robotPosition", settings.robotPosition ? "true" : "false");
+    }, [settings.ghostRobots, settings.robotPosition]);
 
     const skipFirstState = useRef(true);
     

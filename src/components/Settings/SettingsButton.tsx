@@ -16,6 +16,15 @@ export default function SettingsButton() {
         }))
     }
 
+    const robotPosition = settings.robotPosition;
+    const setRobotPosition = (state: boolean) => {
+        setSettings(prev => ({
+            ...prev,
+            robotPosition: state
+        }))
+    }
+
+
     const handleToggleMenu = () => {
         setOpen((prev) => !prev)
     }
@@ -59,7 +68,6 @@ export default function SettingsButton() {
                         <div className="flex flex-row gap-2">
 
                             {/* <div className="mt-0.5 pt-2 border-t border-gray-500/40 flex flex-row items-center justify-between h-[35px]"> */}
-                            {/* <div> */}
                             <span className="whitespace-nowrap text-[16px]">Robot Outlines</span>
 
                             <div className="w-25 flex items-center justify-end">
@@ -67,10 +75,18 @@ export default function SettingsButton() {
                                 <Checkbox checked={ghostRobots} setChecked={setGhostRobots} />
                                 </label>
                             </div>
-                            {/* </div> */}
 
                         </div>
-        
+                        <div className="flex flex-row gap-2">
+
+                            <span className="whitespace-nowrap text-[16px]">Robot Position</span>
+
+                            <div className="w-25 flex items-center justify-end">
+                                <label className="flex items-center gap-2 cursor-pointer select-none">
+                                <Checkbox checked={robotPosition} setChecked={setRobotPosition} />
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

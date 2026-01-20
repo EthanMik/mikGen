@@ -26,7 +26,7 @@ export type ConstantsByFormat = {
     angleSwing: mikSwingConstants;
     pointSwing: mikSwingConstants;
     start: undefined;
-    group: undefined;
+    group: string;
   };
   ReveilLib: {
     pointDrive: revDriveConstants;
@@ -36,7 +36,7 @@ export type ConstantsByFormat = {
     angleSwing: revTurnConstants;
     pointSwing: revTurnConstants;
     start: undefined;
-    group: undefined;
+    group: string;
   };
   "JAR-Template": {
     pointDrive: mikDriveConstants;
@@ -46,7 +46,7 @@ export type ConstantsByFormat = {
     angleSwing: mikSwingConstants;
     pointSwing: mikSwingConstants;
     start: undefined;
-    group: undefined;
+    group: string;
   };
   LemLib: {
     pointDrive: mikDriveConstants;
@@ -56,7 +56,7 @@ export type ConstantsByFormat = {
     angleSwing: mikSwingConstants;
     pointSwing: mikSwingConstants;
     start: undefined;
-    group: undefined;
+    group: string;
   };
 };
 
@@ -84,6 +84,7 @@ export function createSegmentGroup(): Partial<Segment> {
     hovered: false,
     locked: false,
     visible: true,
+    constants: "Group",
     pose: { x: null, y: null, angle: null },
     kind: "group",
   }
