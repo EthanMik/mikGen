@@ -19,6 +19,8 @@ Bugs:
 - Fix file opening not working on firefox
 - make it so rev coords are flipped on control config
 
+- make it so when you drag a segment it restarts it
+
 Todo:
 - add lemlib drive motions - jar template can just use mikLib with small modifications
 - add indicator for unsaved path
