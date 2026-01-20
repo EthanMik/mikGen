@@ -175,10 +175,10 @@ export default function FileButton() {
 
         try {
             const name = await requestFileName();
-            if (name === null) return;
+            if (name === null || name === "") return;
             
             const handle = await window.showSaveFilePicker({
-                suggestedName: `${getFileName(name)}.txt`,
+                suggestedName: `${name}.txt`,
                 types: [
                     {
                         description: 'Text Files',
@@ -197,6 +197,15 @@ export default function FileButton() {
 
             // Store the file handle for future saves
             fileHandleRef.current = handle;
+            
+            // Extract the actual filename from the handle (without extension)
+            const savedFileName = handle.name.replace(/\.[^/.]+$/, "");
+            
+            // Update the path with the saved filename
+            setPath(prev => ({
+                ...prev,
+                name: savedFileName
+            }));
 
             const writable = await handle.createWritable();
             await writable.write(JSON.stringify(fileText));

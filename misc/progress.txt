@@ -16,20 +16,18 @@ Bugs:
 - FIX FORMAT SWAPPING BRICKING APP
 - make it so when you drag a segment the cursor goes to grab
 - Fix undo redo to work on entire app data tree (still need to do commands)
-- Fix rev coord math
-- Fix simple stop timeout not using dt
-- algos not being reset when they fuck up
 - Fix file opening not working on firefox
+- make it so rev coords are flipped on control config
 
 Todo:
 - add lemlib drive motions - jar template can just use mikLib with small modifications
 - add indicator for unsaved path
+- add ability to add more commands and make them be color coded, revamp command menu to not limit length and allow them to be modifed not just deleted
 
 Planned:
 - saving undo history to local storage?
 - grouping with button on the group to disable that part of path from sim, renaming group
 
-- add ability to add more commands and make them be color coded, revamp command menu to not limit length and allow them to be modifed not just deleted
 - change segment order by dragging, add when groups are added  
 - Add scrubbing steps to settings
 - square drag to select add to path config

@@ -382,40 +382,47 @@ export default function GroupList({
                 )}
             </button>
 
-
-        <input
-            ref={inputRef}
-            value={value}
-            onClick={(e) => {
-                if (isEditing) e.stopPropagation();
-            }}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            onChange={(e) => {
-                e.stopPropagation();
-                setValue(e.target.value);
-            }}
-            onKeyDown={(e) => {
-                if (isEditing) e.stopPropagation();
-                if (e.key === "Enter") {
-                    inputRef.current?.blur();
-                }
-                if (e.key === "Escape") {
-                    setValue(name);
-                    inputRef.current?.blur();
-                }
-            }}
-            onMouseDown={(e) => {
-                if (isEditing) e.stopPropagation();
-            }}
-            name={name}
-            className={`w-[90px] items-center text-[17px] shrink-0 text-left truncate 
-                outline-none border rounded px-1 transition-colors
-                ${isEditing 
-                    ? 'bg-medgray_hover' 
-                    : 'bg-transparent border-transparent cursor-pointer'
-                }`}
-        />
+            <input
+                ref={inputRef}
+                value={value}
+                readOnly={!isEditing}
+                onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    setIsEditing(true);
+                    inputRef.current?.focus();
+                }}
+                onClick={(e) => {
+                    if (isEditing) e.stopPropagation();
+                }}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
+                onChange={(e) => {
+                    e.stopPropagation();
+                    setValue(e.target.value);
+                }}
+                onKeyDown={(e) => {
+                    if (isEditing) e.stopPropagation();
+                    if (e.key === "Enter") {
+                        inputRef.current?.blur();
+                    }
+                    if (e.key === "Escape") {
+                        setValue(name);
+                        inputRef.current?.blur();
+                    }
+                }}
+                onMouseDown={(e) => {
+                    if (isEditing) e.stopPropagation();
+                }}
+                name={name}
+                size={Math.max(value.length, 1)}
+                style={{ width: `${Math.max(value.length, 1)}ch` }}
+                className={`items-center text-[17px] shrink-0 text-left truncate 
+                    outline-none px-1 transition-colors border-none
+                    ${isEditing 
+                        ? 'bg-medgray_hover cursor-text' 
+                        : 'bg-transparent cursor-default'
+                    }`}
+            />
             
             <div className="flex flex-row w-full gap-2 justify-end">
                 <button className="cursor-pointer shrink-0 justify-end" onClick={handleEyeOnClick}>
