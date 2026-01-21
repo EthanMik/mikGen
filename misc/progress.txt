@@ -9,7 +9,6 @@ Units
 Bugs:
 - Polish Control Config (segment casting)
 - Fix start segment having the ability to be set to a turn by deleting segments
-- turn to point not showing up when there are no segments in front 
 
 - cant change coords on multiselect
 - end point does not show up with a turn segment on top
@@ -18,15 +17,20 @@ Bugs:
 - Fix undo redo to work on entire app data tree (still need to do commands)
 - Fix file opening not working on firefox
 - make it so rev coords are flipped on control config
-- hovering segment adds to undo history
 - make it so when you drag a segment it restarts it
-- make it so renaming group with segments inside does not reset all constants lmao
 - make it so time change does not affect width of playback slider
+
+- hovering segment adds to undo history
+- make it so renaming group with segments inside does not reset all constants lmao
+- selecting a segment does not highlight group
+- added segments go inside group when added
+- sim is regenerated on path updates
 
 Todo:
 - add lemlib drive motions - jar template can just use mikLib with small modifications
 - add indicator for unsaved path
 - add ability to add more commands and make them be color coded, revamp command menu to not limit length and allow them to be modifed not just deleted
+- add a play button to groups
 
 Planned:
 - saving undo history to local storage?
