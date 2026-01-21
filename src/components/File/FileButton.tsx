@@ -112,7 +112,19 @@ export default function FileButton() {
 
             const file = await handle.getFile();
             const content = await file.text();
-            setFileFormat(JSON.parse(content) as FileFormat);
+            
+            // Extract the filename without extension
+            const fileName = handle.name.replace(/\.[^/.]+$/, "");
+            const parsed = JSON.parse(content) as FileFormat;
+            
+            // Update with the filename from the opened file
+            setFileFormat({
+                ...parsed,
+                path: {
+                    ...parsed.path,
+                    name: fileName
+                }
+            });
         } catch (error) {
             // User cancelled the open dialog or other error
             if ((error as Error).name !== 'AbortError') {
@@ -124,16 +136,31 @@ export default function FileButton() {
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
+            // Extract filename without extension
+            const fileName = file.name.replace(/\.[^/.]+$/, "");
+            
             const reader = new FileReader();
             reader.onload = (e) => {
                 const content = e.target?.result as string;
-                setFileFormat(JSON.parse(content) as FileFormat);
+                const parsed = JSON.parse(content) as FileFormat;
+                
+                // Update the path name from the opened file
+                setFileFormat({
+                    ...parsed,
+                    path: {
+                        ...parsed.path,
+                        name: fileName
+                    }
+                });
             };
             reader.readAsText(file);
             
             // Clear file handle since we used the fallback method
             fileHandleRef.current = null;
         }
+        
+        // Reset the input so the same file can be selected again
+        event.target.value = '';
     }
 
     const handleSave = async () => {

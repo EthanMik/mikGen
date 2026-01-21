@@ -91,7 +91,7 @@ export default function GroupList({
     }, [isOpenGlobal])
     
     
-    const toggleSegment = (patch: (s: any) => any) => {
+    const toggleSegment = (patch: (s: any) => any, addToHistory = true) => {
         setPath(prev => {
             
             const next = {
@@ -99,7 +99,7 @@ export default function GroupList({
                 segments: prev.segments.map(s => (s.groupId === groupKey ? patch(s) : s)),
             };
             
-            AddToUndoHistory({ path: next });
+            if (addToHistory) AddToUndoHistory({ path: next });
             return next;
         });
     };
@@ -127,22 +127,22 @@ export default function GroupList({
     }
 
     const handleEyeOnClick = (evt: React.MouseEvent<HTMLButtonElement>) => {
-        toggleSegment(s => ({ ...s, visible: !s.visible }));
+        toggleSegment(s => ({ ...s, visible: !segment.visible }));
         evt.stopPropagation();
     };
 
     const handleLockOnClick = (evt: React.MouseEvent<HTMLButtonElement>) => {
-        toggleSegment(s => ({ ...s, locked: !s.locked }));
+        toggleSegment(s => ({ ...s, locked: !segment.locked }));
         evt.stopPropagation();
     };
 
     const handleGroupOnHoverStart = (evt: React.MouseEvent<HTMLButtonElement>) => {
-        toggleSegment(s => ({ ...s, hovered: true }));
+        toggleSegment(s => ({ ...s, hovered: true }), false);
         evt.stopPropagation();        
     }
 
     const handleGroupOnHoverEnd = (evt: React.MouseEvent<HTMLButtonElement>) => {
-        toggleSegment(s => ({ ...s, hovered: false }));
+        toggleSegment(s => ({ ...s, hovered: false }), false);
         evt.stopPropagation();        
     }
     
@@ -158,15 +158,6 @@ export default function GroupList({
     useEffect(() => {
         setLocked(segment.locked);
     }, [segment.locked])
-
-    const updateUndoRef = useRef(false);
-
-    useEffect(() => {
-        if (updateUndoRef.current) {
-            AddToUndoHistory({ path: path });
-            updateUndoRef.current = false;
-        }
-    }, [path])
         
     const getSpeed = (format: Format): number => {
         switch (format) {
