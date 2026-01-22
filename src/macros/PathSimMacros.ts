@@ -33,6 +33,7 @@ export function PathSimMacros() {
         evt: KeyboardEvent,
         setPercent: React.Dispatch<React.SetStateAction<number>>,
         setPlaying: React.Dispatch<React.SetStateAction<boolean>>,
+        setVisibility: React.Dispatch<SetStateAction<boolean>>,    
         skip: React.RefObject<boolean>,
         computedPath: PathSim,
         smallStep: number,
@@ -46,6 +47,7 @@ export function PathSimMacros() {
             : (SLOW_SCRUB_STEP / computedPath.totalTime) * 100;
 
         if (evt.key.toLowerCase() === "l") {
+            setVisibility(true);
             setPercent((p) => {
                 if (p + scrub <= 100) {
                     return p + scrub;
@@ -57,6 +59,7 @@ export function PathSimMacros() {
         }
 
         if (evt.key.toLowerCase() === "j") {
+            setVisibility(true);
             setPercent((p) => {
                 if (p - scrub >= 0) {
                     return p - scrub;

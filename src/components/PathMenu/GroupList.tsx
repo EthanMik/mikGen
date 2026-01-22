@@ -48,10 +48,6 @@ export default function GroupList({
     const inputRef = useRef<HTMLInputElement>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [value, setValue] = useState(name);
-
-    const handleFocus = () => {
-        setIsEditing(true);
-    };
     
     const setGlobalDraggingId = setDraggingId ?? (() => {});
     const [ localOverIndex, setLocalOverIndex ] = useState<number | null>(null);
@@ -64,12 +60,10 @@ export default function GroupList({
         (s) => s.groupId === groupKey && s.kind !== "group"
     );
     
-
     const [ isEyeOpen, setEyeOpen ] = useState(true);
     const [ isLocked, setLocked ] = useState(false);
     const [ isOpen, setOpen ] = useState(false);
-    const [ selected, setSelected ] = useState(false);
-    
+
     const pathRef = useRef(path);
     pathRef.current = path;
     
@@ -103,11 +97,6 @@ export default function GroupList({
             return next;
         });
     };
-    
-    const handleBlur = () => {
-        setIsEditing(false);
-        toggleSegment(s => ({ ...s, constants: value}))
-    };
 
     const handleOnClick = (evt: React.PointerEvent<HTMLButtonElement>) => {
         setPath(prev => {
@@ -120,7 +109,6 @@ export default function GroupList({
                 )),
             };
             
-            AddToUndoHistory({ path: next });
             return next;
         });
         evt.preventDefault();
@@ -398,8 +386,15 @@ export default function GroupList({
                 onClick={(e) => {
                     if (isEditing) e.stopPropagation();
                 }}
-                onFocus={handleFocus}
-                onBlur={handleBlur}
+                onFocus={() => setIsEditing(true)}
+                onBlur={() => {
+                    setIsEditing(false);
+                    setPath(prev => ({...prev, segments: prev.segments.map(s => 
+                        s.id === segmentId 
+                            ? { ...s, constants: value }
+                            : s
+                    )}));
+                }}
                 onChange={(e) => {
                     e.stopPropagation();
                     setValue(e.target.value);

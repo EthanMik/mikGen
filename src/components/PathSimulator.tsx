@@ -14,6 +14,7 @@ import { convertPathToSim } from "../Conversion/Conversion";
 import { useFormat } from "../hooks/useFormat";
 import { useRobotPose } from "../hooks/useRobotPose";
 import { useSettings } from "../hooks/useSettings";
+import { undoHistory } from "../core/Undo/UndoHistory";
 
 // This fucking file is the biggest piece of shit i find a new bug every day
 
@@ -79,7 +80,7 @@ export default function PathSimulator() {
 
         setValue((clampedTime / computedPath.totalTime) * 100);
         
-    }, [path, format, robotk, robotVisible]);
+    }, [undoHistory.length, robotVisible]);
 
     
     useEffect(() => {
@@ -102,7 +103,7 @@ export default function PathSimulator() {
             const target = evt.target as HTMLElement | null;
             if (target?.isContentEditable || target?.tagName === "INPUT") return;
             pauseSimulator(evt, setPlaying, setRobotVisibility)
-            scrubSimulator(evt, setValue, setPlaying, skip, computedPath, 1/60, 0.25);
+            scrubSimulator(evt, setValue, setPlaying, setRobotVisibility, skip, computedPath, 1/60, 0.25);
         }
 
         document.addEventListener('keydown', handleKeyDown)
@@ -205,7 +206,7 @@ export default function PathSimulator() {
             <Slider 
                 value={value} 
                 setValue={setValue} 
-                sliderWidth={!settings.robotPosition ? 373 : 180}
+                sliderWidth={!settings.robotPosition ? 373 : 117}
                 sliderHeight={8} 
                 knobHeight={22} 
                 knobWidth={22}
@@ -216,10 +217,10 @@ export default function PathSimulator() {
                 OnChangeEnd={() => {}}
             />
             {settings.robotPosition &&  
-                <span className="block w-50 bg-medgray_hover rounded-sm pl-2 pt-1 pb-1 text-center whitespace-pre font-mono">
-                    X: <span className="inline-block w-12 text-left">{pose?.x?.toFixed(1)}</span>
-                    Y: <span className="inline-block w-12 text-left">{pose?.y?.toFixed(1)}</span> 
-                    θ: <span className="inline-block w-10 text-left">{pose?.angle?.toFixed(0)}</span>
+                <span className="block w-60 bg-medgray_hover rounded-sm pl-2 pt-1 pb-1 text-center whitespace-pre font-mono">
+                    X: <span className="inline-block w-14 text-left">{pose?.x?.toFixed(2)}</span>
+                    Y: <span className="inline-block w-14 text-left">{pose?.y?.toFixed(2)}</span> 
+                    θ: <span className="inline-block w-12 text-left">{pose?.angle?.toFixed(2)}</span>
                 </span>
             }
             <span className="block w-14 ">{time.toFixed(2)} s</span>

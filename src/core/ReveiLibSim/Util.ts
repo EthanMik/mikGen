@@ -1,5 +1,6 @@
 import type { Coordinate } from "../Types/Coordinate";
 import type { Pose } from "../Types/Pose";
+import type { SegmentKind } from "../Types/Segment";
 import { rotatePoint, toRad } from "../Util";
 
 export function to_relative(currentPose: Pose, referencePose: Pose): Pose {
@@ -37,4 +38,14 @@ export const copysign1 = (v: number) => {
 
 export const dist = (ax: number, ay: number, bx: number, by: number) => {
   return Math.hypot(ax - bx, ay - by)
+}
+
+export function getRevSegmentNames(kind: SegmentKind): string {
+    switch (kind) {
+        case "pointDrive": return "Pilon Segment";
+        case "poseDrive": return "Boomerang Segment";
+        case "pointTurn": return "Look At";
+        case "angleTurn": return "Turn Segment";
+        default: return kind;
+    }
 }

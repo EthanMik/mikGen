@@ -1,5 +1,9 @@
 import type { Robot } from "./Robot";
 
+export const SIM_LENGTH = {
+    seconds: 99
+};
+
 export interface Snapshot {
     t: number,
     x: number,
