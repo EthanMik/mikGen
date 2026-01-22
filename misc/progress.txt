@@ -36,6 +36,7 @@ Planned:
 - saving undo history to local storage?
 - grouping with button on the group to disable that part of path from sim, renaming group
 
+- copy with merge, code leaves other auton code untouched
 - square drag to select add to path config
 - tooltip when hovering over svg buttons
 - Mecum drive motions ☠️ (robot sim is complete)
