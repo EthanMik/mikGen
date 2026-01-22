@@ -1,4 +1,4 @@
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef } from "react";
 import { useSettings } from "./useSettings";
 import { useFormat } from "./useFormat";
 import { useField } from "./useField";
@@ -14,15 +14,17 @@ export default function useLocalStorageSync() {
     const [ format,  ] = useFormat();
     const [ field,  ] = useField();
     const [ path, ] = usePath();
-    const robotStore = useSyncExternalStore(robotConstantsStore.subscribe, robotConstantsStore.getState);
-    const defaultsStore = useSyncExternalStore(globalDefaultsStore.subscribe, globalDefaultsStore.getState);
+    const robotStore = robotConstantsStore.useStore();
+    const defaultsStore = globalDefaultsStore.useStore();
+    const undoHistoryStore = undoHistory.useStore();
 
     const [ commands , ] = useCommand(); 
 
     useEffect(() => {
         localStorage.setItem("ghostRobots", settings.ghostRobots ? "true" : "false");
         localStorage.setItem("robotPosition", settings.robotPosition ? "true" : "false");
-    }, [settings.ghostRobots, settings.robotPosition]);
+        localStorage.setItem("precisePath", settings.precisePath ? "true" : "false");
+    }, [settings.ghostRobots, settings.robotPosition, settings.precisePath]);
 
     const skipFirstState = useRef(true);
     
@@ -45,5 +47,5 @@ export default function useLocalStorageSync() {
 
         localStorage.setItem("appState", JSON.stringify(newAppState));
 
-    }, [undoHistory.length]);
+    }, [undoHistoryStore.length]);
 }

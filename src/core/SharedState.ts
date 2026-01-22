@@ -5,12 +5,16 @@ export function createSharedState<T>(initialValue: T) {
   const listeners = new Set<Dispatch<SetStateAction<T>>>();
 
   const setState: Dispatch<SetStateAction<T>> = (next) => {
+    const prevState = state;
+    
     if (typeof next === "function") {
       const updater = next as (prev: T) => T;
       state = updater(state);
     } else {
       state = next;
     }
+
+    if (state === prevState) return;
 
     for (const listener of listeners) {
       listener(state);
@@ -22,6 +26,7 @@ export function createSharedState<T>(initialValue: T) {
 
     useEffect(() => {
       listeners.add(setLocalState);
+      setLocalState(state);
       return () => {
         listeners.delete(setLocalState);
       };

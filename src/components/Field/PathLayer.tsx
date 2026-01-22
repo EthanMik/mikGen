@@ -6,9 +6,10 @@ type PathLayerProps = {
   path: Path;
   img: Rectangle;
   visible: boolean;
+  precise: boolean;
 };
 
-export default function PathLayer({ path, img, visible }: PathLayerProps) {
+export default function PathLayer({ path, img, visible, precise }: PathLayerProps) {
   if (visible || path.segments.length < 2) return null;
   const imgDefaultSize = (FIELD_IMG_DIMENSIONS.w + FIELD_IMG_DIMENSIONS.h) / 2; 
   const imgRealSize = (img.w + img.h) / 2
@@ -17,7 +18,7 @@ export default function PathLayer({ path, img, visible }: PathLayerProps) {
   return (
     <>
       {path.segments.map((control, idx) => {
-        const segPts = getSegmentLines(idx, path, img);
+        const segPts = getSegmentLines(idx, path, img, precise);
         if (!segPts) return null;
 
         return (

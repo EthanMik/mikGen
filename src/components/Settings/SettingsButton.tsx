@@ -24,6 +24,14 @@ export default function SettingsButton() {
         }))
     }
 
+    const precisePath = settings.precisePath;
+    const setPrecisePath = (state: boolean) => {
+        setSettings(prev => ({
+            ...prev,
+            precisePath: state
+        }))
+    }
+
 
     const handleToggleMenu = () => {
         setOpen((prev) => !prev)
@@ -66,7 +74,6 @@ export default function SettingsButton() {
                     rounded-sm bg-medgray_hover min-h-2">
                     <div className="flex flex-col mt-3 pl-3 pr-3 mb-3 gap-3">
                         <div className="flex flex-row gap-2">
-
                             {/* <div className="mt-0.5 pt-2 border-t border-gray-500/40 flex flex-row items-center justify-between h-[35px]"> */}
                             <span className="whitespace-nowrap text-[16px]">Robot Outlines</span>
 
@@ -84,6 +91,16 @@ export default function SettingsButton() {
                             <div className="w-25 flex items-center justify-end">
                                 <label className="flex items-center gap-2 cursor-pointer select-none">
                                 <Checkbox checked={robotPosition} setChecked={setRobotPosition} />
+                                </label>
+                            </div>
+                        </div>
+                        <div className="flex flex-row gap-2">
+
+                            <span className="whitespace-nowrap text-[16px]">Precise Path</span>
+
+                            <div className="w-25 flex items-center justify-end">
+                                <label className="flex items-center gap-2 cursor-pointer select-none">
+                                <Checkbox checked={precisePath} setChecked={setPrecisePath} />
                                 </label>
                             </div>
                         </div>

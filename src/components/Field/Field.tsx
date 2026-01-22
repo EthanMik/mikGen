@@ -22,6 +22,7 @@ import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 import { useFileFormat } from "../../hooks/useFileFormat";
 import type { Path } from "../../core/Types/Path";
 import { useClipboard } from "../../hooks/useClipboard";
+import { useSettings } from "../../hooks/useSettings";
 
 export default function Field() {
   const [ img, setImg ] = useState<Rectangle>( { x: 0, y: 0, w: 575, h: 575 })
@@ -38,6 +39,7 @@ export default function Field() {
   const [format] = useFormat();
   const [ , setFileFormat ] = useFileFormat();
   const [ clipboard, setClipboard ] = useClipboard();
+  const [ settings, ] = useSettings();
 
   const startDrag = useRef(false);
   const radius = 17;
@@ -99,8 +101,6 @@ export default function Field() {
       document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("wheel", handleWheelDown);
     };
-  // Re-register handlers when any of these dependencies change so the
-  // keyboard callbacks always see the latest `path` / `clipboard` state.
   }, [
     path,
     clipboard,
@@ -159,57 +159,52 @@ export default function Field() {
         fieldDragRef.current = { x: evt.clientX, y: evt.clientY };
     };
 
-  const handlePointerMove = (evt: React.PointerEvent<SVGSVGElement>) => {
-    if (!drag.dragging || !svgRef.current) return;
+    const lastAppliedDelta = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 });
 
-    const posSvg = pointerToSvg(evt, svgRef.current);
-    const posInch = toInch(posSvg, FIELD_REAL_DIMENSIONS, img);
+    const handlePointerMove = (evt: React.PointerEvent<SVGSVGElement>) => {
+      if (!drag.dragging || !svgRef.current) return;
 
-    const start = dragStartPointerInch.current;
-    if (!start) return;
+      const posSvg = pointerToSvg(evt, svgRef.current);
+      const posInch = toInch(posSvg, FIELD_REAL_DIMENSIONS, img);
 
-    let dx = posInch.x - start.x;
-    let dy = posInch.y - start.y;
+      const start = dragStartPointerInch.current;
+      if (!start) return;
 
-    const smallMove = Math.abs(dx) < 1 && Math.abs(dy) < 1;
+      let dx = posInch.x - start.x;
+      let dy = posInch.y - start.y;
 
-    if (evt.ctrlKey) {
-      dx = Math.round(dx);
-      dy = Math.round(dy);
-    }
+      const smallMove = Math.abs(dx) < 1 && Math.abs(dy) < 1;
 
-    if (dx !== 0 || dy !== 0) dragDidMove.current = true;
+      if (evt.ctrlKey || smallMove) {
+        dx = Math.round(dx);
+        dy = Math.round(dy);
+      }
 
-    const next: Segment[] = (
-      path.segments.map((c) => {
-        if (!c.selected || c.locked) return c;
+      if (dx === lastAppliedDelta.current.dx && dy === lastAppliedDelta.current.dy) {
+        return;
+      }
+      lastAppliedDelta.current = { dx, dy };
 
-        const startPos = dragStartPositions.current[c.id];
-        if (!startPos) return c;
-        const sx = startPos.x;
-        const sy = startPos.y;
+      if (dx !== 0 || dy !== 0) dragDidMove.current = true;
 
-        let newX = sx === null ? null : sx + dx;
-        let newY = sy === null ? null : sy + dy;
+      setPath(prev => {
+        const next: Segment[] = prev.segments.map((c) => {
+          if (!c.selected || c.locked) return c;
 
-        if (newX !== null && newY !== null) {
-          if (evt.ctrlKey || smallMove) {
-            newX = Math.round(newX);
-            newY = Math.round(newY);
-          }
-        }
+          const startPos = dragStartPositions.current[c.id];
+          if (!startPos) return c;
+          const sx = startPos.x;
+          const sy = startPos.y;
 
-        return { ...c, pose: { ...c.pose, x: newX, y: newY } };
-      })
-    );
+          const newX = sx === null ? null : sx + dx;
+          const newY = sy === null ? null : sy + dy;
 
-    setDrag((prev) => ({ ...prev, lastPos: posSvg }));
-    setPath(prev => ({
-      ...prev,
-      segments: next
-    }));
+          return { ...c, pose: { ...c.pose, x: newX, y: newY } };
+        });
 
-  };
+        return { ...prev, segments: next };
+      });
+    };
 
   const endDrag = () => {
     setDrag({ dragging: false, lastPos: { x: 0, y: 0 } });
@@ -331,7 +326,6 @@ export default function Field() {
           handleBackgroundPointerDown(e);
         }}
         onPointerMove={(e) => {
-          setMiddleMouseDown((e.buttons & 4) !== 0);    
           handlePointerMove(e);
           handleFieldDrag(e);
         }}
@@ -342,7 +336,7 @@ export default function Field() {
       >
         <image href={getFieldSrcFromKey(fieldKey)} x={img.x} y={img.y} width={img.w} height={img.h} />
         
-        <PathLayer path={path} img={img} visible={pathVisible} />
+        <PathLayer path={path} img={img} visible={pathVisible} precise={settings.precisePath} />
 
         <RobotLayer
           img={img}

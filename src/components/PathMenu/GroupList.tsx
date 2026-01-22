@@ -69,10 +69,8 @@ export default function GroupList({
     
     const headerRef = useRef<HTMLButtonElement>(null);
     
-    // Ref to prevent duplicate drop handling
     const dropHandledRef = useRef(false);
     
-    // Reset the drop handled flag when dragging starts
     useEffect(() => {
         if (draggingId !== null) {
             dropHandledRef.current = false;
@@ -302,6 +300,12 @@ export default function GroupList({
         }
     };
 
+    useEffect(() => {
+        if (isEditing && inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [isEditing]);
+
     return (
         <div 
             className={`flex flex-col gap-2 mt-[1px] relative`}
@@ -327,66 +331,73 @@ export default function GroupList({
             )}
             
             <button
-            ref={headerRef}
-            draggable={draggable}
-            onDragStart={(e) => {
-                if (e.dataTransfer) {
-                    e.dataTransfer.setData('text/plain', segmentId);
-                    e.dataTransfer.effectAllowed = 'move';
-                }
-                if (onDragStart) onDragStart(e);
-            }}
-            onDragEnd={(e) => { 
-                if (onDragEnd) onDragEnd(e); 
-                setLocalOverIndex(null);
-                if (onHeaderDropZoneChange) onHeaderDropZoneChange(null);
-            }}
-            onDragOver={handleHeaderDragOver}
-            onDragEnter={handleHeaderDragEnter}
-            onDrop={handleHeaderDrop}
-            onDragLeave={handleHeaderDragLeave}
-            onClick={handleOnClick}
-            onMouseEnter={handleGroupOnHoverStart}
-            onMouseLeave={handleGroupOnHoverEnd}
-            className={
-                `${isHoveringInto ? "bg-lightgray" : ""}
-                ${segment.selected ? "bg-medlightgray" : ""}
-                flex flex-row justify-start items-center
-                w-[450px] h-[35px] gap-[12px] outline-1
-                bg-medgray
-                hover:bg-medgray_hover
-                rounded-lg pl-4 pr-4
-                transition-all duration-100
-                active:scale-[0.995]
-                active:bg-medgray_hover/70
-                ${isOpen ? ( !isHoveringInto ? "outline-medlightgray scale-[0.995]" : "outline-transparent") : "outline-transparent"}
-                ${draggingId === segmentId ? "opacity-50 border-1 border-medlightgray" : ""}
-            `}
-            >
-            <button
-                onClick={handleDropDownOnClick}
-                className="cursor-pointer shrink-0"
-            >
-                {!isOpen ? (
-                <img className="w-[15px] h-[15px] rotate-270" src={downArrow} />
-                ) : (
-                <img className="w-[15px] h-[15px]" src={downArrow} />
-                )}
+                ref={headerRef}
+                draggable={draggable}
+                onDragStart={(e) => {
+                    if (e.dataTransfer) {
+                        e.dataTransfer.setData('text/plain', segmentId);
+                        e.dataTransfer.effectAllowed = 'move';
+                    }
+                    if (onDragStart) onDragStart(e);
+                }}
+                onDragEnd={(e) => { 
+                    if (onDragEnd) onDragEnd(e); 
+                    setLocalOverIndex(null);
+                    if (onHeaderDropZoneChange) onHeaderDropZoneChange(null);
+                }}
+                onDragOver={handleHeaderDragOver}
+                onDragEnter={handleHeaderDragEnter}
+                onDrop={handleHeaderDrop}
+                onDragLeave={handleHeaderDragLeave}
+                onClick={(evt: React.PointerEvent<HTMLButtonElement>) => {
+                    if (isEditing) return;
+                    handleOnClick(evt);
+                }}
+                onMouseEnter={handleGroupOnHoverStart}
+                onMouseLeave={handleGroupOnHoverEnd}
+                className={
+                    `${isHoveringInto ? "bg-lightgray" : ""}
+                    ${segment.selected ? "bg-medlightgray" : ""}
+                    flex flex-row justify-start items-center
+                    w-[450px] h-[35px] gap-[12px] outline-1
+                    bg-medgray
+                    hover:bg-medgray_hover
+                    rounded-lg pl-4 pr-4
+                    transition-all duration-100
+                    ${!isEditing ? "active:scale-[0.995]" : ""}
+                    active:bg-medgray_hover/70
+                    ${isOpen ? ( !isHoveringInto ? "outline-medlightgray scale-[0.995]" : "outline-transparent") : "outline-transparent"}
+                    ${draggingId === segmentId ? "opacity-50 border-1 border-medlightgray" : ""}
+                `}
+                >
+                <button
+                    onClick={handleDropDownOnClick}
+                    className="cursor-pointer shrink-0"
+                >
+                    {!isOpen ? (
+                    <img className="w-[15px] h-[15px] rotate-270" src={downArrow} />
+                    ) : (
+                    <img className="w-[15px] h-[15px]" src={downArrow} />
+                    )}
             </button>
 
             <input
+                onPointerDownCapture={(e) => { if (isEditing) e.stopPropagation(); }}
+                onPointerMoveCapture={(e) => { if (isEditing) e.stopPropagation(); }}
                 ref={inputRef}
                 value={value}
+                style={{ fieldSizing: 'content' }}
                 readOnly={!isEditing}
                 onDoubleClick={(e) => {
                     e.stopPropagation();
+                    e.preventDefault();
                     setIsEditing(true);
                     inputRef.current?.focus();
                 }}
                 onClick={(e) => {
                     if (isEditing) e.stopPropagation();
+                    e.preventDefault();
                 }}
-                onFocus={() => setIsEditing(true)}
                 onBlur={() => {
                     setIsEditing(false);
                     setPath(prev => ({...prev, segments: prev.segments.map(s => 
@@ -414,7 +425,7 @@ export default function GroupList({
                 }}
                 name={name}
                 size={Math.max(value.length, 1)}
-                style={{ width: `${Math.max(value.length, 1) + 1}ch` }}
+                // style={{ width: `${Math.max(value.length, 1) + 0.5}ch` }}
                 className={`items-center text-[17px] shrink-0 text-left truncate 
                     outline-none px-1 transition-colors border-none rounded-sm
                     

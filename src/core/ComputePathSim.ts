@@ -1,4 +1,5 @@
 import type { Robot } from "./Robot";
+import { createStore } from "./Store";
 
 export const SIM_LENGTH = {
     seconds: 99
@@ -8,7 +9,7 @@ export interface Snapshot {
     t: number,
     x: number,
     y: number,
-    angle: number
+    angle: number,
 }
 
 export interface EndSnapShot {
@@ -21,10 +22,15 @@ export interface PathSim {
     totalTime: number,
     trajectory: Snapshot[];
     endTrajectory: EndSnapShot[];
+    segmentTrajectorys: Snapshot[][];
 }
 
-export let trajectory: Snapshot[] = [];
-export let endTrajectory: EndSnapShot[] = [];
+export const computedPathStore = createStore<PathSim>({
+    totalTime: 0,
+    trajectory: [],
+    endTrajectory: [],
+    segmentTrajectorys: []
+});
 
 export function precomputePath(
     robot: Robot,
@@ -34,9 +40,10 @@ export function precomputePath(
     const simLengthSeconds = 99;
 
     let autoIdx = 0;
-    trajectory = [];
-    endTrajectory = [];
-
+    const trajectory: Snapshot[] = [];
+    const endTrajectory: EndSnapShot[] = [];
+    const segmentTrajectory: Snapshot[] = [];
+    const segmentTrajectorys: Snapshot[][] = [];
 
     const dt = 1 / 60; // Sim is run at 60 hertz
 
@@ -52,9 +59,11 @@ export function precomputePath(
                 endTrajectory.push({
                     x: robot.getX(),
                     y: robot.getY(),
-                    angle: robot.getAngle()
+                    angle: robot.getAngle(),
                 });
 
+                segmentTrajectorys.push([...segmentTrajectory]);
+                segmentTrajectory.length = 0;
                 autoIdx++
             }
 
@@ -65,11 +74,18 @@ export function precomputePath(
             robot.tankDrive(0, 0, dt);
         }
 
+        segmentTrajectory.push({
+            t,
+            x: robot.getX(),
+            y: robot.getY(),
+            angle: robot.getAngle(),
+        });
+
         trajectory.push({
             t,
             x: robot.getX(),
             y: robot.getY(),
-            angle: robot.getAngle()
+            angle: robot.getAngle(),
         });
         
         t += dt;
@@ -77,5 +93,5 @@ export function precomputePath(
     }
     
 
-    return {totalTime: t, trajectory: trajectory, endTrajectory: endTrajectory};    
+    return {totalTime: t, trajectory: trajectory, endTrajectory: endTrajectory, segmentTrajectorys: segmentTrajectorys};    
 }

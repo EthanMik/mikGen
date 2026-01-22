@@ -1,4 +1,4 @@
-import { SIM_LENGTH, SIM_LENGTH_SECONDS } from "../core/ComputePathSim";
+import { SIM_LENGTH } from "../core/ComputePathSim";
 import { boomerangSegment, cleanupBoomerangSegment } from "../core/ReveiLibSim/DriveMotions/BoomerangSegment";
 import { cleanUplookAt, lookAt } from "../core/ReveiLibSim/DriveMotions/LookAt";
 import { cleanupPilonsSegment, pilonsSegment } from "../core/ReveiLibSim/DriveMotions/PilonsSegment";

@@ -1,3 +1,4 @@
+import { computedPathStore } from "../../core/ComputePathSim";
 import type { Coordinate } from "../../core/Types/Coordinate";
 import { getBackwardsSnapPose, type Path } from "../../core/Types/Path";
 import { FIELD_REAL_DIMENSIONS, toInch, toPX, toRad, type Rectangle } from "../../core/Util";
@@ -26,8 +27,23 @@ export function getPressedPositionInch(evt: React.PointerEvent<SVGSVGElement>, s
   return toInch(posSvg, FIELD_REAL_DIMENSIONS, img);
 }
 
-export const getSegmentLines = (idx: number, path: Path, img: Rectangle): string | null => {
+export const getPreciseSegmentLines = (idx: number, img: Rectangle): string | null => {
+  const points: string[] = [];
+  const segPts = computedPathStore.getState().segmentTrajectorys[idx]; 
+  if (segPts === undefined) return null;
+  for (const rawPt of segPts) {
+    const point = toPX({ x: rawPt.x, y: rawPt.y }, FIELD_REAL_DIMENSIONS, img);
+    points.push(`${point.x},${point.y}`);
+  }
+  return points.join(" ");
+}
+
+export const getSegmentLines = (idx: number, path: Path, img: Rectangle, precise = false): string | null => {
   if (idx <= 0) return null;
+
+  if (precise) {
+    return getPreciseSegmentLines(idx, img);
+  }
 
   const m = path.segments[idx];
   if (m.pose.x === null || m.pose.y === null) return null;

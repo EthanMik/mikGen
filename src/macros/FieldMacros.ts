@@ -261,25 +261,28 @@ export default function FieldMacros() {
     }
 
     function performUndo(setFileFormat: React.Dispatch<React.SetStateAction<FileFormat>>) {
-        if (undoHistory.length <= 1) return;
+        const undoState = undoHistory.getState();
+        if (undoState.length <= 1) return;
         
         setFileFormat((current) => {
-            redoHistory.push(undoHistory.pop()!);
+            const popped = undoState[undoState.length - 1];
+            undoHistory.setState(undoState.slice(0, -1));
+            redoHistory.setState([...redoHistory.getState(), popped]);
             
-            const previousSnapshot = undoHistory[undoHistory.length - 1];
-
+            const previousSnapshot = undoState[undoState.length - 2];
             return mergeDeep(current, previousSnapshot as any);
         });
     }
 
     function performRedo(setFileFormat: React.Dispatch<React.SetStateAction<FileFormat>>) {
-        if (redoHistory.length === 0) return;
+        const redoState = redoHistory.getState();
+        if (redoState.length === 0) return;
         
         setFileFormat((current) => {
-            const nextSnapshot = redoHistory.pop()!;
+            const nextSnapshot = redoState[redoState.length - 1];
+            redoHistory.setState(redoState.slice(0, -1));
+            undoHistory.setState([...undoHistory.getState(), nextSnapshot]);
             
-            undoHistory.push(nextSnapshot);
-
             return mergeDeep(current, nextSnapshot as any);
         });
     }

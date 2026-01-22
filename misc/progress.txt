@@ -10,7 +10,6 @@ Bugs:
 - Polish Control Config (segment casting)
 - Fix start segment having the ability to be set to a turn by deleting segments
 
-- cant change coords on multiselect
 - end point does not show up with a turn segment on top
 - FIX FORMAT SWAPPING BRICKING APP
 - make it so when you drag a segment the cursor goes to grab
@@ -25,6 +24,7 @@ Bugs:
 - selecting a segment does not highlight group
 - added segments go inside group when added
 - sim is regenerated on path updates
+- make it so field swapping only adds to undo history on close (average dumbass coding)
 
 Todo:
 - add lemlib drive motions - jar template can just use mikLib with small modifications
@@ -36,29 +36,20 @@ Planned:
 - saving undo history to local storage?
 - grouping with button on the group to disable that part of path from sim, renaming group
 
-- change segment order by dragging, add when groups are added  
-- Add scrubbing steps to settings
 - square drag to select add to path config
 - tooltip when hovering over svg buttons
-- add setting toggle to enable robot position view while simulating path
-- add setting toggle to make it so you can step 1 frame using jl
 - Mecum drive motions ☠️ (robot sim is complete)
 - google analytics
 - make it so operators work in number input
 - add example paths
 
-Deciding:
-- Add Play button to path segments on the right hand side
-- coordinate mouse hover view
-- Turn command animation
-- Constant Presets that save across cache sessions
 - Bezier segments
 - distance segments
+
+Deciding:
+- Constant Presets that save across cache sessions
 - radial click animations
 - mode in settings to enable driver control so that way you can use drive curves
-
-Maybe:
--  Multiple paths
 
 Docs:
 - A better way to plan VEX Autonoumous - EthanMik Channel

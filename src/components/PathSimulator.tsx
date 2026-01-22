@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
 import play from "../assets/play.svg";
 import pause from "../assets/pause.svg";
 import { Robot, robotConstantsStore } from "../core/Robot";
-import { precomputePath, type PathSim } from "../core/ComputePathSim";
+import { computedPathStore, precomputePath, type PathSim } from "../core/ComputePathSim";
 import { usePose } from "../hooks/usePose";
 import { clamp } from "../core/Util";
 import { useRobotVisibility } from "../hooks/useRobotVisibility";
@@ -34,26 +34,28 @@ function createRobot(): Robot {
     );
 }
 
-let computedPath: PathSim;
-
 export default function PathSimulator() {
     const [value, setValue] = useState<number>(0);
     const [time, setTime] = useState<number>(0);
     const [ pose, setPose] = usePose()
     const [ , setRobotPose ] = useRobotPose();
-    const robotk = useSyncExternalStore(robotConstantsStore.subscribe, robotConstantsStore.getState);
+    const robotk = robotConstantsStore.useStore();
     const [playing, setPlaying] = useState<boolean>(false);
     const [robotVisible, setRobotVisibility] = useRobotVisibility();
     const [ path,  ] = usePath();
     const [ format,  ] = useFormat();
     const skip = useRef(false);
     const [ settings ] = useSettings(); 
+    const changes = undoHistory.useStore();
+    const computedPath = computedPathStore.useStore();
 
     const { pauseSimulator, scrubSimulator } = PathSimMacros();
 
     useEffect(() => {
         if (path.segments.length === 0) {
-            computedPath = precomputePath(createRobot(), convertPathToSim(path, format));
+
+            computedPathStore.setState(precomputePath(createRobot(), convertPathToSim(path, format)));
+
             setRobotPose(computedPath.endTrajectory);
             setPlaying(false);
             setTime(0);
@@ -63,7 +65,8 @@ export default function PathSimulator() {
             return;
         }
 
-        computedPath = precomputePath(createRobot(), convertPathToSim(path, format));
+        computedPathStore.setState(precomputePath(createRobot(), convertPathToSim(path, format)));
+
         setRobotPose(computedPath.endTrajectory);
         
         if (!robotVisible) {
@@ -80,7 +83,7 @@ export default function PathSimulator() {
 
         setValue((clampedTime / computedPath.totalTime) * 100);
         
-    }, [undoHistory.length, robotVisible]);
+    }, [changes.length, path, robotk, robotVisible]);
 
     
     useEffect(() => {
