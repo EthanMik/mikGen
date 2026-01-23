@@ -7,20 +7,16 @@ Units
 - accel (inches/s^2 internal ft/s^2 external)
 
 Bugs:
-- Polish Control Config (segment casting)
+- Make it so revpath flips control config coords
 - Fix start segment having the ability to be set to a turn by deleting segments
 
 - end point does not show up with a turn segment on top
 - FIX FORMAT SWAPPING BRICKING APP
 - make it so when you drag a segment the cursor goes to grab
 - Fix undo redo to work on entire app data tree (still need to do commands)
-- Fix file opening not working on firefox
 - make it so rev coords are flipped on control config
-- make it so when you drag a segment it restarts it
 - make it so time change does not affect width of playback slider
 
-- hovering segment adds to undo history
-- make it so renaming group with segments inside does not reset all constants lmao
 - selecting a segment does not highlight group
 - added segments go inside group when added
 - sim is regenerated on path updates
@@ -31,9 +27,12 @@ Todo:
 - add indicator for unsaved path
 - add ability to add more commands and make them be color coded, revamp command menu to not limit length and allow them to be modifed not just deleted
 - add a play button to groups
+- add a merge and copy button
 
 Planned:
+- make it so when you drag a segment it restarts path (could be a internal setting)
 - saving undo history to local storage?
+- collision???
 - grouping with button on the group to disable that part of path from sim, renaming group
 
 - square drag to select add to path config

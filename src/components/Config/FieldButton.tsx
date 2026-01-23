@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { fieldMap, useField, type FieldType } from "../../hooks/useField";
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 
@@ -46,9 +46,16 @@ export default function FieldButton() {
   const [, startTransition] = useTransition();
 
   const hoverTimer = useRef<number | null>(null);
-  const prevField = useRef<FieldType>(fieldKey);
+  const fieldWhenMenuOpened = useRef<FieldType>(fieldKey);
 
   usePreloadImagesOnMount(fieldMap.map((f) => f.src));
+
+  const handleCloseMenu = useCallback(() => {
+    if (isOpen && fieldKey !== fieldWhenMenuOpened.current) {
+      AddToUndoHistory({ field: fieldKey });
+    }
+    setOpen(false);
+  }, [isOpen, fieldKey]);
 
   const handleToggleMenu = async () => {
     if (!isOpen && !imagesLoaded) {
@@ -57,13 +64,18 @@ export default function FieldButton() {
       setImagesLoaded(true);
       setIsLoading(false);
     }
-    setOpen((prev) => !prev);
-  };
-  
-  const setFieldSmooth = (key: FieldType) => {
-    if (key !== prevField.current) {
-        AddToUndoHistory({ field: key });
+
+    if (!isOpen) {
+      // Opening menu - save current field
+      fieldWhenMenuOpened.current = fieldKey;
+      setOpen(true);
+    } else {
+      // Closing menu
+      handleCloseMenu();
     }
+  };
+
+  const setFieldSmooth = (key: FieldType) => {
     startTransition(() => setFieldKey(key));
   };
 
@@ -84,19 +96,19 @@ export default function FieldButton() {
   };
 
   const handleClickItem = () => {
-    setOpen(false);
+    handleCloseMenu();
   };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setOpen(false);
+        handleCloseMenu();
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [handleCloseMenu]);
 
   useEffect(() => {
     return () => {

@@ -1,5 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useRef, useState } from "react";
+import play from "../../assets/play.svg";
+import pause from "../../assets/pause.svg"
 import eyeOpen from "../../assets/eye-open.svg";
 import eyeClosed from "../../assets/eye-closed.svg";
 import lockClose from "../../assets/lock-close.svg";
@@ -59,7 +60,10 @@ export default function GroupList({
     const children = path.segments.filter(
         (s) => s.groupId === groupKey && s.kind !== "group"
     );
-    
+
+    const hasSelectedChildren = children.some(c => c.selected);
+
+    const [ isPlaying, setIsPlaying ] = useState(false);
     const [ isEyeOpen, setEyeOpen ] = useState(true);
     const [ isLocked, setLocked ] = useState(false);
     const [ isOpen, setOpen ] = useState(false);
@@ -110,6 +114,12 @@ export default function GroupList({
             return next;
         });
         evt.preventDefault();
+        evt.stopPropagation();
+    }
+
+    const handlePlayOnClick = (evt: React.MouseEvent<HTMLButtonElement>) => {
+        // toggleSegment(s => ({ ...s, locked: !segment.locked }));
+        // evt.stopPropagation();
     }
 
     const handleEyeOnClick = (evt: React.MouseEvent<HTMLButtonElement>) => {
@@ -156,14 +166,12 @@ export default function GroupList({
 
     const speedScale = getSpeed(format);
 
-    // Clear local over index when dragging ends globally
     useEffect(() => {
         if (draggingId === null) {
             setLocalOverIndex(null);
         }
     }, [draggingId]);
 
-    // Determine which zone the cursor is in based on Y position
     const getDropZone = (e: React.DragEvent): GroupDropZone => {
         if (!headerRef.current) return null;
         const rect = headerRef.current.getBoundingClientRect();
@@ -202,18 +210,16 @@ export default function GroupList({
     const handleHeaderDrop = (e: React.DragEvent<HTMLButtonElement>) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         if (!draggingId || draggingId === segmentId) return;
-        
-        // Mark as handled immediately
+
         dropHandledRef.current = true;
-        
+
         const zone = getDropZone(e);
-        
+
         const headerGlobalIdx = path.segments.findIndex(s => s.id === segmentId);
         if (headerGlobalIdx === -1) return;
 
-        // Clear dragging state FIRST to prevent re-entry
         const currentDraggingId = draggingId;
         setGlobalDraggingId(null);
         if (onHeaderDropZoneChange) {
@@ -221,17 +227,14 @@ export default function GroupList({
         }
 
         if (zone === "above") {
-            // Drop above the group - don't join the group
             moveSegment(setPath, currentDraggingId, headerGlobalIdx, { skipGroupHandling: true });
         } else if (zone === "into" || zone === "below") {
-            // Drop into the group at the bottom
             moveSegment(setPath, currentDraggingId, headerGlobalIdx, { headerDrop: "bottom" });
         }
     };
 
     const handleHeaderDragLeave = (e: React.DragEvent<HTMLButtonElement>) => {
         e.stopPropagation();
-        // Check if we're actually leaving the header
         const rect = headerRef.current?.getBoundingClientRect();
         if (rect) {
             const { clientX, clientY } = e;
@@ -248,14 +251,12 @@ export default function GroupList({
         }
     };
 
-    // Handle drop within the group's children area
     const handleChildDrop = (e: React.DragEvent, childGlobalIdx: number) => {
         e.preventDefault();
         e.stopPropagation();
 
         if (!draggingId) return;
 
-        // Pass the target group ID so the segment joins this group
         moveSegment(setPath, draggingId, childGlobalIdx, { targetGroupId: groupKey });
         setGlobalDraggingId(null);
         setLocalOverIndex(null);
@@ -263,21 +264,17 @@ export default function GroupList({
 
     const isHoveringInto = (headerDropZone === "into" || headerDropZone === "below") && draggingId !== null && draggingId !== segmentId;
 
-    // Handle drop on the outer container (for when cursor is slightly above the button)
     const handleContainerDrop = (e: React.DragEvent<HTMLDivElement>) => {
-        
         e.preventDefault();
         e.stopPropagation();
-        
+
         if (!draggingId || draggingId === segmentId) return;
-        
-        // Mark as handled immediately
+
         dropHandledRef.current = true;
-        
+
         const headerGlobalIdx = path.segments.findIndex(s => s.id === segmentId);
         if (headerGlobalIdx === -1) return;
 
-        // Clear dragging state FIRST to prevent re-entry
         const currentDraggingId = draggingId;
         const currentZone = headerDropZone;
         setGlobalDraggingId(null);
@@ -293,7 +290,6 @@ export default function GroupList({
     };
 
     const handleContainerDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-        // Only handle if we have an active header drop zone to prevent parent from taking over
         if (headerDropZone !== null) {
             e.preventDefault();
             e.stopPropagation();
@@ -312,7 +308,6 @@ export default function GroupList({
             onDragOver={handleContainerDragOver}
             onDrop={handleContainerDrop}
             onDragLeave={(e) => {
-                // Only clear if we're actually leaving the group container
                 const rect = e.currentTarget.getBoundingClientRect();
                 const { clientX, clientY } = e;
                 if (
@@ -325,7 +320,6 @@ export default function GroupList({
                 }
             }}
         >
-            {/* Drop indicator above group - absolutely positioned to not affect layout */}
             {headerDropZone === "above" && draggingId !== null && draggingId !== segmentId && (
                 <div className="absolute top-[-4px] left-0 w-[450px] h-[2px] bg-white rounded-full pointer-events-none z-10" />
             )}
@@ -359,15 +353,15 @@ export default function GroupList({
                     `${isHoveringInto ? "bg-lightgray" : ""}
                     ${segment.selected ? "bg-medlightgray" : ""}
                     flex flex-row justify-start items-center
-                    w-[450px] h-[35px] gap-[12px] outline-1
+                    w-[450px] h-[35px] gap-[12px]
                     bg-medgray
-                    hover:bg-medgray_hover
+                    hover:brightness-95
                     rounded-lg pl-4 pr-4
                     transition-all duration-100
-                    ${!isEditing ? "active:scale-[0.995]" : ""}
-                    active:bg-medgray_hover/70
-                    ${isOpen ? ( !isHoveringInto ? "outline-medlightgray scale-[0.995]" : "outline-transparent") : "outline-transparent"}
-                    ${draggingId === segmentId ? "opacity-50 border-1 border-medlightgray" : ""}
+                    active:scale-[0.995]
+                    
+                    ${(hasSelectedChildren || isOpen) && !segment.selected && !isHoveringInto ? "border-2 border-medlightgray" : "border-2 border-transparent"}
+                    ${draggingId === segmentId ? "opacity-50" : ""}
                 `}
                 >
                 <button
@@ -392,11 +386,17 @@ export default function GroupList({
                     e.stopPropagation();
                     e.preventDefault();
                     setIsEditing(true);
-                    inputRef.current?.focus();
+                    setTimeout(() => {
+                        inputRef.current?.focus();
+                        inputRef.current?.select();
+                    }, 0);
                 }}
                 onClick={(e) => {
-                    if (isEditing) e.stopPropagation();
-                    e.preventDefault();
+                    if (isEditing) {
+                        e.stopPropagation();
+                    } else {
+                        e.preventDefault();
+                    }
                 }}
                 onBlur={() => {
                     setIsEditing(false);
@@ -425,7 +425,6 @@ export default function GroupList({
                 }}
                 name={name}
                 size={Math.max(value.length, 1)}
-                // style={{ width: `${Math.max(value.length, 1) + 0.5}ch` }}
                 className={`items-center text-[17px] shrink-0 text-left truncate 
                     outline-none px-1 transition-colors border-none rounded-sm
                     
@@ -436,6 +435,10 @@ export default function GroupList({
             />
             
             <div className="flex flex-row w-full gap-2 justify-end">
+                <button className="cursor-pointer shrink-0 justify-end" onClick={handlePlayOnClick}>
+                    <img className="w-[17px] h-[18px]" src={!isPlaying ? play : pause} />
+                </button>
+
                 <button className="cursor-pointer shrink-0 justify-end" onClick={handleEyeOnClick}>
                     <img className="w-[20px] h-[20px]" src={isEyeOpen ? eyeOpen : eyeClosed} />
                 </button>
@@ -448,17 +451,13 @@ export default function GroupList({
 
             </button>
 
-            {/* No indicator needed for below zone - it highlights the group instead */}
-
                 <div
                 className={`relative flex flex-col ml-9 gap-2 transition-all ${
                     isOpen ? "block" : "hidden"
                 }`}
                 >
-                    { /* Vertical Line */ }
                     <div className="absolute left-[-16px] top-0 h-full w-[4px] rounded-full bg-medlightgray" />
 
-                    {/* Top drop zone - for dropping at the very top of the group */}
                     <div
                         className="w-full relative h-2"
                         onDragOver={(e) => { 
@@ -575,7 +574,6 @@ export default function GroupList({
                         );
                     })}
 
-                    {/* Bottom drop zone - for dropping at the very bottom of the group */}
                     <div
                         className="w-[390px] relative h-2"
                         onDragOver={(e) => { 

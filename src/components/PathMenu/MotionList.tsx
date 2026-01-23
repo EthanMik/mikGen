@@ -244,16 +244,16 @@ export default function MotionList({
             onMouseEnter={StartHover}
             onMouseLeave={EndHover}
             style={{ width: `${!shrink ? 450 : 400}px` }}
-            className={`${selected ? "bg-medlightgray" : ""} 
+            className={`${selected ? "bg-medlightgray" : ""}
                 flex flex-row justify-start items-center
-                h-[35px] gap-[12px] outline-1
-                hover:bg-medgray_hover
+                h-[35px] gap-[12px]
+                bg-medgray
+                hover:brightness-92
                 rounded-lg pl-4 pr-4
                 transition-all duration-100
                 active:scale-[0.995]
-                active:bg-medgray_hover/70
-                ${isOpen ? ( !selected ? "outline-medlightgray scale-[0.995]" : "outline-transparent") : "outline-transparent"}
-                ${draggingId === segmentId ? "opacity-50 border-1 border-medlightgray" : ""}
+                ${isOpen && !selected ? "border-2 border-medlightgray" : "border-2 border-transparent"}
+                ${draggingId === segmentId ? "opacity-50" : ""}
             `}
             >
             <button
