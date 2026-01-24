@@ -1,5 +1,6 @@
 import type { Robot } from "../../Robot";
 import { clamp, toDeg, toRad } from "../../Util";
+import { kMikLibSpeed } from "../MikConstants";
 import type { PID } from "../PID";
 import { clamp_min_voltage, is_line_settled, left_voltage_scaling, reduce_negative_180_to_180, reduce_negative_90_to_90, right_voltage_scaling } from "../Util";
 
@@ -79,8 +80,8 @@ export function driveToPose(robot: Robot, dt: number, x: number, y: number, angl
   const final_drive_output = clamp_min_voltage(clamped_drive_output, drivePID.minSpeed);
 
   robot.tankDrive(
-    left_voltage_scaling(final_drive_output, clamped_heading_output) / 12,
-    right_voltage_scaling(final_drive_output, clamped_heading_output) / 12,
+    left_voltage_scaling(final_drive_output, clamped_heading_output) / kMikLibSpeed,
+    right_voltage_scaling(final_drive_output, clamped_heading_output) / kMikLibSpeed,
     dt
   );
 

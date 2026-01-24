@@ -32,6 +32,8 @@ export type mikSwingConstants = {
     swing: PIDConstants;
 }
 
+export const kMikLibSpeed = 12;
+
 export const PIDConstantsEqual = (a: PIDConstants, b: PIDConstants): boolean => {
     return (
         a.maxSpeed === b.maxSpeed &&

@@ -1,5 +1,6 @@
 import type { Robot } from "../../Robot";
 import { clamp, toDeg } from "../../Util";
+import { kMikLibSpeed } from "../MikConstants";
 import type { PID } from "../PID";
 import { angle_error, clamp_min_voltage } from "../Util";
 
@@ -52,7 +53,7 @@ export function turnToPoint(robot: Robot, dt: number, x: number, y: number, offs
     output = clamp(output, -turnPID.maxSpeed, turnPID.maxSpeed);
     output = clamp_min_voltage(output, turnPID.minSpeed);
 
-    robot.tankDrive(output / 12, -output / 12, dt);
+    robot.tankDrive(output / kMikLibSpeed, -output / kMikLibSpeed, dt);
 
     return false;
 }

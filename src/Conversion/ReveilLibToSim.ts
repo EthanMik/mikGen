@@ -1,4 +1,4 @@
-import { SIM_LENGTH } from "../core/ComputePathSim";
+import { SIM_CONSTANTS } from "../core/ComputePathSim";
 import { boomerangSegment, cleanupBoomerangSegment } from "../core/ReveiLibSim/DriveMotions/BoomerangSegment";
 import { cleanUplookAt, lookAt } from "../core/ReveiLibSim/DriveMotions/LookAt";
 import { cleanupPilonsSegment, pilonsSegment } from "../core/ReveiLibSim/DriveMotions/PilonsSegment";
@@ -14,7 +14,7 @@ const LOG_SEGMENT_START_AND_END = false;
 const LOG_ROBOT_STATE = false;
 const LOG_SIMULATION_NUMBER = false;
 
-SIM_LENGTH.seconds = 99; // Runs the sim for a set amount of time DEFAULT 99 seconds
+SIM_CONSTANTS.seconds = 99; // Runs the sim for a set amount of time DEFAULT 99 seconds
 let currentPathTime = -2/60; // Starts calculation of simulation at -2/60 seconds (to account for first frame and start position)
 let simComputed = 0; // Number of times the sim has been computed
 

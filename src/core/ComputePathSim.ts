@@ -1,8 +1,9 @@
 import type { Robot } from "./Robot";
 import { createStore } from "./Store";
 
-export const SIM_LENGTH = {
-    seconds: 99
+export const SIM_CONSTANTS = {
+    seconds: 99,
+    dt: 1/60, // Sim is run at 60 hertz
 };
 
 export interface Snapshot {
@@ -37,7 +38,7 @@ export function precomputePath(
     auton: ((robot: Robot, dt: number) => boolean)[], 
 ): PathSim 
 {   
-    const simLengthSeconds = 99;
+    const simLengthSeconds = SIM_CONSTANTS.seconds;
 
     let autoIdx = 0;
     const trajectory: Snapshot[] = [];
@@ -45,7 +46,7 @@ export function precomputePath(
     const segmentTrajectory: Snapshot[] = [];
     const segmentTrajectorys: Snapshot[][] = [];
 
-    const dt = 1 / 60; // Sim is run at 60 hertz
+    const dt = SIM_CONSTANTS.dt; 
 
     let t = 0;
     let safetyIter = 0;

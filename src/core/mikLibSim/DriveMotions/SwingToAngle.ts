@@ -1,5 +1,6 @@
 import type { Robot } from "../../Robot";
 import { clamp } from "../../Util";
+import { kMikLibSpeed } from "../MikConstants";
 import type { PID } from "../PID";
 import { angle_error, clamp_min_voltage } from "../Util";
 
@@ -51,9 +52,9 @@ export function swingToAngle(robot: Robot, dt: number, angle: number, swingPID: 
     output = clamp_min_voltage(output, swingPID.minSpeed);
 
     if (swingPID.swingDirection === "left") {
-        robot.tankDrive(output / 12, 0, dt);
+        robot.tankDrive(output / kMikLibSpeed, 0, dt);
     } else {
-        robot.tankDrive(0, -output / 12, dt);
+        robot.tankDrive(0, -output / kMikLibSpeed, dt);
     }
     
     return false;

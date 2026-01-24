@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useRef, useState } from "react";
-import play from "../../assets/play.svg";
-import pause from "../../assets/pause.svg"
+import filterOn from "../../assets/filter-on.svg";
+import filterOff from "../../assets/filter-off.svg";
 import eyeOpen from "../../assets/eye-open.svg";
 import eyeClosed from "../../assets/eye-closed.svg";
 import lockClose from "../../assets/lock-close.svg";
@@ -12,6 +13,7 @@ import { getFormatConstantsConfig, getFormatDirectionConfig } from "../../core/D
 import { useFormat, type Format } from "../../hooks/useFormat";
 import MotionList from "./MotionList";
 import { moveSegment } from "./PathConfigUtils";
+import { useSimulateGroup } from "../../hooks/useSimulateGroup";
 
 export type GroupDropZone = "above" | "into" | "below" | null;
 
@@ -43,6 +45,7 @@ export default function GroupList({
 }: GroupListProps) {
     const [ path, setPath ] = usePath(); 
     const [ format ] = useFormat();
+    const [ , setSimulatedGroups ] = useSimulateGroup();
 
     const segment = path.segments.find(s => s.id === segmentId)!;
     
@@ -63,7 +66,7 @@ export default function GroupList({
 
     const hasSelectedChildren = children.some(c => c.selected);
 
-    const [ isPlaying, setIsPlaying ] = useState(false);
+    const [ isFiltered, setIsFiltered ] = useState(false);
     const [ isEyeOpen, setEyeOpen ] = useState(true);
     const [ isLocked, setLocked ] = useState(false);
     const [ isOpen, setOpen ] = useState(false);
@@ -117,9 +120,20 @@ export default function GroupList({
         evt.stopPropagation();
     }
 
-    const handlePlayOnClick = (evt: React.MouseEvent<HTMLButtonElement>) => {
-        // toggleSegment(s => ({ ...s, locked: !segment.locked }));
-        // evt.stopPropagation();
+    const handleFilterOnClick = (evt: React.MouseEvent<HTMLButtonElement>) => {
+        setIsFiltered(prev => {
+            const newState = !prev;
+            setSimulatedGroups(prevGroups => {
+                if (newState) {
+                    return prevGroups.includes(groupKey) ? prevGroups : [...prevGroups, groupKey];
+                } else {
+                    return prevGroups.filter(id => id !== groupKey);
+                }
+            });
+
+            return newState;
+        });
+        evt.stopPropagation();
     }
 
     const handleEyeOnClick = (evt: React.MouseEvent<HTMLButtonElement>) => {
@@ -424,7 +438,7 @@ export default function GroupList({
                     if (isEditing) e.stopPropagation();
                 }}
                 name={name}
-                size={Math.max(value.length, 1)}
+                size={Math.max(value?.length, 1)}
                 className={`items-center text-[17px] shrink-0 text-left truncate 
                     outline-none px-1 transition-colors border-none rounded-sm
                     
@@ -435,8 +449,8 @@ export default function GroupList({
             />
             
             <div className="flex flex-row w-full gap-2 justify-end">
-                <button className="cursor-pointer shrink-0 justify-end" onClick={handlePlayOnClick}>
-                    <img className="w-[17px] h-[18px]" src={!isPlaying ? play : pause} />
+                <button className="cursor-pointer shrink-0 justify-end" onClick={handleFilterOnClick}>
+                    <img className="w-[20px] h-[20px]" src={isFiltered ? filterOn : filterOff} />
                 </button>
 
                 <button className="cursor-pointer shrink-0 justify-end" onClick={handleEyeOnClick}>

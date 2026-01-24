@@ -15,6 +15,7 @@ import { useFormat } from "../hooks/useFormat";
 import { useRobotPose } from "../hooks/useRobotPose";
 import { useSettings } from "../hooks/useSettings";
 import { undoHistory } from "../core/Undo/UndoHistory";
+import { useSimulateGroup } from "../hooks/useSimulateGroup";
 
 // This fucking file is the biggest piece of shit i find a new bug every day
 
@@ -48,12 +49,44 @@ export default function PathSimulator() {
     const [ settings ] = useSettings(); 
     const changes = undoHistory.useStore();
     const computedPath = computedPathStore.useStore();
+    const [ simulatedGroups ] = useSimulateGroup();
 
     const { pauseSimulator, scrubSimulator } = PathSimMacros();
 
+    const cullSimulatedPath = (sim: PathSim): PathSim => {
+        if (!simulatedGroups?.length) return sim;
+
+        const indices: number[] = [];
+        path.segments.filter(prev => prev.kind !== "group")?.forEach((seg, i) => {
+            if (seg.groupId && simulatedGroups.includes(seg.groupId)) indices.push(i);
+        });
+
+        if (indices.length === 0) return sim;
+
+        const culledSegments = indices.map(i => sim.segmentTrajectorys[i]).filter(Boolean);
+        const culledEnds = indices.map(i => sim.endTrajectory[i]).filter(Boolean);
+        const culledTrajectory = culledSegments.flat();
+
+        const timeOffset = culledTrajectory.length > 0 ? culledTrajectory[0].t : 0;
+        const rebasedTrajectory = culledTrajectory.map(snap => ({
+            ...snap,
+            t: snap.t - timeOffset,
+        }));
+
+        const totalTime = rebasedTrajectory.length > 0
+            ? rebasedTrajectory[rebasedTrajectory.length - 1].t
+            : 0;
+
+        return {
+            totalTime,
+            trajectory: rebasedTrajectory,
+            endTrajectory: culledEnds,
+            segmentTrajectorys: sim.segmentTrajectorys,
+        };
+    }
+
     useEffect(() => {
         if (path.segments.length === 0) {
-
             computedPathStore.setState(precomputePath(createRobot(), convertPathToSim(path, format)));
 
             setRobotPose(computedPath.endTrajectory);
@@ -65,7 +98,9 @@ export default function PathSimulator() {
             return;
         }
 
-        computedPathStore.setState(precomputePath(createRobot(), convertPathToSim(path, format)));
+        const fullSim = precomputePath(createRobot(), convertPathToSim(path, format));
+        const pathSim = cullSimulatedPath(fullSim);
+        computedPathStore.setState(pathSim);
 
         setRobotPose(computedPath.endTrajectory);
         
@@ -114,7 +149,7 @@ export default function PathSimulator() {
         return () => {
             document.removeEventListener('keydown', handleKeyDown)
         }
-    }, []);
+    }, [computedPath]);
 
     const setPathPercent = (path: PathSim, percent: number) => {
         if (!path.trajectory.length) return;

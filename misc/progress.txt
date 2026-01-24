@@ -1,11 +1,5 @@
 Live Progess Txt
 
-Units
-- time (ms)
-- length (inch)
-- speed (inches/s internal ft/s external)
-- accel (inches/s^2 internal ft/s^2 external)
-
 Bugs:
 - Make it so revpath flips control config coords
 - Fix start segment having the ability to be set to a turn by deleting segments
@@ -14,13 +8,13 @@ Bugs:
 - FIX FORMAT SWAPPING BRICKING APP
 - make it so when you drag a segment the cursor goes to grab
 - Fix undo redo to work on entire app data tree (still need to do commands)
-- make it so rev coords are flipped on control config
 - make it so time change does not affect width of playback slider
+- if a turn is at the end of path then endpath will not show up
 
-- selecting a segment does not highlight group
 - added segments go inside group when added
 - sim is regenerated on path updates
-- make it so field swapping only adds to undo history on close (average dumbass coding)
+- group does not change color when segment is hovering over it 
+- make the group dropping css look better
 
 Todo:
 - add lemlib drive motions - jar template can just use mikLib with small modifications
@@ -33,6 +27,7 @@ Planned:
 - make it so when you drag a segment it restarts path (could be a internal setting)
 - saving undo history to local storage?
 - collision???
+- make it so double clicking the eye turn off the path lines 
 - grouping with button on the group to disable that part of path from sim, renaming group
 
 - copy with merge, code leaves other auton code untouched
