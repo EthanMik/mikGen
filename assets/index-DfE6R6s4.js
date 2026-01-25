@@ -12762,7 +12762,7 @@ function deepEqual(a, b) {
   return eq(a, b);
 }
 const saved$5 = localStorage.getItem("appState");
-const initialData$5 = saved$5 ? JSON.parse(saved$5) : DEFAULT_FORMAT;
+const initialData$5 = saved$5 ? JSON.parse(saved$5) : {};
 const MAX_UNDO_HISTORY = 50;
 const undoHistory = createStore([initialData$5]);
 const redoHistory = createStore([]);
@@ -19789,4 +19789,4 @@ function App() {
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-D1AV_W_Y.js.map
+//# sourceMappingURL=index-DfE6R6s4.js.map
