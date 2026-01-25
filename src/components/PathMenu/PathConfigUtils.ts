@@ -96,7 +96,7 @@ export const moveSegment = (
         if (meta) {
           seg.groupId = meta.gid;
           const mode = opts?.headerDrop ?? "bottom";
-          
+
           // These indices are already correct for the array without the dragged item
           if (mode === "top") {
             insertIdx = meta.topInsertIndex;
@@ -121,6 +121,113 @@ export const moveSegment = (
     if (insertIdx > segments.length) insertIdx = segments.length;
 
     segments.splice(insertIdx, 0, seg);
+
+    const next = { ...prev, segments };
+    AddToUndoHistory({ path: next });
+    return next;
+  });
+};
+
+export const moveMultipleSegments = (
+  setPath: React.Dispatch<React.SetStateAction<Path>>,
+  fromIds: string[],
+  toIndex: number,
+  opts?: { headerDrop?: "top" | "bottom"; targetGroupId?: string; skipGroupHandling?: boolean }
+) => {
+  if (!fromIds || fromIds.length === 0) return;
+
+  // If only one segment, use the single move function
+  if (fromIds.length === 1) {
+    moveSegment(setPath, fromIds[0], toIndex, opts);
+    return;
+  }
+
+  setPath((prev) => {
+    const original = prev.segments;
+
+    // Get indices and validate all segments exist
+    const fromIndices = fromIds.map(id => original.findIndex(s => s.id === id));
+    if (fromIndices.some(idx => idx === -1)) return prev;
+
+    // Prevent moving if any segment is the start segment
+    if (fromIndices.some(idx => idx === 0)) return prev;
+
+    // Sort indices to maintain relative order
+    const sortedIndices = [...fromIndices].sort((a, b) => a - b);
+
+    // Check if any dragged segment is a group and prevent moving to position 0
+    const hasGroup = sortedIndices.some(idx => original[idx].kind === "group");
+    if (hasGroup && toIndex === 0) return prev;
+
+    // Don't move if dropping on any of the dragged segments
+    const fromIdSet = new Set(fromIds);
+    const dropTarget = toIndex >= 0 && toIndex < original.length ? original[toIndex] : null;
+    if (dropTarget && fromIdSet.has(dropTarget.id)) return prev;
+
+    // Only treat as group header drop if we're NOT skipping group handling
+    const droppedOnGroupHeader = !opts?.skipGroupHandling && dropTarget?.kind === "group";
+    const groupHeaderId = droppedOnGroupHeader ? dropTarget!.id : null;
+
+    // Extract the segments to move (in their original order)
+    const segmentsToMove = sortedIndices.map(idx => {
+      const rawSeg = original[idx];
+      return {
+        ...rawSeg,
+        pose: rawSeg.pose ? { ...rawSeg.pose } : rawSeg.pose,
+      };
+    });
+
+    // Create new array without the dragged segments
+    const segments = original.filter(s => !fromIdSet.has(s.id));
+
+    // Calculate insert index, accounting for removed segments
+    let insertIdx = toIndex;
+    const removedBefore = sortedIndices.filter(idx => idx < toIndex).length;
+    insertIdx -= removedBefore;
+
+    // Clamp to valid range - minimum 1 to prevent inserting before start
+    if (insertIdx < 1) insertIdx = 1;
+    if (insertIdx > segments.length) insertIdx = segments.length;
+
+    // Handle group membership for each segment
+    segmentsToMove.forEach(seg => {
+      if (seg.kind !== "group") {
+        if (opts?.skipGroupHandling) {
+          seg.groupId = undefined;
+        } else if (groupHeaderId) {
+          const meta = getGroupInsertMeta(segments, groupHeaderId, null);
+          if (meta) {
+            seg.groupId = meta.gid;
+          }
+        } else if (opts?.targetGroupId) {
+          seg.groupId = opts.targetGroupId;
+        } else if (dropTarget?.groupId != null && dropTarget?.kind !== "group") {
+          seg.groupId = dropTarget.groupId;
+        } else {
+          seg.groupId = undefined;
+        }
+      }
+    });
+
+    // Handle group header drop position adjustment
+    if (groupHeaderId) {
+      const meta = getGroupInsertMeta(segments, groupHeaderId, null);
+      if (meta) {
+        const mode = opts?.headerDrop ?? "bottom";
+        if (mode === "top") {
+          insertIdx = meta.topInsertIndex;
+        } else {
+          insertIdx = meta.bottomInsertIndex;
+        }
+      }
+    }
+
+    // Final clamp
+    if (insertIdx < 1) insertIdx = 1;
+    if (insertIdx > segments.length) insertIdx = segments.length;
+
+    // Insert all segments at the target position
+    segments.splice(insertIdx, 0, ...segmentsToMove);
 
     const next = { ...prev, segments };
     AddToUndoHistory({ path: next });

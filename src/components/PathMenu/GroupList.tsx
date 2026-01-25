@@ -12,7 +12,7 @@ import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 import { getFormatConstantsConfig, getFormatDirectionConfig } from "../../core/DefaultConstants";
 import { useFormat, type Format } from "../../hooks/useFormat";
 import MotionList from "./MotionList";
-import { moveSegment } from "./PathConfigUtils";
+import { moveMultipleSegments } from "./PathConfigUtils";
 import { useSimulateGroup } from "../../hooks/useSimulateGroup";
 
 export type GroupDropZone = "above" | "into" | "below" | null;
@@ -25,21 +25,21 @@ type GroupListProps = {
     onDragStart?: (e: React.DragEvent<HTMLButtonElement>) => void,
     onDragEnd?: (e: React.DragEvent<HTMLButtonElement>) => void,
     onDragEnter?: () => void,
-    setDraggingId?: React.Dispatch<React.SetStateAction<string | null>>,
-    draggingId?: string | null,
+    setDraggingIds?: React.Dispatch<React.SetStateAction<string[]>>,
+    draggingIds?: string[],
     headerDropZone?: GroupDropZone,
     onHeaderDropZoneChange?: (zone: GroupDropZone) => void,
 }
 
 export default function GroupList({
-    name, 
-    segmentId, 
+    name,
+    segmentId,
     isOpenGlobal,
     draggable = false,
     onDragStart,
     onDragEnd,
-    setDraggingId,
-    draggingId = null,
+    setDraggingIds,
+    draggingIds = [],
     headerDropZone = null,
     onHeaderDropZoneChange,
 }: GroupListProps) {
@@ -53,8 +53,22 @@ export default function GroupList({
     const [isEditing, setIsEditing] = useState(false);
     const [value, setValue] = useState(name);
     
-    const setGlobalDraggingId = setDraggingId ?? (() => {});
+    const setGlobalDraggingIds = setDraggingIds ?? (() => {});
     const [ localOverIndex, setLocalOverIndex ] = useState<number | null>(null);
+
+    // Helper to start dragging - includes all selected segments if the dragged item is selected
+    const startChildDragging = (childId: string) => {
+        const child = path.segments.find(s => s.id === childId);
+        if (child?.selected) {
+            // Get all selected segments (excluding start segment at index 0)
+            const selectedIds = path.segments
+                .filter((s, idx) => s.selected && idx > 0)
+                .map(s => s.id);
+            setGlobalDraggingIds(selectedIds.length > 0 ? selectedIds : [childId]);
+        } else {
+            setGlobalDraggingIds([childId]);
+        }
+    };
     
     const groupKey = segment.groupId ?? segment.id;
     
@@ -79,10 +93,10 @@ export default function GroupList({
     const dropHandledRef = useRef(false);
     
     useEffect(() => {
-        if (draggingId !== null) {
+        if (draggingIds.length > 0) {
             dropHandledRef.current = false;
         }
-    }, [draggingId]);
+    }, [draggingIds]);
     
     
     useEffect(() => {
@@ -181,10 +195,10 @@ export default function GroupList({
     const speedScale = getSpeed(format);
 
     useEffect(() => {
-        if (draggingId === null) {
+        if (draggingIds.length === 0) {
             setLocalOverIndex(null);
         }
-    }, [draggingId]);
+    }, [draggingIds]);
 
     const getDropZone = (e: React.DragEvent): GroupDropZone => {
         if (!headerRef.current) return null;
@@ -200,9 +214,9 @@ export default function GroupList({
     const handleHeaderDragOver = (e: React.DragEvent<HTMLButtonElement>) => {
         e.preventDefault();
         e.stopPropagation();
-        
-        if (draggingId === segmentId) return;
-        
+
+        if (draggingIds.includes(segmentId)) return;
+
         const zone = getDropZone(e);
         if (onHeaderDropZoneChange) {
             onHeaderDropZoneChange(zone);
@@ -212,9 +226,9 @@ export default function GroupList({
     const handleHeaderDragEnter = (e: React.DragEvent<HTMLButtonElement>) => {
         e.preventDefault();
         e.stopPropagation();
-        
-        if (draggingId === segmentId) return;
-        
+
+        if (draggingIds.includes(segmentId)) return;
+
         const zone = getDropZone(e);
         if (onHeaderDropZoneChange) {
             onHeaderDropZoneChange(zone);
@@ -225,7 +239,7 @@ export default function GroupList({
         e.preventDefault();
         e.stopPropagation();
 
-        if (!draggingId || draggingId === segmentId) return;
+        if (draggingIds.length === 0 || draggingIds.includes(segmentId)) return;
 
         dropHandledRef.current = true;
 
@@ -234,16 +248,16 @@ export default function GroupList({
         const headerGlobalIdx = path.segments.findIndex(s => s.id === segmentId);
         if (headerGlobalIdx === -1) return;
 
-        const currentDraggingId = draggingId;
-        setGlobalDraggingId(null);
+        const currentDraggingIds = [...draggingIds];
+        setGlobalDraggingIds([]);
         if (onHeaderDropZoneChange) {
             onHeaderDropZoneChange(null);
         }
 
         if (zone === "above") {
-            moveSegment(setPath, currentDraggingId, headerGlobalIdx, { skipGroupHandling: true });
+            moveMultipleSegments(setPath, currentDraggingIds, headerGlobalIdx, { skipGroupHandling: true });
         } else if (zone === "into" || zone === "below") {
-            moveSegment(setPath, currentDraggingId, headerGlobalIdx, { headerDrop: "bottom" });
+            moveMultipleSegments(setPath, currentDraggingIds, headerGlobalIdx, { headerDrop: "bottom" });
         }
     };
 
@@ -266,7 +280,7 @@ export default function GroupList({
     };
 
     // Highlight when hovering over header zones OR when hovering over children area (for drops into group)
-    const isHoveringInto = draggingId !== null && draggingId !== segmentId && (
+    const isHoveringInto = draggingIds.length > 0 && !draggingIds.includes(segmentId) && (
         (headerDropZone === "into" || headerDropZone === "below") ||
         (localOverIndex !== null)
     );
@@ -275,18 +289,18 @@ export default function GroupList({
         e.preventDefault();
         e.stopPropagation();
 
-        if (!draggingId || draggingId === segmentId) return;
+        if (draggingIds.length === 0 || draggingIds.includes(segmentId)) return;
 
         dropHandledRef.current = true;
 
         const headerGlobalIdx = path.segments.findIndex(s => s.id === segmentId);
         if (headerGlobalIdx === -1) return;
 
-        const currentDraggingId = draggingId;
+        const currentDraggingIds = [...draggingIds];
         const currentZone = headerDropZone;
         const currentLocalOverIndex = localOverIndex;
 
-        setGlobalDraggingId(null);
+        setGlobalDraggingIds([]);
         setLocalOverIndex(null);
         if (onHeaderDropZoneChange) {
             onHeaderDropZoneChange(null);
@@ -296,14 +310,14 @@ export default function GroupList({
         if (currentLocalOverIndex !== null) {
             if (currentLocalOverIndex === children.length) {
                 // Drop at end of group
-                moveSegment(setPath, currentDraggingId, headerGlobalIdx, { headerDrop: "bottom" });
+                moveMultipleSegments(setPath, currentDraggingIds, headerGlobalIdx, { headerDrop: "bottom" });
             } else {
                 // Drop before a specific child
                 const targetChild = children[currentLocalOverIndex];
                 if (targetChild) {
                     const targetGlobalIdx = indexById.get(targetChild.id) ?? -1;
                     if (targetGlobalIdx !== -1) {
-                        moveSegment(setPath, currentDraggingId, targetGlobalIdx, { targetGroupId: groupKey });
+                        moveMultipleSegments(setPath, currentDraggingIds, targetGlobalIdx, { targetGroupId: groupKey });
                     }
                 }
             }
@@ -312,9 +326,9 @@ export default function GroupList({
 
         // Handle header drop zones
         if (currentZone === "above") {
-            moveSegment(setPath, currentDraggingId, headerGlobalIdx, { skipGroupHandling: true });
+            moveMultipleSegments(setPath, currentDraggingIds, headerGlobalIdx, { skipGroupHandling: true });
         } else if (currentZone === "into" || currentZone === "below") {
-            moveSegment(setPath, currentDraggingId, headerGlobalIdx, { headerDrop: "bottom" });
+            moveMultipleSegments(setPath, currentDraggingIds, headerGlobalIdx, { headerDrop: "bottom" });
         }
     };
 
@@ -349,7 +363,7 @@ export default function GroupList({
                 }
             }}
         >
-            {headerDropZone === "above" && draggingId !== null && draggingId !== segmentId && (
+            {headerDropZone === "above" && draggingIds.length > 0 && !draggingIds.includes(segmentId) && (
                 <div className="absolute -top-1 left-0 w-[450px] h-[1px] bg-white rounded-full pointer-events-none z-10" />
             )}
             
@@ -392,7 +406,7 @@ export default function GroupList({
                     active:scale-[0.995]
                     
                     ${(hasSelectedChildren || isOpen) && !segment.selected && !isHoveringInto ? "border-2 border-medlightgray" : "border-2 border-transparent"}
-                    ${draggingId === segmentId ? "opacity-10" : ""}
+                    ${draggingIds.includes(segmentId) ? "opacity-10" : ""}
                 `}
                 >
                 <button
@@ -496,10 +510,10 @@ export default function GroupList({
                         const globalIdx = indexById.get(c.id) ?? -1;
                         if (globalIdx === -1) return null;
 
-                        const isDraggingThis = draggingId === c.id;
-                        const showDropZone = localOverIndex === localIdx && draggingId !== null && !isDraggingThis;
+                        const isDraggingThis = draggingIds.includes(c.id);
+                        const showDropZone = localOverIndex === localIdx && draggingIds.length > 0 && !isDraggingThis;
                         const isLastChild = localIdx === children.length - 1;
-                        const showBottomDropZone = isLastChild && localOverIndex === children.length && draggingId !== null && !isDraggingThis;
+                        const showBottomDropZone = isLastChild && localOverIndex === children.length && draggingIds.length > 0 && !isDraggingThis;
 
                         return (
                             <div
@@ -550,9 +564,9 @@ export default function GroupList({
                                         segmentId={c.id}
                                         isOpenGlobal={isOpenGlobal}
                                         draggable={true}
-                                        onDragStart={() => setGlobalDraggingId(c.id)}
-                                        onDragEnd={() => { setGlobalDraggingId(null); setLocalOverIndex(null); }}
-                                        draggingId={draggingId}
+                                        onDragStart={() => startChildDragging(c.id)}
+                                        onDragEnd={() => { setGlobalDraggingIds([]); setLocalOverIndex(null); }}
+                                        draggingIds={draggingIds}
                                         shrink={true}
                                     />
                                 )}
@@ -566,9 +580,9 @@ export default function GroupList({
                                         segmentId={c.id}
                                         isOpenGlobal={isOpenGlobal}
                                         draggable={true}
-                                        onDragStart={() => setGlobalDraggingId(c.id)}
-                                        onDragEnd={() => { setGlobalDraggingId(null); setLocalOverIndex(null); }}
-                                        draggingId={draggingId}
+                                        onDragStart={() => startChildDragging(c.id)}
+                                        onDragEnd={() => { setGlobalDraggingIds([]); setLocalOverIndex(null); }}
+                                        draggingIds={draggingIds}
                                         shrink={true}
                                     />
                                 )}
@@ -582,9 +596,9 @@ export default function GroupList({
                                         segmentId={c.id}
                                         isOpenGlobal={isOpenGlobal}
                                         draggable={true}
-                                        onDragStart={() => setGlobalDraggingId(c.id)}
-                                        onDragEnd={() => { setGlobalDraggingId(null); setLocalOverIndex(null); }}
-                                        draggingId={draggingId}
+                                        onDragStart={() => startChildDragging(c.id)}
+                                        onDragEnd={() => { setGlobalDraggingIds([]); setLocalOverIndex(null); }}
+                                        draggingIds={draggingIds}
                                         shrink={true}
                                     />
                                 )}

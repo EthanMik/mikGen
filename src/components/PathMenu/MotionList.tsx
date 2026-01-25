@@ -29,7 +29,7 @@ export type ConstantListField = {
 type MotionListProps = {
     name: string,
     speedScale: number,
-    field: ConstantListField[], 
+    field: ConstantListField[],
     directionField: CycleImageButtonProps[],
     segmentId: string,
     isOpenGlobal: boolean,
@@ -38,23 +38,23 @@ type MotionListProps = {
     onDragStart?: (e: React.DragEvent<HTMLButtonElement>) => void,
     onDragEnd?: (e: React.DragEvent<HTMLButtonElement>) => void,
     onDragEnter?: () => void,
-    draggingId?: string | null,
+    draggingIds?: string[],
     shrink?: boolean,
 }
 
 export default function MotionList({
-    name, 
+    name,
     speedScale,
     field,
     directionField,
-    segmentId, 
+    segmentId,
     isOpenGlobal,
-    start = false
-    , draggable = false,
+    start = false,
+    draggable = false,
     onDragStart,
     onDragEnd,
     onDragEnter,
-    draggingId = null,
+    draggingIds = [],
     shrink = false,
 }: MotionListProps) {
     const [ path, setPath ] = usePath(); 
@@ -73,24 +73,44 @@ export default function MotionList({
 
     const normalSelect = () => {
         setPath(prev => ({
-            ...prev, 
+            ...prev,
             segments: prev.segments.map(
                 segment => segment.id === segmentId
-                ? {...segment, selected: true } 
+                ? {...segment, selected: true }
                 : {...segment, selected: false}
             )
         }));
     }
-    
+
     const crtlSelect = () => {
-        setPath(prev => ({
-            ...prev, 
-            segments: prev.segments.map(
-                segment => segment.id === segmentId
-                ? {...segment, selected: !segment.selected } 
-                : {...segment}
-            )
-        }));
+        setPath(prev => {
+            const willSelect = !prev.segments.find(s => s.id === segmentId)?.selected;
+
+            // When selecting a segment, deselect all groups and their children
+            if (willSelect) {
+                return {
+                    ...prev,
+                    segments: prev.segments.map(s => {
+                        if (s.id === segmentId) {
+                            return { ...s, selected: true };
+                        }
+                        // Deselect groups and group children when selecting a regular segment
+                        if (s.kind === "group" || s.groupId !== undefined) {
+                            return { ...s, selected: false };
+                        }
+                        return s;
+                    })
+                };
+            }
+
+            // When deselecting, just toggle off
+            return {
+                ...prev,
+                segments: prev.segments.map(s =>
+                    s.id === segmentId ? { ...s, selected: false } : s
+                )
+            };
+        });
     }
 
     const shiftSelect = () => {
@@ -100,9 +120,10 @@ export default function MotionList({
             const clickedIdx = segments.findIndex(s => s.id === segmentId);
             if (clickedIdx === -1) return prev;
 
+            // Find anchor among non-group segments only
             let anchorIdx = -1;
             for (let i = segments.length - 1; i >= 0; i--) {
-                if (segments[i].selected) {
+                if (segments[i].selected && segments[i].kind !== "group") {
                     anchorIdx = i;
                     break;
                 }
@@ -115,9 +136,12 @@ export default function MotionList({
 
             return {
                 ...prev,
+                // Select segments in range, but exclude groups and deselect all groups
                 segments: segments.map((s, i) => ({
                     ...s,
-                    selected: i >= start && i <= end,
+                    selected: s.kind === "group"
+                        ? false
+                        : (i >= start && i <= end),
                 })),
             };
         });
@@ -257,7 +281,7 @@ export default function MotionList({
                 transition-all duration-100
                 active:scale-[0.995]
                 ${isOpen && !selected ? "border-2 border-medlightgray" : "border-2 border-transparent"}
-                ${draggingId === segmentId ? "opacity-10" : ""}
+                ${draggingIds.includes(segmentId) ? "opacity-10" : ""}
             `}
             >
             <button
