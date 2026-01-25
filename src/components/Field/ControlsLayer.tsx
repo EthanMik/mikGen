@@ -1,6 +1,6 @@
 import React from "react";
 import type { Path } from "../../core/Types/Path";
-import { getBackwardsSnapPose, getForwardSnapPose } from "../../core/Types/Path";
+import { getBackwardsSnapIdx, getBackwardsSnapPose, getForwardSnapPose } from "../../core/Types/Path";
 import { calculateHeading, toPX, toRad, FIELD_REAL_DIMENSIONS, type Rectangle, FIELD_IMG_DIMENSIONS } from "../../core/Util";
 import type { Coordinate } from "../../core/Types/Coordinate";
 
@@ -18,6 +18,8 @@ export default function ControlsLayer({ path, img, radius, format, onPointerDown
   const scale = imgRealSize / imgDefaultSize;
   radius = radius * scale;
 
+  const snap = getBackwardsSnapIdx(path, path.segments.length - 1);
+
   return (
     <>
       {path.segments.map((control, idx) => (
@@ -34,7 +36,7 @@ export default function ControlsLayer({ path, img, radius, format, onPointerDown
                   cy={toPX({ x: control.pose.x, y: control.pose.y }, FIELD_REAL_DIMENSIONS, img).y}
                   r={control.hovered ? radius * 1.2 : radius}
                   fill={control.selected ? "rgba(180, 50, 11, .75)" : "rgba(160, 32, 7, .5)"}
-                  strokeWidth={idx === path.segments.length - 1 ? 2 * scale : 0}
+                  strokeWidth={idx === snap ? 2 * scale : 0}
                 />
               )}
 

@@ -16,6 +16,17 @@ export const getBackwardsSnapPose = (path: Path, idx: number) => {
     return null;
 };
 
+export const getBackwardsSnapIdx = (path: Path, idx: number) => {
+    const controls = path.segments;
+    for (let i = idx; i >= 0; i--) {
+        const c = controls[i];
+        if (c.pose.x !== null && c.pose.y !== null) {
+            return i;
+        }
+    }
+    return null;
+};
+
 export function getForwardSnapPose(path: Path, idx: number) {
     const controls = path.segments;
     for (let i = idx; i < controls.length; i++) {

@@ -265,18 +265,11 @@ export default function GroupList({
         }
     };
 
-    const handleChildDrop = (e: React.DragEvent, childGlobalIdx: number) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        if (!draggingId) return;
-
-        moveSegment(setPath, draggingId, childGlobalIdx, { targetGroupId: groupKey });
-        setGlobalDraggingId(null);
-        setLocalOverIndex(null);
-    };
-
-    const isHoveringInto = (headerDropZone === "into" || headerDropZone === "below") && draggingId !== null && draggingId !== segmentId;
+    // Highlight when hovering over header zones OR when hovering over children area (for drops into group)
+    const isHoveringInto = draggingId !== null && draggingId !== segmentId && (
+        (headerDropZone === "into" || headerDropZone === "below") ||
+        (localOverIndex !== null)
+    );
 
     const handleContainerDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
@@ -291,11 +284,33 @@ export default function GroupList({
 
         const currentDraggingId = draggingId;
         const currentZone = headerDropZone;
+        const currentLocalOverIndex = localOverIndex;
+
         setGlobalDraggingId(null);
+        setLocalOverIndex(null);
         if (onHeaderDropZoneChange) {
             onHeaderDropZoneChange(null);
         }
 
+        // Handle drops within the group's children based on localOverIndex
+        if (currentLocalOverIndex !== null) {
+            if (currentLocalOverIndex === children.length) {
+                // Drop at end of group
+                moveSegment(setPath, currentDraggingId, headerGlobalIdx, { headerDrop: "bottom" });
+            } else {
+                // Drop before a specific child
+                const targetChild = children[currentLocalOverIndex];
+                if (targetChild) {
+                    const targetGlobalIdx = indexById.get(targetChild.id) ?? -1;
+                    if (targetGlobalIdx !== -1) {
+                        moveSegment(setPath, currentDraggingId, targetGlobalIdx, { targetGroupId: groupKey });
+                    }
+                }
+            }
+            return;
+        }
+
+        // Handle header drop zones
         if (currentZone === "above") {
             moveSegment(setPath, currentDraggingId, headerGlobalIdx, { skipGroupHandling: true });
         } else if (currentZone === "into" || currentZone === "below") {
@@ -304,7 +319,7 @@ export default function GroupList({
     };
 
     const handleContainerDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-        if (headerDropZone !== null) {
+        if (headerDropZone !== null || localOverIndex !== null) {
             e.preventDefault();
             e.stopPropagation();
         }
@@ -335,7 +350,7 @@ export default function GroupList({
             }}
         >
             {headerDropZone === "above" && draggingId !== null && draggingId !== segmentId && (
-                <div className="absolute top-[-4px] left-0 w-[450px] h-[2px] bg-white rounded-full pointer-events-none z-10" />
+                <div className="absolute -top-1 left-0 w-[450px] h-[1px] bg-white rounded-full pointer-events-none z-10" />
             )}
             
             <button
@@ -345,6 +360,10 @@ export default function GroupList({
                     if (e.dataTransfer) {
                         e.dataTransfer.setData('text/plain', segmentId);
                         e.dataTransfer.effectAllowed = 'move';
+                        // Hide the ghost image
+                        const emptyImg = new Image();
+                        emptyImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                        e.dataTransfer.setDragImage(emptyImg, 0, 0);
                     }
                     if (onDragStart) onDragStart(e);
                 }}
@@ -364,18 +383,16 @@ export default function GroupList({
                 onMouseEnter={handleGroupOnHoverStart}
                 onMouseLeave={handleGroupOnHoverEnd}
                 className={
-                    `${isHoveringInto ? "bg-lightgray" : ""}
-                    ${segment.selected ? "bg-medlightgray" : ""}
+                    `${isHoveringInto ? "bg-medlightgray brightness-125" : segment.selected ? "bg-medlightgray" : "bg-medgray"}
                     flex flex-row justify-start items-center
                     w-[450px] h-[35px] gap-[12px]
-                    bg-medgray
                     hover:brightness-95
                     rounded-lg pl-4 pr-4
                     transition-all duration-100
                     active:scale-[0.995]
                     
                     ${(hasSelectedChildren || isOpen) && !segment.selected && !isHoveringInto ? "border-2 border-medlightgray" : "border-2 border-transparent"}
-                    ${draggingId === segmentId ? "opacity-50" : ""}
+                    ${draggingId === segmentId ? "opacity-10" : ""}
                 `}
                 >
                 <button
@@ -394,7 +411,7 @@ export default function GroupList({
                 onPointerMoveCapture={(e) => { if (isEditing) e.stopPropagation(); }}
                 ref={inputRef}
                 value={value}
-                style={{ fieldSizing: 'content' }}
+                style={{ maxWidth: '280px' }}
                 readOnly={!isEditing}
                 onDoubleClick={(e) => {
                     e.stopPropagation();
@@ -439,7 +456,7 @@ export default function GroupList({
                 }}
                 name={name}
                 size={Math.max(value?.length, 1)}
-                className={`items-center text-[17px] shrink-0 text-left truncate 
+                className={`items-center text-[17px] shrink-0 text-left truncate max-w-[280px]
                     outline-none px-1 transition-colors border-none rounded-sm
                     
                     ${isEditing 
@@ -472,36 +489,6 @@ export default function GroupList({
                 >
                     <div className="absolute left-[-16px] top-0 h-full w-[4px] rounded-full bg-medlightgray" />
 
-                    <div
-                        className="w-full relative h-2"
-                        onDragOver={(e) => { 
-                            e.preventDefault(); 
-                            e.stopPropagation(); 
-                            setLocalOverIndex(-1); 
-                        }}
-                        onDragEnter={(e) => { 
-                            e.stopPropagation(); 
-                            setLocalOverIndex(-1); 
-                        }}
-                        onDrop={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-
-                            if (!draggingId) return;
-
-                            const headerGlobalIdx = path.segments.findIndex(s => s.id === segmentId);
-                            if (headerGlobalIdx === -1) return;
-
-                            moveSegment(setPath, draggingId, headerGlobalIdx, { headerDrop: "top" });
-                            setGlobalDraggingId(null);
-                            setLocalOverIndex(null);
-                        }}
-                    >
-                        {(localOverIndex === -1 || headerDropZone === "below") && draggingId !== null && draggingId !== segmentId && (
-                            <div className="w-[390px] h-[2px] bg-white rounded-full mx-auto ml-2 absolute bottom-0" />
-                        )}
-                    </div>
-
                     {children.map((c, localIdx) => {
                         const constantsFields = getFormatConstantsConfig(format, path, setPath, c.id);
                         const directionFields = getFormatDirectionConfig(format, path, setPath, c.id);
@@ -510,28 +497,48 @@ export default function GroupList({
                         if (globalIdx === -1) return null;
 
                         const isDraggingThis = draggingId === c.id;
+                        const showDropZone = localOverIndex === localIdx && draggingId !== null && !isDraggingThis;
+                        const isLastChild = localIdx === children.length - 1;
+                        const showBottomDropZone = isLastChild && localOverIndex === children.length && draggingId !== null && !isDraggingThis;
 
                         return (
                             <div
                                 key={c.id}
                                 className="w-full relative"
-                                onDragOver={(e) => { 
-                                    e.preventDefault(); 
-                                    e.stopPropagation(); 
+                                onDragOver={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
                                     if (!isDraggingThis) {
-                                        setLocalOverIndex(localIdx); 
+                                        // Use vertical position to determine above or below
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        const y = e.clientY - rect.top;
+                                        if (y < rect.height / 2) {
+                                            setLocalOverIndex(localIdx);
+                                        } else if (isLastChild) {
+                                            setLocalOverIndex(children.length);
+                                        } else {
+                                            setLocalOverIndex(localIdx + 1);
+                                        }
                                     }
                                 }}
                                 onDragEnter={(e) => {
                                     e.stopPropagation();
-                                    if (!isDraggingThis) {
-                                        setLocalOverIndex(localIdx);
-                                    }
                                 }}
-                                onDrop={(e) => handleChildDrop(e, globalIdx)}
                             >
-                                {localOverIndex === localIdx && draggingId !== null && !isDraggingThis && (
-                                    <div className="w-[390px] h-[2px] bg-white rounded-full mx-auto ml-2 mb-2" />
+                                {/* Invisible drop zone extending into the gap above */}
+                                <div
+                                    className="absolute -top-2 left-0 w-full h-2 z-20"
+                                    onDragOver={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        if (!isDraggingThis) {
+                                            setLocalOverIndex(localIdx);
+                                        }
+                                    }}
+                                />
+                                {/* Drop indicator line - centered in gap above */}
+                                {showDropZone && (
+                                    <div className="absolute -top-1 left-2 w-[390px] h-[1px] bg-white rounded-full pointer-events-none z-10" />
                                 )}
 
                                 {(c.kind === "pointDrive" || c.kind === "poseDrive") && (
@@ -545,7 +552,6 @@ export default function GroupList({
                                         draggable={true}
                                         onDragStart={() => setGlobalDraggingId(c.id)}
                                         onDragEnd={() => { setGlobalDraggingId(null); setLocalOverIndex(null); }}
-                                        onDragEnter={() => { if (draggingId !== c.id) setLocalOverIndex(localIdx); }}
                                         draggingId={draggingId}
                                         shrink={true}
                                     />
@@ -562,7 +568,6 @@ export default function GroupList({
                                         draggable={true}
                                         onDragStart={() => setGlobalDraggingId(c.id)}
                                         onDragEnd={() => { setGlobalDraggingId(null); setLocalOverIndex(null); }}
-                                        onDragEnter={() => { if (draggingId !== c.id) setLocalOverIndex(localIdx); }}
                                         draggingId={draggingId}
                                         shrink={true}
                                     />
@@ -579,44 +584,18 @@ export default function GroupList({
                                         draggable={true}
                                         onDragStart={() => setGlobalDraggingId(c.id)}
                                         onDragEnd={() => { setGlobalDraggingId(null); setLocalOverIndex(null); }}
-                                        onDragEnter={() => { if (draggingId !== c.id) setLocalOverIndex(localIdx); }}
                                         draggingId={draggingId}
                                         shrink={true}
                                     />
                                 )}
+
+                                {/* Drop indicator line - centered below last child */}
+                                {showBottomDropZone && (
+                                    <div className="absolute -bottom-1 left-2 w-[390px] h-[1px] bg-white rounded-full pointer-events-none z-10" />
+                                )}
                             </div>
                         );
                     })}
-
-                    <div
-                        className="w-[390px] relative h-2"
-                        onDragOver={(e) => { 
-                            e.preventDefault(); 
-                            e.stopPropagation(); 
-                            setLocalOverIndex(children.length); 
-                        }}
-                        onDragEnter={(e) => { 
-                            e.stopPropagation(); 
-                            setLocalOverIndex(children.length); 
-                        }}
-                        onDrop={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-
-                            if (!draggingId) return;
-
-                            const headerGlobalIdx = path.segments.findIndex((s) => s.id === segmentId);
-                            if (headerGlobalIdx === -1) return;
-
-                            moveSegment(setPath, draggingId, headerGlobalIdx, { headerDrop: "bottom" });
-                            setGlobalDraggingId(null);
-                            setLocalOverIndex(null);
-                        }}
-                    >
-                        {localOverIndex === children.length && draggingId !== null && draggingId !== segmentId && (
-                            <div className="w-[435px] h-[2px] bg-white rounded-full mx-auto ml-2 absolute top-0" />
-                        )}
-                    </div>
 
                 </div>
         </div>

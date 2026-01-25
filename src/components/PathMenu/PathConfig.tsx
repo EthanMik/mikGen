@@ -52,8 +52,27 @@ export default function PathConfig() {
     <div className="bg-medgray w-[500px] h-[650px] rounded-lg p-[15px] flex flex-col">
       <PathConfigHeader name={name} isOpen={isOpen} setOpen={setOpen} />
 
-      <div className="mt-[10px] flex-1 min-h-2 overflow-y-auto 
-        flex-col items-center overflow-x-hidden space-y-2 relative">
+      <div
+        className="mt-[10px] flex-1 min-h-2 overflow-y-auto
+        flex-col items-center overflow-x-hidden space-y-2 relative"
+        onDrop={(e) => {
+          // Container-level drop handler - uses current state to determine drop position
+          // This ensures the drop happens where the indicator line is showing
+          if (draggingId === null) return;
+          if (overIndex !== null && overIndex > 0) {
+            e.preventDefault();
+            moveSegment(setPath, draggingId, overIndex);
+            setDraggingId(null);
+            setOverIndex(null);
+          }
+        }}
+        onDragOver={(e) => {
+          // Allow drops on container
+          if (overIndex !== null) {
+            e.preventDefault();
+          }
+        }}
+      >
         {path.segments.map((c, idx) => {
           
           const constantsFields = getFormatConstantsConfig(format, path, setPath, c.id);
@@ -83,16 +102,22 @@ export default function PathConfig() {
               e.preventDefault();
               setOverIndex(idx);
             }}
-            onDrop={(e) => {
-              if (e.defaultPrevented) return;
-              e.preventDefault();
-              moveSegment(setPath, draggingId, idx);
-              setDraggingId(null);
-              setOverIndex(null);
-            }}
           >
+            {/* Invisible drop zone extending into the gap above */}
+            {idx > 0 && (
+              <div
+                className="absolute -top-2 left-0 w-full h-2 z-20"
+                onDragOver={(e) => {
+                  if (activeGroupDropZone !== null) return;
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setOverIndex(idx);
+                }}
+              />
+            )}
+
             {showNormalDropIndicator && (
-              <div className="w-[435px] h-[2px] bg-white rounded-full mx-auto ml-2 mb-2" />
+              <div className="absolute -top-1 left-2 w-[435px] h-[1px] bg-white rounded-full pointer-events-none z-10" />
             )}
 
             {idx > 0 && isGroup && (
@@ -181,7 +206,7 @@ export default function PathConfig() {
         )})}
 
         <div
-          className="w-full relative"
+          className="w-full relative h-4"
           onDragOver={(e) => {
             if (e.defaultPrevented) return;
             e.preventDefault();
@@ -196,9 +221,8 @@ export default function PathConfig() {
           }}
         >
           {overIndex === path.segments.length && draggingId !== null && (
-            <div className="w-[435px] h-[2px] bg-white rounded-full mx-auto ml-2 mb-2" />
+            <div className="absolute -top-1 left-2 w-[435px] h-[1px] bg-white rounded-full pointer-events-none z-10" />
           )}
-          <div className="h-6" />
         </div>
       </div>
     </div>

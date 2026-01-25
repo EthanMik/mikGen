@@ -1,26 +1,18 @@
 Live Progess Txt
 
 Bugs:
-- Make it so revpath flips control config coords
-- Fix start segment having the ability to be set to a turn by deleting segments
-
-- end point does not show up with a turn segment on top
 - FIX FORMAT SWAPPING BRICKING APP
-- make it so when you drag a segment the cursor goes to grab
+- make it so when you drag a segment the cursor goes to grab, also controls do not snap to postive numbers anymore
 - Fix undo redo to work on entire app data tree (still need to do commands)
-- make it so time change does not affect width of playback slider
-- if a turn is at the end of path then endpath will not show up
 
-- added segments go inside group when added
 - sim is regenerated on path updates
-- group does not change color when segment is hovering over it 
 - make the group dropping css look better
+- optimize computed path so it doesnt update on path hovering
 
 Todo:
 - add lemlib drive motions - jar template can just use mikLib with small modifications
 - add indicator for unsaved path
 - add ability to add more commands and make them be color coded, revamp command menu to not limit length and allow them to be modifed not just deleted
-- add a play button to groups
 - add a merge and copy button
 
 Planned:

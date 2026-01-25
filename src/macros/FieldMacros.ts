@@ -340,15 +340,29 @@ export default function FieldMacros() {
             setPath(prev => {
                 let selectedIndex = prev.segments.findIndex(c => c.selected);
                 selectedIndex = selectedIndex === -1 ? selectedIndex = prev.segments.length : selectedIndex + 1;
-            
+
                 const oldSegments = prev.segments;
-                const newSegments = clipboard.map((s) => ({
-                    ...structuredClone(s),
-                    id: makeId(10),
-                    selected: !s.locked,
-                    hovered: false,
-                    command: s.command ? { ...s.command, id: makeId(10) } : s.command
-                }));
+
+                const groupIdMap = new Map<string, string>();
+                clipboard.forEach((s) => {
+                    if (s.groupId && !groupIdMap.has(s.groupId)) {
+                        groupIdMap.set(s.groupId, makeId(10));
+                    }
+                });
+
+                const newSegments = clipboard.map((s) => {
+                    const cloned = structuredClone(s);
+                    if (cloned.groupId) {
+                        cloned.groupId = groupIdMap.get(cloned.groupId);
+                    }
+                    return {
+                        ...cloned,
+                        id: makeId(10),
+                        selected: !s.locked,
+                        hovered: false,
+                        command: s.command ? { ...s.command, id: makeId(10) } : s.command,
+                    };
+                });
                 
                 const inserted: Segment[] = [
                     ...oldSegments.slice(0, selectedIndex),
@@ -376,7 +390,13 @@ export default function FieldMacros() {
         setPath(prev => {
             let selectedIndex = prev.segments.findIndex(c => c.selected);
             selectedIndex = selectedIndex === -1 ? selectedIndex = prev.segments.length : selectedIndex + 1;
-        
+            
+            const selectedSegment = prev.segments.find(c => c.selected);
+            if (selectedSegment !== undefined && selectedSegment.groupId !== undefined) {
+                segment.groupId = selectedSegment.groupId;
+            }
+            console.log(selectedIndex, selectedSegment, segment);
+
             const oldControls = prev.segments;
         
             const newControl = { ...segment, selected: !segment.locked };

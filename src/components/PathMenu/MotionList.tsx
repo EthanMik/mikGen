@@ -235,6 +235,10 @@ export default function MotionList({
                 if (e.dataTransfer) {
                     e.dataTransfer.setData('text/plain', segmentId);
                     e.dataTransfer.effectAllowed = 'move';
+                    // Hide the ghost image
+                    const emptyImg = new Image();
+                    emptyImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                    e.dataTransfer.setDragImage(emptyImg, 0, 0);
                 }
                 if (onDragStart) onDragStart(e);
             }}
@@ -253,7 +257,7 @@ export default function MotionList({
                 transition-all duration-100
                 active:scale-[0.995]
                 ${isOpen && !selected ? "border-2 border-medlightgray" : "border-2 border-transparent"}
-                ${draggingId === segmentId ? "opacity-50" : ""}
+                ${draggingId === segmentId ? "opacity-10" : ""}
             `}
             >
             <button

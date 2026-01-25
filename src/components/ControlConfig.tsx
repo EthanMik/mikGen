@@ -1,6 +1,7 @@
 import flipHorizontal from "../assets/flip-horizontal.svg";
 import flipVertical from "../assets/flip-vertical.svg";
 import { normalizeDeg } from "../core/Util";
+import { useFormat } from "../hooks/useFormat";
 import { usePath } from "../hooks/usePath";
 import NumberInput from "./Util/NumberInput";
 
@@ -68,6 +69,7 @@ function MirrorControl({
 
 export default function ControlConfig() {
     const [ path, setPath ] = usePath(); 
+    const [ format ] = useFormat();
 
     const getXValue = (): number | null => {
         const selectedCount = path.segments.filter(c => c.selected).length;
@@ -171,6 +173,7 @@ export default function ControlConfig() {
             });
     }
     
+
     return (
         <div className="flex flex-row items-center justify-center gap-4 bg-medgray w-[500px] h-[65px] rounded-lg">
             <div className="flex items-center gap-2">
@@ -179,8 +182,8 @@ export default function ControlConfig() {
                     width={80}
                     height={40}
                     fontSize={18}
-                    setValue={updateXValue} 
-                    value={getXValue()} 
+                    setValue={format === "ReveilLib" ? updateYValue : updateXValue } 
+                    value={format === "ReveilLib" ? getYValue() : getXValue() } 
                     stepSize={1}
                     roundTo={2}
                     bounds={[-999, 999]}
@@ -195,8 +198,8 @@ export default function ControlConfig() {
                     fontSize={18}
                     stepSize={1}
                     roundTo={2}
-                    setValue={updateYValue} 
-                    value={getYValue()} 
+                    setValue={format === "ReveilLib" ? updateXValue : updateYValue } 
+                    value={format === "ReveilLib" ? getXValue() : getYValue() } 
                     bounds={[-999, 999]}
                     units="in"
                 />
