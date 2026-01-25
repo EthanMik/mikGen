@@ -16,7 +16,6 @@ Todo:
 - add a merge and copy button
 
 Planned:
-- make it so when you drag a segment it restarts path (could be a internal setting)
 - saving undo history to local storage?
 - collision???
 - make it so double clicking the eye turn off the path lines 

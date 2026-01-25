@@ -7,6 +7,7 @@ import { useFileFormat, type FileFormat } from "../../hooks/useFileFormat";
 import { INITIAL_DEFAULTS } from "../../core/DefaultConstants";
 import { defaultRobotConstants } from "../../core/Robot";
 import { useField } from "../../hooks/useField";
+import { undoHistory } from "../../core/Undo/UndoHistory";
 
 
 export default function FileButton() {
@@ -21,7 +22,9 @@ export default function FileButton() {
     const [ field, ] = useField();
     const [ format, ] = useFormat();
     const [ , setFileFormat ] = useFileFormat();
-    
+    const [ isSaved, setIsSaved ] = useState(true);
+    const undoHistoryStore = undoHistory.useStore(); 
+
     const fileText = useGetFileFormat();
 
     const [ label, setLabel ] = useState("");
@@ -34,6 +37,10 @@ export default function FileButton() {
 
         return pathName;
     }   
+
+    useEffect(() => {
+        setIsSaved(false);
+    }, [undoHistoryStore.length])
 
     const updatePathName = (name: string) => {
         setPath(prev => ({
@@ -66,18 +73,16 @@ export default function FileButton() {
                 commands: []
             }
         );
-        // Clear the file handle when creating a new file
         fileHandleRef.current = null;
         setOpen(false);
+        setIsSaved(true);
     }
 
     const handleOpenFile = async () => {
         setOpen(false);
         
-        // Check if File System Access API is supported
         if (!('showOpenFilePicker' in window)) {
             console.error('File System Access API not supported');
-            // Fallback to traditional file input
             fileInputRef.current?.click();
             return;
         }
@@ -107,17 +112,14 @@ export default function FileButton() {
                 multiple: false,
             });
 
-            // Store the file handle for future saves
             fileHandleRef.current = handle;
 
             const file = await handle.getFile();
             const content = await file.text();
             
-            // Extract the filename without extension
             const fileName = handle.name.replace(/\.[^/.]+$/, "");
             const parsed = JSON.parse(content) as FileFormat;
             
-            // Update with the filename from the opened file
             setFileFormat({
                 ...parsed,
                 path: {
@@ -125,18 +127,19 @@ export default function FileButton() {
                     name: fileName
                 }
             });
+            setIsSaved(true);
+
         } catch (error) {
-            // User cancelled the open dialog or other error
             if ((error as Error).name !== 'AbortError') {
                 console.error('Error opening file:', error);
             }
         }
+        
     }
 
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            // Extract filename without extension
             const fileName = file.name.replace(/\.[^/.]+$/, "");
             
             const reader = new FileReader();
@@ -144,7 +147,6 @@ export default function FileButton() {
                 const content = e.target?.result as string;
                 const parsed = JSON.parse(content) as FileFormat;
                 
-                // Update the path name from the opened file
                 setFileFormat({
                     ...parsed,
                     path: {
@@ -154,34 +156,29 @@ export default function FileButton() {
                 });
             };
             reader.readAsText(file);
-            
-            // Clear file handle since we used the fallback method
+
             fileHandleRef.current = null;
         }
         
-        // Reset the input so the same file can be selected again
         event.target.value = '';
     }
 
     const handleSave = async () => {
         setOpen(false);
         
-        // Check if File System Access API is supported
         if (!('showSaveFilePicker' in window)) {
             console.error('File System Access API not supported');
-            // Fallback to download
             handleDownload();
             return;
         }
 
         try {
-            // If we already have a file handle, use it
             if (fileHandleRef.current) {
                 const writable = await fileHandleRef.current.createWritable();
                 await writable.write(JSON.stringify(fileText));
                 await writable.close();
+                setIsSaved(true);
             } else {
-                // If no file handle exists, use Save As
                 await handleSaveAs();
             }
         } catch (error) {
@@ -192,10 +189,8 @@ export default function FileButton() {
     const handleSaveAs = async () => {
         setOpen(false);
         setLabel("Save As:");
-        // Check if File System Access API is supported
         if (!('showSaveFilePicker' in window)) {
             console.error('File System Access API not supported');
-            // Fallback to download with rename
             handleDownloadAs();
             return;
         }
@@ -222,13 +217,10 @@ export default function FileButton() {
                 ],
             });
 
-            // Store the file handle for future saves
             fileHandleRef.current = handle;
-            
-            // Extract the actual filename from the handle (without extension)
+
             const savedFileName = handle.name.replace(/\.[^/.]+$/, "");
-            
-            // Update the path with the saved filename
+
             setPath(prev => ({
                 ...prev,
                 name: savedFileName
@@ -237,15 +229,15 @@ export default function FileButton() {
             const writable = await handle.createWritable();
             await writable.write(JSON.stringify(fileText));
             await writable.close();
+
+            setIsSaved(true);
         } catch (error) {
-            // User cancelled the save dialog or other error
             if ((error as Error).name !== 'AbortError') {
                 console.error('Error saving file:', error);
             }
         }
     }
 
-    // Downloading text
     const downloadText = (content: string, filename: string) => {
         const blob = new Blob([content], { type: "text/plain" });
         const url = URL.createObjectURL(blob);
@@ -259,6 +251,7 @@ export default function FileButton() {
     const handleDownload = () => {
         downloadText(JSON.stringify(fileText), `${getFileName()}.txt`)
         setOpen(false);
+        setIsSaved(true);
     }
 
     const handleDownloadAs = async () => {
@@ -268,6 +261,7 @@ export default function FileButton() {
         if (name === null) return; 
         
         downloadText(JSON.stringify(fileText), `${getFileName(name)}.txt`);
+        setIsSaved(true);
     }
 
     useEffect(() => {
@@ -282,13 +276,13 @@ export default function FileButton() {
         return () => {
             document.removeEventListener("mousedown", handleClickOutside)
         }
+
     }, []);
 
-    // Keyboard shortcuts
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.ctrlKey && event.key === 'p') {
-                event.preventDefault();
+        if (event.ctrlKey && event.key === 'p') {
+            event.preventDefault();
                 handleNewFile();
             } else if (event.ctrlKey && event.key === 'o') {
                 event.preventDefault();
@@ -320,7 +314,7 @@ export default function FileButton() {
             } hover:bg-medgray_hover rounded-sm`}
         >
             <button onClick={handleToggleMenu} className="px-2 py-1 cursor-pointer">
-                <span className="text-[20px]">File</span>
+                <span className={`text-[20px] ${!isSaved ? "underline" : ""}`}>File</span>
             </button>
 
         {popupOpen && <FileRenamePopup 
@@ -330,7 +324,6 @@ export default function FileButton() {
             onEnter={updatePathName}
         />}
 
-            {/* Hidden file input for opening files */}
             <input
                 ref={fileInputRef}
                 type="file"
