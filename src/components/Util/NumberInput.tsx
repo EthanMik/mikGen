@@ -55,7 +55,6 @@ export default function NumberInput({
 
   const addToHistoryCheck = (value: number | null ) => {
     if (prevClampedNum.current !== value && value !== null) {
-      console.log(value, prevClampedNum.current)
       addToHistory?.(value);
     }
     prevClampedNum.current = value;

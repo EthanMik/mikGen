@@ -263,27 +263,35 @@ export default function FieldMacros() {
     function performUndo(setFileFormat: React.Dispatch<React.SetStateAction<FileFormat>>) {
         const undoState = undoHistory.getState();
         if (undoState.length <= 1) return;
-        
+
         setFileFormat((current) => {
             const popped = undoState[undoState.length - 1];
             undoHistory.setState(undoState.slice(0, -1));
             redoHistory.setState([...redoHistory.getState(), popped]);
-            
+
             const previousSnapshot = undoState[undoState.length - 2];
-            return mergeDeep(current, previousSnapshot as any);
+            const merged = mergeDeep(current, previousSnapshot as any);
+            if (previousSnapshot.defaults !== undefined) {
+                merged.defaults = previousSnapshot.defaults;
+            }
+            return merged;
         });
     }
 
     function performRedo(setFileFormat: React.Dispatch<React.SetStateAction<FileFormat>>) {
         const redoState = redoHistory.getState();
         if (redoState.length === 0) return;
-        
+
         setFileFormat((current) => {
             const nextSnapshot = redoState[redoState.length - 1];
             redoHistory.setState(redoState.slice(0, -1));
             undoHistory.setState([...undoHistory.getState(), nextSnapshot]);
-            
-            return mergeDeep(current, nextSnapshot as any);
+
+            const merged = mergeDeep(current, nextSnapshot as any);
+            if (nextSnapshot.defaults !== undefined) {
+                merged.defaults = nextSnapshot.defaults;
+            }
+            return merged;
         });
     }
 
@@ -395,7 +403,6 @@ export default function FieldMacros() {
             if (selectedSegment !== undefined && selectedSegment.groupId !== undefined) {
                 segment.groupId = selectedSegment.groupId;
             }
-            console.log(selectedIndex, selectedSegment, segment);
 
             const oldControls = prev.segments;
         

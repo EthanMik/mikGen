@@ -1,7 +1,7 @@
 Live Progess Txt
 
 Bugs:
-- FIX FORMAT SWAPPING BRICKING APP
+- Remove-Item -Recurse -Force node_modules/.vite
 - make it so when you drag a segment the cursor goes to grab, also controls do not snap to postive numbers anymore
 - Fix undo redo to work on entire app data tree (still need to do commands)
 
@@ -16,8 +16,7 @@ Todo:
 - add a merge and copy button
 
 Planned:
-- saving undo history to local storage?
-- collision???
+- collision
 - make it so double clicking the eye turn off the path lines 
 - grouping with button on the group to disable that part of path from sim, renaming group
 
@@ -35,8 +34,15 @@ Planned:
 Deciding:
 - Constant Presets that save across cache sessions
 - radial click animations
-- mode in settings to enable driver control so that way you can use drive curves
+- mode in settings to enable driver control so that way you can use drive curves, draws a path on screen
 
 Docs:
 - A better way to plan VEX Autonoumous - EthanMik Channel
 - Readthedocs.io showing all the keybinds
+
+
+lemlib notes
+- 
+
+rw notes
+- heading correction is separate (grrr)

@@ -28,10 +28,21 @@ export default function FileRenamePopup({
     
     const popupRef = useRef<HTMLDivElement | null>(null);
 
+    const textRef = useRef(text);
+    const onEnterRef = useRef(onEnter);
+
+    useEffect(() => {
+        textRef.current = text;
+    }, [text]);
+
+    useEffect(() => {
+        onEnterRef.current = onEnter;
+    }, [onEnter]);
+
     useEffect(() => {
         const handleKeyDown = (evt: KeyboardEvent) => {
             if (evt.key === "Enter") {
-                onEnter(text)
+                onEnterRef.current(textRef.current);
                 setOpen(false);
             }
             if (evt.key === "Escape") {
@@ -53,7 +64,7 @@ export default function FileRenamePopup({
             document.removeEventListener("keydown", handleKeyDown);
             document.removeEventListener("mousedown", handleClickOutside);
         };
-        
+
     }, [])
 
 
