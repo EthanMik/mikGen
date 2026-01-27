@@ -9,7 +9,7 @@ import lockOpen from "../../assets/lock-open.svg";
 import downArrow from "../../assets/down-arrow.svg";
 import { usePath } from "../../hooks/usePath";
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
-import { getFormatConstantsConfig, getFormatDirectionConfig } from "../../core/DefaultConstants";
+import { getFormatConstantsConfig, getFormatDirectionConfig, getFormatSpeed } from "../../core/DefaultConstants";
 import { useFormat, type Format } from "../../hooks/useFormat";
 import MotionList from "./MotionList";
 import { moveMultipleSegments } from "./PathConfigUtils";
@@ -182,17 +182,8 @@ export default function GroupList({
     useEffect(() => {
         setLocked(segment.locked);
     }, [segment.locked])
-        
-    const getSpeed = (format: Format): number => {
-        switch (format) {
-            case "mikLib": return 12;
-            case "ReveilLib": return 1;
-            case "JAR-Template": return 12;
-            case "LemLib": return 127;
-        }
-    }
 
-    const speedScale = getSpeed(format);
+    const speedScale = getFormatSpeed(format);
 
     useEffect(() => {
         if (draggingIds.length === 0) {

@@ -2,7 +2,7 @@ import { useSyncExternalStore } from "react";
 import { createStore } from "../core/Store";
 import { DEFAULT_FORMAT } from "./useFileFormat";
 
-export type Format = "mikLib" | "ReveilLib" | "JAR-Template" | "LemLib";
+export type Format = "mikLib" | "ReveilLib" | "JAR-Template" | "LemLib" | "RW-Template"
 
 const saved = localStorage.getItem("appState");
 const initialData = saved ? JSON.parse(saved) : DEFAULT_FORMAT;

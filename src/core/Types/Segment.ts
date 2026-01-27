@@ -14,11 +14,13 @@ export type SegmentKind =
   | "angleTurn"
   | "angleSwing"
   | "pointSwing"
+  | "distanceDrive"
   | "start"
   | "group";
 
 export type ConstantsByFormat = {
   mikLib: {
+    distanceDrive: mikDriveConstants;
     pointDrive: mikDriveConstants;
     poseDrive: mikDriveConstants;
     pointTurn: mikTurnConstants;
@@ -29,6 +31,7 @@ export type ConstantsByFormat = {
     group: string;
   };
   ReveilLib: {
+    distanceDrive: revDriveConstants;
     pointDrive: revDriveConstants;
     poseDrive: revDriveConstants;
     pointTurn: revTurnConstants;
@@ -39,6 +42,7 @@ export type ConstantsByFormat = {
     group: string;
   };
   "JAR-Template": {
+    distanceDrive: mikDriveConstants;
     pointDrive: mikDriveConstants;
     poseDrive: mikDriveConstants;
     pointTurn: mikTurnConstants;
@@ -49,6 +53,18 @@ export type ConstantsByFormat = {
     group: string;
   };
   LemLib: {
+    distanceDrive: mikDriveConstants;
+    pointDrive: mikDriveConstants;
+    poseDrive: mikDriveConstants;
+    pointTurn: mikTurnConstants;
+    angleTurn: mikTurnConstants;
+    angleSwing: mikSwingConstants;
+    pointSwing: mikSwingConstants;
+    start: undefined;
+    group: string;
+  };
+  "RW-Template": {
+    distanceDrive: mikDriveConstants;
     pointDrive: mikDriveConstants;
     poseDrive: mikDriveConstants;
     pointTurn: mikTurnConstants;
@@ -185,6 +201,23 @@ export function createPointSwingSegment<F extends Format>(format: F, pose: Pose)
     constants: getDefaultConstants(format, "pointSwing"),
   };
 }
+
+export function createDistanceSegment<F extends Format>(format: F, pose: Pose): Segment<F, "distanceDrive"> {
+  return {
+    id: makeId(10),
+    selected: false,
+    hovered: false,
+    locked: false,
+    disabled: false,
+    visible: true,
+    command: createCommand(''),
+    pose,
+    format,
+    kind: "distanceDrive",
+    constants: getDefaultConstants(format, "distanceDrive"),
+  };
+}
+
 
 export function segmentsEqual(a: Segment, b: Segment): boolean {
   return (

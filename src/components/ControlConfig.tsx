@@ -173,37 +173,65 @@ export default function ControlConfig() {
             });
     }
     
+    const selectedSegment = path.segments.find((s) => s.selected)?.kind;
 
     return (
         <div className="flex flex-row items-center justify-center gap-4 bg-medgray w-[500px] h-[65px] rounded-lg">
-            <div className="flex items-center gap-2">
-                <span style={{ fontSize: 20 }}>X</span>
-                <NumberInput 
-                    width={80}
-                    height={40}
-                    fontSize={18}
-                    setValue={format === "ReveilLib" ? updateYValue : updateXValue } 
-                    value={format === "ReveilLib" ? getYValue() : getXValue() } 
-                    stepSize={1}
-                    roundTo={2}
-                    bounds={[-999, 999]}
-                    units="in"
-                />
-            </div>
-            <div className="flex items-center gap-2">
-                <span style={{ fontSize: 20 }}>Y</span>
-                <NumberInput 
-                    width={80}
-                    height={40}
-                    fontSize={18}
-                    stepSize={1}
-                    roundTo={2}
-                    setValue={format === "ReveilLib" ? updateXValue : updateYValue } 
-                    value={format === "ReveilLib" ? getXValue() : getYValue() } 
-                    bounds={[-999, 999]}
-                    units="in"
-                />
-            </div>
+            { selectedSegment !== "distanceDrive" &&
+                <>
+                    <div className="flex items-center gap-2">
+                        <span style={{ fontSize: 20 }}>X</span>
+                        <NumberInput 
+                            width={80}
+                            height={40}
+                            fontSize={18}
+                            setValue={format === "ReveilLib" ? updateYValue : updateXValue } 
+                            value={format === "ReveilLib" ? getYValue() : getXValue() } 
+                            stepSize={1}
+                            roundTo={2}
+                            bounds={[-999, 999]}
+                            units="in"
+                        />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span style={{ fontSize: 20 }}>Y</span>
+                        <NumberInput 
+                            width={80}
+                            height={40}
+                            fontSize={18}
+                            stepSize={1}
+                            roundTo={2}
+                            setValue={format === "ReveilLib" ? updateXValue : updateYValue } 
+                            value={format === "ReveilLib" ? getXValue() : getYValue() } 
+                            bounds={[-999, 999]}
+                            units="in"
+                        />
+                    </div>
+                </>
+            }
+
+            { selectedSegment === "distanceDrive" &&
+                <>
+                    <div className="w-[100px]"></div>
+                    <div className="flex items-center gap-2">
+                        <span style={{ fontSize: 20 }}>Δ</span>
+                        <NumberInput 
+                            width={80}
+                            height={40}
+                            fontSize={18}
+                            setValue={format === "ReveilLib" ? updateYValue : updateXValue } 
+                            value={format === "ReveilLib" ? getYValue() : getXValue() } 
+                            stepSize={1}
+                            roundTo={2}
+                            bounds={[-999, 999]}
+                            units="in"
+                        />
+                    </div>
+                </>
+            }
+
+
+
             <div className="flex items-center gap-2">
                 <span style={{ fontSize: 20 }}>θ</span>
                 <NumberInput 

@@ -10,7 +10,6 @@ import { clonePID, kMikAngleSwing, kMikAngleTurn, kMikBoomerang, kMikBoomerangHe
 import { createObjectStore } from "./Store";
 import type { CycleImageButtonProps } from "../components/Util/CycleButton";
 import { getRevConstantsConfig } from "./ReveiLibSim/RevConstantsConfig";
-import { DEFAULT_FORMAT } from "../hooks/useFileFormat";
 
 export type DefaultConstant = {
     [F in Format]: {
@@ -20,40 +19,65 @@ export type DefaultConstant = {
 
 export const INITIAL_DEFAULTS: DefaultConstant = {
   mikLib: {
+    distanceDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
     pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
     poseDrive:  { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
     pointTurn:  { turn: clonePID(kMikPointTurn) },
     angleTurn:  { turn: clonePID(kMikAngleTurn) },
     angleSwing: { swing: clonePID(kMikAngleSwing) },
     pointSwing: { swing: clonePID(kMikPointSwing) },
+    group: "",
+    start: undefined,
   },
 
   ReveilLib: {
+    distanceDrive: { drive: cloneKRev(kPilon) },
     pointDrive: { drive: cloneKRev(kPilon) },
     poseDrive:  { drive: cloneKRev(kBoomerang) },
     pointTurn:  { turn: cloneKRev(kLootAt) },
     angleTurn:  { turn: cloneKRev(kTurn) },
     angleSwing: { turn: cloneKRev(kTurn) },
     pointSwing: { turn: cloneKRev(kTurn) },
+    group: "",
+    start: undefined,    
   },
 
   "JAR-Template": {
+    distanceDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
     pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
     poseDrive:  { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
     pointTurn:  { turn: clonePID(kMikPointTurn) },
     angleTurn:  { turn: clonePID(kMikAngleTurn) },
     angleSwing: { swing: clonePID(kMikAngleSwing) },
     pointSwing: { swing: clonePID(kMikPointSwing) },
+    group: "",
+    start: undefined,
   },
 
   LemLib: {
+    distanceDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
     pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
     poseDrive:  { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
     pointTurn:  { turn: clonePID(kMikPointTurn) },
     angleTurn:  { turn: clonePID(kMikAngleTurn) },
     angleSwing: { swing: clonePID(kMikAngleSwing) },
     pointSwing: { swing: clonePID(kMikPointSwing) },
+    group: "",
+    start: undefined,
   },
+
+  "RW-Template": {
+    distanceDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
+    pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
+    poseDrive:  { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
+    pointTurn:  { turn: clonePID(kMikPointTurn) },
+    angleTurn:  { turn: clonePID(kMikAngleTurn) },
+    angleSwing: { swing: clonePID(kMikAngleSwing) },
+    pointSwing: { swing: clonePID(kMikPointSwing) },
+    group: "",
+    start: undefined,
+  },
+
 };
 
 export const globalDefaultsStore = createObjectStore<DefaultConstant>(INITIAL_DEFAULTS);
@@ -171,6 +195,7 @@ export function getFormatPathName(format: Format) {
     case "ReveilLib": return "ReveilLib Path";
     case "JAR-Template": return "JAR-Template Path";
     case "LemLib": return "LemLib Path";
+    case "RW-Template": return "RW-Template Path"
   }
 }
 
@@ -179,6 +204,134 @@ export function getFormatSpeed(format: Format): number {
     case "mikLib": return 12;
     case "ReveilLib": return 1;
     case "JAR-Template": return 12;
+    case "RW-Template": return 12;
     case "LemLib": return 127;
   }
+}
+
+export function segmentAllowed(format: Format, segment: SegmentKind): boolean {
+  switch (format) {
+    case "mikLib": {
+      switch (segment) {
+        case "pointDrive": return true;
+        case "poseDrive": return true;
+        case "pointTurn": return true;
+        case "angleTurn": return true;
+        case "angleSwing": return true;
+        case "pointSwing": return true;
+        case "distanceDrive": return true;
+      }
+      break;
+    }
+    case "ReveilLib": {
+      switch (segment) {
+        case "pointDrive": return true;
+        case "poseDrive": return true;
+        case "pointTurn": return true;
+        case "angleTurn": return true;
+        case "angleSwing": return false;
+        case "pointSwing": return false;
+        case "distanceDrive": return false;
+      }
+      break;
+    }
+    case "JAR-Template": {
+      switch (segment) {
+        case "pointDrive": return true;
+        case "poseDrive": return true;
+        case "pointTurn": return true;
+        case "angleTurn": return true;
+        case "angleSwing": return true;
+        case "pointSwing": return false;
+        case "distanceDrive": return true;
+      }
+      break;
+    }
+    case "RW-Template": {
+      switch (segment) {
+        case "pointDrive": return true;
+        case "poseDrive": return true;
+        case "pointTurn": return true;
+        case "angleTurn": return true;
+        case "angleSwing": return true;
+        case "pointSwing": return true;
+        case "distanceDrive": return true;
+      }
+      break;
+    }
+    case "LemLib": {
+      switch (segment) {
+        case "pointDrive": return true;
+        case "poseDrive": return true;
+        case "pointTurn": return true;
+        case "angleTurn": return true;
+        case "angleSwing": return true;
+        case "pointSwing": return true;
+        case "distanceDrive": return false;
+      }
+      break;
+    }
+  }
+  return false;
+}
+
+export function getSegmentName(format: Format, segment: SegmentKind): string {
+  switch (format) {
+    case "mikLib": {
+      switch (segment) {
+        case "pointDrive": return "Drive to Point";
+        case "poseDrive": return "Drive to Pose";
+        case "pointTurn": return "Turn to Point";
+        case "angleTurn": return "Turn to Angle";
+        case "angleSwing": return "Swing to Angle";
+        case "pointSwing": return "Swing to Point";
+        case "distanceDrive": return "Drive Distance";
+      }
+      break;
+    }
+    case "ReveilLib": {
+      switch (segment) {
+        case "pointDrive": return "Pilons Segment";
+        case "poseDrive": return "Boomerang Segment";
+        case "pointTurn": return "Look At";
+        case "angleTurn": return "Turn Segment";
+      }
+      break;
+    }
+    case "JAR-Template": {
+      switch (segment) {
+        case "pointDrive": return "Drive to Point";
+        case "poseDrive": return "Drive to Pose";
+        case "pointTurn": return "Turn to Point";
+        case "angleTurn": return "Turn to Angle";
+        case "angleSwing": return "Swing to Angle";
+        case "distanceDrive": return "Drive Distance";
+        
+      }
+      break;
+    }
+    case "RW-Template": {
+      switch (segment) {
+        case "pointDrive": return "Move To Point";
+        case "poseDrive": return "Boomerang";
+        case "pointTurn": return "Turn To Point";
+        case "angleTurn": return "Turn To Angle";
+        case "angleSwing": return "Swing";
+        case "distanceDrive": return "Drive To";
+      }
+      break;
+    }
+    case "LemLib": {
+      switch (segment) {
+        case "pointDrive": return "Move To Point";
+        case "poseDrive": return "Move To Pose";
+        case "pointTurn": return "Turn To Point";
+        case "angleTurn": return "Turn To Heading";
+        case "angleSwing": return "Swing To Angle";
+        case "pointSwing": return "Swing To Point";
+      }
+      break;
+    }
+  }
+  return "";
 }
