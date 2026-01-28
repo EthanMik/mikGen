@@ -137,11 +137,31 @@ export const kMikPointDrive: PIDConstants = createPIDConstants({
     timeout: 5000,
 });
 
+export const kMikDistanceDrive: PIDConstants = createPIDConstants({
+    maxSpeed: 10,
+    minSpeed: 0,
+    kp: 1.5,
+    ki: 0,
+    kd: 10,
+    starti: 0, 
+    settleTime: 300,
+    settleError: 1,
+    timeout: 5000,
+});
+
 export const kMikPointDriveHeading: PIDConstants = createPIDConstants({
     maxSpeed: 10,
     kp: .4,
     ki: 0,
     kd: 3,
+    starti: 0,
+});
+
+export const kMikDistanceDriveHeading: PIDConstants = createPIDConstants({
+    maxSpeed: 8,
+    kp: .4,
+    ki: 0,
+    kd: 1,
     starti: 0,
 });
 

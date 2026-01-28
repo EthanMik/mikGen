@@ -113,38 +113,50 @@ export class Robot {
     }
 
     tankDrive(leftCmd: number, rightCmd: number, dt: number) {
-        const b_in = this.trackWidth;
-        const v_max_ft = this.maxSpeed;
+        const b_in = this.trackWidth;      // Distance between wheel centers (inches)
+        const v_max_ft = this.maxSpeed;    // Maximum linear velocity (feet/second)
 
+        // Input is in the range -1 to 1, with - being reverse
         const left  = clamp(leftCmd,  -1, 1);
         const right = clamp(rightCmd, -1, 1);
 
+        // Convert commands to wheel velocities (ft/s)
         const targetVL_ft = left  * v_max_ft;
         const targetVR_ft = right * v_max_ft;
 
+        // Apply acceleration limits to smoothly approach target velocity
         this.vL = this.moveTowards(this.vL, targetVL_ft, dt);
         this.vR = this.moveTowards(this.vR, targetVR_ft, dt);
 
+        // Convert wheel velocities to inches/second for position calculations
         const vL_in = this.vL * 12;
         const vR_in = this.vR * 12;
 
-        const v_in  = (vR_in + vL_in) / 2;        
+        // Calculate linear velocity
+        const v_in = (vR_in + vL_in) / 2;
 
+        // Calculate angular velocity using differential drive kinematic equation
         const ω = (vL_in - vR_in) / b_in;
 
+        // Get current heading
         const θdeg = this.getAngle();
         const θ = toRad(θdeg);
 
+        // Calculate unit vector in forward direction
+        // For our coordinate system: forward is (sin θ, cos θ)
         const forwardX = Math.sin(θ);
         const forwardY = Math.cos(θ);
 
+        // Update position using Euler integration
         const xNew = this.getX() + v_in * forwardX * dt;
         const yNew = this.getY() + v_in * forwardY * dt;
 
+        // Update heading
         const θNew = θ + ω * dt;
         let θdegNew = toDeg(θNew);
         θdegNew = normalizeDeg(θdegNew);
 
+        // Update pose
         this.setX(xNew);
         this.setY(yNew);
         this.setAngle(θdegNew);

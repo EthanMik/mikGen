@@ -1,4 +1,5 @@
 import { getDefaultConstants } from "../core/DefaultConstants";
+import { driveDistance } from "../core/mikLibSim/DriveMotions/DriveDistance";
 import { driveToPoint } from "../core/mikLibSim/DriveMotions/DriveToPoint";
 import { driveToPose } from "../core/mikLibSim/DriveMotions/DriveToPose";
 import { swingToAngle } from "../core/mikLibSim/DriveMotions/SwingToAngle";
@@ -6,6 +7,7 @@ import { swingToPoint } from "../core/mikLibSim/DriveMotions/SwingToPoint";
 import { turnToAngle } from "../core/mikLibSim/DriveMotions/TurnToAngle";
 import { turnToPoint } from "../core/mikLibSim/DriveMotions/TurnToPoint";
 import { PID } from "../core/mikLibSim/PID";
+import { dist } from "../core/ReveiLibSim/Util";
 import type { Robot } from "../core/Robot";
 import type { Coordinate } from "../core/Types/Coordinate";
 import { getBackwardsSnapPose, getForwardSnapPose, type Path } from "../core/Types/Path";
@@ -22,6 +24,9 @@ export function mikLibToSim(path: Path) {
 
     const pointSwingPID = new PID(getDefaultConstants("mikLib", "pointSwing").swing);
     const angleSwingPID = new PID(getDefaultConstants("mikLib", "angleSwing").swing);
+
+    const distanceDrivePID = new PID(getDefaultConstants("mikLib", "distanceDrive").drive);
+    const distanceHeadingPID = new PID(getDefaultConstants("mikLib", "distanceDrive").heading);
 
     
     const auton: ((robot: Robot, dt: number) => boolean)[] = [];
@@ -127,6 +132,21 @@ export function mikLibToSim(path: Path) {
                     return swingToAngle(robot, dt, angle, angleSwingPID);
                 }
             );                 
+        }
+        
+        if (control.kind === "distanceDrive") {
+            const previousPos = getBackwardsSnapPose(path, idx - 1);
+            const distance = dist(previousPos?.x ?? 0, previousPos?.y ?? 0, x, y);
+
+            const { drive, heading } = control.constants;
+
+            auton.push(
+                (robot: Robot, dt: number): boolean => { 
+                    distanceDrivePID.update(drive);
+                    distanceHeadingPID.update(heading);
+                    return driveDistance(robot, dt, distance, 0, distanceDrivePID, distanceHeadingPID);
+                }
+            );             
         }
 
 

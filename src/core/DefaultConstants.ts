@@ -6,7 +6,7 @@ import { getmikLibConstantsConfig, getMikLibDirectionConfig } from "./mikLibSim/
 import { cloneKRev, kBoomerang, kLootAt, kPilon, kTurn } from "./ReveiLibSim/RevConstants";
 import type { ConstantsByFormat, SegmentKind } from "./Types/Segment";
 import type { Path } from "./Types/Path";
-import { clonePID, kMikAngleSwing, kMikAngleTurn, kMikBoomerang, kMikBoomerangHeading, kMikPointDrive, kMikPointDriveHeading, kMikPointSwing, kMikPointTurn } from "./mikLibSim/MikConstants";
+import { clonePID, kMikAngleSwing, kMikAngleTurn, kMikBoomerang, kMikBoomerangHeading, kMikDistanceDrive, kMikDistanceDriveHeading, kMikPointDrive, kMikPointDriveHeading, kMikPointSwing, kMikPointTurn } from "./mikLibSim/MikConstants";
 import { createObjectStore } from "./Store";
 import type { CycleImageButtonProps } from "../components/Util/CycleButton";
 import { getRevConstantsConfig } from "./ReveiLibSim/RevConstantsConfig";
@@ -19,7 +19,7 @@ export type DefaultConstant = {
 
 export const INITIAL_DEFAULTS: DefaultConstant = {
   mikLib: {
-    distanceDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
+    distanceDrive: { drive: clonePID(kMikDistanceDrive), heading: clonePID(kMikDistanceDriveHeading) },
     pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
     poseDrive:  { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
     pointTurn:  { turn: clonePID(kMikPointTurn) },
