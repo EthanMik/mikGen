@@ -7,6 +7,7 @@ import { useFileFormat, type FileFormat } from "../../hooks/useFileFormat";
 import { INITIAL_DEFAULTS } from "../../core/DefaultConstants";
 import { defaultRobotConstants } from "../../core/Robot";
 import { useField } from "../../hooks/useField";
+import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 
 const SAVED_SNAPSHOT_KEY = "savedSnapshot";
 
@@ -105,15 +106,16 @@ export default function FileButton() {
             handleSaveAs();
         }
 
-        setFileFormat({
-                format: format,
-                field: field,
-                defaults: INITIAL_DEFAULTS[format],
-                path: { segments: [], name: "" },
-                robot: defaultRobotConstants,
-                commands: []
-            }
-        );
+        const newFileFormat = {
+            format: format,
+            field: field,
+            defaults: INITIAL_DEFAULTS[format],
+            path: { segments: [], name: "" },
+            robot: defaultRobotConstants,
+            commands: []
+        };
+        setFileFormat(newFileFormat);
+        AddToUndoHistory(structuredClone(newFileFormat));
         fileHandleRef.current = null;
         setOpen(false);
         savedSnapshotRef.current = null;
@@ -161,14 +163,16 @@ export default function FileButton() {
             
             const fileName = handle.name.replace(/\.[^/.]+$/, "");
             const parsed = JSON.parse(content) as FileFormat;
-            
-            setFileFormat({
+
+            const newFileFormat = {
                 ...parsed,
                 path: {
                     ...parsed.path,
                     name: fileName
                 }
-            });
+            };
+            setFileFormat(newFileFormat);
+            AddToUndoHistory(structuredClone(newFileFormat));
             savedSnapshotRef.current = null;
             localStorage.removeItem(SAVED_SNAPSHOT_KEY);
 
@@ -184,19 +188,20 @@ export default function FileButton() {
         const file = event.target.files?.[0];
         if (file) {
             const fileName = file.name.replace(/\.[^/.]+$/, "");
-            
             const reader = new FileReader();
             reader.onload = (e) => {
                 const content = e.target?.result as string;
                 const parsed = JSON.parse(content) as FileFormat;
-                
-                setFileFormat({
+
+                const newFileFormat = {
                     ...parsed,
                     path: {
                         ...parsed.path,
                         name: fileName
                     }
-                });
+                };
+                setFileFormat(newFileFormat);
+                AddToUndoHistory(structuredClone(newFileFormat));
             };
             reader.readAsText(file);
 
