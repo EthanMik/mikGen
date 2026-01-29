@@ -4,28 +4,25 @@ Bugs:
 - Remove-Item -Recurse -Force node_modules/.vite
 - make it so when you drag a segment the cursor goes to grab, also controls do not snap to postive numbers anymore
 - Fix undo redo to work on entire app data tree (still need to do commands)
-
-- sim is regenerated on path updates
+- spamming R makes the path time reduce
 - make the group dropping css look better
-- optimize computed path so it doesnt update on path hovering
+- control config not updating the path??
 
 Todo:
 - add lemlib drive motions - jar template can just use mikLib with small modifications
 - add ability to add more commands and make them be color coded, revamp command menu to not limit length and allow them to be modifed not just deleted
 - copy with merge, code leaves other auton code untouched
 - distance segments
+- make it so operators work in number input
 
 Planned:
+- tooltip when hovering over svg buttons
 - collision
 - make it so double clicking the eye turn off the path lines 
-
 - square drag to select add to path config
-- tooltip when hovering over svg buttons
 - Mecum drive motions ☠️ (robot sim is complete)
 - google analytics
-- make it so operators work in number input
 - add example paths
-
 - Bezier segments
 
 Deciding:
@@ -42,3 +39,8 @@ lemlib notes
 
 rw notes
 - heading correction is separate
+
+
+command notes
+- abiltiy to change colors of the command. The color appears on the robot, then disapears
+- Add built in commands corrosponding to template

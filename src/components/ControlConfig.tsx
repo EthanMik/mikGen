@@ -1,5 +1,7 @@
+import { useEffect, useRef } from "react";
 import flipHorizontal from "../assets/flip-horizontal.svg";
 import flipVertical from "../assets/flip-vertical.svg";
+import { AddToUndoHistory } from "../core/Undo/UndoHistory";
 import { normalizeDeg } from "../core/Util";
 import { useFormat } from "../hooks/useFormat";
 import { usePath } from "../hooks/usePath";
@@ -175,6 +177,15 @@ export default function ControlConfig() {
     
     const selectedSegment = path.segments.find((s) => s.selected)?.kind;
 
+    const undoRef = useRef(false); 
+
+    useEffect(() => {
+        if (undoRef.current) {
+            AddToUndoHistory( { path: path});
+            undoRef.current = false;
+        }
+    }, [path])
+
     return (
         <div className="flex flex-row items-center justify-center gap-4 bg-medgray w-[500px] h-[65px] rounded-lg">
             { selectedSegment !== "distanceDrive" &&
@@ -185,12 +196,13 @@ export default function ControlConfig() {
                             width={80}
                             height={40}
                             fontSize={18}
-                            setValue={format === "ReveilLib" ? updateYValue : updateXValue } 
-                            value={format === "ReveilLib" ? getYValue() : getXValue() } 
+                            setValue={format === "ReveilLib" ? updateYValue : updateXValue }
+                            value={format === "ReveilLib" ? getYValue() : getXValue() }
                             stepSize={1}
                             roundTo={2}
                             bounds={[-999, 999]}
                             units="in"
+                            addToHistory={() => {undoRef.current = true}}
                         />
                     </div>
                     <div className="flex items-center gap-2">
@@ -205,6 +217,7 @@ export default function ControlConfig() {
                             value={format === "ReveilLib" ? getXValue() : getYValue() } 
                             bounds={[-999, 999]}
                             units="in"
+                            addToHistory={() => {undoRef.current = true}}
                         />
                     </div>
                 </>
@@ -225,6 +238,7 @@ export default function ControlConfig() {
                             roundTo={2}
                             bounds={[-999, 999]}
                             units="in"
+                            addToHistory={() => {undoRef.current = true}}
                         />
                     </div>
                 </>
@@ -244,6 +258,7 @@ export default function ControlConfig() {
                     value={getHeadingValue()} 
                     bounds={[-Infinity, Infinity]}
                     units="deg"
+                    addToHistory={() => {undoRef.current = true}}
                 />
             </div>
             

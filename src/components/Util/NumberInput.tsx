@@ -54,7 +54,8 @@ export default function NumberInput({
   const prevClampedNum = useRef<number | null>(value);
 
   const addToHistoryCheck = (value: number | null ) => {
-    if (prevClampedNum.current !== value && value !== null) {
+    const prevNum = Number(prevClampedNum.current?.toFixed(2));
+    if (prevNum !== value && value !== null) {
       addToHistory?.(value);
     }
     prevClampedNum.current = value;
@@ -63,8 +64,7 @@ export default function NumberInput({
   const stepInput = useCallback((stepDirection: Direction) => {
       if (value === null) return;
 
-      const next =
-      stepDirection === 1 ? value + stepSize : value - stepSize;
+      const next = stepDirection === 1 ? value + stepSize : value - stepSize;
       
       const clamped = clamp(next, bounds[0], bounds[1]);
       if (clamped === undefined) return;
