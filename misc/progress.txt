@@ -44,3 +44,8 @@ rw notes
 command notes
 - abiltiy to change colors of the command. The color appears on the robot, then disapears
 - Add built in commands corrosponding to template
+- commands can be double clicked to edit
+- commands have color to them that matches vscode default theme
+- unknown commands will be white and just called as a lambda
+- paramter list to be added when commands are intialized like c++, idk how this will work for custom types
+- should I use typescipt types like number instead of ints bools, etc, hmm
