@@ -29,8 +29,8 @@ export type ConstantListField = {
 type MotionListProps = {
     name: string,
     speedScale: number,
-    field: ConstantListField[],
-    directionField: CycleImageButtonProps[],
+    field: ConstantListField[] | undefined,
+    directionField: CycleImageButtonProps[] | undefined,
     segmentId: string,
     isOpenGlobal: boolean,
     start?: boolean,
@@ -305,7 +305,7 @@ export default function MotionList({
 
             <span className="w-[50px] items-center shrink-0 text-left truncate">{name}</span>
             
-            {!start ? (
+            {!start && field !== undefined ? (
                 <Slider
                     sliderWidth={!shrink ? 210 : 160}
                     sliderHeight={5}
@@ -338,10 +338,10 @@ export default function MotionList({
 
             {!start && (
                 <span className="w-6 shrink-0 text-left tabular-nums pl-1">
-                {(field[0]?.values?.["maxSpeed"] ?? 0).toFixed(speedScale > 9.9 ? (speedScale > 99.9 ? 0 : 1) : 2)}
+                {field !== undefined && (field[0]?.values?.["maxSpeed"] ?? 0).toFixed(speedScale > 9.9 ? (speedScale > 99.9 ? 0 : 1) : 2)}
                 </span>
             )}
-            {directionField.length !== 0 && <div className="w-max flex flex-row items-center justify-end gap-2.5 pl-[12px]">
+            {directionField !== undefined && directionField.length !== 0 && <div className="w-max flex flex-row items-center justify-end gap-2.5 pl-[12px]">
                 {directionField.map((f, i) => (
                     <CycleImageButton
                         key={i}
@@ -366,7 +366,7 @@ export default function MotionList({
                 <div className="absolute left-[-16px] top-0 h-full w-[4px] rounded-full bg-medlightgray" />
 
                 <CommandList command={command} setCommand={setCommand} />
-                {field.map((f) => {
+                {field !== undefined && field.map((f) => {
                     const fieldKeys = f.fields.map((m) => m.key);
                     const relevantValues = getValuesFromKeys(fieldKeys, f.values);
                     const relevantDefaults = getValuesFromKeys(fieldKeys, f.defaults);

@@ -217,13 +217,14 @@ export function getMikLibDirectionConfig(
     path: Path, 
     setPath: React.Dispatch<SetStateAction<Path>>, 
     segmentId: string,
-): CycleImageButtonProps[] {
+): CycleImageButtonProps[] | undefined {
     const s = path.segments.find((c) => c.id === segmentId);
     if (s === undefined) return [];
     
     switch (s.kind) {
         case "pointDrive":
         case "poseDrive":
+        case "distanceDrive":
             return [
             createDriveDirectionGroup(path, setPath, segmentId, "drive"),
             ]
@@ -246,7 +247,7 @@ export function getmikLibConstantsConfig(
     path: Path, 
     setPath: React.Dispatch<SetStateAction<Path>>, 
     segmentId: string,
-): ConstantListField[] {
+): ConstantListField[] | undefined {
     const s = path.segments.find((c) => c.id === segmentId);
     if (s === undefined) return [];
 
@@ -261,5 +262,5 @@ export function getmikLibConstantsConfig(
         case "pointSwing":
             return createTurnPIDGroup(format, setPath, segmentId, s.kind, s.constants.swing, true);
     }
-
+    return undefined;
 }

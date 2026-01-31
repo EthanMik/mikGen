@@ -174,7 +174,7 @@ export function getDefaultConstants<F extends Format, K extends keyof ConstantsB
   return deepClone(constant);
 }
 
-export function getFormatConstantsConfig(format: Format, path: Path, setPath: React.Dispatch<SetStateAction<Path>>, segmentId: string): ConstantListField[] {
+export function getFormatConstantsConfig(format: Format, path: Path, setPath: React.Dispatch<SetStateAction<Path>>, segmentId: string): ConstantListField[] | undefined {
     switch (format) {
         case "mikLib": return getmikLibConstantsConfig(format, path, setPath, segmentId);
         case "ReveilLib" : return getRevConstantsConfig(format, path, setPath, segmentId);
@@ -182,9 +182,9 @@ export function getFormatConstantsConfig(format: Format, path: Path, setPath: Re
     return [];
 }
 
-export function getFormatDirectionConfig(format: Format, path: Path, setPath: React.Dispatch<SetStateAction<Path>>, segmentId: string): CycleImageButtonProps[] {
+export function getFormatDirectionConfig(format: Format, path: Path, setPath: React.Dispatch<SetStateAction<Path>>, segmentId: string): CycleImageButtonProps[] | undefined {
     switch (format) {
-        case "mikLib": return getMikLibDirectionConfig(path, setPath, segmentId)
+        case "mikLib": return getMikLibDirectionConfig(path, setPath, segmentId);
     }
     return [];
 }
