@@ -8,6 +8,7 @@ import { INITIAL_DEFAULTS } from "../../core/DefaultConstants";
 import { defaultRobotConstants } from "../../core/Robot";
 import { useField } from "../../hooks/useField";
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
+import { DEFAULT_COMMANDS } from "../../core/Types/Command";
 
 const SAVED_SNAPSHOT_KEY = "savedSnapshot";
 
@@ -112,7 +113,7 @@ export default function FileButton() {
             defaults: INITIAL_DEFAULTS[format],
             path: { segments: [], name: "" },
             robot: defaultRobotConstants,
-            commands: []
+            commands: DEFAULT_COMMANDS[format]
         };
         setFileFormat(newFileFormat);
         AddToUndoHistory(structuredClone(newFileFormat));

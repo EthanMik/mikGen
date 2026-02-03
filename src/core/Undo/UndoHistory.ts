@@ -17,9 +17,6 @@ export function AddToUndoHistory(snapshot: Partial<FileFormat>) {
     const previousState = current[current.length - 1] || {};
     const fullState = mergeDeep(previousState, snapshot);
 
-    // Replace defaults entirely rather than deep-merging, so that
-    // format-specific keys (e.g. mikLib's "swing" vs ReveilLib's "turn")
-    // don't bleed across formats in the undo history.
     if (snapshot.defaults !== undefined) {
         fullState.defaults = snapshot.defaults;
     }

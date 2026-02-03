@@ -1,9 +1,10 @@
 import { makeId } from "../Util";
+import type { Format } from "../../hooks/useFormat";
 
 export type CommandString = {
     name: string,
     color: string
-};  
+};
 
 export const builtInCommands: CommandString[] = [
     { name: "wait", color: "#dcdcaa" },
@@ -16,8 +17,33 @@ export const builtInCommands: CommandString[] = [
     { name: "task", color: "#4ec9b0" },
     { name: "pros", color: "#4ec9b0" },
 
-    { name: "()", color: "#569cd6"}
-]  
+    { name: "()", color: "#569cd6" },
+
+    { name: "sec", color: "#9cdcfe" },
+    { name: "msec", color: "#9cdcfe" },
+
+    
+]
+
+export const DEFAULT_COMMANDS: Record<Format, Command[]> = {
+    mikLib: [
+        createCommand("wait(number, msec)"),
+        createCommand("wait(number, sec)"),
+        createCommand("task::sleep(number)")
+    ],
+    ReveilLib: [
+        createCommand("pros::delay(number)")
+    ],
+    "JAR-Template": [
+
+    ],
+    LemLib: [
+
+    ],
+    "RW-Template": [
+
+    ]
+}
 
 export interface Command {
     name: string,

@@ -1,7 +1,7 @@
 import { INITIAL_DEFAULTS, type DefaultConstant } from "../core/DefaultConstants"
 import { defaultRobotConstants, type RobotConstants } from "../core/Robot"
 import { createSharedState } from "../core/SharedState"
-import type { Command } from "../core/Types/Command"
+import { DEFAULT_COMMANDS, type Command } from "../core/Types/Command"
 import type { Path } from "../core/Types/Path"
 import type { FieldType } from "./useField"
 import type { Format } from "./useFormat"
@@ -22,7 +22,7 @@ export const DEFAULT_FORMAT: FileFormat = {
     defaults: INITIAL_DEFAULTS["mikLib"],
     path: { segments: [], name: "" },
     robot: defaultRobotConstants,
-    commands: []
+    commands: DEFAULT_COMMANDS["mikLib"]
 }
 
 const saved = localStorage.getItem("appState");
