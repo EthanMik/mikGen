@@ -517,10 +517,6 @@
     margin-top: 10px;
   }
 
-  .mb-1 {
-    margin-bottom: calc(var(--spacing) * 1);
-  }
-
   .mb-2 {
     margin-bottom: calc(var(--spacing) * 2);
   }
@@ -683,6 +679,10 @@
 
   .w-60 {
     width: calc(var(--spacing) * 60);
+  }
+
+  .w-62 {
+    width: calc(var(--spacing) * 62);
   }
 
   .w-\[4px\] {

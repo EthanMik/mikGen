@@ -12771,6 +12771,9 @@ function AddToUndoHistory(snapshot) {
   const current = undoHistory.getState();
   const previousState = current[current.length - 1] || {};
   const fullState = mergeDeep(previousState, snapshot);
+  if (snapshot.defaults !== void 0) {
+    fullState.defaults = snapshot.defaults;
+  }
   let newHistory = [...current, fullState];
   while (newHistory.length > MAX_UNDO_HISTORY) {
     newHistory = newHistory.slice(1);
@@ -12922,6 +12925,7 @@ function getMikLibDirectionConfig(path, setPath, segmentId) {
   switch (s.kind) {
     case "pointDrive":
     case "poseDrive":
+    case "distanceDrive":
       return [
         createDriveDirectionGroup(path, setPath, segmentId, "drive")
       ];
@@ -12952,6 +12956,7 @@ function getmikLibConstantsConfig(format, path, setPath, segmentId) {
     case "pointSwing":
       return createTurnPIDGroup$1(format, setPath, segmentId, s.kind, s.constants.swing, true);
   }
+  return void 0;
 }
 const cloneKRev = (c) => ({ ...c });
 function createRevConstants(values = {}) {
@@ -13078,11 +13083,29 @@ const kMikPointDrive = createPIDConstants({
   settleError: 3,
   timeout: 5e3
 });
+const kMikDistanceDrive = createPIDConstants({
+  maxSpeed: 10,
+  minSpeed: 0,
+  kp: 1.5,
+  ki: 0,
+  kd: 10,
+  starti: 0,
+  settleTime: 300,
+  settleError: 1,
+  timeout: 5e3
+});
 const kMikPointDriveHeading = createPIDConstants({
   maxSpeed: 10,
   kp: 0.4,
   ki: 0,
   kd: 3,
+  starti: 0
+});
+const kMikDistanceDriveHeading = createPIDConstants({
+  maxSpeed: 8,
+  kp: 0.4,
+  ki: 0,
+  kd: 1,
   starti: 0
 });
 const kMikBoomerang = createPIDConstants({
@@ -13156,8 +13179,8 @@ const createDrivePIDGroup = (format, setPath, segmentId, segmentKind, driveConst
       values: driveConstants,
       fields: [
         { key: "stopCoastPower", units: "percent", label: "Coast Power", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } },
-        { key: "stopCoastThreshold", units: "ms", label: "Coast Thresh", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
-        { key: "stopHarshThreshold", units: "ms", label: "Harsh Thresh", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+        { key: "stopCoastThreshold", units: "ms", label: "kThresh", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+        { key: "stopHarshThreshold", units: "ms", label: "kHarsh", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
         { key: "brakeTime", units: "ms", label: "Brake Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
         { key: "dropEarly", units: "in", label: "Drop Early", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 1 } }
       ],
@@ -13199,6 +13222,7 @@ function getRevConstantsConfig(format, path, setPath, segmentId) {
   switch (s.kind) {
     case "pointDrive":
     case "poseDrive":
+    case "distanceDrive":
       return createDrivePIDGroup(format, setPath, segmentId, s.kind, s.constants.drive);
     case "pointTurn":
     case "angleTurn":
@@ -13207,39 +13231,63 @@ function getRevConstantsConfig(format, path, setPath, segmentId) {
     case "pointSwing":
       return createTurnPIDGroup(format, setPath, segmentId, s.kind, s.constants.turn);
   }
+  return void 0;
 }
 const INITIAL_DEFAULTS = {
   mikLib: {
+    distanceDrive: { drive: clonePID(kMikDistanceDrive), heading: clonePID(kMikDistanceDriveHeading) },
     pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
     poseDrive: { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
     pointTurn: { turn: clonePID(kMikPointTurn) },
     angleTurn: { turn: clonePID(kMikAngleTurn) },
     angleSwing: { swing: clonePID(kMikAngleSwing) },
-    pointSwing: { swing: clonePID(kMikPointSwing) }
+    pointSwing: { swing: clonePID(kMikPointSwing) },
+    group: "",
+    start: void 0
   },
   ReveilLib: {
+    distanceDrive: { drive: cloneKRev(kPilon) },
     pointDrive: { drive: cloneKRev(kPilon) },
     poseDrive: { drive: cloneKRev(kBoomerang) },
     pointTurn: { turn: cloneKRev(kLootAt) },
     angleTurn: { turn: cloneKRev(kTurn) },
     angleSwing: { turn: cloneKRev(kTurn) },
-    pointSwing: { turn: cloneKRev(kTurn) }
+    pointSwing: { turn: cloneKRev(kTurn) },
+    group: "",
+    start: void 0
   },
   "JAR-Template": {
+    distanceDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
     pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
     poseDrive: { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
     pointTurn: { turn: clonePID(kMikPointTurn) },
     angleTurn: { turn: clonePID(kMikAngleTurn) },
     angleSwing: { swing: clonePID(kMikAngleSwing) },
-    pointSwing: { swing: clonePID(kMikPointSwing) }
+    pointSwing: { swing: clonePID(kMikPointSwing) },
+    group: "",
+    start: void 0
   },
   LemLib: {
+    distanceDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
     pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
     poseDrive: { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
     pointTurn: { turn: clonePID(kMikPointTurn) },
     angleTurn: { turn: clonePID(kMikAngleTurn) },
     angleSwing: { swing: clonePID(kMikAngleSwing) },
-    pointSwing: { swing: clonePID(kMikPointSwing) }
+    pointSwing: { swing: clonePID(kMikPointSwing) },
+    group: "",
+    start: void 0
+  },
+  "RW-Template": {
+    distanceDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
+    pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
+    poseDrive: { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
+    pointTurn: { turn: clonePID(kMikPointTurn) },
+    angleTurn: { turn: clonePID(kMikAngleTurn) },
+    angleSwing: { swing: clonePID(kMikAngleSwing) },
+    pointSwing: { swing: clonePID(kMikPointSwing) },
+    group: "",
+    start: void 0
   }
 };
 const globalDefaultsStore = createObjectStore(INITIAL_DEFAULTS);
@@ -13339,6 +13387,8 @@ function getFormatPathName(format) {
       return "JAR-Template Path";
     case "LemLib":
       return "LemLib Path";
+    case "RW-Template":
+      return "RW-Template Path";
   }
 }
 function getFormatSpeed(format) {
@@ -13349,9 +13399,199 @@ function getFormatSpeed(format) {
       return 1;
     case "JAR-Template":
       return 12;
+    case "RW-Template":
+      return 12;
     case "LemLib":
       return 127;
   }
+}
+function segmentAllowed(format, segment) {
+  switch (format) {
+    case "mikLib": {
+      switch (segment) {
+        case "pointDrive":
+          return true;
+        case "poseDrive":
+          return true;
+        case "pointTurn":
+          return true;
+        case "angleTurn":
+          return true;
+        case "angleSwing":
+          return true;
+        case "pointSwing":
+          return true;
+        case "distanceDrive":
+          return true;
+      }
+      break;
+    }
+    case "ReveilLib": {
+      switch (segment) {
+        case "pointDrive":
+          return true;
+        case "poseDrive":
+          return true;
+        case "pointTurn":
+          return true;
+        case "angleTurn":
+          return true;
+        case "angleSwing":
+          return false;
+        case "pointSwing":
+          return false;
+        case "distanceDrive":
+          return false;
+      }
+      break;
+    }
+    case "JAR-Template": {
+      switch (segment) {
+        case "pointDrive":
+          return true;
+        case "poseDrive":
+          return true;
+        case "pointTurn":
+          return true;
+        case "angleTurn":
+          return true;
+        case "angleSwing":
+          return true;
+        case "pointSwing":
+          return false;
+        case "distanceDrive":
+          return true;
+      }
+      break;
+    }
+    case "RW-Template": {
+      switch (segment) {
+        case "pointDrive":
+          return true;
+        case "poseDrive":
+          return true;
+        case "pointTurn":
+          return true;
+        case "angleTurn":
+          return true;
+        case "angleSwing":
+          return true;
+        case "pointSwing":
+          return true;
+        case "distanceDrive":
+          return true;
+      }
+      break;
+    }
+    case "LemLib": {
+      switch (segment) {
+        case "pointDrive":
+          return true;
+        case "poseDrive":
+          return true;
+        case "pointTurn":
+          return true;
+        case "angleTurn":
+          return true;
+        case "angleSwing":
+          return true;
+        case "pointSwing":
+          return true;
+        case "distanceDrive":
+          return false;
+      }
+      break;
+    }
+  }
+  return false;
+}
+function getSegmentName(format, segment) {
+  switch (format) {
+    case "mikLib": {
+      switch (segment) {
+        case "pointDrive":
+          return "Drive to Point";
+        case "poseDrive":
+          return "Drive to Pose";
+        case "pointTurn":
+          return "Turn to Point";
+        case "angleTurn":
+          return "Turn to Angle";
+        case "angleSwing":
+          return "Swing to Angle";
+        case "pointSwing":
+          return "Swing to Point";
+        case "distanceDrive":
+          return "Drive Distance";
+      }
+      break;
+    }
+    case "ReveilLib": {
+      switch (segment) {
+        case "pointDrive":
+          return "Pilons Segment";
+        case "poseDrive":
+          return "Boomerang Segment";
+        case "pointTurn":
+          return "Look At";
+        case "angleTurn":
+          return "Turn Segment";
+      }
+      break;
+    }
+    case "JAR-Template": {
+      switch (segment) {
+        case "pointDrive":
+          return "Drive to Point";
+        case "poseDrive":
+          return "Drive to Pose";
+        case "pointTurn":
+          return "Turn to Point";
+        case "angleTurn":
+          return "Turn to Angle";
+        case "angleSwing":
+          return "Swing to Angle";
+        case "distanceDrive":
+          return "Drive Distance";
+      }
+      break;
+    }
+    case "RW-Template": {
+      switch (segment) {
+        case "pointDrive":
+          return "Move To Point";
+        case "poseDrive":
+          return "Boomerang";
+        case "pointTurn":
+          return "Turn To Point";
+        case "angleTurn":
+          return "Turn To Angle";
+        case "angleSwing":
+          return "Swing";
+        case "distanceDrive":
+          return "Drive To";
+      }
+      break;
+    }
+    case "LemLib": {
+      switch (segment) {
+        case "pointDrive":
+          return "Move To Point";
+        case "poseDrive":
+          return "Move To Pose";
+        case "pointTurn":
+          return "Turn To Point";
+        case "angleTurn":
+          return "Turn To Heading";
+        case "angleSwing":
+          return "Swing To Angle";
+        case "pointSwing":
+          return "Swing To Point";
+      }
+      break;
+    }
+  }
+  return "";
 }
 const defaultRobotConstants = {
   width: 14,
@@ -13473,13 +13713,46 @@ class Robot {
     return true;
   }
 }
+const builtInCommands = [
+  { name: "wait", color: "#dcdcaa" },
+  { name: "sleep", color: "#dcdcaa" },
+  { name: "delay", color: "#dcdcaa" },
+  { name: "number", color: "#b5cea8" },
+  { name: "string", color: "#ce9178" },
+  { name: "task", color: "#4ec9b0" },
+  { name: "pros", color: "#4ec9b0" },
+  { name: "()", color: "#569cd6" },
+  { name: "sec", color: "#9cdcfe" },
+  { name: "msec", color: "#9cdcfe" }
+];
+const DEFAULT_COMMANDS = {
+  mikLib: [
+    createCommand("wait(number, msec)"),
+    createCommand("wait(number, sec)"),
+    createCommand("task::sleep(number)")
+  ],
+  ReveilLib: [
+    createCommand("pros::delay(number)")
+  ],
+  "JAR-Template": [],
+  LemLib: [],
+  "RW-Template": []
+};
+function createCommand(name, percent = 0) {
+  return {
+    name,
+    percent,
+    color: "#1566bd",
+    id: makeId(10)
+  };
+}
 const DEFAULT_FORMAT = {
   format: "mikLib",
   field: "v5-match",
   defaults: INITIAL_DEFAULTS["mikLib"],
   path: { segments: [], name: "" },
   robot: defaultRobotConstants,
-  commands: []
+  commands: DEFAULT_COMMANDS["mikLib"]
 };
 const saved$4 = localStorage.getItem("appState");
 const initialData$4 = saved$4 ? JSON.parse(saved$4) : DEFAULT_FORMAT;
@@ -13557,13 +13830,6 @@ function Slider({
 const saved$2 = localStorage.getItem("appState");
 const initialData$2 = saved$2 ? JSON.parse(saved$2) : DEFAULT_FORMAT;
 const useCommand = createSharedState(initialData$2.commands);
-function createCommand(name, percent = 0) {
-  return {
-    name,
-    percent,
-    id: makeId(10)
-  };
-}
 function createDropDownItem(name) {
   return {
     name,
@@ -13647,7 +13913,7 @@ function Dropdown({
     isOpen && items.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx(
       "div",
       {
-        className: "absolute z-50 shadow-xs mt-1 shadow-black left-0 top-full\r\n                    rounded-sm bg-medgray_hover min-h-2",
+        className: "absolute z-50 shadow-xs mt-1 shadow-black left-0 top-full\n                    rounded-sm bg-medgray_hover min-h-2",
         style: { width: `${width}px` },
         children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-col mt-2 pl-2 pr-2 mb-2 gap-2", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col max-h-40 overflow-y-auto", children: [
           items.map((c) => /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -13746,7 +14012,8 @@ function NumberInput({
   const timerRef = reactExports.useRef(null);
   const prevClampedNum = reactExports.useRef(value);
   const addToHistoryCheck = (value2) => {
-    if (prevClampedNum.current !== value2 && value2 !== null) {
+    const prevNum = Number(prevClampedNum.current?.toFixed(2));
+    if (prevNum !== value2 && value2 !== null) {
       addToHistory?.(value2);
     }
     prevClampedNum.current = value2;
@@ -13897,7 +14164,7 @@ function NumberInput({
       "span",
       {
         ref: labelRef,
-        className: "\r\n          text-[10px] pointer-events-none select-none\r\n          absolute -top-1 right-4\r\n          translate-x-2 -translate-y-1/3\r\n          text-lightgray leading-none\r\n          px-1 py-0.5 z-10\r\n        ",
+        className: "\n          text-[10px] pointer-events-none select-none\n          absolute -top-1 right-4\n          translate-x-2 -translate-y-1/3\n          text-lightgray leading-none\n          px-1 py-0.5 z-10\n        ",
         children: units
       }
     )
@@ -13922,7 +14189,7 @@ function ConstantRow({
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "div",
     {
-      className: "flex flex-row items-center \r\n            justify-between h-[30px] pr-2 pl-2 gap-1",
+      className: "flex flex-row items-center \n            justify-between h-[30px] pr-2 pl-2 gap-1",
       children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: `w-[100px] ${labelColor}`, children: [
           label,
@@ -14273,7 +14540,7 @@ function MotionList({
           /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "cursor-pointer shrink-0", onClick: handleEyeOnClick, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "w-[20px] h-[20px]", src: isEyeOpen ? eyeOpen : eyeClosed }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "cursor-pointer shrink-0", onClick: handleLockOnClick, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "w-[20px] h-[20px]", src: isLocked ? lockClose : lockOpen }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "w-[50px] items-center shrink-0 text-left truncate", children: name }),
-          !start ? /* @__PURE__ */ jsxRuntimeExports.jsx(
+          !start && field !== void 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx(
             Slider,
             {
               sliderWidth: !shrink ? 210 : 160,
@@ -14296,8 +14563,8 @@ function MotionList({
               }
             }
           ) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-[230px]" }),
-          !start && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "w-6 shrink-0 text-left tabular-nums pl-1", children: (field[0]?.values?.["maxSpeed"] ?? 0).toFixed(speedScale > 9.9 ? speedScale > 99.9 ? 0 : 1 : 2) }),
-          directionField.length !== 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-max flex flex-row items-center justify-end gap-2.5 pl-[12px]", children: directionField.map((f, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+          !start && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "w-6 shrink-0 text-left tabular-nums pl-1", children: field !== void 0 && (field[0]?.values?.["maxSpeed"] ?? 0).toFixed(speedScale > 9.9 ? speedScale > 99.9 ? 0 : 1 : 2) }),
+          directionField !== void 0 && directionField.length !== 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-max flex flex-row items-center justify-end gap-2.5 pl-[12px]", children: directionField.map((f, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
             CycleImageButton,
             {
               imageKeys: f.imageKeys,
@@ -14319,7 +14586,7 @@ function MotionList({
         children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute left-[-16px] top-0 h-full w-[4px] rounded-full bg-medlightgray" }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(CommandList, { command, setCommand }),
-          field.map((f) => {
+          field !== void 0 && field.map((f) => {
             const fieldKeys = f.fields.map((m) => m.key);
             const relevantValues = getValuesFromKeys(fieldKeys, f.values);
             const relevantDefaults = getValuesFromKeys(fieldKeys, f.defaults);
@@ -14457,6 +14724,21 @@ function createPointSwingSegment(format, pose) {
     constants: getDefaultConstants(format, "pointSwing")
   };
 }
+function createDistanceSegment(format, pose) {
+  return {
+    id: makeId(10),
+    selected: false,
+    hovered: false,
+    locked: false,
+    disabled: false,
+    visible: true,
+    command: createCommand(""),
+    pose,
+    format,
+    kind: "distanceDrive",
+    constants: getDefaultConstants(format, "distanceDrive")
+  };
+}
 function angle_error(error, direction) {
   if (direction === null) return reduce_negative_180_to_180(error);
   switch (direction) {
@@ -14513,6 +14795,28 @@ function clamp_min_voltage(drive_output, drive_min_voltage) {
     return drive_min_voltage;
   }
   return drive_output;
+}
+let driveDistanceStartPos = null;
+function driveDistance(robot, dt, distance, heading, drivePID, headingPID) {
+  if (driveDistanceStartPos === null) {
+    driveDistanceStartPos = Math.hypot(robot.getX(), robot.getY());
+  }
+  const currentPos = Math.hypot(robot.getX(), robot.getY());
+  const traveled = currentPos - driveDistanceStartPos;
+  const drive_error = distance - traveled;
+  const heading_error = reduce_negative_180_to_180(heading - robot.getAngle());
+  let drive_output = drivePID.compute(drive_error);
+  let heading_output = headingPID.compute(heading_error);
+  drive_output = clamp(drive_output, -drivePID.maxSpeed, drivePID.maxSpeed);
+  heading_output = clamp(heading_output, -headingPID.maxSpeed, headingPID.maxSpeed);
+  if (drivePID.isSettled()) {
+    driveDistanceStartPos = null;
+    drivePID.reset();
+    headingPID.reset();
+    return true;
+  }
+  robot.tankDrive((drive_output + heading_output) / 12, (drive_output - heading_output) / 12, dt);
+  return false;
 }
 let pointStartHeading = null;
 let pointPrevLineSettled = null;
@@ -14851,6 +15155,30 @@ class PID {
     this.timeSpentSettled = 0;
   }
 }
+function to_relative(currentPose, referencePose) {
+  const x_shift = (currentPose.x ?? 0) - (referencePose.x ?? 0);
+  const y_shift = (currentPose.y ?? 0) - (referencePose.y ?? 0);
+  const psi = toRad(referencePose.angle ?? 0);
+  return {
+    x: x_shift * Math.cos(psi) + y_shift * Math.sin(psi),
+    y: x_shift * -Math.sin(psi) + y_shift * Math.cos(psi),
+    angle: (currentPose.angle ?? 0) - (referencePose.angle ?? 0)
+  };
+}
+const toRevCoordinate = (x, y) => {
+  return rotatePoint({ x, y: -y }, 90);
+};
+const toRevVelocity = (xVel, yVel) => ({ xVel: yVel, yVel: xVel });
+const wrapDeg180 = (deg) => {
+  return deg - 360 * Math.floor((deg + 180) / 360);
+};
+const copysign1 = (v) => {
+  if (v === 0) return Object.is(v, -0) ? -1 : 1;
+  return Math.sign(v);
+};
+const dist = (ax, ay, bx, by) => {
+  return Math.hypot(ax - bx, ay - by);
+};
 const getBackwardsSnapPose = (path, idx) => {
   const controls = path.segments;
   for (let i = idx; i >= 0; i--) {
@@ -14890,6 +15218,8 @@ function mikLibToSim(path) {
   const poseHeadingPID = new PID(getDefaultConstants("mikLib", "poseDrive").heading);
   const pointSwingPID = new PID(getDefaultConstants("mikLib", "pointSwing").swing);
   const angleSwingPID = new PID(getDefaultConstants("mikLib", "angleSwing").swing);
+  const distanceDrivePID = new PID(getDefaultConstants("mikLib", "distanceDrive").drive);
+  const distanceHeadingPID = new PID(getDefaultConstants("mikLib", "distanceDrive").heading);
   const auton = [];
   for (let idx = 0; idx < path.segments.length; idx++) {
     const control = path.segments[idx];
@@ -14963,6 +15293,18 @@ function mikLibToSim(path) {
         (robot, dt) => {
           angleSwingPID.update(swing);
           return swingToAngle(robot, dt, angle, angleSwingPID);
+        }
+      );
+    }
+    if (control.kind === "distanceDrive") {
+      const previousPos = getBackwardsSnapPose(path, idx - 1);
+      const distance = dist(previousPos?.x ?? 0, previousPos?.y ?? 0, x, y);
+      const { drive, heading } = control.constants;
+      auton.push(
+        (robot, dt) => {
+          distanceDrivePID.update(drive);
+          distanceHeadingPID.update(heading);
+          return driveDistance(robot, dt, distance, 0, distanceDrivePID, distanceHeadingPID);
         }
       );
     }
@@ -15258,30 +15600,6 @@ function getConstantMotionPower(power, startState, targetState) {
   const opower = initialLongitudinalDistance < 0 ? -Math.abs(power) : Math.abs(power);
   return [opower, opower];
 }
-function to_relative(currentPose, referencePose) {
-  const x_shift = (currentPose.x ?? 0) - (referencePose.x ?? 0);
-  const y_shift = (currentPose.y ?? 0) - (referencePose.y ?? 0);
-  const psi = toRad(referencePose.angle ?? 0);
-  return {
-    x: x_shift * Math.cos(psi) + y_shift * Math.sin(psi),
-    y: x_shift * -Math.sin(psi) + y_shift * Math.cos(psi),
-    angle: (currentPose.angle ?? 0) - (referencePose.angle ?? 0)
-  };
-}
-const toRevCoordinate = (x, y) => {
-  return rotatePoint({ x, y: -y }, 90);
-};
-const toRevVelocity = (xVel, yVel) => ({ xVel: yVel, yVel: xVel });
-const wrapDeg180 = (deg) => {
-  return deg - 360 * Math.floor((deg + 180) / 360);
-};
-const copysign1 = (v) => {
-  if (v === 0) return Object.is(v, -0) ? -1 : 1;
-  return Math.sign(v);
-};
-const dist = (ax, ay, bx, by) => {
-  return Math.hypot(ax - bx, ay - by);
-};
 class PilonsCorrection {
   kCorrection;
   maxError;
@@ -15882,7 +16200,7 @@ const getSegmentLines = (idx, path, img, precise = false) => {
   if (startPose === null || startPose.x === null || startPose.y === null) return null;
   const pStart = toPX({ x: startPose.x, y: startPose.y }, FIELD_REAL_DIMENSIONS, img);
   const pEnd = toPX({ x: m.pose.x, y: m.pose.y }, FIELD_REAL_DIMENSIONS, img);
-  if (m.kind === "pointDrive") {
+  if (m.kind === "pointDrive" || m.kind === "distanceDrive") {
     return `${pStart.x},${pStart.y} ${pEnd.x},${pEnd.y}`;
   }
   if (m.constants?.drive === void 0) return "";
@@ -16077,7 +16395,11 @@ function FieldMacros() {
       undoHistory.setState(undoState.slice(0, -1));
       redoHistory.setState([...redoHistory.getState(), popped]);
       const previousSnapshot = undoState[undoState.length - 2];
-      return mergeDeep(current, previousSnapshot);
+      const merged = mergeDeep(current, previousSnapshot);
+      if (previousSnapshot.defaults !== void 0) {
+        merged.defaults = previousSnapshot.defaults;
+      }
+      return merged;
     });
   }
   function performRedo(setFileFormat) {
@@ -16087,7 +16409,11 @@ function FieldMacros() {
       const nextSnapshot = redoState[redoState.length - 1];
       redoHistory.setState(redoState.slice(0, -1));
       undoHistory.setState([...undoHistory.getState(), nextSnapshot]);
-      return mergeDeep(current, nextSnapshot);
+      const merged = mergeDeep(current, nextSnapshot);
+      if (nextSnapshot.defaults !== void 0) {
+        merged.defaults = nextSnapshot.defaults;
+      }
+      return merged;
     });
   }
   function undo(evt, setFileFormat) {
@@ -16270,6 +16596,10 @@ function FieldMacros() {
     const control = createAngleSwingSegment(format, 0);
     addSegment(control, setPath);
   };
+  const addDistanceSegment = (format, position, setPath) => {
+    const control = createDistanceSegment(format, position);
+    addSegment(control, setPath);
+  };
   const addSegmentGroup = (setPath) => {
     const control = createSegmentGroup();
     addSegment(control, setPath);
@@ -16312,6 +16642,7 @@ function FieldMacros() {
     addAngleTurnSegment,
     addAngleSwingSegment,
     addPointSwingSegment,
+    addDistanceSegment,
     addSegmentGroup
   };
 }
@@ -16351,72 +16682,74 @@ function AddSegmentButton() {
         src: plus
       }
     ) }),
-    isOpen && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute shadow-xs mt-1 shadow-black right-0 top-full w-60 z-40\r\n                    rounded-sm bg-medgray_hover min-h-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-col mt-2 pl-2 pr-2 mb-2 gap-2", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    isOpen && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute shadow-xs mt-1 shadow-black right-0 top-full w-62 z-40\n                    rounded-sm bg-medgray_hover min-h-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-col mt-2 pl-2 pr-2 mb-2 gap-2", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col", children: [
+      segmentAllowed(format, "pointDrive") && /* @__PURE__ */ jsxRuntimeExports.jsxs(
         "button",
         {
           onClick: () => addPointDriveSegment(format, { x: 0, y: 0 }, setPath),
           className: "flex pr-1 pl-2 py-0.5 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm",
           children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[16px]", children: "Drive to Point" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[16px]", children: getSegmentName(format, "pointDrive") }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-lightgray text-[14px]", children: "LMB" })
           ]
         }
       ),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      segmentAllowed(format, "poseDrive") && /* @__PURE__ */ jsxRuntimeExports.jsxs(
         "button",
         {
           onClick: () => addPoseDriveSegment(format, { x: 0, y: 0, angle: 0 }, setPath),
           className: "flex pr-1 pl-2 py-0.5 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm",
           children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[16px]", children: "Drive to Pose" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[16px]", children: getSegmentName(format, "poseDrive") }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-lightgray text-[14px]", children: "Ctrl+LMB" })
           ]
         }
       ),
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-1 border-t border-gray-500/40 flex flex-row items-center justify-between h-[4px]" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        "button",
-        {
-          onClick: () => addAngleTurnSegment(format, setPath),
-          className: "flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm",
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[16px]", children: "Turn to Angle" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-lightgray text-[14px]", children: "CTRL+RMB" })
-          ]
-        }
-      ),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      segmentAllowed(format, "pointTurn") && /* @__PURE__ */ jsxRuntimeExports.jsxs(
         "button",
         {
           onClick: () => addPointTurnSegment(format, setPath),
           className: "flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm",
           children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[16px]", children: "Turn to Point" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[16px]", children: getSegmentName(format, "pointTurn") }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-lightgray text-[14px]", children: "RMB" })
           ]
         }
       ),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-1 border-t border-gray-500/40 flex flex-row items-center justify-between h-[4px]" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      segmentAllowed(format, "angleTurn") && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "button",
+        {
+          onClick: () => addAngleTurnSegment(format, setPath),
+          className: "flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm",
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[16px]", children: getSegmentName(format, "angleTurn") }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-lightgray text-[14px]", children: "Ctrl+RMB" })
+          ]
+        }
+      ),
+      segmentAllowed(format, "pointSwing") && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-1 border-t border-gray-500/40 flex flex-row items-center justify-between h-[4px]" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "button",
+          {
+            onClick: () => addPointSwingSegment(format, setPath),
+            className: "flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm",
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[16px]", children: getSegmentName(format, "pointSwing") }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-lightgray text-[14px]", children: "Alt+RMB" })
+            ]
+          }
+        )
+      ] }),
+      segmentAllowed(format, "angleSwing") && /* @__PURE__ */ jsxRuntimeExports.jsxs(
         "button",
         {
           onClick: () => addAngleSwingSegment(format, setPath),
           className: "flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm",
           children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[16px]", children: "Swing to Angle" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[16px]", children: getSegmentName(format, "angleSwing") }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-lightgray text-[14px]", children: "Ctrl+Alt+RMB" })
-          ]
-        }
-      ),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        "button",
-        {
-          onClick: () => addPointSwingSegment(format, setPath),
-          className: "flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm",
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[16px]", children: "Swing to Point" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-lightgray text-[14px]", children: "Alt+RMB" })
           ]
         }
       ),
@@ -16521,7 +16854,7 @@ function CopyPathButton() {
         /* @__PURE__ */ jsxRuntimeExports.jsx(
           "button",
           {
-            className: "w-[30px] h-[30px] flex items-center justify-center cursor-pointer\r\n                   rounded-sm hover:bg-medgray_hover active:scale-95 transition-normal duration-50",
+            className: "w-[30px] h-[30px] flex items-center justify-center cursor-pointer\n                   rounded-sm hover:bg-medgray_hover active:scale-95 transition-normal duration-50",
             onClick: handleToggleMenu,
             children: /* @__PURE__ */ jsxRuntimeExports.jsx(
               CopyIcon,
@@ -16538,7 +16871,7 @@ function CopyPathButton() {
         isOpen && /* @__PURE__ */ jsxRuntimeExports.jsx(
           "div",
           {
-            className: "absolute shadow-xs mt-1 shadow-black right-0 top-full w-50 z-40\r\n                     rounded-sm bg-medgray_hover min-h-2",
+            className: "absolute shadow-xs mt-1 shadow-black right-0 top-full w-50 z-40\n                     rounded-sm bg-medgray_hover min-h-2",
             children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col mt-2 pl-2 pr-2 mb-2 gap-1", children: [
               /* @__PURE__ */ jsxRuntimeExports.jsxs(
                 "button",
@@ -16884,19 +17217,7 @@ function GroupList({
   reactExports.useEffect(() => {
     setLocked(segment.locked);
   }, [segment.locked]);
-  const getSpeed = (format2) => {
-    switch (format2) {
-      case "mikLib":
-        return 12;
-      case "ReveilLib":
-        return 1;
-      case "JAR-Template":
-        return 12;
-      case "LemLib":
-        return 127;
-    }
-  };
-  const speedScale = getSpeed(format);
+  const speedScale = getFormatSpeed(format);
   reactExports.useEffect(() => {
     if (draggingIds.length === 0) {
       setLocalOverIndex(null);
@@ -17310,7 +17631,7 @@ function PathConfig() {
     /* @__PURE__ */ jsxRuntimeExports.jsxs(
       "div",
       {
-        className: "mt-[10px] flex-1 min-h-2 overflow-y-auto\r\n        flex-col items-center overflow-x-hidden space-y-2 relative",
+        className: "mt-[10px] flex-1 min-h-2 overflow-y-auto\n        flex-col items-center overflow-x-hidden space-y-2 relative",
         onDrop: (e) => {
           if (draggingIds.length === 0) return;
           if (overIndex !== null && overIndex > 0) {
@@ -17705,7 +18026,7 @@ function PathSimulator() {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "div",
     {
-      className: "flex bg-medgray w-[575px]  h-[65px] rounded-lg \r\n            items-center justify-center gap-4 relative",
+      className: "flex bg-medgray w-[575px]  h-[65px] rounded-lg \n            items-center justify-center gap-4 relative",
       children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx(
           "button",
@@ -17801,7 +18122,7 @@ function MirrorControl({
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "button",
     {
-      className: "flex items-center justify-center w-[40px] h-[40px] cursor-pointer \r\n            rounded-lg bg-transparent hover:bg-medgray_hover border-none outline-none fill-white",
+      className: "flex items-center justify-center w-[40px] h-[40px] cursor-pointer \n            rounded-lg bg-transparent hover:bg-medgray_hover border-none outline-none fill-white",
       onClick: handleOnClick,
       children: /* @__PURE__ */ jsxRuntimeExports.jsx(
         "img",
@@ -17840,9 +18161,9 @@ function ControlConfig() {
   const updateXValue = (newX) => {
     const selectedCount = path.segments.filter((c) => c.selected).length;
     if (selectedCount !== 1) return;
-    const selectedSegment = path.segments.find((c) => c.selected);
-    if (selectedSegment === void 0) return;
-    if (selectedSegment.kind === "angleSwing" || selectedSegment.kind === "pointSwing" || selectedSegment.kind === "angleTurn" || selectedSegment.kind === "pointTurn") return;
+    const selectedSegment2 = path.segments.find((c) => c.selected);
+    if (selectedSegment2 === void 0) return;
+    if (selectedSegment2.kind === "angleSwing" || selectedSegment2.kind === "pointSwing" || selectedSegment2.kind === "angleTurn" || selectedSegment2.kind === "pointTurn") return;
     setPath((prev) => ({
       ...prev,
       segments: prev.segments.map(
@@ -17853,9 +18174,9 @@ function ControlConfig() {
   const updateYValue = (newY) => {
     const selectedCount = path.segments.filter((c) => c.selected).length;
     if (selectedCount !== 1) return;
-    const selectedSegment = path.segments.find((c) => c.selected);
-    if (selectedSegment === void 0) return;
-    if (selectedSegment.kind === "angleSwing" || selectedSegment.kind === "pointSwing" || selectedSegment.kind === "angleTurn" || selectedSegment.kind === "pointTurn") return;
+    const selectedSegment2 = path.segments.find((c) => c.selected);
+    if (selectedSegment2 === void 0) return;
+    if (selectedSegment2.kind === "angleSwing" || selectedSegment2.kind === "pointSwing" || selectedSegment2.kind === "angleTurn" || selectedSegment2.kind === "pointTurn") return;
     setPath((prev) => ({
       ...prev,
       segments: prev.segments.map(
@@ -17866,16 +18187,16 @@ function ControlConfig() {
   const updateHeadingValue = (newHeading) => {
     const selectedCount = path.segments.filter((c) => c.selected).length;
     if (selectedCount !== 1) return;
-    const selectedSegment = path.segments.find((c) => c.selected);
-    if (selectedSegment === void 0) return;
-    if (newHeading === null && selectedSegment.kind !== "poseDrive") return;
+    const selectedSegment2 = path.segments.find((c) => c.selected);
+    if (selectedSegment2 === void 0) return;
+    if (newHeading === null && selectedSegment2.kind !== "poseDrive") return;
     if (newHeading !== null) newHeading = normalizeDeg(newHeading);
     setPath((prev) => {
-      let kind = selectedSegment.kind;
-      if (selectedSegment.kind === "poseDrive" && newHeading === null) {
+      let kind = selectedSegment2.kind;
+      if (selectedSegment2.kind === "poseDrive" && newHeading === null) {
         kind = "pointDrive";
       }
-      if (selectedSegment.kind === "pointDrive" && newHeading !== null) {
+      if (selectedSegment2.kind === "pointDrive" && newHeading !== null) {
         kind = "poseDrive";
       }
       return {
@@ -17890,40 +18211,79 @@ function ControlConfig() {
       };
     });
   };
+  const selectedSegment = path.segments.find((s) => s.selected)?.kind;
+  const undoRef = reactExports.useRef(false);
+  reactExports.useEffect(() => {
+    if (undoRef.current) {
+      AddToUndoHistory({ path });
+      undoRef.current = false;
+    }
+  }, [path]);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row items-center justify-center gap-4 bg-medgray w-[500px] h-[65px] rounded-lg", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: 20 }, children: "X" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        NumberInput,
-        {
-          width: 80,
-          height: 40,
-          fontSize: 18,
-          setValue: format === "ReveilLib" ? updateYValue : updateXValue,
-          value: format === "ReveilLib" ? getYValue() : getXValue(),
-          stepSize: 1,
-          roundTo: 2,
-          bounds: [-999, 999],
-          units: "in"
-        }
-      )
+    selectedSegment !== "distanceDrive" && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: 20 }, children: "X" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          NumberInput,
+          {
+            width: 80,
+            height: 40,
+            fontSize: 18,
+            setValue: format === "ReveilLib" ? updateYValue : updateXValue,
+            value: format === "ReveilLib" ? getYValue() : getXValue(),
+            stepSize: 1,
+            roundTo: 2,
+            bounds: [-999, 999],
+            units: "in",
+            addToHistory: () => {
+              undoRef.current = true;
+            }
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: 20 }, children: "Y" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          NumberInput,
+          {
+            width: 80,
+            height: 40,
+            fontSize: 18,
+            stepSize: 1,
+            roundTo: 2,
+            setValue: format === "ReveilLib" ? updateXValue : updateYValue,
+            value: format === "ReveilLib" ? getXValue() : getYValue(),
+            bounds: [-999, 999],
+            units: "in",
+            addToHistory: () => {
+              undoRef.current = true;
+            }
+          }
+        )
+      ] })
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: 20 }, children: "Y" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        NumberInput,
-        {
-          width: 80,
-          height: 40,
-          fontSize: 18,
-          stepSize: 1,
-          roundTo: 2,
-          setValue: format === "ReveilLib" ? updateXValue : updateYValue,
-          value: format === "ReveilLib" ? getXValue() : getYValue(),
-          bounds: [-999, 999],
-          units: "in"
-        }
-      )
+    selectedSegment === "distanceDrive" && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-[100px]" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: 20 }, children: "Δ" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          NumberInput,
+          {
+            width: 80,
+            height: 40,
+            fontSize: 18,
+            setValue: format === "ReveilLib" ? updateYValue : updateXValue,
+            value: format === "ReveilLib" ? getYValue() : getXValue(),
+            stepSize: 1,
+            roundTo: 2,
+            bounds: [-999, 999],
+            units: "in",
+            addToHistory: () => {
+              undoRef.current = true;
+            }
+          }
+        )
+      ] })
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: 20 }, children: "θ" }),
@@ -17938,7 +18298,10 @@ function ControlConfig() {
           setValue: updateHeadingValue,
           value: getHeadingValue(),
           bounds: [-Infinity, Infinity],
-          units: "deg"
+          units: "deg",
+          addToHistory: () => {
+            undoRef.current = true;
+          }
         }
       )
     ] }),
@@ -18092,10 +18455,18 @@ function FileRenamePopup({
   const intialName = path.name === "" || path.name === void 0 || path.name === null ? format.slice(0, 3) + "Path" : path.name;
   const [text, setText] = reactExports.useState(intialName);
   const popupRef = reactExports.useRef(null);
+  const textRef = reactExports.useRef(text);
+  const onEnterRef = reactExports.useRef(onEnter);
+  reactExports.useEffect(() => {
+    textRef.current = text;
+  }, [text]);
+  reactExports.useEffect(() => {
+    onEnterRef.current = onEnter;
+  }, [onEnter]);
   reactExports.useEffect(() => {
     const handleKeyDown = (evt) => {
       if (evt.key === "Enter") {
-        onEnter(text);
+        onEnterRef.current(textRef.current);
         setOpen(false);
       }
       if (evt.key === "Escape") {
@@ -18121,11 +18492,11 @@ function FileRenamePopup({
   return /* @__PURE__ */ jsxRuntimeExports.jsx(React.Fragment, { children: open && /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
-      className: "\r\n                        fixed inset-0 z-30\r\n                        bg-black/10 backdrop-blur-[7px]\r\n                        grid place-items-center\r\n                        overflow-x-hidden",
+      className: "\n                        fixed inset-0 z-30\n                        bg-black/10 backdrop-blur-[7px]\n                        grid place-items-center\n                        overflow-x-hidden",
       children: /* @__PURE__ */ jsxRuntimeExports.jsx(
         "div",
         {
-          className: "\r\n                            relative\r\n                            -translate-y-[15%]\r\n                            bg-medgray_hover w-auto h-auto p-4\r\n                            flex flex-col gap-2\r\n                            shadow-xs shadow-blackgray\r\n                            rounded-lg\r\n                        ",
+          className: "\n                            relative\n                            -translate-y-[15%]\n                            bg-medgray_hover w-auto h-auto p-4\n                            flex flex-col gap-2\n                            shadow-xs shadow-blackgray\n                            rounded-lg\n                        ",
           ref: popupRef,
           children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-2 text-start ", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -18286,6 +18657,12 @@ function FileButton() {
       renameResolveRef.current = resolve;
     });
   };
+  reactExports.useEffect(() => {
+    if (!popupOpen && renameResolveRef.current) {
+      renameResolveRef.current(null);
+      renameResolveRef.current = null;
+    }
+  }, [popupOpen]);
   const handleToggleMenu = () => {
     setOpen((prev) => !prev);
   };
@@ -18293,16 +18670,16 @@ function FileButton() {
     if (!isSaved) {
       handleSaveAs();
     }
-    setFileFormat(
-      {
-        format,
-        field,
-        defaults: INITIAL_DEFAULTS[format],
-        path: { segments: [], name: "" },
-        robot: defaultRobotConstants,
-        commands: []
-      }
-    );
+    const newFileFormat = {
+      format,
+      field,
+      defaults: INITIAL_DEFAULTS[format],
+      path: { segments: [], name: "" },
+      robot: defaultRobotConstants,
+      commands: DEFAULT_COMMANDS[format]
+    };
+    setFileFormat(newFileFormat);
+    AddToUndoHistory(structuredClone(newFileFormat));
     fileHandleRef.current = null;
     setOpen(false);
     savedSnapshotRef.current = null;
@@ -18344,13 +18721,15 @@ function FileButton() {
       const content = await file.text();
       const fileName = handle.name.replace(/\.[^/.]+$/, "");
       const parsed = JSON.parse(content);
-      setFileFormat({
+      const newFileFormat = {
         ...parsed,
         path: {
           ...parsed.path,
           name: fileName
         }
-      });
+      };
+      setFileFormat(newFileFormat);
+      AddToUndoHistory(structuredClone(newFileFormat));
       savedSnapshotRef.current = null;
       localStorage.removeItem(SAVED_SNAPSHOT_KEY);
     } catch (error) {
@@ -18367,13 +18746,15 @@ function FileButton() {
       reader.onload = (e) => {
         const content = e.target?.result;
         const parsed = JSON.parse(content);
-        setFileFormat({
+        const newFileFormat = {
           ...parsed,
           path: {
             ...parsed.path,
             name: fileName
           }
-        });
+        };
+        setFileFormat(newFileFormat);
+        AddToUndoHistory(structuredClone(newFileFormat));
       };
       reader.readAsText(file);
       fileHandleRef.current = null;
@@ -18489,26 +18870,40 @@ function FileButton() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+  const handleNewFileRef = reactExports.useRef(handleNewFile);
+  const handleOpenFileRef = reactExports.useRef(handleOpenFile);
+  const handleSaveRef = reactExports.useRef(handleSave);
+  const handleSaveAsRef = reactExports.useRef(handleSaveAs);
+  const handleDownloadRef = reactExports.useRef(handleDownload);
+  const handleDownloadAsRef = reactExports.useRef(handleDownloadAs);
+  reactExports.useEffect(() => {
+    handleNewFileRef.current = handleNewFile;
+    handleOpenFileRef.current = handleOpenFile;
+    handleSaveRef.current = handleSave;
+    handleSaveAsRef.current = handleSaveAs;
+    handleDownloadRef.current = handleDownload;
+    handleDownloadAsRef.current = handleDownloadAs;
+  });
   reactExports.useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.ctrlKey && event.key === "p") {
         event.preventDefault();
-        handleNewFile();
+        handleNewFileRef.current();
       } else if (event.ctrlKey && event.key === "o") {
         event.preventDefault();
-        handleOpenFile();
+        handleOpenFileRef.current();
       } else if (event.ctrlKey && event.shiftKey && event.key === "S") {
         event.preventDefault();
-        handleSaveAs();
+        handleSaveAsRef.current();
       } else if (event.ctrlKey && event.key === "s") {
         event.preventDefault();
-        handleSave();
+        handleSaveRef.current();
       } else if (event.ctrlKey && event.shiftKey && event.key === "D") {
         event.preventDefault();
-        handleDownloadAs();
+        handleDownloadAsRef.current();
       } else if (event.ctrlKey && event.key === "d") {
         event.preventDefault();
-        handleDownload();
+        handleDownloadRef.current();
       }
     };
     document.addEventListener("keydown", handleKeyDown);
@@ -18540,7 +18935,7 @@ function FileButton() {
             onChange: handleFileSelect
           }
         ),
-        isOpen && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute shadow-xs mt-1 shadow-black left-0 top-full w-55 z-40\r\n                    rounded-sm bg-medgray_hover min-h-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-col mt-2 pl-2 pr-2 mb-2 gap-2", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col", children: [
+        isOpen && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute shadow-xs mt-1 shadow-black left-0 top-full w-55 z-40\n                    rounded-sm bg-medgray_hover min-h-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-col mt-2 pl-2 pr-2 mb-2 gap-2", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs(
             "button",
             {
@@ -18663,7 +19058,7 @@ function SettingsButton() {
   }, []);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { ref: menuRef, className: `relative ${isOpen ? "bg-medgray_hover" : "bg-none"} hover:bg-medgray_hover rounded-sm`, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: handleToggleMenu, className: "px-2 py-1 cursor-pointer", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[20px]", children: "Settings" }) }),
-    isOpen && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute shadow-xs mt-1 shadow-black left-0 top-full w-45 z-40\r\n                    rounded-sm bg-medgray_hover min-h-2", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col mt-3 pl-3 pr-3 mb-3 gap-3", children: [
+    isOpen && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute shadow-xs mt-1 shadow-black left-0 top-full w-45 z-40\n                    rounded-sm bg-medgray_hover min-h-2", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col mt-3 pl-3 pr-3 mb-3 gap-3", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row gap-2", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "whitespace-nowrap text-[16px]", children: "Robot Outlines" }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-25 flex items-center justify-end", children: /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "flex items-center gap-2 cursor-pointer select-none", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Checkbox, { checked: ghostRobots, setChecked: setGhostRobots }) }) })
@@ -18679,6 +19074,25 @@ function SettingsButton() {
     ] }) })
   ] });
 }
+function RemoveCommandButton({ commandId }) {
+  const [, setCommand] = useCommand();
+  const handleDeleteOnClick = () => {
+    setCommand((prev) => prev.filter((c) => c.id !== commandId));
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-[25px] h-[25px]", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "button",
+    {
+      onClick: handleDeleteOnClick,
+      className: "cursor-pointer rounded-sm hover:bg-blackgrayhover",
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "img",
+        {
+          src: cross
+        }
+      )
+    }
+  ) });
+}
 function CommmandInput({
   width,
   height
@@ -18692,9 +19106,8 @@ function CommmandInput({
   };
   const executeInput = () => {
     if (edit === null || edit === "" || commands.find((c) => c.name === edit)) return;
-    const finalEdit = edit.replace(/ /g, "_");
-    SetValue(finalEdit);
-    setCommand((prev) => [...prev, createCommand(finalEdit)]);
+    SetValue(edit);
+    setCommand((prev) => [...prev, createCommand(edit)]);
     cancel();
   };
   const handleChange = (evt) => {
@@ -18741,25 +19154,6 @@ function CommmandInput({
     )
   ] });
 }
-function RemoveCommandButton({ commandId }) {
-  const [, setCommand] = useCommand();
-  const handleDeleteOnClick = () => {
-    setCommand((prev) => prev.filter((c) => c.id !== commandId));
-  };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-[25px] h-[25px]", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "button",
-    {
-      onClick: handleDeleteOnClick,
-      className: "cursor-pointer rounded-sm hover:bg-blackgrayhover",
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "img",
-        {
-          src: cross
-        }
-      )
-    }
-  ) });
-}
 function CommandButton() {
   const [isOpen, setOpen] = reactExports.useState(false);
   const [commands] = useCommand();
@@ -18778,11 +19172,30 @@ function CommandButton() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+  const splitCommand = (commandText) => {
+    const tokens = commandText.split(/([^a-zA-Z0-9]+)/).filter((t) => t.length > 0);
+    const cmdStr = tokens.map((token) => {
+      const builtIn = builtInCommands.find((cmd) => cmd.name === token);
+      if (builtIn) {
+        return { name: token, color: builtIn.color };
+      }
+      return { name: token, color: "#cccccc" };
+    });
+    console.log(cmdStr);
+    return cmdStr;
+  };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { ref: menuRef, className: `relative ${isOpen ? "bg-medgray_hover" : "bg-none"} hover:bg-medgray_hover rounded-sm`, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: handleToggleMenu, className: "px-2 py-1 cursor-pointer", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[20px]", children: "Commands" }) }),
-    isOpen && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute shadow-xs mt-1 shadow-black left-0 top-full w-60 \r\n                    rounded-sm bg-medgray_hover min-h-2", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col mt-2 pl-2 mb-2 gap-2", children: [
+    isOpen && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute shadow-xs mt-1 shadow-black left-0 top-full w-60 \n                    rounded-sm bg-medgray_hover min-h-2", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col mt-2 pl-2 mb-2 gap-2", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-col max-h-40 overflow-y-auto", children: commands.map((c) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row items-center justify-between pr-3", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[16px]", children: c.name }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[16px]", children: splitCommand(c.name).map((n) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "span",
+          {
+            style: { color: n.color },
+            children: n.name
+          },
+          n.name
+        )) }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(RemoveCommandButton, { commandId: c.id })
       ] })) }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(CommmandInput, { width: 175, height: 30 })
@@ -18930,7 +19343,8 @@ const FORMATS = [
 function FormatButton() {
   const [isOpen, setOpen] = reactExports.useState(false);
   const [format, setFormat] = useFormat();
-  const [path, setPath] = usePath();
+  const [, setPath] = usePath();
+  const [commands, setCommands] = useCommand();
   const menuRef = reactExports.useRef(null);
   const prevFormatRef = reactExports.useRef(format);
   const handleToggleMenu = () => setOpen((prev) => !prev);
@@ -18946,12 +19360,23 @@ function FormatButton() {
         }))
       };
       if (prevFormatRef.current !== format2) {
-        AddToUndoHistory({ format: format2, defaults: structuredClone(globalDefaultsStore.getState()[format2]), path: newPath });
+        AddToUndoHistory({
+          format: format2,
+          defaults: structuredClone(globalDefaultsStore.getState()[format2]),
+          path: newPath,
+          commands
+        });
       }
       return {
         ...newPath
       };
     });
+    const oldDefaults = DEFAULT_COMMANDS[prevFormatRef.current];
+    const newDefaults = DEFAULT_COMMANDS[format2];
+    const customCommands = commands.filter(
+      (cmd) => !oldDefaults.some((def) => def.name === cmd.name)
+    );
+    setCommands([...newDefaults, ...customCommands]);
     prevFormatRef.current = format2;
   };
   reactExports.useEffect(() => {
@@ -19052,7 +19477,7 @@ function RobotButton() {
   }, []);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { ref: menuRef, className: `relative ${isOpen ? "bg-medgray_hover" : "bg-none"} hover:bg-medgray_hover rounded-sm`, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: handleToggleMenu, className: "px-2 py-1 cursor-pointer", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[20px]", children: "Robot" }) }),
-    isOpen && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute shadow-xs mt-1 shadow-black left-0 top-full w-40 z-40\r\n                    rounded-sm bg-medgray_hover min-h-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-col mt-3 pl-3 pr-3 mb-3 gap-3", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-2", children: [
+    isOpen && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute shadow-xs mt-1 shadow-black left-0 top-full w-40 z-40\n                    rounded-sm bg-medgray_hover min-h-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-col mt-3 pl-3 pr-3 mb-3 gap-3", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-2", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row items-center justify-between", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[16px]", children: "Width" }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -19144,13 +19569,7 @@ function Config() {
 }
 function useLocalStorageSync() {
   const [settings] = useSettings();
-  const [format] = useFormat();
-  const [field] = useField();
-  const [path] = usePath();
-  const robotStore = robotConstantsStore.useStore();
-  const defaultsStore = globalDefaultsStore.useStore();
   const undoHistoryStore = undoHistory.useStore();
-  const [commands] = useCommand();
   reactExports.useEffect(() => {
     localStorage.setItem("ghostRobots", settings.ghostRobots ? "true" : "false");
     localStorage.setItem("robotPosition", settings.robotPosition ? "true" : "false");
@@ -19162,16 +19581,11 @@ function useLocalStorageSync() {
       skipFirstState.current = false;
       return;
     }
-    const newAppState = {
-      format,
-      field,
-      path,
-      commands,
-      robot: robotStore,
-      defaults: defaultsStore[format]
-    };
-    console.log(newAppState.path);
-    localStorage.setItem("appState", JSON.stringify(newAppState));
+    const latestState = undoHistoryStore[undoHistoryStore.length - 1];
+    if (latestState) {
+      console.log(latestState.path);
+      localStorage.setItem("appState", JSON.stringify(latestState));
+    }
   }, [undoHistoryStore.length]);
 }
 const homeButton = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M19.7118%209.29261L10.7101%200.295697C10.6171%200.202001%2010.5065%200.127632%2010.3846%200.0768805C10.2628%200.0261293%2010.132%200%2010%200C9.86796%200%209.73723%200.0261293%209.61535%200.0768805C9.49347%200.127632%209.38285%200.202001%209.28987%200.295697L0.288239%209.29261C0.149456%209.43319%200.0554425%209.6117%200.0180616%209.80562C-0.0193193%209.99954%200.00160719%2010.2002%200.0782005%2010.3822C0.153234%2010.5648%200.280655%2010.7211%200.444405%2010.8314C0.608155%2010.9417%200.800906%2011.001%200.998368%2011.002H1.99855V18.2995C2.01678%2018.7671%202.21961%2019.2085%202.56264%2019.527C2.90567%2019.8454%203.36096%2020.0152%203.82888%2019.9989H6.49937C6.76463%2019.9989%207.01903%2019.8936%207.2066%2019.7061C7.39417%2019.5187%207.49955%2019.2644%207.49955%2018.9993V14.101C7.49955%2013.8358%207.60492%2013.5816%207.79249%2013.3941C7.98006%2013.2066%208.23446%2013.1013%208.49973%2013.1013H11.5003C11.7655%2013.1013%2012.0199%2013.2066%2012.2075%2013.3941C12.3951%2013.5816%2012.5005%2013.8358%2012.5005%2014.101V18.9993C12.5005%2019.2644%2012.6058%2019.5187%2012.7934%2019.7061C12.981%2019.8936%2013.2354%2019.9989%2013.5006%2019.9989H16.1711C16.639%2020.0152%2017.0943%2019.8454%2017.4374%2019.527C17.7804%2019.2085%2017.9832%2018.7671%2018.0015%2018.2995V11.002H19.0016C19.1991%2011.001%2019.3918%2010.9417%2019.5556%2010.8314C19.7193%2010.7211%2019.8468%2010.5648%2019.9218%2010.3822C19.9984%2010.2002%2020.0193%209.99954%2019.9819%209.80562C19.9446%209.6117%2019.8505%209.43319%2019.7118%209.29261Z'%20fill='white'/%3e%3c/svg%3e";
@@ -19391,7 +19805,7 @@ function CommandLayer({ path, img, visible }) {
     return /* @__PURE__ */ jsxRuntimeExports.jsx(
       "circle",
       {
-        fill: "rgba(21, 102, 189, .75)",
+        fill: "#1566bdBF",
         r: 8,
         cx: posPx.x,
         cy: posPx.y
@@ -19700,11 +20114,11 @@ function Field() {
       "button",
       {
         onClick: () => setImg((prev) => ({ ...prev, x: 0, y: 0, w: 575, h: 575 })),
-        className: "\r\n              absolute top-22 right-129\r\n              flex\r\n              opacity-50\r\n              rounded-sm\r\n              items-center\r\n              justify-center\r\n              w-[20px]\r\n              h-[20px]\r\n              bg-medgray\r\n              z-10\r\n              cursor-pointer\r\n              transition\r\n            ",
+        className: "\n              absolute top-22 right-129\n              flex\n              opacity-50\n              rounded-sm\n              items-center\n              justify-center\n              w-[20px]\n              h-[20px]\n              bg-medgray\n              z-10\n              cursor-pointer\n              transition\n            ",
         children: /* @__PURE__ */ jsxRuntimeExports.jsx(
           "img",
           {
-            className: "\r\n              w-[15px]\r\n              h-[15px]",
+            className: "\n              w-[15px]\n              h-[15px]",
             src: homeButton
           }
         )
@@ -19789,4 +20203,4 @@ function App() {
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-DfE6R6s4.js.map
+//# sourceMappingURL=index-BKpiPjn8.js.map
