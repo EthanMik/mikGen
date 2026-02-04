@@ -12761,14 +12761,8 @@ function deepEqual(a, b) {
   };
   return eq(a, b);
 }
-const saved = localStorage.getItem("appState");
-const parsed = saved ? JSON.parse(saved) : {};
-const initialData = {
-  ...parsed,
-  path: parsed.path && Array.isArray(parsed.path.segments) ? parsed.path : DEFAULT_FORMAT.path
-};
 const MAX_UNDO_HISTORY = 50;
-const undoHistory = createStore([initialData]);
+const undoHistory = createStore([VALIDATED_APP_STATE]);
 const redoHistory = createStore([]);
 function AddToUndoHistory(snapshot) {
   console.log(snapshot);
@@ -13759,24 +13753,23 @@ const DEFAULT_FORMAT = {
   commands: DEFAULT_COMMANDS["mikLib"]
 };
 function loadValidatedAppState() {
-  const saved2 = localStorage.getItem("appState");
-  if (!saved2) return DEFAULT_FORMAT;
+  const saved = localStorage.getItem("appState");
+  if (!saved) return DEFAULT_FORMAT;
   try {
-    const parsed2 = JSON.parse(saved2);
+    const parsed = JSON.parse(saved);
     return {
-      format: parsed2.format ?? DEFAULT_FORMAT.format,
-      field: parsed2.field ?? DEFAULT_FORMAT.field,
-      defaults: parsed2.defaults ?? DEFAULT_FORMAT.defaults,
-      path: parsed2.path && Array.isArray(parsed2.path.segments) ? parsed2.path : DEFAULT_FORMAT.path,
-      robot: parsed2.robot ?? DEFAULT_FORMAT.robot,
-      commands: Array.isArray(parsed2.commands) ? parsed2.commands : DEFAULT_FORMAT.commands
+      format: parsed.format ?? DEFAULT_FORMAT.format,
+      field: parsed.field ?? DEFAULT_FORMAT.field,
+      defaults: parsed.defaults ?? DEFAULT_FORMAT.defaults,
+      path: parsed.path && Array.isArray(parsed.path.segments) ? parsed.path : DEFAULT_FORMAT.path,
+      robot: parsed.robot ?? DEFAULT_FORMAT.robot,
+      commands: Array.isArray(parsed.commands) ? parsed.commands : DEFAULT_FORMAT.commands
     };
   } catch {
     return DEFAULT_FORMAT;
   }
 }
 const VALIDATED_APP_STATE = loadValidatedAppState();
-const useFileFormat = createSharedState(VALIDATED_APP_STATE);
 const usePath = createSharedState(VALIDATED_APP_STATE.path);
 const eyeOpen = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='white'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M12%205C8.24261%205%205.43602%207.4404%203.76737%209.43934C2.51521%2010.9394%202.51521%2013.0606%203.76737%2014.5607C5.43602%2016.5596%208.24261%2019%2012%2019C15.7574%2019%2018.564%2016.5596%2020.2326%2014.5607C21.4848%2013.0606%2021.4848%2010.9394%2020.2326%209.43934C18.564%207.4404%2015.7574%205%2012%205Z'%20stroke='%23ffffffff'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M12%2015C13.6569%2015%2015%2013.6569%2015%2012C15%2010.3431%2013.6569%209%2012%209C10.3431%209%209%2010.3431%209%2012C9%2013.6569%2010.3431%2015%2012%2015Z'%20stroke='%233C3B3B'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e";
 const eyeClosed = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M9.76404%205.29519C10.4664%205.10724%2011.2123%205%2012%205C15.7574%205%2018.564%207.4404%2020.2326%209.43934C21.4848%2010.9394%2021.4846%2013.0609%2020.2324%2014.5609C20.0406%2014.7907%2019.8337%2015.0264%2019.612%2015.2635M12.5%209.04148C13.7563%209.25224%2014.7478%2010.2437%2014.9585%2011.5M3%203L21%2021M11.5%2014.9585C10.4158%2014.7766%209.52884%2014.0132%209.17072%2013M4.34914%208.77822C4.14213%209.00124%203.94821%209.22274%203.76762%209.43907C2.51542%2010.9391%202.51523%2013.0606%203.76739%2014.5607C5.43604%2016.5596%208.24263%2019%2012%2019C12.8021%2019%2013.5608%2018.8888%2014.2744%2018.6944'%20stroke='%23ffffffff'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e";
@@ -18583,6 +18576,7 @@ function getFieldSrcFromKey(key) {
   const field = fieldMap.find((f) => f.key === key);
   return field?.src || "";
 }
+const useFileFormat = createSharedState(VALIDATED_APP_STATE);
 function useGetFileFormat() {
   const [format] = useFormat();
   const [field] = useField();
@@ -18634,8 +18628,8 @@ function FileButton() {
   const [format] = useFormat();
   const [, setFileFormat] = useFileFormat();
   const [isSaved, setIsSaved] = reactExports.useState(() => {
-    const saved2 = localStorage.getItem(SAVED_SNAPSHOT_KEY);
-    return saved2 !== null;
+    const saved = localStorage.getItem(SAVED_SNAPSHOT_KEY);
+    return saved !== null;
   });
   const savedSnapshotRef = reactExports.useRef(localStorage.getItem(SAVED_SNAPSHOT_KEY));
   const fileText = useGetFileFormat();
@@ -18732,11 +18726,11 @@ function FileButton() {
       const file = await handle.getFile();
       const content = await file.text();
       const fileName = handle.name.replace(/\.[^/.]+$/, "");
-      const parsed2 = JSON.parse(content);
+      const parsed = JSON.parse(content);
       const newFileFormat = {
-        ...parsed2,
+        ...parsed,
         path: {
-          ...parsed2.path,
+          ...parsed.path,
           name: fileName
         }
       };
@@ -18757,11 +18751,11 @@ function FileButton() {
       const reader = new FileReader();
       reader.onload = (e) => {
         const content = e.target?.result;
-        const parsed2 = JSON.parse(content);
+        const parsed = JSON.parse(content);
         const newFileFormat = {
-          ...parsed2,
+          ...parsed,
           path: {
-            ...parsed2.path,
+            ...parsed.path,
             name: fileName
           }
         };
@@ -20218,4 +20212,4 @@ function App() {
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-CsirgrB0.js.map
+//# sourceMappingURL=index-DKFjSYas.js.map
