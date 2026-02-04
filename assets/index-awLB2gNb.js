@@ -12750,6 +12750,46 @@ const kMikPointSwing = createPIDConstants({
   timeout: 3e3,
   swingDirection: "left"
 });
+function createStore(initial) {
+  let state = initial;
+  const listeners = /* @__PURE__ */ new Set();
+  const getState = () => state;
+  const setState = (next) => {
+    const resolved = typeof next === "function" ? next(state) : next;
+    if (Object.is(resolved, state)) return;
+    state = resolved;
+    for (const l of listeners) l();
+  };
+  const subscribe = (listener) => {
+    listeners.add(listener);
+    return () => listeners.delete(listener);
+  };
+  const useStore = () => reactExports.useSyncExternalStore(subscribe, getState, getState);
+  const useSelector = (selector, isEqual = Object.is) => {
+    const lastRef = reactExports.useRef({ has: false, value: void 0 });
+    const getSnap = () => {
+      const nextVal = selector(getState());
+      if (lastRef.current.has && isEqual(lastRef.current.value, nextVal)) {
+        return lastRef.current.value;
+      }
+      lastRef.current.has = true;
+      lastRef.current.value = nextVal;
+      return nextVal;
+    };
+    return reactExports.useSyncExternalStore(subscribe, getSnap, getSnap);
+  };
+  return { getState, setState, subscribe, useStore, useSelector };
+}
+function createObjectStore(initial) {
+  const store = createStore(initial);
+  const merge = (patch) => {
+    store.setState((prev) => {
+      const p = typeof patch === "function" ? patch(prev) : patch;
+      return { ...prev, ...p };
+    });
+  };
+  return { ...store, merge };
+}
 const INITIAL_DEFAULTS = {
   mikLib: {
     distanceDrive: { drive: clonePID(kMikDistanceDrive), heading: clonePID(kMikDistanceDriveHeading) },
@@ -12807,45 +12847,25 @@ const INITIAL_DEFAULTS = {
     start: void 0
   }
 };
-function createStore(initial) {
-  let state = initial;
-  const listeners = /* @__PURE__ */ new Set();
-  const getState = () => state;
-  const setState = (next) => {
-    const resolved = typeof next === "function" ? next(state) : next;
-    if (Object.is(resolved, state)) return;
-    state = resolved;
-    for (const l of listeners) l();
+const globalDefaultsStore = createObjectStore(INITIAL_DEFAULTS);
+function getDefaultConstants(format, kind) {
+  const state = globalDefaultsStore.getState() ?? INITIAL_DEFAULTS;
+  const constant = state?.[format]?.[kind] ?? INITIAL_DEFAULTS[format][kind];
+  if (!constant) return constant;
+  const deepClone = (obj) => {
+    const o = obj;
+    if ("drive" in o && "heading" in o) {
+      return { drive: clonePID(o.drive), heading: clonePID(o.heading) };
+    }
+    if ("turn" in o) {
+      return { turn: clonePID(o.turn) };
+    }
+    if ("swing" in o) {
+      return { swing: clonePID(o.swing) };
+    }
+    return { ...o };
   };
-  const subscribe = (listener) => {
-    listeners.add(listener);
-    return () => listeners.delete(listener);
-  };
-  const useStore = () => reactExports.useSyncExternalStore(subscribe, getState, getState);
-  const useSelector = (selector, isEqual = Object.is) => {
-    const lastRef = reactExports.useRef({ has: false, value: void 0 });
-    const getSnap = () => {
-      const nextVal = selector(getState());
-      if (lastRef.current.has && isEqual(lastRef.current.value, nextVal)) {
-        return lastRef.current.value;
-      }
-      lastRef.current.has = true;
-      lastRef.current.value = nextVal;
-      return nextVal;
-    };
-    return reactExports.useSyncExternalStore(subscribe, getSnap, getSnap);
-  };
-  return { getState, setState, subscribe, useStore, useSelector };
-}
-function createObjectStore(initial) {
-  const store = createStore(initial);
-  const merge = (patch) => {
-    store.setState((prev) => {
-      const p = typeof patch === "function" ? patch(prev) : patch;
-      return { ...prev, ...p };
-    });
-  };
-  return { ...store, merge };
+  return deepClone(constant);
 }
 const FIELD_REAL_DIMENSIONS = { x: -72, y: 72, w: 145.2756, h: 145.2756 };
 const FIELD_IMG_DIMENSIONS = { x: 0, y: 0, w: 575, h: 575 };
@@ -14026,7 +14046,6 @@ function getRevConstantsConfig(format, path, setPath, segmentId) {
   }
   return void 0;
 }
-const globalDefaultsStore = createObjectStore(INITIAL_DEFAULTS);
 function updateDefaultConstants(format, kind, patch) {
   globalDefaultsStore.setState((prev) => {
     const currentFormatDefaults = prev[format];
@@ -14078,24 +14097,6 @@ function updatePathConstants(setPath, segmentId, partial) {
       };
     })
   }));
-}
-function getDefaultConstants(format, kind) {
-  const state = globalDefaultsStore.getState();
-  const constant = state[format][kind];
-  if (!constant) return constant;
-  const deepClone = (obj) => {
-    if ("drive" in obj && "heading" in obj) {
-      return { drive: clonePID(obj.drive), heading: clonePID(obj.heading) };
-    }
-    if ("turn" in obj) {
-      return { turn: clonePID(obj.turn) };
-    }
-    if ("swing" in obj) {
-      return { swing: clonePID(obj.swing) };
-    }
-    return { ...obj };
-  };
-  return deepClone(constant);
 }
 function getFormatConstantsConfig(format, path, setPath, segmentId) {
   switch (format) {
@@ -20212,4 +20213,4 @@ function App() {
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-d4kbMePu.js.map
+//# sourceMappingURL=index-awLB2gNb.js.map
