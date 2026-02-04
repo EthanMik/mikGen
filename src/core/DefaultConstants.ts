@@ -5,15 +5,11 @@ import type { Format } from "../hooks/appStateDefaults";
 import { getmikLibConstantsConfig, getMikLibDirectionConfig } from "./mikLibSim/MikConstantsConfig";
 import type { ConstantsByFormat, SegmentKind } from "./Types/Segment";
 import type { Path } from "./Types/Path";
-import { clonePID } from "./mikLibSim/MikConstants";
-import { createObjectStore } from "./Store";
 import type { CycleImageButtonProps } from "../components/Util/CycleButton";
 import { getRevConstantsConfig } from "./ReveiLibSim/RevConstantsConfig";
-import { INITIAL_DEFAULTS, type DefaultConstant } from "./InitialDefaults";
+import { INITIAL_DEFAULTS, type DefaultConstant, globalDefaultsStore, getDefaultConstants } from "./InitialDefaults";
 
-export { INITIAL_DEFAULTS, type DefaultConstant };
-
-export const globalDefaultsStore = createObjectStore<DefaultConstant>(INITIAL_DEFAULTS);
+export { INITIAL_DEFAULTS, type DefaultConstant, globalDefaultsStore, getDefaultConstants };
 
 export function updateDefaultConstants<F extends Format, K extends keyof ConstantsByFormat[F] & SegmentKind>(format: F, kind: K, patch: Partial<ConstantsByFormat[F][K]>) {
     globalDefaultsStore.setState((prev) => {
@@ -83,28 +79,6 @@ export function updatePathConstants(
             };
         }),
     }));
-}
-
-export function getDefaultConstants<F extends Format, K extends keyof ConstantsByFormat[F] & SegmentKind>(format: F, kind: K): ConstantsByFormat[F][K] {
-    const state = globalDefaultsStore.getState();
-    const constant = state[format][kind];
-
-    if (!constant) return constant;
-
-    const deepClone = (obj: any): any => {
-        if ('drive' in obj && 'heading' in obj) {
-            return { drive: clonePID(obj.drive), heading: clonePID(obj.heading) };
-        }
-        if ('turn' in obj) {
-            return { turn: clonePID(obj.turn) };
-        }
-        if ('swing' in obj) {
-            return { swing: clonePID(obj.swing) };
-        }
-        return { ...obj };
-    };
-
-    return deepClone(constant);
 }
 
 export function getFormatConstantsConfig(format: Format, path: Path, setPath: React.Dispatch<SetStateAction<Path>>, segmentId: string): ConstantListField[] | undefined {
