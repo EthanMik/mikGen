@@ -12556,14 +12556,257 @@ function createSharedState(initialValue) {
   };
   return useSharedState;
 }
-const ccw = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_301_13)'%3e%3cpath%20d='M1.21931%202.13826C1.89274%202.13826%202.43862%202.68416%202.43862%203.35757V5.31611C3.165%204.05176%204.17638%202.97141%205.40345%202.15761C6.94433%201.13569%208.73971%200.59552%2010.5955%200.59552C11.8646%200.59552%2013.0964%200.844329%2014.2566%201.33507C15.3766%201.80879%2016.3822%202.48673%2017.2455%203.35002C18.1088%204.21332%2018.7867%205.21896%2019.2605%206.33898C19.7512%207.4992%2020%208.73096%2020%2010C20%2011.2691%2019.7512%2012.5008%2019.2604%2013.661C18.7867%2014.7811%2018.1088%2015.7867%2017.2455%2016.65C16.3822%2017.5133%2015.3765%2018.1912%2014.2565%2018.6649C13.0963%2019.1557%2011.8646%2019.4045%2010.5955%2019.4045C9.51175%2019.4045%208.44882%2019.2214%207.43621%2018.8603C6.45763%2018.5114%205.54814%2018.0045%204.73299%2017.354C3.92588%2016.7098%203.23407%2015.9431%202.67677%2015.0752C2.10908%2014.191%201.69688%2013.226%201.45174%2012.2071C1.29421%2011.5524%201.69719%2010.8939%202.35194%2010.7363C3.00672%2010.5788%203.66515%2010.9819%203.82269%2011.6366C4.18195%2013.1297%205.04546%2014.4833%206.2542%2015.448C6.85805%2015.9299%207.53129%2016.3052%208.25526%2016.5633C9.00427%2016.8304%209.79164%2016.9659%2010.5955%2016.9659C12.4561%2016.9659%2014.2055%2016.2413%2015.5211%2014.9256C16.8368%2013.6099%2017.5614%2011.8606%2017.5614%209.99995C17.5614%208.13933%2016.8368%206.39%2015.5211%205.07433C14.2054%203.75866%2012.4561%203.03407%2010.5955%203.03407C9.22063%203.03407%207.89133%203.43372%206.75126%204.18981C5.76887%204.84137%204.97311%205.72282%204.42863%206.75724H5.77625C6.44968%206.75724%206.99556%207.30314%206.99556%207.97655C6.99556%208.64993%206.44968%209.19586%205.77625%209.19586H1.21931C0.545879%209.19586%201.06012e-07%208.64993%201.06012e-07%207.97655V3.35757C1.06012e-07%202.68416%200.545926%202.13826%201.21931%202.13826Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_301_13'%3e%3crect%20width='20'%20height='20'%20fill='white'%20transform='matrix(-1%200%200%201%2020%200)'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
-const cw = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_301_6)'%3e%3cpath%20d='M18.7807%202.13826C18.1073%202.13826%2017.5614%202.68416%2017.5614%203.35757V5.31611C16.835%204.05176%2015.8236%202.97141%2014.5966%202.15761C13.0557%201.13569%2011.2603%200.59552%209.40448%200.59552C8.13537%200.59552%206.90364%200.844329%205.74344%201.33507C4.62339%201.80879%203.6178%202.48673%202.75448%203.35002C1.89121%204.21332%201.21327%205.21896%200.739529%206.33898C0.248832%207.4992%200%208.73096%200%2010C0%2011.2691%200.248832%2012.5008%200.739552%2013.661C1.21327%2014.7811%201.89123%2015.7867%202.75452%2016.65C3.61782%2017.5133%204.62346%2018.1912%205.74346%2018.6649C6.90366%2019.1557%208.1354%2019.4045%209.4045%2019.4045C10.4882%2019.4045%2011.5512%2019.2214%2012.5638%2018.8603C13.5424%2018.5114%2014.4519%2018.0045%2015.267%2017.354C16.0741%2016.7098%2016.7659%2015.9431%2017.3232%2015.0752C17.8909%2014.191%2018.3031%2013.226%2018.5483%2012.2071C18.7058%2011.5524%2018.3028%2010.8939%2017.6481%2010.7363C16.9933%2010.5788%2016.3348%2010.9819%2016.1773%2011.6366C15.818%2013.1297%2014.9545%2014.4833%2013.7458%2015.448C13.142%2015.9299%2012.4687%2016.3052%2011.7447%2016.5633C10.9957%2016.8304%2010.2084%2016.9659%209.4045%2016.9659C7.54386%2016.9659%205.79453%2016.2413%204.47888%2014.9256C3.16321%2013.6099%202.43862%2011.8606%202.43862%209.99995C2.43862%208.13933%203.16319%206.39%204.47888%205.07433C5.79458%203.75866%207.54386%203.03407%209.4045%203.03407C10.7794%203.03407%2012.1087%203.43372%2013.2487%204.18981C14.2311%204.84137%2015.0269%205.72282%2015.5714%206.75724H14.2237C13.5503%206.75724%2013.0044%207.30314%2013.0044%207.97655C13.0044%208.64993%2013.5503%209.19586%2014.2237%209.19586H18.7807C19.4541%209.19586%2020%208.64993%2020%207.97655V3.35757C20%202.68416%2019.4541%202.13826%2018.7807%202.13826Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_301_6'%3e%3crect%20width='20'%20height='20'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
-const cwccw = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M5.453%209.24096C6.08872%209.24096%206.60408%208.72561%206.60408%208.08988C6.60408%207.45416%206.08872%206.93881%205.453%206.93881H4.17772C4.62934%206.08515%205.26881%205.32864%206.04444%204.7442C7.19062%203.8805%208.55757%203.424%209.99747%203.424C10.7563%203.424%2011.4997%203.55184%2012.2067%203.80398C12.8902%204.04768%2013.5258%204.40195%2014.0958%204.85692C15.2369%205.76761%2016.0521%207.04543%2016.3913%208.45505C16.5182%208.98264%2016.9897%209.33712%2017.5095%209.33708C17.5985%209.33708%2017.6892%209.32662%2017.7797%209.30487C18.3977%209.15615%2018.7783%208.53453%2018.6295%207.91646C18.398%206.95455%2018.0089%206.0436%2017.473%205.20886C16.9469%204.38947%2016.2938%203.66568%2015.5319%203.05758C14.7623%202.44341%2013.9038%201.96498%2012.9799%201.63556C12.024%201.29468%2011.0205%201.12183%209.99745%201.12183C9.01765%201.12183%208.05448%201.28065%207.13454%201.59385C6.24507%201.89671%205.41216%202.33804%204.659%202.90558C3.91471%203.46642%203.26565%204.13722%202.72991%204.89937C2.57683%205.11713%202.4344%205.3411%202.30213%205.57039V3.72931C2.30213%203.09358%201.78677%202.57823%201.15105%202.57823C0.515331%202.57823%200%203.09361%200%203.72933V8.08991C0%208.72563%200.515353%209.24098%201.15107%209.24098L5.453%209.24096Z'%20fill='white'/%3e%3cpath%20d='M18.8489%2010.7591H14.5469C13.9112%2010.7591%2013.3959%2011.2745%2013.3959%2011.9102C13.3959%2012.5459%2013.9112%2013.0613%2014.5469%2013.0613H15.8192C15.3052%2014.0378%2014.554%2014.87%2013.6265%2015.485C12.551%2016.1983%2011.2971%2016.5756%2010.0001%2016.5761C9.24206%2016.5758%208.49954%2016.448%207.7932%2016.1961C7.10975%2015.9524%206.47418%2015.5982%205.9041%2015.1432C4.76302%2014.2325%203.94782%2012.9547%203.60866%2011.5451C3.45996%2010.927%202.83838%2010.5465%202.22024%2010.6952C1.60217%2010.8439%201.22168%2011.4656%201.3704%2012.0836C1.60184%2013.0455%201.99095%2013.9565%202.52691%2014.7912C3.05301%2015.6106%203.7061%2016.3344%204.46804%2016.9425C5.23757%2017.5567%206.09617%2018.0351%207.01999%2018.3645C7.97323%2018.7044%208.97368%2018.8772%209.99379%2018.8781C9.99502%2018.8781%209.99618%2018.8782%209.99743%2018.8782C9.99835%2018.8782%209.99925%2018.8782%2010.0002%2018.8782C10.001%2018.8782%2010.0017%2018.8782%2010.0025%2018.8782C10.0034%2018.8782%2010.0044%2018.8782%2010.0053%2018.8782C11.7545%2018.8767%2013.4465%2018.3669%2014.8989%2017.4036C16.0573%2016.6354%2017.0121%2015.6154%2017.6978%2014.4218V16.2708C17.6978%2016.9065%2018.2132%2017.4219%2018.8489%2017.4219C19.4846%2017.4219%2020%2016.9065%2020%2016.2708V11.9102C20%2011.2745%2019.4846%2010.7591%2018.8489%2010.7591Z'%20fill='white'/%3e%3c/svg%3e";
-const fwd = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_304_10)'%3e%3cpath%20d='M16.1753%208.37015L16.8962%209.09093L0.909059%209.09093C0.406998%209.09093%20-3.20384e-05%209.49796%20-3.20384e-05%2010C-3.20384e-05%2010.5021%200.406998%2010.9091%200.909059%2010.9091L16.8962%2010.9091L16.1753%2011.63C15.9978%2011.8075%2015.909%2012.0401%2015.909%2012.2728C15.909%2012.5054%2015.9977%2012.7381%2016.1753%2012.9156C16.5303%2013.2706%2017.1059%2013.2706%2017.4609%2012.9156L19.7337%2010.6429C20.0887%2010.2879%2020.0887%209.71227%2019.7337%209.35724L17.4609%207.08451C17.1059%206.72948%2016.5303%206.72948%2016.1753%207.08451C15.8203%207.43948%2015.8203%208.01512%2016.1753%208.37015Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_304_10'%3e%3crect%20width='20'%20height='20'%20fill='white'%20transform='matrix(0%201%20-1%200%2020%200)'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
-const rev = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_304_8)'%3e%3cpath%20d='M3.8247%2011.6299L3.10385%2010.9091L19.0909%2010.9091C19.593%2010.9091%2020%2010.502%2020%209.99997C20%209.49791%2019.593%209.09088%2019.0909%209.09088H3.10385L3.8247%208.37004C4.00221%208.19252%204.091%207.95985%204.091%207.72725C4.091%207.49458%204.00227%207.26191%203.8247%207.0844C3.46967%206.72937%202.89409%206.72937%202.53906%207.0844L0.266334%209.35713C-0.0886965%209.7121%20-0.0886965%2010.2877%200.266334%2010.6428L2.53906%2012.9155C2.89409%2013.2705%203.46967%2013.2705%203.8247%2012.9155C4.17973%2012.5605%204.17973%2011.9849%203.8247%2011.6299Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_304_8'%3e%3crect%20width='20'%20height='20'%20fill='white'%20transform='matrix(0%20-1%201%200%200%2020)'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
-const fwdrev = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_296_2)'%3e%3cpath%20d='M20%204.96211C20%204.32319%2019.4821%203.80524%2018.8431%203.80524L3.96293%203.80524L4.88155%202.87553C5.10433%202.65007%205.2155%202.35622%205.2155%202.06246C5.2155%201.76408%205.10076%201.46578%204.87173%201.2395C4.41724%200.790433%203.68478%200.794817%203.23571%201.2493L0.334011%204.18602C0.119979%204.40263%206.10352e-05%204.6948%206.10352e-05%204.99911C6.10352e-05%205.0014%206.10352e-05%205.00376%208.30708e-05%205.00603C0.00193407%205.31283%200.125554%205.60637%200.343839%205.82201L3.24109%208.68473C3.69557%209.13379%204.42804%209.12941%204.8771%208.67492C5.32621%208.22041%205.3218%207.48795%204.8673%207.03888L3.93629%206.11896L18.8432%206.11896C19.4821%206.11898%2020%205.60104%2020%204.96211Z'%20fill='white'/%3e%3cpath%20d='M6.10352e-05%2013.0379C6.10352e-05%2013.6768%200.518009%2014.1948%201.15693%2014.1948H16.0638L15.1328%2015.1147C14.6783%2015.5637%2014.6739%2016.2962%2015.123%2016.7507C15.5721%2017.2052%2016.3045%2017.2096%2016.759%2016.7605L19.6562%2013.8978C19.8745%2013.6822%2019.9982%2013.3887%2020%2013.0819C20%2013.0796%2020%2013.0772%2020%2013.0749C20%2012.7706%2019.8801%2012.4784%2019.6661%2012.2618L16.7643%209.32506C16.3153%208.87057%2015.5828%208.86619%2015.1283%209.31525C14.6738%209.76431%2014.6694%2010.4968%2015.1185%2010.9513L16.0371%2011.881H1.15693C0.518009%2011.881%206.10352e-05%2012.399%206.10352e-05%2013.0379Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_296_2'%3e%3crect%20width='20'%20height='20'%20fill='white'%20transform='matrix(0%20-1%201%200%200%2020)'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
-const leftswing = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_304_13)'%3e%3cpath%20d='M4.07922%205.1606C4.07856%205.1458%204.07717%205.13101%204.07723%205.11621C4.07723%205.09343%204.07882%205.07091%204.08047%205.04838C4.08113%205.03907%204.08113%205.02969%204.08199%205.02038C4.0841%204.99911%204.08767%204.97824%204.0911%204.95731C4.09289%204.94634%204.09408%204.93538%204.09619%204.92455C4.09976%204.90665%204.10458%204.88921%204.10913%204.87164C4.11263%204.85777%204.11574%204.84377%204.11983%204.82997C4.12406%204.8161%204.12941%204.80262%204.13417%204.78895C4.14018%204.77198%204.14579%204.75487%204.15273%204.73816C4.15695%204.72779%204.16224%204.71795%204.16679%204.70778C4.17558%204.68863%204.1841%204.66941%204.19407%204.65072C4.19869%204.64207%204.20418%204.63394%204.20906%204.62536C4.22003%204.6062%204.23086%204.58698%204.24328%204.56842C4.25279%204.55416%204.26355%204.54081%204.27372%204.52708C4.28257%204.51519%204.29063%204.50297%204.30008%204.49141C4.32101%204.46565%204.34334%204.44108%204.36691%204.41751C4.36705%204.41737%204.36718%204.41718%204.36731%204.41704L8.49411%200.290115C8.88094%20-0.0967864%209.50826%20-0.0967864%209.89516%200.290115C10.2821%200.676951%2010.2821%201.30426%209.89516%201.69116L7.57494%204.01138C11.5239%204.39829%2014.9318%207.32145%2015.7449%2011.4091C16.0577%2012.9821%2015.952%2014.5806%2015.4725%2016.0609C15.4651%2016.0839%2015.4583%2016.1071%2015.4506%2016.13C15.0105%2017.4531%2014.2702%2018.6791%2013.2607%2019.7043C13.2201%2019.7456%2013.1764%2019.7814%2013.131%2019.814C12.9592%2019.9372%2012.7573%2020%2012.5547%2020C12.5233%2020%2012.4919%2019.9985%2012.4607%2019.9955C12.2419%2019.9748%2012.0284%2019.8815%2011.8596%2019.7152C11.4697%2019.3313%2011.4648%2018.7041%2011.8488%2018.3142C12.0868%2018.0725%2012.3051%2017.8161%2012.5043%2017.5482C13.7222%2015.9108%2014.2054%2013.8261%2013.8015%2011.7957C13.1595%208.56828%2010.4545%206.26285%207.3303%205.97892L9.89522%208.54391C10.2821%208.93081%2010.2821%209.55805%209.89522%209.94495C9.70177%2010.1384%209.44822%2010.2352%209.19467%2010.2352C8.94111%2010.2352%208.68756%2010.1385%208.49417%209.94495L4.3722%205.82291C4.37075%205.82146%204.36923%205.81988%204.36777%205.81842L4.36731%205.81803C4.36645%205.81717%204.36579%205.81624%204.36493%205.81539C4.34261%205.793%204.32141%205.76955%204.30133%205.74505C4.29552%205.73804%204.29063%205.73058%204.28508%205.72345C4.27075%205.70502%204.25655%205.68653%204.24354%205.66704C4.23594%205.65568%204.22947%205.64386%204.2224%205.63224C4.21276%205.61639%204.20286%205.6008%204.19407%205.58435C4.18582%205.5689%204.17875%205.55298%204.17142%205.53726C4.16514%205.52392%204.15854%205.51091%204.15286%205.49724C4.1444%205.4769%204.13747%205.45616%204.1304%205.43542C4.12703%205.42551%204.12314%205.41593%204.1201%205.40583C4.11164%205.37802%204.10484%205.34989%204.0989%205.32162C4.0981%205.31799%204.09692%205.31455%204.09619%205.31085C4.09612%205.31059%204.09612%205.31026%204.09606%205.31C4.08965%205.2775%204.08476%205.24481%204.08166%205.21198C4.08001%205.19468%204.08001%205.17764%204.07922%205.1606Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_304_13'%3e%3crect%20width='20'%20height='20'%20fill='white'%20transform='matrix(-1%200%200%201%2020%200)'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
-const rightswing = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_304_6)'%3e%3cpath%20d='M15.9208%205.1606C15.9214%205.1458%2015.9228%205.13101%2015.9228%205.11621C15.9228%205.09343%2015.9212%205.07091%2015.9195%205.04838C15.9189%205.03907%2015.9189%205.02969%2015.918%205.02038C15.9159%204.99911%2015.9123%204.97824%2015.9089%204.95731C15.9071%204.94634%2015.9059%204.93538%2015.9038%204.92455C15.9002%204.90665%2015.8954%204.88921%2015.8909%204.87164C15.8874%204.85777%2015.8843%204.84377%2015.8802%204.82997C15.8759%204.8161%2015.8706%204.80262%2015.8658%204.78895C15.8598%204.77198%2015.8542%204.75487%2015.8473%204.73816C15.843%204.72779%2015.8378%204.71795%2015.8332%204.70778C15.8244%204.68863%2015.8159%204.66941%2015.8059%204.65072C15.8013%204.64207%2015.7958%204.63394%2015.7909%204.62536C15.78%204.6062%2015.7691%204.58698%2015.7567%204.56842C15.7472%204.55416%2015.7364%204.54081%2015.7263%204.52708C15.7174%204.51519%2015.7094%204.50297%2015.6999%204.49141C15.679%204.46565%2015.6567%204.44108%2015.6331%204.41751C15.633%204.41737%2015.6328%204.41718%2015.6327%204.41704L11.5059%200.290115C11.1191%20-0.0967864%2010.4917%20-0.0967864%2010.1048%200.290115C9.71794%200.676951%209.71794%201.30426%2010.1048%201.69116L12.4251%204.01138C8.47607%204.39829%205.06819%207.32145%204.25509%2011.4091C3.94229%2012.9821%204.04796%2014.5806%204.52753%2016.0609C4.53493%2016.0839%204.54173%2016.1071%204.54939%2016.13C4.98946%2017.4531%205.72984%2018.6791%206.7393%2019.7043C6.77985%2019.7456%206.82358%2019.7814%206.86902%2019.814C7.04081%2019.9372%207.24271%2020%207.44534%2020C7.47671%2020%207.50809%2019.9985%207.53933%2019.9955C7.75814%2019.9748%207.9716%2019.8815%208.14042%2019.7152C8.53029%2019.3313%208.53518%2018.7041%208.15125%2018.3142C7.91322%2018.0725%207.69493%2017.8161%207.49567%2017.5482C6.27777%2015.9108%205.79464%2013.8261%206.19851%2011.7957C6.84049%208.56828%209.54549%206.26285%2012.6697%205.97892L10.1048%208.54391C9.71788%208.93081%209.71788%209.55805%2010.1048%209.94495C10.2982%2010.1384%2010.5518%2010.2352%2010.8053%2010.2352C11.0589%2010.2352%2011.3124%2010.1385%2011.5058%209.94495L15.6278%205.82291C15.6293%205.82146%2015.6308%205.81988%2015.6322%205.81842L15.6327%205.81803C15.6335%205.81717%2015.6342%205.81624%2015.6351%205.81539C15.6574%205.793%2015.6786%205.76955%2015.6987%205.74505C15.7045%205.73804%2015.7094%205.73058%2015.7149%205.72345C15.7292%205.70502%2015.7434%205.68653%2015.7565%205.66704C15.7641%205.65568%2015.7705%205.64386%2015.7776%205.63224C15.7872%205.61639%2015.7971%205.6008%2015.8059%205.58435C15.8142%205.5689%2015.8213%205.55298%2015.8286%205.53726C15.8349%205.52392%2015.8415%205.51091%2015.8471%205.49724C15.8556%205.4769%2015.8625%205.45616%2015.8696%205.43542C15.873%205.42551%2015.8769%205.41593%2015.8799%205.40583C15.8884%205.37802%2015.8952%205.34989%2015.9011%205.32162C15.9019%205.31799%2015.9031%205.31455%2015.9038%205.31085C15.9039%205.31059%2015.9039%205.31026%2015.9039%205.31C15.9103%205.2775%2015.9152%205.24481%2015.9183%205.21198C15.92%205.19468%2015.92%205.17764%2015.9208%205.1606Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_304_6'%3e%3crect%20width='20'%20height='20'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
+const cloneKRev = (c) => ({ ...c });
+function createRevConstants(values = {}) {
+  return {
+    maxSpeed: values.maxSpeed ?? null,
+    kCorrection: values.kCorrection ?? null,
+    maxError: values.maxError ?? null,
+    stopHarshThreshold: values.stopHarshThreshold ?? null,
+    stopCoastThreshold: values.stopCoastThreshold ?? null,
+    stopCoastPower: values.stopCoastPower ?? null,
+    stopTimeout: values.stopTimeout ?? null,
+    brakeTime: values.brakeTime ?? null,
+    dropEarly: values.dropEarly ?? null,
+    lead: values.lead ?? null
+  };
+}
+const kPilon = createRevConstants({
+  maxSpeed: 1,
+  kCorrection: 2,
+  maxError: 0.5,
+  stopHarshThreshold: 60,
+  stopCoastThreshold: 200,
+  stopCoastPower: 0.25,
+  brakeTime: 250,
+  dropEarly: 0
+});
+const kTurn = createRevConstants({
+  maxSpeed: 0.75,
+  stopHarshThreshold: 60,
+  stopCoastThreshold: 200,
+  stopCoastPower: 0.25,
+  brakeTime: 100,
+  dropEarly: 0
+});
+const kLootAt = createRevConstants({
+  maxSpeed: 0.75,
+  stopHarshThreshold: 60,
+  stopCoastThreshold: 200,
+  stopCoastPower: 0.25,
+  brakeTime: 100,
+  dropEarly: 0
+});
+const kBoomerang = createRevConstants({
+  maxSpeed: 0.75,
+  kCorrection: 2,
+  maxError: 0.5,
+  stopHarshThreshold: 60,
+  stopCoastThreshold: 200,
+  stopCoastPower: 0.25,
+  brakeTime: 250,
+  dropEarly: 0,
+  lead: 0.4
+});
+const kMikLibSpeed = 12;
+function getUnequalPIDConstants(correctPIDConstants, differentPIDConstants) {
+  const out = {};
+  const a = correctPIDConstants;
+  const b = differentPIDConstants;
+  if (a.maxSpeed !== b.maxSpeed) out.maxSpeed = b.maxSpeed;
+  if (a.minSpeed !== b.minSpeed) out.minSpeed = b.minSpeed;
+  if (a.kp !== b.kp) out.kp = b.kp;
+  if (a.ki !== b.ki) out.ki = b.ki;
+  if (a.kd !== b.kd) out.kd = b.kd;
+  if (a.starti !== b.starti) out.starti = b.starti;
+  if (a.settleTime !== b.settleTime) out.settleTime = b.settleTime;
+  if (a.settleError !== b.settleError) out.settleError = b.settleError;
+  if (a.timeout !== b.timeout) out.timeout = b.timeout;
+  if (a.lead !== b.lead) out.lead = b.lead;
+  if (a.setback !== b.setback) out.setback = b.setback;
+  if (a.swingDirection !== b.swingDirection) out.swingDirection = b.swingDirection;
+  if (a.turnDirection !== b.turnDirection) out.turnDirection = b.turnDirection;
+  if (a.driveDirection !== b.driveDirection) out.driveDirection = b.driveDirection;
+  return out;
+}
+const clonePID = (c) => ({ ...c });
+function createPIDConstants(values = {}) {
+  return {
+    maxSpeed: values.maxSpeed ?? null,
+    minSpeed: values.minSpeed ?? null,
+    kp: values.kp ?? null,
+    ki: values.ki ?? null,
+    kd: values.kd ?? null,
+    starti: values.starti ?? null,
+    settleTime: values.settleTime ?? null,
+    settleError: values.settleError ?? null,
+    timeout: values.timeout ?? null,
+    lead: values.lead ?? null,
+    setback: values.setback ?? null,
+    swingDirection: values.swingDirection ?? null,
+    turnDirection: values.turnDirection ?? null,
+    driveDirection: values.driveDirection ?? null
+  };
+}
+const kMikAngleTurn = createPIDConstants({
+  maxSpeed: 12,
+  minSpeed: 0,
+  kp: 0.4,
+  ki: 0.03,
+  kd: 3,
+  starti: 15,
+  settleTime: 300,
+  settleError: 1,
+  timeout: 3e3
+});
+const kMikPointTurn = createPIDConstants({
+  maxSpeed: 12,
+  minSpeed: 0,
+  kp: 0.4,
+  ki: 0.03,
+  kd: 3,
+  starti: 15,
+  settleTime: 300,
+  settleError: 1,
+  timeout: 3e3
+});
+const kMikPointDrive = createPIDConstants({
+  maxSpeed: 8,
+  minSpeed: 0,
+  kp: 1.5,
+  ki: 0,
+  kd: 10,
+  starti: 0,
+  settleTime: 300,
+  settleError: 3,
+  timeout: 5e3
+});
+const kMikDistanceDrive = createPIDConstants({
+  maxSpeed: 10,
+  minSpeed: 0,
+  kp: 1.5,
+  ki: 0,
+  kd: 10,
+  starti: 0,
+  settleTime: 300,
+  settleError: 1,
+  timeout: 5e3
+});
+const kMikPointDriveHeading = createPIDConstants({
+  maxSpeed: 10,
+  kp: 0.4,
+  ki: 0,
+  kd: 3,
+  starti: 0
+});
+const kMikDistanceDriveHeading = createPIDConstants({
+  maxSpeed: 8,
+  kp: 0.4,
+  ki: 0,
+  kd: 1,
+  starti: 0
+});
+const kMikBoomerang = createPIDConstants({
+  maxSpeed: 8,
+  minSpeed: 0,
+  kp: 1.5,
+  ki: 0,
+  kd: 10,
+  starti: 0,
+  settleTime: 300,
+  settleError: 3,
+  timeout: 5e3,
+  lead: 0.5,
+  setback: 1
+});
+const kMikBoomerangHeading = createPIDConstants({
+  maxSpeed: 10,
+  kp: 0.4,
+  ki: 0,
+  kd: 3,
+  starti: 0
+});
+const kMikAngleSwing = createPIDConstants({
+  maxSpeed: 12,
+  minSpeed: 0,
+  kp: 0.3,
+  ki: 1e-3,
+  kd: 2,
+  starti: 15,
+  settleError: 1,
+  settleTime: 300,
+  timeout: 3e3,
+  swingDirection: "left"
+});
+const kMikPointSwing = createPIDConstants({
+  maxSpeed: 12,
+  minSpeed: 0,
+  kp: 0.3,
+  ki: 1e-3,
+  kd: 2,
+  starti: 15,
+  settleError: 1,
+  settleTime: 300,
+  timeout: 3e3,
+  swingDirection: "left"
+});
+const INITIAL_DEFAULTS = {
+  mikLib: {
+    distanceDrive: { drive: clonePID(kMikDistanceDrive), heading: clonePID(kMikDistanceDriveHeading) },
+    pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
+    poseDrive: { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
+    pointTurn: { turn: clonePID(kMikPointTurn) },
+    angleTurn: { turn: clonePID(kMikAngleTurn) },
+    angleSwing: { swing: clonePID(kMikAngleSwing) },
+    pointSwing: { swing: clonePID(kMikPointSwing) },
+    group: "",
+    start: void 0
+  },
+  ReveilLib: {
+    distanceDrive: { drive: cloneKRev(kPilon) },
+    pointDrive: { drive: cloneKRev(kPilon) },
+    poseDrive: { drive: cloneKRev(kBoomerang) },
+    pointTurn: { turn: cloneKRev(kLootAt) },
+    angleTurn: { turn: cloneKRev(kTurn) },
+    angleSwing: { turn: cloneKRev(kTurn) },
+    pointSwing: { turn: cloneKRev(kTurn) },
+    group: "",
+    start: void 0
+  },
+  "JAR-Template": {
+    distanceDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
+    pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
+    poseDrive: { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
+    pointTurn: { turn: clonePID(kMikPointTurn) },
+    angleTurn: { turn: clonePID(kMikAngleTurn) },
+    angleSwing: { swing: clonePID(kMikAngleSwing) },
+    pointSwing: { swing: clonePID(kMikPointSwing) },
+    group: "",
+    start: void 0
+  },
+  LemLib: {
+    distanceDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
+    pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
+    poseDrive: { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
+    pointTurn: { turn: clonePID(kMikPointTurn) },
+    angleTurn: { turn: clonePID(kMikAngleTurn) },
+    angleSwing: { swing: clonePID(kMikAngleSwing) },
+    pointSwing: { swing: clonePID(kMikPointSwing) },
+    group: "",
+    start: void 0
+  },
+  "RW-Template": {
+    distanceDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
+    pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
+    poseDrive: { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
+    pointTurn: { turn: clonePID(kMikPointTurn) },
+    angleTurn: { turn: clonePID(kMikAngleTurn) },
+    angleSwing: { swing: clonePID(kMikAngleSwing) },
+    pointSwing: { swing: clonePID(kMikPointSwing) },
+    group: "",
+    start: void 0
+  }
+};
 function createStore(initial) {
   let state = initial;
   const listeners = /* @__PURE__ */ new Set();
@@ -12760,836 +13003,6 @@ function deepEqual(a, b) {
     return true;
   };
   return eq(a, b);
-}
-const MAX_UNDO_HISTORY = 50;
-const undoHistory = createStore([VALIDATED_APP_STATE]);
-const redoHistory = createStore([]);
-function AddToUndoHistory(snapshot) {
-  console.log(snapshot);
-  const current = undoHistory.getState();
-  const previousState = current[current.length - 1] || {};
-  const fullState = mergeDeep(previousState, snapshot);
-  if (snapshot.defaults !== void 0) {
-    fullState.defaults = snapshot.defaults;
-  }
-  let newHistory = [...current, fullState];
-  while (newHistory.length > MAX_UNDO_HISTORY) {
-    newHistory = newHistory.slice(1);
-  }
-  undoHistory.setState(newHistory);
-  redoHistory.setState([]);
-}
-const createDrivePIDGroup$1 = (format, path, setPath, segmentId, segmentKind, driveConstants, headingConstants) => {
-  const onDriveChange = (partial) => updatePathConstants(setPath, segmentId, { drive: partial });
-  const onHeadingChange = (partial) => updatePathConstants(setPath, segmentId, { heading: partial });
-  const setDefaultDrive = (partial) => {
-    updateDefaultConstants(format, segmentKind, { drive: partial });
-  };
-  const setDefaultHeading = (partial) => {
-    updateDefaultConstants(format, segmentKind, { heading: partial });
-  };
-  const currentDefaults = getDefaultConstants(format, segmentKind);
-  return [
-    {
-      header: "Exit Conditions",
-      values: driveConstants,
-      fields: [
-        { key: "settleError", units: "in", label: "Settle Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
-        { key: "settleTime", units: "ms", label: "Settle Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
-        { key: "timeout", units: "ms", label: "Timeout", input: { bounds: [0, 9999], stepSize: 100, roundTo: 0 } },
-        { key: "minSpeed", units: "volt", label: "Min Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } }
-      ],
-      onChange: onDriveChange,
-      setDefault: setDefaultDrive,
-      defaults: currentDefaults?.drive ?? {}
-    },
-    {
-      header: "Drive Constants",
-      values: driveConstants,
-      fields: [
-        { key: "maxSpeed", units: "volt", label: "Max Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
-        { key: "kp", label: "kP", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
-        { key: "ki", label: "kI", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
-        { key: "kd", label: "kD", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
-        { key: "starti", units: "in", label: "Starti", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
-        ...segmentKind === "poseDrive" ? [
-          { key: "lead", label: "Lead", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } },
-          { key: "setback", label: "Setback", units: "in", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 1 } }
-        ] : []
-      ],
-      onChange: onDriveChange,
-      setDefault: setDefaultDrive,
-      defaults: currentDefaults?.drive ?? {}
-    },
-    {
-      header: "Heading Constants",
-      values: headingConstants,
-      fields: [
-        { key: "maxSpeed", units: "volt", label: "Max Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
-        { key: "kp", label: "kP", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 3 } },
-        { key: "ki", label: "kI", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
-        { key: "kd", label: "kD", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 3 } },
-        { key: "starti", units: "deg", label: "Starti", input: { bounds: [0, 360], stepSize: 1, roundTo: 2 } }
-      ],
-      onChange: onHeadingChange,
-      setDefault: setDefaultHeading,
-      defaults: currentDefaults?.heading ?? {}
-    }
-  ];
-};
-const createTurnPIDGroup$1 = (format, setPath, segmentId, segmentKind, turnConstants, isSwing = false) => {
-  const slot = isSwing ? "swing" : "turn";
-  const onChange = (partial) => updatePathConstants(setPath, segmentId, { [slot]: partial });
-  const setDefault = (partial) => {
-    updateDefaultConstants(format, segmentKind, { [slot]: partial });
-  };
-  const currentDefaults = getDefaultConstants(format, segmentKind);
-  const specificDefaults = isSwing ? currentDefaults?.swing : currentDefaults?.turn;
-  return [
-    {
-      header: "Exit Conditions",
-      values: turnConstants,
-      fields: [
-        { key: "settleError", label: "Settle Error", units: "deg", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
-        { key: "settleTime", label: "Settle Time", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
-        { key: "timeout", label: "Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 100, roundTo: 0 } },
-        { key: "minSpeed", label: "Min Speed", units: "volt", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } }
-      ],
-      onChange,
-      setDefault,
-      defaults: specificDefaults ?? {}
-    },
-    {
-      header: isSwing ? "Swing Constants" : "Turn Constants",
-      values: turnConstants,
-      fields: [
-        { key: "maxSpeed", units: "volt", label: "Max Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
-        { key: "kp", label: "kP", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 3 } },
-        { key: "ki", label: "kI", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
-        { key: "kd", label: "kD", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 3 } },
-        { key: "starti", label: "Starti", units: "deg", input: { bounds: [0, 360], stepSize: 1, roundTo: 2 } }
-      ],
-      onChange,
-      setDefault,
-      defaults: specificDefaults ?? {}
-    }
-  ];
-};
-const getDirectionState = (path, segmentId, field, slot) => {
-  const segment = path.segments.find((s) => s.id === segmentId);
-  return segment?.constants?.[slot]?.[field] ?? null;
-};
-const createTurnDirectionGroup = (path, setPath, segmentId, slot) => {
-  return {
-    imageKeys: [
-      { src: cw, key: "clockwise" },
-      { src: ccw, key: "counterclockwise" },
-      { src: cwccw, key: null }
-    ],
-    onKeyChange: (key) => {
-      updatePathConstants(setPath, segmentId, { [slot]: { turnDirection: key } });
-    },
-    value: getDirectionState(path, segmentId, "turnDirection", slot)
-  };
-};
-const createDriveDirectionGroup = (path, setPath, segmentId, slot) => {
-  return {
-    imageKeys: [
-      { src: fwd, key: "forward" },
-      { src: rev, key: "reverse" },
-      { src: fwdrev, key: null }
-    ],
-    onKeyChange: (key) => {
-      updatePathConstants(setPath, segmentId, { [slot]: { driveDirection: key } });
-    },
-    value: getDirectionState(path, segmentId, "driveDirection", slot)
-  };
-};
-const createSwingDirectionGroup = (path, setPath, segmentId, slot) => {
-  return {
-    imageKeys: [
-      { src: rightswing, key: "right" },
-      { src: leftswing, key: "left" }
-    ],
-    onKeyChange: (key) => {
-      updatePathConstants(setPath, segmentId, { [slot]: { swingDirection: key } });
-    },
-    value: getDirectionState(path, segmentId, "swingDirection", slot)
-  };
-};
-function getMikLibDirectionConfig(path, setPath, segmentId) {
-  const s = path.segments.find((c) => c.id === segmentId);
-  if (s === void 0) return [];
-  switch (s.kind) {
-    case "pointDrive":
-    case "poseDrive":
-    case "distanceDrive":
-      return [
-        createDriveDirectionGroup(path, setPath, segmentId, "drive")
-      ];
-    case "pointTurn":
-    case "angleTurn":
-      return [
-        createTurnDirectionGroup(path, setPath, segmentId, "turn")
-      ];
-    case "angleSwing":
-    case "pointSwing":
-      return [
-        createSwingDirectionGroup(path, setPath, segmentId, "swing"),
-        createTurnDirectionGroup(path, setPath, segmentId, "swing")
-      ];
-  }
-}
-function getmikLibConstantsConfig(format, path, setPath, segmentId) {
-  const s = path.segments.find((c) => c.id === segmentId);
-  if (s === void 0) return [];
-  switch (s.kind) {
-    case "pointDrive":
-    case "poseDrive":
-      return createDrivePIDGroup$1(format, path, setPath, segmentId, s.kind, s.constants.drive, s.constants.heading);
-    case "pointTurn":
-    case "angleTurn":
-      return createTurnPIDGroup$1(format, setPath, segmentId, s.kind, s.constants.turn, false);
-    case "angleSwing":
-    case "pointSwing":
-      return createTurnPIDGroup$1(format, setPath, segmentId, s.kind, s.constants.swing, true);
-  }
-  return void 0;
-}
-const cloneKRev = (c) => ({ ...c });
-function createRevConstants(values = {}) {
-  return {
-    maxSpeed: values.maxSpeed ?? null,
-    kCorrection: values.kCorrection ?? null,
-    maxError: values.maxError ?? null,
-    stopHarshThreshold: values.stopHarshThreshold ?? null,
-    stopCoastThreshold: values.stopCoastThreshold ?? null,
-    stopCoastPower: values.stopCoastPower ?? null,
-    stopTimeout: values.stopTimeout ?? null,
-    brakeTime: values.brakeTime ?? null,
-    dropEarly: values.dropEarly ?? null,
-    lead: values.lead ?? null
-  };
-}
-const kPilon = createRevConstants({
-  maxSpeed: 1,
-  kCorrection: 2,
-  maxError: 0.5,
-  stopHarshThreshold: 60,
-  stopCoastThreshold: 200,
-  stopCoastPower: 0.25,
-  brakeTime: 250,
-  dropEarly: 0
-});
-const kTurn = createRevConstants({
-  maxSpeed: 0.75,
-  stopHarshThreshold: 60,
-  stopCoastThreshold: 200,
-  stopCoastPower: 0.25,
-  brakeTime: 100,
-  dropEarly: 0
-});
-const kLootAt = createRevConstants({
-  maxSpeed: 0.75,
-  stopHarshThreshold: 60,
-  stopCoastThreshold: 200,
-  stopCoastPower: 0.25,
-  brakeTime: 100,
-  dropEarly: 0
-});
-const kBoomerang = createRevConstants({
-  maxSpeed: 0.75,
-  kCorrection: 2,
-  maxError: 0.5,
-  stopHarshThreshold: 60,
-  stopCoastThreshold: 200,
-  stopCoastPower: 0.25,
-  brakeTime: 250,
-  dropEarly: 0,
-  lead: 0.4
-});
-const kMikLibSpeed = 12;
-function getUnequalPIDConstants(correctPIDConstants, differentPIDConstants) {
-  const out = {};
-  const a = correctPIDConstants;
-  const b = differentPIDConstants;
-  if (a.maxSpeed !== b.maxSpeed) out.maxSpeed = b.maxSpeed;
-  if (a.minSpeed !== b.minSpeed) out.minSpeed = b.minSpeed;
-  if (a.kp !== b.kp) out.kp = b.kp;
-  if (a.ki !== b.ki) out.ki = b.ki;
-  if (a.kd !== b.kd) out.kd = b.kd;
-  if (a.starti !== b.starti) out.starti = b.starti;
-  if (a.settleTime !== b.settleTime) out.settleTime = b.settleTime;
-  if (a.settleError !== b.settleError) out.settleError = b.settleError;
-  if (a.timeout !== b.timeout) out.timeout = b.timeout;
-  if (a.lead !== b.lead) out.lead = b.lead;
-  if (a.setback !== b.setback) out.setback = b.setback;
-  if (a.swingDirection !== b.swingDirection) out.swingDirection = b.swingDirection;
-  if (a.turnDirection !== b.turnDirection) out.turnDirection = b.turnDirection;
-  if (a.driveDirection !== b.driveDirection) out.driveDirection = b.driveDirection;
-  return out;
-}
-const clonePID = (c) => ({ ...c });
-function createPIDConstants(values = {}) {
-  return {
-    maxSpeed: values.maxSpeed ?? null,
-    minSpeed: values.minSpeed ?? null,
-    kp: values.kp ?? null,
-    ki: values.ki ?? null,
-    kd: values.kd ?? null,
-    starti: values.starti ?? null,
-    settleTime: values.settleTime ?? null,
-    settleError: values.settleError ?? null,
-    timeout: values.timeout ?? null,
-    lead: values.lead ?? null,
-    setback: values.setback ?? null,
-    swingDirection: values.swingDirection ?? null,
-    turnDirection: values.turnDirection ?? null,
-    driveDirection: values.driveDirection ?? null
-  };
-}
-const kMikAngleTurn = createPIDConstants({
-  maxSpeed: 12,
-  minSpeed: 0,
-  kp: 0.4,
-  ki: 0.03,
-  kd: 3,
-  starti: 15,
-  settleTime: 300,
-  settleError: 1,
-  timeout: 3e3
-});
-const kMikPointTurn = createPIDConstants({
-  maxSpeed: 12,
-  minSpeed: 0,
-  kp: 0.4,
-  ki: 0.03,
-  kd: 3,
-  starti: 15,
-  settleTime: 300,
-  settleError: 1,
-  timeout: 3e3
-});
-const kMikPointDrive = createPIDConstants({
-  maxSpeed: 8,
-  minSpeed: 0,
-  kp: 1.5,
-  ki: 0,
-  kd: 10,
-  starti: 0,
-  settleTime: 300,
-  settleError: 3,
-  timeout: 5e3
-});
-const kMikDistanceDrive = createPIDConstants({
-  maxSpeed: 10,
-  minSpeed: 0,
-  kp: 1.5,
-  ki: 0,
-  kd: 10,
-  starti: 0,
-  settleTime: 300,
-  settleError: 1,
-  timeout: 5e3
-});
-const kMikPointDriveHeading = createPIDConstants({
-  maxSpeed: 10,
-  kp: 0.4,
-  ki: 0,
-  kd: 3,
-  starti: 0
-});
-const kMikDistanceDriveHeading = createPIDConstants({
-  maxSpeed: 8,
-  kp: 0.4,
-  ki: 0,
-  kd: 1,
-  starti: 0
-});
-const kMikBoomerang = createPIDConstants({
-  maxSpeed: 8,
-  minSpeed: 0,
-  kp: 1.5,
-  ki: 0,
-  kd: 10,
-  starti: 0,
-  settleTime: 300,
-  settleError: 3,
-  timeout: 5e3,
-  lead: 0.5,
-  setback: 1
-});
-const kMikBoomerangHeading = createPIDConstants({
-  maxSpeed: 10,
-  kp: 0.4,
-  ki: 0,
-  kd: 3,
-  starti: 0
-});
-const kMikAngleSwing = createPIDConstants({
-  maxSpeed: 12,
-  minSpeed: 0,
-  kp: 0.3,
-  ki: 1e-3,
-  kd: 2,
-  starti: 15,
-  settleError: 1,
-  settleTime: 300,
-  timeout: 3e3,
-  swingDirection: "left"
-});
-const kMikPointSwing = createPIDConstants({
-  maxSpeed: 12,
-  minSpeed: 0,
-  kp: 0.3,
-  ki: 1e-3,
-  kd: 2,
-  starti: 15,
-  settleError: 1,
-  settleTime: 300,
-  timeout: 3e3,
-  swingDirection: "left"
-});
-const createDrivePIDGroup = (format, setPath, segmentId, segmentKind, driveConstants) => {
-  const onDriveChange = (partial) => updatePathConstants(setPath, segmentId, { drive: partial });
-  const setDefaultDrive = (partial) => {
-    updateDefaultConstants(format, segmentKind, { drive: partial });
-  };
-  const currentDefaults = getDefaultConstants(format, segmentKind);
-  return [
-    {
-      header: segmentKind === "poseDrive" ? "Boomerang Constants" : "Pilons Constants",
-      values: driveConstants,
-      fields: [
-        { key: "maxSpeed", units: "percent", label: "Max Speed", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } },
-        { key: "kCorrection", label: "kCorrection", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 1 } },
-        { key: "maxError", units: "in", label: "Max Error", input: { bounds: [0, 100], stepSize: 0.25, roundTo: 2 } },
-        ...segmentKind === "poseDrive" ? [
-          { key: "lead", label: "Lead", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } }
-        ] : []
-      ],
-      onChange: onDriveChange,
-      setDefault: setDefaultDrive,
-      defaults: currentDefaults?.drive ?? {}
-    },
-    {
-      header: "Stop Constants",
-      values: driveConstants,
-      fields: [
-        { key: "stopCoastPower", units: "percent", label: "Coast Power", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } },
-        { key: "stopCoastThreshold", units: "ms", label: "kThresh", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
-        { key: "stopHarshThreshold", units: "ms", label: "kHarsh", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
-        { key: "brakeTime", units: "ms", label: "Brake Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
-        { key: "dropEarly", units: "in", label: "Drop Early", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 1 } }
-      ],
-      onChange: onDriveChange,
-      setDefault: setDefaultDrive,
-      defaults: currentDefaults?.drive ?? {}
-    }
-  ];
-};
-const createTurnPIDGroup = (format, setPath, segmentId, segmentKind, turnConstants) => {
-  const onChange = (partial) => updatePathConstants(setPath, segmentId, { turn: partial });
-  const setDefault = (partial) => {
-    updateDefaultConstants(format, segmentKind, { turn: partial });
-  };
-  const currentDefaults = getDefaultConstants(format, segmentKind);
-  return [
-    {
-      header: segmentKind === "angleTurn" ? "Turn Constants" : "Look At Constants",
-      values: turnConstants,
-      fields: [
-        { key: "maxSpeed", units: "percent", label: "Max Speed", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } },
-        { key: "stopCoastPower", units: "percent", label: "Coast Power", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } },
-        { key: "stopCoastThreshold", label: "kCoast", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
-        { key: "stopHarshThreshold", label: "kHarsh", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
-        { key: "brakeTime", units: "ms", label: "Brake Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
-        ...segmentKind === "pointTurn" ? [
-          { key: "dropEarly", units: "deg", label: "Drop Early", input: { bounds: [0, 9999], stepSize: 5, roundTo: 1 } }
-        ] : []
-      ],
-      onChange,
-      setDefault,
-      defaults: currentDefaults?.turn ?? {}
-    }
-  ];
-};
-function getRevConstantsConfig(format, path, setPath, segmentId) {
-  const s = path.segments.find((c) => c.id === segmentId);
-  if (s === void 0) return [];
-  switch (s.kind) {
-    case "pointDrive":
-    case "poseDrive":
-    case "distanceDrive":
-      return createDrivePIDGroup(format, setPath, segmentId, s.kind, s.constants.drive);
-    case "pointTurn":
-    case "angleTurn":
-      return createTurnPIDGroup(format, setPath, segmentId, s.kind, s.constants.turn);
-    case "angleSwing":
-    case "pointSwing":
-      return createTurnPIDGroup(format, setPath, segmentId, s.kind, s.constants.turn);
-  }
-  return void 0;
-}
-const INITIAL_DEFAULTS = {
-  mikLib: {
-    distanceDrive: { drive: clonePID(kMikDistanceDrive), heading: clonePID(kMikDistanceDriveHeading) },
-    pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
-    poseDrive: { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
-    pointTurn: { turn: clonePID(kMikPointTurn) },
-    angleTurn: { turn: clonePID(kMikAngleTurn) },
-    angleSwing: { swing: clonePID(kMikAngleSwing) },
-    pointSwing: { swing: clonePID(kMikPointSwing) },
-    group: "",
-    start: void 0
-  },
-  ReveilLib: {
-    distanceDrive: { drive: cloneKRev(kPilon) },
-    pointDrive: { drive: cloneKRev(kPilon) },
-    poseDrive: { drive: cloneKRev(kBoomerang) },
-    pointTurn: { turn: cloneKRev(kLootAt) },
-    angleTurn: { turn: cloneKRev(kTurn) },
-    angleSwing: { turn: cloneKRev(kTurn) },
-    pointSwing: { turn: cloneKRev(kTurn) },
-    group: "",
-    start: void 0
-  },
-  "JAR-Template": {
-    distanceDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
-    pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
-    poseDrive: { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
-    pointTurn: { turn: clonePID(kMikPointTurn) },
-    angleTurn: { turn: clonePID(kMikAngleTurn) },
-    angleSwing: { swing: clonePID(kMikAngleSwing) },
-    pointSwing: { swing: clonePID(kMikPointSwing) },
-    group: "",
-    start: void 0
-  },
-  LemLib: {
-    distanceDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
-    pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
-    poseDrive: { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
-    pointTurn: { turn: clonePID(kMikPointTurn) },
-    angleTurn: { turn: clonePID(kMikAngleTurn) },
-    angleSwing: { swing: clonePID(kMikAngleSwing) },
-    pointSwing: { swing: clonePID(kMikPointSwing) },
-    group: "",
-    start: void 0
-  },
-  "RW-Template": {
-    distanceDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
-    pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
-    poseDrive: { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
-    pointTurn: { turn: clonePID(kMikPointTurn) },
-    angleTurn: { turn: clonePID(kMikAngleTurn) },
-    angleSwing: { swing: clonePID(kMikAngleSwing) },
-    pointSwing: { swing: clonePID(kMikPointSwing) },
-    group: "",
-    start: void 0
-  }
-};
-const globalDefaultsStore = createObjectStore(INITIAL_DEFAULTS);
-function updateDefaultConstants(format, kind, patch) {
-  globalDefaultsStore.setState((prev) => {
-    const currentFormatDefaults = prev[format];
-    const currentSegmentDefaults = currentFormatDefaults[kind];
-    const mergedSegment = { ...currentSegmentDefaults };
-    const keys = Object.keys(patch);
-    for (const key of keys) {
-      const patchValue = patch[key];
-      const existingValue = mergedSegment[key];
-      if (typeof patchValue === "object" && patchValue !== null && typeof existingValue === "object" && existingValue !== null) {
-        mergedSegment[key] = { ...existingValue, ...patchValue };
-      } else {
-        mergedSegment[key] = patchValue;
-      }
-    }
-    return {
-      ...prev,
-      [format]: {
-        ...prev[format],
-        [kind]: mergedSegment
-      }
-    };
-  });
-}
-function updatePathConstants(setPath, segmentId, partial) {
-  setPath((prev) => ({
-    ...prev,
-    segments: prev.segments.map((s) => {
-      if (s.id !== segmentId) return s;
-      const key = Object.keys(partial)[0];
-      if (key && typeof partial[key] === "object" && !Array.isArray(partial[key])) {
-        return {
-          ...s,
-          constants: {
-            ...s.constants,
-            [key]: {
-              ...s.constants[key],
-              ...partial[key]
-            }
-          }
-        };
-      }
-      return {
-        ...s,
-        constants: {
-          ...s.constants,
-          ...partial
-        }
-      };
-    })
-  }));
-}
-function getDefaultConstants(format, kind) {
-  const state = globalDefaultsStore.getState();
-  const constant = state[format][kind];
-  if (!constant) return constant;
-  const deepClone = (obj) => {
-    if ("drive" in obj && "heading" in obj) {
-      return { drive: clonePID(obj.drive), heading: clonePID(obj.heading) };
-    }
-    if ("turn" in obj) {
-      return { turn: clonePID(obj.turn) };
-    }
-    if ("swing" in obj) {
-      return { swing: clonePID(obj.swing) };
-    }
-    return { ...obj };
-  };
-  return deepClone(constant);
-}
-function getFormatConstantsConfig(format, path, setPath, segmentId) {
-  switch (format) {
-    case "mikLib":
-      return getmikLibConstantsConfig(format, path, setPath, segmentId);
-    case "ReveilLib":
-      return getRevConstantsConfig(format, path, setPath, segmentId);
-  }
-  return [];
-}
-function getFormatDirectionConfig(format, path, setPath, segmentId) {
-  switch (format) {
-    case "mikLib":
-      return getMikLibDirectionConfig(path, setPath, segmentId);
-  }
-  return [];
-}
-function getFormatPathName(format) {
-  switch (format) {
-    case "mikLib":
-      return "mikLib Path";
-    case "ReveilLib":
-      return "ReveilLib Path";
-    case "JAR-Template":
-      return "JAR-Template Path";
-    case "LemLib":
-      return "LemLib Path";
-    case "RW-Template":
-      return "RW-Template Path";
-  }
-}
-function getFormatSpeed(format) {
-  switch (format) {
-    case "mikLib":
-      return 12;
-    case "ReveilLib":
-      return 1;
-    case "JAR-Template":
-      return 12;
-    case "RW-Template":
-      return 12;
-    case "LemLib":
-      return 127;
-  }
-}
-function segmentAllowed(format, segment) {
-  switch (format) {
-    case "mikLib": {
-      switch (segment) {
-        case "pointDrive":
-          return true;
-        case "poseDrive":
-          return true;
-        case "pointTurn":
-          return true;
-        case "angleTurn":
-          return true;
-        case "angleSwing":
-          return true;
-        case "pointSwing":
-          return true;
-        case "distanceDrive":
-          return true;
-      }
-      break;
-    }
-    case "ReveilLib": {
-      switch (segment) {
-        case "pointDrive":
-          return true;
-        case "poseDrive":
-          return true;
-        case "pointTurn":
-          return true;
-        case "angleTurn":
-          return true;
-        case "angleSwing":
-          return false;
-        case "pointSwing":
-          return false;
-        case "distanceDrive":
-          return false;
-      }
-      break;
-    }
-    case "JAR-Template": {
-      switch (segment) {
-        case "pointDrive":
-          return true;
-        case "poseDrive":
-          return true;
-        case "pointTurn":
-          return true;
-        case "angleTurn":
-          return true;
-        case "angleSwing":
-          return true;
-        case "pointSwing":
-          return false;
-        case "distanceDrive":
-          return true;
-      }
-      break;
-    }
-    case "RW-Template": {
-      switch (segment) {
-        case "pointDrive":
-          return true;
-        case "poseDrive":
-          return true;
-        case "pointTurn":
-          return true;
-        case "angleTurn":
-          return true;
-        case "angleSwing":
-          return true;
-        case "pointSwing":
-          return true;
-        case "distanceDrive":
-          return true;
-      }
-      break;
-    }
-    case "LemLib": {
-      switch (segment) {
-        case "pointDrive":
-          return true;
-        case "poseDrive":
-          return true;
-        case "pointTurn":
-          return true;
-        case "angleTurn":
-          return true;
-        case "angleSwing":
-          return true;
-        case "pointSwing":
-          return true;
-        case "distanceDrive":
-          return false;
-      }
-      break;
-    }
-  }
-  return false;
-}
-function getSegmentName(format, segment) {
-  switch (format) {
-    case "mikLib": {
-      switch (segment) {
-        case "pointDrive":
-          return "Drive to Point";
-        case "poseDrive":
-          return "Drive to Pose";
-        case "pointTurn":
-          return "Turn to Point";
-        case "angleTurn":
-          return "Turn to Angle";
-        case "angleSwing":
-          return "Swing to Angle";
-        case "pointSwing":
-          return "Swing to Point";
-        case "distanceDrive":
-          return "Drive Distance";
-      }
-      break;
-    }
-    case "ReveilLib": {
-      switch (segment) {
-        case "pointDrive":
-          return "Pilons Segment";
-        case "poseDrive":
-          return "Boomerang Segment";
-        case "pointTurn":
-          return "Look At";
-        case "angleTurn":
-          return "Turn Segment";
-      }
-      break;
-    }
-    case "JAR-Template": {
-      switch (segment) {
-        case "pointDrive":
-          return "Drive to Point";
-        case "poseDrive":
-          return "Drive to Pose";
-        case "pointTurn":
-          return "Turn to Point";
-        case "angleTurn":
-          return "Turn to Angle";
-        case "angleSwing":
-          return "Swing to Angle";
-        case "distanceDrive":
-          return "Drive Distance";
-      }
-      break;
-    }
-    case "RW-Template": {
-      switch (segment) {
-        case "pointDrive":
-          return "Move To Point";
-        case "poseDrive":
-          return "Boomerang";
-        case "pointTurn":
-          return "Turn To Point";
-        case "angleTurn":
-          return "Turn To Angle";
-        case "angleSwing":
-          return "Swing";
-        case "distanceDrive":
-          return "Drive To";
-      }
-      break;
-    }
-    case "LemLib": {
-      switch (segment) {
-        case "pointDrive":
-          return "Move To Point";
-        case "poseDrive":
-          return "Move To Pose";
-        case "pointTurn":
-          return "Turn To Point";
-        case "angleTurn":
-          return "Turn To Heading";
-        case "angleSwing":
-          return "Swing To Angle";
-        case "pointSwing":
-          return "Swing To Point";
-      }
-      break;
-    }
-  }
-  return "";
 }
 const defaultRobotConstants = {
   width: 14,
@@ -13990,6 +13403,24 @@ function CommandList({
     ] })
   ] });
 }
+const MAX_UNDO_HISTORY = 50;
+const undoHistory = createStore([VALIDATED_APP_STATE]);
+const redoHistory = createStore([]);
+function AddToUndoHistory(snapshot) {
+  console.log(snapshot);
+  const current = undoHistory.getState();
+  const previousState = current[current.length - 1] || {};
+  const fullState = mergeDeep(previousState, snapshot);
+  if (snapshot.defaults !== void 0) {
+    fullState.defaults = snapshot.defaults;
+  }
+  let newHistory = [...current, fullState];
+  while (newHistory.length > MAX_UNDO_HISTORY) {
+    newHistory = newHistory.slice(1);
+  }
+  undoHistory.setState(newHistory);
+  redoHistory.setState([]);
+}
 function NumberInput({
   fontSize,
   width,
@@ -14328,6 +13759,575 @@ function CycleImageButton({
       children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: current.src, alt: "", draggable: false })
     }
   );
+}
+const ccw = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_301_13)'%3e%3cpath%20d='M1.21931%202.13826C1.89274%202.13826%202.43862%202.68416%202.43862%203.35757V5.31611C3.165%204.05176%204.17638%202.97141%205.40345%202.15761C6.94433%201.13569%208.73971%200.59552%2010.5955%200.59552C11.8646%200.59552%2013.0964%200.844329%2014.2566%201.33507C15.3766%201.80879%2016.3822%202.48673%2017.2455%203.35002C18.1088%204.21332%2018.7867%205.21896%2019.2605%206.33898C19.7512%207.4992%2020%208.73096%2020%2010C20%2011.2691%2019.7512%2012.5008%2019.2604%2013.661C18.7867%2014.7811%2018.1088%2015.7867%2017.2455%2016.65C16.3822%2017.5133%2015.3765%2018.1912%2014.2565%2018.6649C13.0963%2019.1557%2011.8646%2019.4045%2010.5955%2019.4045C9.51175%2019.4045%208.44882%2019.2214%207.43621%2018.8603C6.45763%2018.5114%205.54814%2018.0045%204.73299%2017.354C3.92588%2016.7098%203.23407%2015.9431%202.67677%2015.0752C2.10908%2014.191%201.69688%2013.226%201.45174%2012.2071C1.29421%2011.5524%201.69719%2010.8939%202.35194%2010.7363C3.00672%2010.5788%203.66515%2010.9819%203.82269%2011.6366C4.18195%2013.1297%205.04546%2014.4833%206.2542%2015.448C6.85805%2015.9299%207.53129%2016.3052%208.25526%2016.5633C9.00427%2016.8304%209.79164%2016.9659%2010.5955%2016.9659C12.4561%2016.9659%2014.2055%2016.2413%2015.5211%2014.9256C16.8368%2013.6099%2017.5614%2011.8606%2017.5614%209.99995C17.5614%208.13933%2016.8368%206.39%2015.5211%205.07433C14.2054%203.75866%2012.4561%203.03407%2010.5955%203.03407C9.22063%203.03407%207.89133%203.43372%206.75126%204.18981C5.76887%204.84137%204.97311%205.72282%204.42863%206.75724H5.77625C6.44968%206.75724%206.99556%207.30314%206.99556%207.97655C6.99556%208.64993%206.44968%209.19586%205.77625%209.19586H1.21931C0.545879%209.19586%201.06012e-07%208.64993%201.06012e-07%207.97655V3.35757C1.06012e-07%202.68416%200.545926%202.13826%201.21931%202.13826Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_301_13'%3e%3crect%20width='20'%20height='20'%20fill='white'%20transform='matrix(-1%200%200%201%2020%200)'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
+const cw = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_301_6)'%3e%3cpath%20d='M18.7807%202.13826C18.1073%202.13826%2017.5614%202.68416%2017.5614%203.35757V5.31611C16.835%204.05176%2015.8236%202.97141%2014.5966%202.15761C13.0557%201.13569%2011.2603%200.59552%209.40448%200.59552C8.13537%200.59552%206.90364%200.844329%205.74344%201.33507C4.62339%201.80879%203.6178%202.48673%202.75448%203.35002C1.89121%204.21332%201.21327%205.21896%200.739529%206.33898C0.248832%207.4992%200%208.73096%200%2010C0%2011.2691%200.248832%2012.5008%200.739552%2013.661C1.21327%2014.7811%201.89123%2015.7867%202.75452%2016.65C3.61782%2017.5133%204.62346%2018.1912%205.74346%2018.6649C6.90366%2019.1557%208.1354%2019.4045%209.4045%2019.4045C10.4882%2019.4045%2011.5512%2019.2214%2012.5638%2018.8603C13.5424%2018.5114%2014.4519%2018.0045%2015.267%2017.354C16.0741%2016.7098%2016.7659%2015.9431%2017.3232%2015.0752C17.8909%2014.191%2018.3031%2013.226%2018.5483%2012.2071C18.7058%2011.5524%2018.3028%2010.8939%2017.6481%2010.7363C16.9933%2010.5788%2016.3348%2010.9819%2016.1773%2011.6366C15.818%2013.1297%2014.9545%2014.4833%2013.7458%2015.448C13.142%2015.9299%2012.4687%2016.3052%2011.7447%2016.5633C10.9957%2016.8304%2010.2084%2016.9659%209.4045%2016.9659C7.54386%2016.9659%205.79453%2016.2413%204.47888%2014.9256C3.16321%2013.6099%202.43862%2011.8606%202.43862%209.99995C2.43862%208.13933%203.16319%206.39%204.47888%205.07433C5.79458%203.75866%207.54386%203.03407%209.4045%203.03407C10.7794%203.03407%2012.1087%203.43372%2013.2487%204.18981C14.2311%204.84137%2015.0269%205.72282%2015.5714%206.75724H14.2237C13.5503%206.75724%2013.0044%207.30314%2013.0044%207.97655C13.0044%208.64993%2013.5503%209.19586%2014.2237%209.19586H18.7807C19.4541%209.19586%2020%208.64993%2020%207.97655V3.35757C20%202.68416%2019.4541%202.13826%2018.7807%202.13826Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_301_6'%3e%3crect%20width='20'%20height='20'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
+const cwccw = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M5.453%209.24096C6.08872%209.24096%206.60408%208.72561%206.60408%208.08988C6.60408%207.45416%206.08872%206.93881%205.453%206.93881H4.17772C4.62934%206.08515%205.26881%205.32864%206.04444%204.7442C7.19062%203.8805%208.55757%203.424%209.99747%203.424C10.7563%203.424%2011.4997%203.55184%2012.2067%203.80398C12.8902%204.04768%2013.5258%204.40195%2014.0958%204.85692C15.2369%205.76761%2016.0521%207.04543%2016.3913%208.45505C16.5182%208.98264%2016.9897%209.33712%2017.5095%209.33708C17.5985%209.33708%2017.6892%209.32662%2017.7797%209.30487C18.3977%209.15615%2018.7783%208.53453%2018.6295%207.91646C18.398%206.95455%2018.0089%206.0436%2017.473%205.20886C16.9469%204.38947%2016.2938%203.66568%2015.5319%203.05758C14.7623%202.44341%2013.9038%201.96498%2012.9799%201.63556C12.024%201.29468%2011.0205%201.12183%209.99745%201.12183C9.01765%201.12183%208.05448%201.28065%207.13454%201.59385C6.24507%201.89671%205.41216%202.33804%204.659%202.90558C3.91471%203.46642%203.26565%204.13722%202.72991%204.89937C2.57683%205.11713%202.4344%205.3411%202.30213%205.57039V3.72931C2.30213%203.09358%201.78677%202.57823%201.15105%202.57823C0.515331%202.57823%200%203.09361%200%203.72933V8.08991C0%208.72563%200.515353%209.24098%201.15107%209.24098L5.453%209.24096Z'%20fill='white'/%3e%3cpath%20d='M18.8489%2010.7591H14.5469C13.9112%2010.7591%2013.3959%2011.2745%2013.3959%2011.9102C13.3959%2012.5459%2013.9112%2013.0613%2014.5469%2013.0613H15.8192C15.3052%2014.0378%2014.554%2014.87%2013.6265%2015.485C12.551%2016.1983%2011.2971%2016.5756%2010.0001%2016.5761C9.24206%2016.5758%208.49954%2016.448%207.7932%2016.1961C7.10975%2015.9524%206.47418%2015.5982%205.9041%2015.1432C4.76302%2014.2325%203.94782%2012.9547%203.60866%2011.5451C3.45996%2010.927%202.83838%2010.5465%202.22024%2010.6952C1.60217%2010.8439%201.22168%2011.4656%201.3704%2012.0836C1.60184%2013.0455%201.99095%2013.9565%202.52691%2014.7912C3.05301%2015.6106%203.7061%2016.3344%204.46804%2016.9425C5.23757%2017.5567%206.09617%2018.0351%207.01999%2018.3645C7.97323%2018.7044%208.97368%2018.8772%209.99379%2018.8781C9.99502%2018.8781%209.99618%2018.8782%209.99743%2018.8782C9.99835%2018.8782%209.99925%2018.8782%2010.0002%2018.8782C10.001%2018.8782%2010.0017%2018.8782%2010.0025%2018.8782C10.0034%2018.8782%2010.0044%2018.8782%2010.0053%2018.8782C11.7545%2018.8767%2013.4465%2018.3669%2014.8989%2017.4036C16.0573%2016.6354%2017.0121%2015.6154%2017.6978%2014.4218V16.2708C17.6978%2016.9065%2018.2132%2017.4219%2018.8489%2017.4219C19.4846%2017.4219%2020%2016.9065%2020%2016.2708V11.9102C20%2011.2745%2019.4846%2010.7591%2018.8489%2010.7591Z'%20fill='white'/%3e%3c/svg%3e";
+const fwd = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_304_10)'%3e%3cpath%20d='M16.1753%208.37015L16.8962%209.09093L0.909059%209.09093C0.406998%209.09093%20-3.20384e-05%209.49796%20-3.20384e-05%2010C-3.20384e-05%2010.5021%200.406998%2010.9091%200.909059%2010.9091L16.8962%2010.9091L16.1753%2011.63C15.9978%2011.8075%2015.909%2012.0401%2015.909%2012.2728C15.909%2012.5054%2015.9977%2012.7381%2016.1753%2012.9156C16.5303%2013.2706%2017.1059%2013.2706%2017.4609%2012.9156L19.7337%2010.6429C20.0887%2010.2879%2020.0887%209.71227%2019.7337%209.35724L17.4609%207.08451C17.1059%206.72948%2016.5303%206.72948%2016.1753%207.08451C15.8203%207.43948%2015.8203%208.01512%2016.1753%208.37015Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_304_10'%3e%3crect%20width='20'%20height='20'%20fill='white'%20transform='matrix(0%201%20-1%200%2020%200)'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
+const rev = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_304_8)'%3e%3cpath%20d='M3.8247%2011.6299L3.10385%2010.9091L19.0909%2010.9091C19.593%2010.9091%2020%2010.502%2020%209.99997C20%209.49791%2019.593%209.09088%2019.0909%209.09088H3.10385L3.8247%208.37004C4.00221%208.19252%204.091%207.95985%204.091%207.72725C4.091%207.49458%204.00227%207.26191%203.8247%207.0844C3.46967%206.72937%202.89409%206.72937%202.53906%207.0844L0.266334%209.35713C-0.0886965%209.7121%20-0.0886965%2010.2877%200.266334%2010.6428L2.53906%2012.9155C2.89409%2013.2705%203.46967%2013.2705%203.8247%2012.9155C4.17973%2012.5605%204.17973%2011.9849%203.8247%2011.6299Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_304_8'%3e%3crect%20width='20'%20height='20'%20fill='white'%20transform='matrix(0%20-1%201%200%200%2020)'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
+const fwdrev = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_296_2)'%3e%3cpath%20d='M20%204.96211C20%204.32319%2019.4821%203.80524%2018.8431%203.80524L3.96293%203.80524L4.88155%202.87553C5.10433%202.65007%205.2155%202.35622%205.2155%202.06246C5.2155%201.76408%205.10076%201.46578%204.87173%201.2395C4.41724%200.790433%203.68478%200.794817%203.23571%201.2493L0.334011%204.18602C0.119979%204.40263%206.10352e-05%204.6948%206.10352e-05%204.99911C6.10352e-05%205.0014%206.10352e-05%205.00376%208.30708e-05%205.00603C0.00193407%205.31283%200.125554%205.60637%200.343839%205.82201L3.24109%208.68473C3.69557%209.13379%204.42804%209.12941%204.8771%208.67492C5.32621%208.22041%205.3218%207.48795%204.8673%207.03888L3.93629%206.11896L18.8432%206.11896C19.4821%206.11898%2020%205.60104%2020%204.96211Z'%20fill='white'/%3e%3cpath%20d='M6.10352e-05%2013.0379C6.10352e-05%2013.6768%200.518009%2014.1948%201.15693%2014.1948H16.0638L15.1328%2015.1147C14.6783%2015.5637%2014.6739%2016.2962%2015.123%2016.7507C15.5721%2017.2052%2016.3045%2017.2096%2016.759%2016.7605L19.6562%2013.8978C19.8745%2013.6822%2019.9982%2013.3887%2020%2013.0819C20%2013.0796%2020%2013.0772%2020%2013.0749C20%2012.7706%2019.8801%2012.4784%2019.6661%2012.2618L16.7643%209.32506C16.3153%208.87057%2015.5828%208.86619%2015.1283%209.31525C14.6738%209.76431%2014.6694%2010.4968%2015.1185%2010.9513L16.0371%2011.881H1.15693C0.518009%2011.881%206.10352e-05%2012.399%206.10352e-05%2013.0379Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_296_2'%3e%3crect%20width='20'%20height='20'%20fill='white'%20transform='matrix(0%20-1%201%200%200%2020)'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
+const leftswing = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_304_13)'%3e%3cpath%20d='M4.07922%205.1606C4.07856%205.1458%204.07717%205.13101%204.07723%205.11621C4.07723%205.09343%204.07882%205.07091%204.08047%205.04838C4.08113%205.03907%204.08113%205.02969%204.08199%205.02038C4.0841%204.99911%204.08767%204.97824%204.0911%204.95731C4.09289%204.94634%204.09408%204.93538%204.09619%204.92455C4.09976%204.90665%204.10458%204.88921%204.10913%204.87164C4.11263%204.85777%204.11574%204.84377%204.11983%204.82997C4.12406%204.8161%204.12941%204.80262%204.13417%204.78895C4.14018%204.77198%204.14579%204.75487%204.15273%204.73816C4.15695%204.72779%204.16224%204.71795%204.16679%204.70778C4.17558%204.68863%204.1841%204.66941%204.19407%204.65072C4.19869%204.64207%204.20418%204.63394%204.20906%204.62536C4.22003%204.6062%204.23086%204.58698%204.24328%204.56842C4.25279%204.55416%204.26355%204.54081%204.27372%204.52708C4.28257%204.51519%204.29063%204.50297%204.30008%204.49141C4.32101%204.46565%204.34334%204.44108%204.36691%204.41751C4.36705%204.41737%204.36718%204.41718%204.36731%204.41704L8.49411%200.290115C8.88094%20-0.0967864%209.50826%20-0.0967864%209.89516%200.290115C10.2821%200.676951%2010.2821%201.30426%209.89516%201.69116L7.57494%204.01138C11.5239%204.39829%2014.9318%207.32145%2015.7449%2011.4091C16.0577%2012.9821%2015.952%2014.5806%2015.4725%2016.0609C15.4651%2016.0839%2015.4583%2016.1071%2015.4506%2016.13C15.0105%2017.4531%2014.2702%2018.6791%2013.2607%2019.7043C13.2201%2019.7456%2013.1764%2019.7814%2013.131%2019.814C12.9592%2019.9372%2012.7573%2020%2012.5547%2020C12.5233%2020%2012.4919%2019.9985%2012.4607%2019.9955C12.2419%2019.9748%2012.0284%2019.8815%2011.8596%2019.7152C11.4697%2019.3313%2011.4648%2018.7041%2011.8488%2018.3142C12.0868%2018.0725%2012.3051%2017.8161%2012.5043%2017.5482C13.7222%2015.9108%2014.2054%2013.8261%2013.8015%2011.7957C13.1595%208.56828%2010.4545%206.26285%207.3303%205.97892L9.89522%208.54391C10.2821%208.93081%2010.2821%209.55805%209.89522%209.94495C9.70177%2010.1384%209.44822%2010.2352%209.19467%2010.2352C8.94111%2010.2352%208.68756%2010.1385%208.49417%209.94495L4.3722%205.82291C4.37075%205.82146%204.36923%205.81988%204.36777%205.81842L4.36731%205.81803C4.36645%205.81717%204.36579%205.81624%204.36493%205.81539C4.34261%205.793%204.32141%205.76955%204.30133%205.74505C4.29552%205.73804%204.29063%205.73058%204.28508%205.72345C4.27075%205.70502%204.25655%205.68653%204.24354%205.66704C4.23594%205.65568%204.22947%205.64386%204.2224%205.63224C4.21276%205.61639%204.20286%205.6008%204.19407%205.58435C4.18582%205.5689%204.17875%205.55298%204.17142%205.53726C4.16514%205.52392%204.15854%205.51091%204.15286%205.49724C4.1444%205.4769%204.13747%205.45616%204.1304%205.43542C4.12703%205.42551%204.12314%205.41593%204.1201%205.40583C4.11164%205.37802%204.10484%205.34989%204.0989%205.32162C4.0981%205.31799%204.09692%205.31455%204.09619%205.31085C4.09612%205.31059%204.09612%205.31026%204.09606%205.31C4.08965%205.2775%204.08476%205.24481%204.08166%205.21198C4.08001%205.19468%204.08001%205.17764%204.07922%205.1606Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_304_13'%3e%3crect%20width='20'%20height='20'%20fill='white'%20transform='matrix(-1%200%200%201%2020%200)'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
+const rightswing = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_304_6)'%3e%3cpath%20d='M15.9208%205.1606C15.9214%205.1458%2015.9228%205.13101%2015.9228%205.11621C15.9228%205.09343%2015.9212%205.07091%2015.9195%205.04838C15.9189%205.03907%2015.9189%205.02969%2015.918%205.02038C15.9159%204.99911%2015.9123%204.97824%2015.9089%204.95731C15.9071%204.94634%2015.9059%204.93538%2015.9038%204.92455C15.9002%204.90665%2015.8954%204.88921%2015.8909%204.87164C15.8874%204.85777%2015.8843%204.84377%2015.8802%204.82997C15.8759%204.8161%2015.8706%204.80262%2015.8658%204.78895C15.8598%204.77198%2015.8542%204.75487%2015.8473%204.73816C15.843%204.72779%2015.8378%204.71795%2015.8332%204.70778C15.8244%204.68863%2015.8159%204.66941%2015.8059%204.65072C15.8013%204.64207%2015.7958%204.63394%2015.7909%204.62536C15.78%204.6062%2015.7691%204.58698%2015.7567%204.56842C15.7472%204.55416%2015.7364%204.54081%2015.7263%204.52708C15.7174%204.51519%2015.7094%204.50297%2015.6999%204.49141C15.679%204.46565%2015.6567%204.44108%2015.6331%204.41751C15.633%204.41737%2015.6328%204.41718%2015.6327%204.41704L11.5059%200.290115C11.1191%20-0.0967864%2010.4917%20-0.0967864%2010.1048%200.290115C9.71794%200.676951%209.71794%201.30426%2010.1048%201.69116L12.4251%204.01138C8.47607%204.39829%205.06819%207.32145%204.25509%2011.4091C3.94229%2012.9821%204.04796%2014.5806%204.52753%2016.0609C4.53493%2016.0839%204.54173%2016.1071%204.54939%2016.13C4.98946%2017.4531%205.72984%2018.6791%206.7393%2019.7043C6.77985%2019.7456%206.82358%2019.7814%206.86902%2019.814C7.04081%2019.9372%207.24271%2020%207.44534%2020C7.47671%2020%207.50809%2019.9985%207.53933%2019.9955C7.75814%2019.9748%207.9716%2019.8815%208.14042%2019.7152C8.53029%2019.3313%208.53518%2018.7041%208.15125%2018.3142C7.91322%2018.0725%207.69493%2017.8161%207.49567%2017.5482C6.27777%2015.9108%205.79464%2013.8261%206.19851%2011.7957C6.84049%208.56828%209.54549%206.26285%2012.6697%205.97892L10.1048%208.54391C9.71788%208.93081%209.71788%209.55805%2010.1048%209.94495C10.2982%2010.1384%2010.5518%2010.2352%2010.8053%2010.2352C11.0589%2010.2352%2011.3124%2010.1385%2011.5058%209.94495L15.6278%205.82291C15.6293%205.82146%2015.6308%205.81988%2015.6322%205.81842L15.6327%205.81803C15.6335%205.81717%2015.6342%205.81624%2015.6351%205.81539C15.6574%205.793%2015.6786%205.76955%2015.6987%205.74505C15.7045%205.73804%2015.7094%205.73058%2015.7149%205.72345C15.7292%205.70502%2015.7434%205.68653%2015.7565%205.66704C15.7641%205.65568%2015.7705%205.64386%2015.7776%205.63224C15.7872%205.61639%2015.7971%205.6008%2015.8059%205.58435C15.8142%205.5689%2015.8213%205.55298%2015.8286%205.53726C15.8349%205.52392%2015.8415%205.51091%2015.8471%205.49724C15.8556%205.4769%2015.8625%205.45616%2015.8696%205.43542C15.873%205.42551%2015.8769%205.41593%2015.8799%205.40583C15.8884%205.37802%2015.8952%205.34989%2015.9011%205.32162C15.9019%205.31799%2015.9031%205.31455%2015.9038%205.31085C15.9039%205.31059%2015.9039%205.31026%2015.9039%205.31C15.9103%205.2775%2015.9152%205.24481%2015.9183%205.21198C15.92%205.19468%2015.92%205.17764%2015.9208%205.1606Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_304_6'%3e%3crect%20width='20'%20height='20'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
+const createDrivePIDGroup$1 = (format, path, setPath, segmentId, segmentKind, driveConstants, headingConstants) => {
+  const onDriveChange = (partial) => updatePathConstants(setPath, segmentId, { drive: partial });
+  const onHeadingChange = (partial) => updatePathConstants(setPath, segmentId, { heading: partial });
+  const setDefaultDrive = (partial) => {
+    updateDefaultConstants(format, segmentKind, { drive: partial });
+  };
+  const setDefaultHeading = (partial) => {
+    updateDefaultConstants(format, segmentKind, { heading: partial });
+  };
+  const currentDefaults = getDefaultConstants(format, segmentKind);
+  return [
+    {
+      header: "Exit Conditions",
+      values: driveConstants,
+      fields: [
+        { key: "settleError", units: "in", label: "Settle Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
+        { key: "settleTime", units: "ms", label: "Settle Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+        { key: "timeout", units: "ms", label: "Timeout", input: { bounds: [0, 9999], stepSize: 100, roundTo: 0 } },
+        { key: "minSpeed", units: "volt", label: "Min Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } }
+      ],
+      onChange: onDriveChange,
+      setDefault: setDefaultDrive,
+      defaults: currentDefaults?.drive ?? {}
+    },
+    {
+      header: "Drive Constants",
+      values: driveConstants,
+      fields: [
+        { key: "maxSpeed", units: "volt", label: "Max Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
+        { key: "kp", label: "kP", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
+        { key: "ki", label: "kI", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
+        { key: "kd", label: "kD", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
+        { key: "starti", units: "in", label: "Starti", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
+        ...segmentKind === "poseDrive" ? [
+          { key: "lead", label: "Lead", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } },
+          { key: "setback", label: "Setback", units: "in", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 1 } }
+        ] : []
+      ],
+      onChange: onDriveChange,
+      setDefault: setDefaultDrive,
+      defaults: currentDefaults?.drive ?? {}
+    },
+    {
+      header: "Heading Constants",
+      values: headingConstants,
+      fields: [
+        { key: "maxSpeed", units: "volt", label: "Max Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
+        { key: "kp", label: "kP", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 3 } },
+        { key: "ki", label: "kI", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
+        { key: "kd", label: "kD", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 3 } },
+        { key: "starti", units: "deg", label: "Starti", input: { bounds: [0, 360], stepSize: 1, roundTo: 2 } }
+      ],
+      onChange: onHeadingChange,
+      setDefault: setDefaultHeading,
+      defaults: currentDefaults?.heading ?? {}
+    }
+  ];
+};
+const createTurnPIDGroup$1 = (format, setPath, segmentId, segmentKind, turnConstants, isSwing = false) => {
+  const slot = isSwing ? "swing" : "turn";
+  const onChange = (partial) => updatePathConstants(setPath, segmentId, { [slot]: partial });
+  const setDefault = (partial) => {
+    updateDefaultConstants(format, segmentKind, { [slot]: partial });
+  };
+  const currentDefaults = getDefaultConstants(format, segmentKind);
+  const specificDefaults = isSwing ? currentDefaults?.swing : currentDefaults?.turn;
+  return [
+    {
+      header: "Exit Conditions",
+      values: turnConstants,
+      fields: [
+        { key: "settleError", label: "Settle Error", units: "deg", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
+        { key: "settleTime", label: "Settle Time", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+        { key: "timeout", label: "Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 100, roundTo: 0 } },
+        { key: "minSpeed", label: "Min Speed", units: "volt", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } }
+      ],
+      onChange,
+      setDefault,
+      defaults: specificDefaults ?? {}
+    },
+    {
+      header: isSwing ? "Swing Constants" : "Turn Constants",
+      values: turnConstants,
+      fields: [
+        { key: "maxSpeed", units: "volt", label: "Max Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
+        { key: "kp", label: "kP", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 3 } },
+        { key: "ki", label: "kI", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
+        { key: "kd", label: "kD", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 3 } },
+        { key: "starti", label: "Starti", units: "deg", input: { bounds: [0, 360], stepSize: 1, roundTo: 2 } }
+      ],
+      onChange,
+      setDefault,
+      defaults: specificDefaults ?? {}
+    }
+  ];
+};
+const getDirectionState = (path, segmentId, field, slot) => {
+  const segment = path.segments.find((s) => s.id === segmentId);
+  return segment?.constants?.[slot]?.[field] ?? null;
+};
+const createTurnDirectionGroup = (path, setPath, segmentId, slot) => {
+  return {
+    imageKeys: [
+      { src: cw, key: "clockwise" },
+      { src: ccw, key: "counterclockwise" },
+      { src: cwccw, key: null }
+    ],
+    onKeyChange: (key) => {
+      updatePathConstants(setPath, segmentId, { [slot]: { turnDirection: key } });
+    },
+    value: getDirectionState(path, segmentId, "turnDirection", slot)
+  };
+};
+const createDriveDirectionGroup = (path, setPath, segmentId, slot) => {
+  return {
+    imageKeys: [
+      { src: fwd, key: "forward" },
+      { src: rev, key: "reverse" },
+      { src: fwdrev, key: null }
+    ],
+    onKeyChange: (key) => {
+      updatePathConstants(setPath, segmentId, { [slot]: { driveDirection: key } });
+    },
+    value: getDirectionState(path, segmentId, "driveDirection", slot)
+  };
+};
+const createSwingDirectionGroup = (path, setPath, segmentId, slot) => {
+  return {
+    imageKeys: [
+      { src: rightswing, key: "right" },
+      { src: leftswing, key: "left" }
+    ],
+    onKeyChange: (key) => {
+      updatePathConstants(setPath, segmentId, { [slot]: { swingDirection: key } });
+    },
+    value: getDirectionState(path, segmentId, "swingDirection", slot)
+  };
+};
+function getMikLibDirectionConfig(path, setPath, segmentId) {
+  const s = path.segments.find((c) => c.id === segmentId);
+  if (s === void 0) return [];
+  switch (s.kind) {
+    case "pointDrive":
+    case "poseDrive":
+    case "distanceDrive":
+      return [
+        createDriveDirectionGroup(path, setPath, segmentId, "drive")
+      ];
+    case "pointTurn":
+    case "angleTurn":
+      return [
+        createTurnDirectionGroup(path, setPath, segmentId, "turn")
+      ];
+    case "angleSwing":
+    case "pointSwing":
+      return [
+        createSwingDirectionGroup(path, setPath, segmentId, "swing"),
+        createTurnDirectionGroup(path, setPath, segmentId, "swing")
+      ];
+  }
+}
+function getmikLibConstantsConfig(format, path, setPath, segmentId) {
+  const s = path.segments.find((c) => c.id === segmentId);
+  if (s === void 0) return [];
+  switch (s.kind) {
+    case "pointDrive":
+    case "poseDrive":
+      return createDrivePIDGroup$1(format, path, setPath, segmentId, s.kind, s.constants.drive, s.constants.heading);
+    case "pointTurn":
+    case "angleTurn":
+      return createTurnPIDGroup$1(format, setPath, segmentId, s.kind, s.constants.turn, false);
+    case "angleSwing":
+    case "pointSwing":
+      return createTurnPIDGroup$1(format, setPath, segmentId, s.kind, s.constants.swing, true);
+  }
+  return void 0;
+}
+const createDrivePIDGroup = (format, setPath, segmentId, segmentKind, driveConstants) => {
+  const onDriveChange = (partial) => updatePathConstants(setPath, segmentId, { drive: partial });
+  const setDefaultDrive = (partial) => {
+    updateDefaultConstants(format, segmentKind, { drive: partial });
+  };
+  const currentDefaults = getDefaultConstants(format, segmentKind);
+  return [
+    {
+      header: segmentKind === "poseDrive" ? "Boomerang Constants" : "Pilons Constants",
+      values: driveConstants,
+      fields: [
+        { key: "maxSpeed", units: "percent", label: "Max Speed", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } },
+        { key: "kCorrection", label: "kCorrection", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 1 } },
+        { key: "maxError", units: "in", label: "Max Error", input: { bounds: [0, 100], stepSize: 0.25, roundTo: 2 } },
+        ...segmentKind === "poseDrive" ? [
+          { key: "lead", label: "Lead", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } }
+        ] : []
+      ],
+      onChange: onDriveChange,
+      setDefault: setDefaultDrive,
+      defaults: currentDefaults?.drive ?? {}
+    },
+    {
+      header: "Stop Constants",
+      values: driveConstants,
+      fields: [
+        { key: "stopCoastPower", units: "percent", label: "Coast Power", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } },
+        { key: "stopCoastThreshold", units: "ms", label: "kThresh", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+        { key: "stopHarshThreshold", units: "ms", label: "kHarsh", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+        { key: "brakeTime", units: "ms", label: "Brake Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+        { key: "dropEarly", units: "in", label: "Drop Early", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 1 } }
+      ],
+      onChange: onDriveChange,
+      setDefault: setDefaultDrive,
+      defaults: currentDefaults?.drive ?? {}
+    }
+  ];
+};
+const createTurnPIDGroup = (format, setPath, segmentId, segmentKind, turnConstants) => {
+  const onChange = (partial) => updatePathConstants(setPath, segmentId, { turn: partial });
+  const setDefault = (partial) => {
+    updateDefaultConstants(format, segmentKind, { turn: partial });
+  };
+  const currentDefaults = getDefaultConstants(format, segmentKind);
+  return [
+    {
+      header: segmentKind === "angleTurn" ? "Turn Constants" : "Look At Constants",
+      values: turnConstants,
+      fields: [
+        { key: "maxSpeed", units: "percent", label: "Max Speed", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } },
+        { key: "stopCoastPower", units: "percent", label: "Coast Power", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } },
+        { key: "stopCoastThreshold", label: "kCoast", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+        { key: "stopHarshThreshold", label: "kHarsh", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+        { key: "brakeTime", units: "ms", label: "Brake Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+        ...segmentKind === "pointTurn" ? [
+          { key: "dropEarly", units: "deg", label: "Drop Early", input: { bounds: [0, 9999], stepSize: 5, roundTo: 1 } }
+        ] : []
+      ],
+      onChange,
+      setDefault,
+      defaults: currentDefaults?.turn ?? {}
+    }
+  ];
+};
+function getRevConstantsConfig(format, path, setPath, segmentId) {
+  const s = path.segments.find((c) => c.id === segmentId);
+  if (s === void 0) return [];
+  switch (s.kind) {
+    case "pointDrive":
+    case "poseDrive":
+    case "distanceDrive":
+      return createDrivePIDGroup(format, setPath, segmentId, s.kind, s.constants.drive);
+    case "pointTurn":
+    case "angleTurn":
+      return createTurnPIDGroup(format, setPath, segmentId, s.kind, s.constants.turn);
+    case "angleSwing":
+    case "pointSwing":
+      return createTurnPIDGroup(format, setPath, segmentId, s.kind, s.constants.turn);
+  }
+  return void 0;
+}
+const globalDefaultsStore = createObjectStore(INITIAL_DEFAULTS);
+function updateDefaultConstants(format, kind, patch) {
+  globalDefaultsStore.setState((prev) => {
+    const currentFormatDefaults = prev[format];
+    const currentSegmentDefaults = currentFormatDefaults[kind];
+    const mergedSegment = { ...currentSegmentDefaults };
+    const keys = Object.keys(patch);
+    for (const key of keys) {
+      const patchValue = patch[key];
+      const existingValue = mergedSegment[key];
+      if (typeof patchValue === "object" && patchValue !== null && typeof existingValue === "object" && existingValue !== null) {
+        mergedSegment[key] = { ...existingValue, ...patchValue };
+      } else {
+        mergedSegment[key] = patchValue;
+      }
+    }
+    return {
+      ...prev,
+      [format]: {
+        ...prev[format],
+        [kind]: mergedSegment
+      }
+    };
+  });
+}
+function updatePathConstants(setPath, segmentId, partial) {
+  setPath((prev) => ({
+    ...prev,
+    segments: prev.segments.map((s) => {
+      if (s.id !== segmentId) return s;
+      const key = Object.keys(partial)[0];
+      if (key && typeof partial[key] === "object" && !Array.isArray(partial[key])) {
+        return {
+          ...s,
+          constants: {
+            ...s.constants,
+            [key]: {
+              ...s.constants[key],
+              ...partial[key]
+            }
+          }
+        };
+      }
+      return {
+        ...s,
+        constants: {
+          ...s.constants,
+          ...partial
+        }
+      };
+    })
+  }));
+}
+function getDefaultConstants(format, kind) {
+  const state = globalDefaultsStore.getState();
+  const constant = state[format][kind];
+  if (!constant) return constant;
+  const deepClone = (obj) => {
+    if ("drive" in obj && "heading" in obj) {
+      return { drive: clonePID(obj.drive), heading: clonePID(obj.heading) };
+    }
+    if ("turn" in obj) {
+      return { turn: clonePID(obj.turn) };
+    }
+    if ("swing" in obj) {
+      return { swing: clonePID(obj.swing) };
+    }
+    return { ...obj };
+  };
+  return deepClone(constant);
+}
+function getFormatConstantsConfig(format, path, setPath, segmentId) {
+  switch (format) {
+    case "mikLib":
+      return getmikLibConstantsConfig(format, path, setPath, segmentId);
+    case "ReveilLib":
+      return getRevConstantsConfig(format, path, setPath, segmentId);
+  }
+  return [];
+}
+function getFormatDirectionConfig(format, path, setPath, segmentId) {
+  switch (format) {
+    case "mikLib":
+      return getMikLibDirectionConfig(path, setPath, segmentId);
+  }
+  return [];
+}
+function getFormatPathName(format) {
+  switch (format) {
+    case "mikLib":
+      return "mikLib Path";
+    case "ReveilLib":
+      return "ReveilLib Path";
+    case "JAR-Template":
+      return "JAR-Template Path";
+    case "LemLib":
+      return "LemLib Path";
+    case "RW-Template":
+      return "RW-Template Path";
+  }
+}
+function getFormatSpeed(format) {
+  switch (format) {
+    case "mikLib":
+      return 12;
+    case "ReveilLib":
+      return 1;
+    case "JAR-Template":
+      return 12;
+    case "RW-Template":
+      return 12;
+    case "LemLib":
+      return 127;
+  }
+}
+function segmentAllowed(format, segment) {
+  switch (format) {
+    case "mikLib": {
+      switch (segment) {
+        case "pointDrive":
+          return true;
+        case "poseDrive":
+          return true;
+        case "pointTurn":
+          return true;
+        case "angleTurn":
+          return true;
+        case "angleSwing":
+          return true;
+        case "pointSwing":
+          return true;
+        case "distanceDrive":
+          return true;
+      }
+      break;
+    }
+    case "ReveilLib": {
+      switch (segment) {
+        case "pointDrive":
+          return true;
+        case "poseDrive":
+          return true;
+        case "pointTurn":
+          return true;
+        case "angleTurn":
+          return true;
+        case "angleSwing":
+          return false;
+        case "pointSwing":
+          return false;
+        case "distanceDrive":
+          return false;
+      }
+      break;
+    }
+    case "JAR-Template": {
+      switch (segment) {
+        case "pointDrive":
+          return true;
+        case "poseDrive":
+          return true;
+        case "pointTurn":
+          return true;
+        case "angleTurn":
+          return true;
+        case "angleSwing":
+          return true;
+        case "pointSwing":
+          return false;
+        case "distanceDrive":
+          return true;
+      }
+      break;
+    }
+    case "RW-Template": {
+      switch (segment) {
+        case "pointDrive":
+          return true;
+        case "poseDrive":
+          return true;
+        case "pointTurn":
+          return true;
+        case "angleTurn":
+          return true;
+        case "angleSwing":
+          return true;
+        case "pointSwing":
+          return true;
+        case "distanceDrive":
+          return true;
+      }
+      break;
+    }
+    case "LemLib": {
+      switch (segment) {
+        case "pointDrive":
+          return true;
+        case "poseDrive":
+          return true;
+        case "pointTurn":
+          return true;
+        case "angleTurn":
+          return true;
+        case "angleSwing":
+          return true;
+        case "pointSwing":
+          return true;
+        case "distanceDrive":
+          return false;
+      }
+      break;
+    }
+  }
+  return false;
+}
+function getSegmentName(format, segment) {
+  switch (format) {
+    case "mikLib": {
+      switch (segment) {
+        case "pointDrive":
+          return "Drive to Point";
+        case "poseDrive":
+          return "Drive to Pose";
+        case "pointTurn":
+          return "Turn to Point";
+        case "angleTurn":
+          return "Turn to Angle";
+        case "angleSwing":
+          return "Swing to Angle";
+        case "pointSwing":
+          return "Swing to Point";
+        case "distanceDrive":
+          return "Drive Distance";
+      }
+      break;
+    }
+    case "ReveilLib": {
+      switch (segment) {
+        case "pointDrive":
+          return "Pilons Segment";
+        case "poseDrive":
+          return "Boomerang Segment";
+        case "pointTurn":
+          return "Look At";
+        case "angleTurn":
+          return "Turn Segment";
+      }
+      break;
+    }
+    case "JAR-Template": {
+      switch (segment) {
+        case "pointDrive":
+          return "Drive to Point";
+        case "poseDrive":
+          return "Drive to Pose";
+        case "pointTurn":
+          return "Turn to Point";
+        case "angleTurn":
+          return "Turn to Angle";
+        case "angleSwing":
+          return "Swing to Angle";
+        case "distanceDrive":
+          return "Drive Distance";
+      }
+      break;
+    }
+    case "RW-Template": {
+      switch (segment) {
+        case "pointDrive":
+          return "Move To Point";
+        case "poseDrive":
+          return "Boomerang";
+        case "pointTurn":
+          return "Turn To Point";
+        case "angleTurn":
+          return "Turn To Angle";
+        case "angleSwing":
+          return "Swing";
+        case "distanceDrive":
+          return "Drive To";
+      }
+      break;
+    }
+    case "LemLib": {
+      switch (segment) {
+        case "pointDrive":
+          return "Move To Point";
+        case "poseDrive":
+          return "Move To Pose";
+        case "pointTurn":
+          return "Turn To Point";
+        case "angleTurn":
+          return "Turn To Heading";
+        case "angleSwing":
+          return "Swing To Angle";
+        case "pointSwing":
+          return "Swing To Point";
+      }
+      break;
+    }
+  }
+  return "";
 }
 const formatStore = createStore(VALIDATED_APP_STATE.format);
 function useFormat() {
@@ -20212,4 +20212,4 @@ function App() {
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-DKFjSYas.js.map
+//# sourceMappingURL=index-d4kbMePu.js.map
