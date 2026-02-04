@@ -33,6 +33,7 @@ export function is_line_settled(desired_X: number, desired_Y: number, desired_an
 }
 
 export function slew_scaling(drive_output: number, prev_drive_output: number, slew: number) {
+    console.log(drive_output, prev_drive_output, slew);
     let change = drive_output - prev_drive_output;
     if (slew === 0) return drive_output;
     if (change > slew) change = slew;

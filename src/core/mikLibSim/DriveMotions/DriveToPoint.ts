@@ -59,14 +59,19 @@ export function driveToPoint(robot: Robot, dt: number, x: number, y: number, dri
     if (drivePID.driveDirection === null) heading_error = reduce_negative_90_to_90(heading_error);
     let heading_output = headingPID.compute(heading_error);
 
-    if (drive_error < drivePID.settleError) heading_output = 0;
+    let close: boolean = false;
+
+    if (drive_error < drivePID.settleError) {
+        heading_output = 0;
+        close = true
+    }
 
     drive_output = clamp(drive_output, -Math.abs(heading_scale_factor) * drivePID.maxSpeed, Math.abs(heading_scale_factor) * drivePID.maxSpeed);
     heading_output = clamp(heading_output, -headingPID.maxSpeed, headingPID.maxSpeed);
-
-    drive_output = slew_scaling(drive_output, prevDriveOutput ?? 0, drivePID.slew);
-    // heading_output = slew_scaling(heading_output, prevHeadingOutput ?? 0, drivePID.slew);
-
+    
+    drive_output = !close ? slew_scaling(drive_output, prevDriveOutput ?? 0, drivePID.slew * (dt / 0.01)) : drive_output; // normalizes dt from 16ms to 10ms to match mikLib
+    heading_output = slew_scaling(heading_output, prevHeadingOutput ?? 0, headingPID.slew * (dt / 0.01));
+    
     drive_output = clamp_min_voltage(drive_output, drivePID.minSpeed);
 
     prevDriveOutput = drive_output;
