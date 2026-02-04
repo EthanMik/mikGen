@@ -1,84 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { SetStateAction } from "react";
 import type { ConstantListField } from "../components/PathMenu/MotionList";
-import type { Format } from "../hooks/useFormat";
+import type { Format } from "../hooks/appStateDefaults";
 import { getmikLibConstantsConfig, getMikLibDirectionConfig } from "./mikLibSim/MikConstantsConfig";
-import { cloneKRev, kBoomerang, kLootAt, kPilon, kTurn } from "./ReveiLibSim/RevConstants";
 import type { ConstantsByFormat, SegmentKind } from "./Types/Segment";
 import type { Path } from "./Types/Path";
-import { clonePID, kMikAngleSwing, kMikAngleTurn, kMikBoomerang, kMikBoomerangHeading, kMikDistanceDrive, kMikDistanceDriveHeading, kMikPointDrive, kMikPointDriveHeading, kMikPointSwing, kMikPointTurn } from "./mikLibSim/MikConstants";
+import { clonePID } from "./mikLibSim/MikConstants";
 import { createObjectStore } from "./Store";
 import type { CycleImageButtonProps } from "../components/Util/CycleButton";
 import { getRevConstantsConfig } from "./ReveiLibSim/RevConstantsConfig";
+import { INITIAL_DEFAULTS, type DefaultConstant } from "./InitialDefaults";
 
-export type DefaultConstant = {
-    [F in Format]: {
-        [K in keyof ConstantsByFormat[F] & SegmentKind]: ConstantsByFormat[F][K];
-    }
-};
-
-export const INITIAL_DEFAULTS: DefaultConstant = {
-    mikLib: {
-        distanceDrive: { drive: clonePID(kMikDistanceDrive), heading: clonePID(kMikDistanceDriveHeading) },
-        pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
-        poseDrive: { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
-        pointTurn: { turn: clonePID(kMikPointTurn) },
-        angleTurn: { turn: clonePID(kMikAngleTurn) },
-        angleSwing: { swing: clonePID(kMikAngleSwing) },
-        pointSwing: { swing: clonePID(kMikPointSwing) },
-        group: "",
-        start: undefined,
-    },
-
-    ReveilLib: {
-        distanceDrive: { drive: cloneKRev(kPilon) },
-        pointDrive: { drive: cloneKRev(kPilon) },
-        poseDrive: { drive: cloneKRev(kBoomerang) },
-        pointTurn: { turn: cloneKRev(kLootAt) },
-        angleTurn: { turn: cloneKRev(kTurn) },
-        angleSwing: { turn: cloneKRev(kTurn) },
-        pointSwing: { turn: cloneKRev(kTurn) },
-        group: "",
-        start: undefined,
-    },
-
-    "JAR-Template": {
-        distanceDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
-        pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
-        poseDrive: { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
-        pointTurn: { turn: clonePID(kMikPointTurn) },
-        angleTurn: { turn: clonePID(kMikAngleTurn) },
-        angleSwing: { swing: clonePID(kMikAngleSwing) },
-        pointSwing: { swing: clonePID(kMikPointSwing) },
-        group: "",
-        start: undefined,
-    },
-
-    LemLib: {
-        distanceDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
-        pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
-        poseDrive: { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
-        pointTurn: { turn: clonePID(kMikPointTurn) },
-        angleTurn: { turn: clonePID(kMikAngleTurn) },
-        angleSwing: { swing: clonePID(kMikAngleSwing) },
-        pointSwing: { swing: clonePID(kMikPointSwing) },
-        group: "",
-        start: undefined,
-    },
-
-    "RW-Template": {
-        distanceDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
-        pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
-        poseDrive: { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
-        pointTurn: { turn: clonePID(kMikPointTurn) },
-        angleTurn: { turn: clonePID(kMikAngleTurn) },
-        angleSwing: { swing: clonePID(kMikAngleSwing) },
-        pointSwing: { swing: clonePID(kMikPointSwing) },
-        group: "",
-        start: undefined,
-    },
-
-};
+export { INITIAL_DEFAULTS, type DefaultConstant };
 
 export const globalDefaultsStore = createObjectStore<DefaultConstant>(INITIAL_DEFAULTS);
 

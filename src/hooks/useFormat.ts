@@ -1,8 +1,8 @@
 import { useSyncExternalStore } from "react";
 import { createStore } from "../core/Store";
-import { VALIDATED_APP_STATE } from "./useFileFormat";
+import { VALIDATED_APP_STATE, type Format } from "./appStateDefaults";
 
-export type Format = "mikLib" | "ReveilLib" | "JAR-Template" | "LemLib" | "RW-Template"
+export type { Format }
 
 export const formatStore = createStore<Format>(VALIDATED_APP_STATE.format);
 

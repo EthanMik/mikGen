@@ -1,5 +1,5 @@
 import { makeId } from "../Util";
-import type { Format } from "../../hooks/useFormat";
+import type { Format } from "../../hooks/appStateDefaults";
 
 export type CommandString = {
     name: string,

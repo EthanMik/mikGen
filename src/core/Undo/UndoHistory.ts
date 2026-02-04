@@ -1,21 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { DEFAULT_FORMAT, type FileFormat } from "../../hooks/useFileFormat";
+import { VALIDATED_APP_STATE, type FileFormat } from "../../hooks/appStateDefaults";
 import { createStore } from "../Store";
 import { mergeDeep } from "../Util";
 
-const saved = localStorage.getItem("appState");
-const parsed = saved ? JSON.parse(saved) : {};
-
-const initialData: Partial<FileFormat> = {
-  ...parsed,
-  path: parsed.path && Array.isArray(parsed.path.segments)
-    ? parsed.path
-    : DEFAULT_FORMAT.path,
-};
-
 const MAX_UNDO_HISTORY = 50;
 
-export const undoHistory = createStore<Partial<FileFormat>[]>([initialData]);
+export const undoHistory = createStore<Partial<FileFormat>[]>([VALIDATED_APP_STATE]);
 export const redoHistory = createStore<Partial<FileFormat>[]>([]);
 
 export function AddToUndoHistory(snapshot: Partial<FileFormat>) {
