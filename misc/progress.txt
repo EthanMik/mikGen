@@ -14,6 +14,7 @@ Todo:
 - copy with merge, code leaves other auton code untouched
 - distance segments
 - make it so operators work in number input
+- add a apply all button with maybe a confirm menu?! will not apply to locked segments
 
 Planned:
 - tooltip when hovering over svg buttons

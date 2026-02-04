@@ -139,8 +139,8 @@ export const INITIAL_DEFAULTS: DefaultConstant = {
 export const globalDefaultsStore = createObjectStore<DefaultConstant>(INITIAL_DEFAULTS);
 
 export function getDefaultConstants<F extends Format, K extends keyof ConstantsByFormat[F] & SegmentKind>(format: F, kind: K): ConstantsByFormat[F][K] {
-    const state = globalDefaultsStore.getState();
-    const constant = state[format][kind];
+    const state = globalDefaultsStore.getState() ?? INITIAL_DEFAULTS;
+    const constant = state?.[format]?.[kind] ?? INITIAL_DEFAULTS[format][kind];
 
     if (!constant) return constant;
 
