@@ -1,10 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { type FileFormat } from "../../hooks/useFileFormat";
+import { DEFAULT_FORMAT, type FileFormat } from "../../hooks/useFileFormat";
 import { createStore } from "../Store";
 import { mergeDeep } from "../Util";
 
 const saved = localStorage.getItem("appState");
-const initialData = saved ? JSON.parse(saved) : {};
+const parsed = saved ? JSON.parse(saved) : {};
+
+const initialData: Partial<FileFormat> = {
+  ...parsed,
+  path: parsed.path && Array.isArray(parsed.path.segments)
+    ? parsed.path
+    : DEFAULT_FORMAT.path,
+};
 
 const MAX_UNDO_HISTORY = 50;
 

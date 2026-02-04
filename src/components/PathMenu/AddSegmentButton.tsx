@@ -77,14 +77,14 @@ export default function AddSegmentButton() {
                                 </button>
                             }
 
-                            { segmentAllowed(format, "distanceDrive") &&
+                            {/* { segmentAllowed(format, "distanceDrive") &&
                                 <button
                                     onClick={() => addDistanceSegment(format, { x: 0, y: 0, angle: 0 }, setPath)}
                                     className="flex pr-1 pl-2 py-0.5 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
                                     <span className="text-[16px]">{getSegmentName(format, "distanceDrive")}</span>
                                     <span className="text-lightgray text-[14px]">Alt+LMB</span>
                                 </button>
-                            }
+                            } */}
 
                             {/* Turn Segments */}
                             <div className="mt-1 border-t border-gray-500/40 flex flex-row items-center justify-between h-[4px]"></div>

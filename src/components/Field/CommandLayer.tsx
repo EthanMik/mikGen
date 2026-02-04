@@ -10,7 +10,7 @@ type CommandLayerProps = {
 };
 
 export default function CommandLayer({ path, img, visible }: CommandLayerProps) {
-  if (visible) return null;
+  if (visible || !path) return null;
 
   return (
     <g>

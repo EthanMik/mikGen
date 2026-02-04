@@ -25,7 +25,29 @@ export const DEFAULT_FORMAT: FileFormat = {
     commands: DEFAULT_COMMANDS["mikLib"]
 }
 
-const saved = localStorage.getItem("appState");
-const initialData = saved ? JSON.parse(saved) : DEFAULT_FORMAT;
+function loadValidatedAppState(): FileFormat {
+    const saved = localStorage.getItem("appState");
+    if (!saved) return DEFAULT_FORMAT;
 
-export const useFileFormat = createSharedState<FileFormat>(initialData);
+    try {
+        const parsed = JSON.parse(saved);
+        return {
+            format: parsed.format ?? DEFAULT_FORMAT.format,
+            field: parsed.field ?? DEFAULT_FORMAT.field,
+            defaults: parsed.defaults ?? DEFAULT_FORMAT.defaults,
+            path: (parsed.path && Array.isArray(parsed.path.segments))
+                ? parsed.path
+                : DEFAULT_FORMAT.path,
+            robot: parsed.robot ?? DEFAULT_FORMAT.robot,
+            commands: Array.isArray(parsed.commands)
+                ? parsed.commands
+                : DEFAULT_FORMAT.commands,
+        };
+    } catch {
+        return DEFAULT_FORMAT;
+    }
+}
+
+export const VALIDATED_APP_STATE = loadValidatedAppState();
+
+export const useFileFormat = createSharedState<FileFormat>(VALIDATED_APP_STATE);

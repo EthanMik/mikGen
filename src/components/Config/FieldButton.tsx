@@ -79,9 +79,11 @@ export default function FieldButton() {
     startTransition(() => setFieldKey(key));
   };
 
-  if (fieldKey === undefined) {
-    setFieldSmooth(fieldMap[0].key);
-  }
+  useEffect(() => {
+    if (fieldKey === undefined) {
+      setFieldSmooth(fieldMap[0].key);
+    }
+  }, [fieldKey]);
 
   const handleHover = (key: FieldType) => {
     if (hoverTimer.current) window.clearTimeout(hoverTimer.current);

@@ -2,11 +2,11 @@ Live Progess Txt
 
 Bugs:
 - Remove-Item -Recurse -Force node_modules/.vite
-- make it so when you drag a segment the cursor goes to grab, also controls do not snap to postive numbers anymore
 - Fix undo redo to work on entire app data tree (still need to do commands)
 - spamming R makes the path time reduce
 - make the group dropping css look better
 - control config not updating the path??
+- the robot does not snap to the starting point when pressing R
 
 Todo:
 - add lemlib drive motions - jar template can just use mikLib with small modifications

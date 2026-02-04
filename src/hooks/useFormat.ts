@@ -1,13 +1,10 @@
 import { useSyncExternalStore } from "react";
 import { createStore } from "../core/Store";
-import { DEFAULT_FORMAT } from "./useFileFormat";
+import { VALIDATED_APP_STATE } from "./useFileFormat";
 
 export type Format = "mikLib" | "ReveilLib" | "JAR-Template" | "LemLib" | "RW-Template"
 
-const saved = localStorage.getItem("appState");
-const initialData = saved ? JSON.parse(saved) : DEFAULT_FORMAT;
-
-export const formatStore = createStore<Format>(initialData.format);
+export const formatStore = createStore<Format>(VALIDATED_APP_STATE.format);
 
 export function useFormat(): [Format, (f: Format) => void] {
   const format = useSyncExternalStore(
