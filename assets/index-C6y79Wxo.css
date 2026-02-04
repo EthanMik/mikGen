@@ -844,6 +844,10 @@
     cursor: grab;
   }
 
+  .cursor-grabbing {
+    cursor: grabbing;
+  }
+
   .cursor-not-allowed {
     cursor: not-allowed;
   }

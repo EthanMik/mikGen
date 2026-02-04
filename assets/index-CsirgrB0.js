@@ -12761,10 +12761,14 @@ function deepEqual(a, b) {
   };
   return eq(a, b);
 }
-const saved$5 = localStorage.getItem("appState");
-const initialData$5 = saved$5 ? JSON.parse(saved$5) : {};
+const saved = localStorage.getItem("appState");
+const parsed = saved ? JSON.parse(saved) : {};
+const initialData = {
+  ...parsed,
+  path: parsed.path && Array.isArray(parsed.path.segments) ? parsed.path : DEFAULT_FORMAT.path
+};
 const MAX_UNDO_HISTORY = 50;
-const undoHistory = createStore([initialData$5]);
+const undoHistory = createStore([initialData]);
 const redoHistory = createStore([]);
 function AddToUndoHistory(snapshot) {
   console.log(snapshot);
@@ -13754,12 +13758,26 @@ const DEFAULT_FORMAT = {
   robot: defaultRobotConstants,
   commands: DEFAULT_COMMANDS["mikLib"]
 };
-const saved$4 = localStorage.getItem("appState");
-const initialData$4 = saved$4 ? JSON.parse(saved$4) : DEFAULT_FORMAT;
-const useFileFormat = createSharedState(initialData$4);
-const saved$3 = localStorage.getItem("appState");
-const initialData$3 = saved$3 ? JSON.parse(saved$3) : DEFAULT_FORMAT;
-const usePath = createSharedState(initialData$3.path);
+function loadValidatedAppState() {
+  const saved2 = localStorage.getItem("appState");
+  if (!saved2) return DEFAULT_FORMAT;
+  try {
+    const parsed2 = JSON.parse(saved2);
+    return {
+      format: parsed2.format ?? DEFAULT_FORMAT.format,
+      field: parsed2.field ?? DEFAULT_FORMAT.field,
+      defaults: parsed2.defaults ?? DEFAULT_FORMAT.defaults,
+      path: parsed2.path && Array.isArray(parsed2.path.segments) ? parsed2.path : DEFAULT_FORMAT.path,
+      robot: parsed2.robot ?? DEFAULT_FORMAT.robot,
+      commands: Array.isArray(parsed2.commands) ? parsed2.commands : DEFAULT_FORMAT.commands
+    };
+  } catch {
+    return DEFAULT_FORMAT;
+  }
+}
+const VALIDATED_APP_STATE = loadValidatedAppState();
+const useFileFormat = createSharedState(VALIDATED_APP_STATE);
+const usePath = createSharedState(VALIDATED_APP_STATE.path);
 const eyeOpen = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='white'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M12%205C8.24261%205%205.43602%207.4404%203.76737%209.43934C2.51521%2010.9394%202.51521%2013.0606%203.76737%2014.5607C5.43602%2016.5596%208.24261%2019%2012%2019C15.7574%2019%2018.564%2016.5596%2020.2326%2014.5607C21.4848%2013.0606%2021.4848%2010.9394%2020.2326%209.43934C18.564%207.4404%2015.7574%205%2012%205Z'%20stroke='%23ffffffff'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M12%2015C13.6569%2015%2015%2013.6569%2015%2012C15%2010.3431%2013.6569%209%2012%209C10.3431%209%209%2010.3431%209%2012C9%2013.6569%2010.3431%2015%2012%2015Z'%20stroke='%233C3B3B'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e";
 const eyeClosed = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M9.76404%205.29519C10.4664%205.10724%2011.2123%205%2012%205C15.7574%205%2018.564%207.4404%2020.2326%209.43934C21.4848%2010.9394%2021.4846%2013.0609%2020.2324%2014.5609C20.0406%2014.7907%2019.8337%2015.0264%2019.612%2015.2635M12.5%209.04148C13.7563%209.25224%2014.7478%2010.2437%2014.9585%2011.5M3%203L21%2021M11.5%2014.9585C10.4158%2014.7766%209.52884%2014.0132%209.17072%2013M4.34914%208.77822C4.14213%209.00124%203.94821%209.22274%203.76762%209.43907C2.51542%2010.9391%202.51523%2013.0606%203.76739%2014.5607C5.43604%2016.5596%208.24263%2019%2012%2019C12.8021%2019%2013.5608%2018.8888%2014.2744%2018.6944'%20stroke='%23ffffffff'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e";
 const lockClose = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M13%2015C13%2015.5523%2012.5523%2016%2012%2016C11.4477%2016%2011%2015.5523%2011%2015C11%2014.4477%2011.4477%2014%2012%2014C12.5523%2014%2013%2014.4477%2013%2015Z'%20stroke='%23FFFFFF'%20stroke-width='2'/%3e%3cpath%20d='M15%209C16.8856%209%2017.8284%209%2018.4142%209.58579C19%2010.1716%2019%2011.1144%2019%2013L19%2015L19%2017C19%2018.8856%2019%2019.8284%2018.4142%2020.4142C17.8284%2021%2016.8856%2021%2015%2021L12%2021L9%2021C7.11438%2021%206.17157%2021%205.58579%2020.4142C5%2019.8284%205%2018.8856%205%2017L5%2015L5%2013C5%2011.1144%205%2010.1716%205.58579%209.58579C6.17157%209%207.11438%209%209%209L12%209L15%209Z'%20stroke='%23FFFFFF'%20stroke-width='2'%20stroke-linejoin='round'/%3e%3cpath%20d='M9%209V5C9%203.89543%209.89543%203%2011%203H13C14.1046%203%2015%203.89543%2015%205V9'%20stroke='%23FFFFFF'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e";
@@ -13827,9 +13845,7 @@ function Slider({
     }
   );
 }
-const saved$2 = localStorage.getItem("appState");
-const initialData$2 = saved$2 ? JSON.parse(saved$2) : DEFAULT_FORMAT;
-const useCommand = createSharedState(initialData$2.commands);
+const useCommand = createSharedState(VALIDATED_APP_STATE.commands);
 function createDropDownItem(name) {
   return {
     name,
@@ -14320,9 +14336,7 @@ function CycleImageButton({
     }
   );
 }
-const saved$1 = localStorage.getItem("appState");
-const initialData$1 = saved$1 ? JSON.parse(saved$1) : DEFAULT_FORMAT;
-const formatStore = createStore(initialData$1.format);
+const formatStore = createStore(VALIDATED_APP_STATE.format);
 function useFormat() {
   const format = reactExports.useSyncExternalStore(
     formatStore.subscribe,
@@ -17850,7 +17864,7 @@ function PathSimMacros() {
 }
 const useRobotPose = createSharedState([]);
 const savedGhostRobot = localStorage.getItem("ghostRobots");
-const initialGhostRobots = savedGhostRobot === null ? true : savedGhostRobot === "true";
+const initialGhostRobots = savedGhostRobot === null ? false : savedGhostRobot === "true";
 const savedRobotPosition = localStorage.getItem("robotPosition");
 const initialRobotsPosition = savedRobotPosition === null ? false : savedRobotPosition === "true";
 const savedPrecisePath = localStorage.getItem("precisePath");
@@ -18557,9 +18571,7 @@ const pushbackVEXUMatchField = "/mikGen/assets/pushback-match-BE3uYq7F.png";
 const pushbackSkillsField = "/mikGen/assets/pushback-skills-Efz9rFPV.png";
 const pushbackV5MatchField = "/mikGen/assets/pushback-matchv5-DmG8OjtY.png";
 const emptyField = "/mikGen/assets/empty-field-DoV3rtqm.png";
-const saved = localStorage.getItem("appState");
-const initialData = saved ? JSON.parse(saved) : DEFAULT_FORMAT;
-const useField = createSharedState(initialData.field);
+const useField = createSharedState(VALIDATED_APP_STATE.field);
 const fieldMap = [
   { key: "v5-match", src: pushbackV5MatchField, name: "V5 Match Field" },
   { key: "v5-skills", src: pushbackSkillsField, name: "V5 Skills Field" },
@@ -18720,11 +18732,11 @@ function FileButton() {
       const file = await handle.getFile();
       const content = await file.text();
       const fileName = handle.name.replace(/\.[^/.]+$/, "");
-      const parsed = JSON.parse(content);
+      const parsed2 = JSON.parse(content);
       const newFileFormat = {
-        ...parsed,
+        ...parsed2,
         path: {
-          ...parsed.path,
+          ...parsed2.path,
           name: fileName
         }
       };
@@ -18745,11 +18757,11 @@ function FileButton() {
       const reader = new FileReader();
       reader.onload = (e) => {
         const content = e.target?.result;
-        const parsed = JSON.parse(content);
+        const parsed2 = JSON.parse(content);
         const newFileFormat = {
-          ...parsed,
+          ...parsed2,
           path: {
-            ...parsed.path,
+            ...parsed2.path,
             name: fileName
           }
         };
@@ -19261,9 +19273,11 @@ function FieldButton() {
   const setFieldSmooth = (key) => {
     startTransition(() => setFieldKey(key));
   };
-  if (fieldKey === void 0) {
-    setFieldSmooth(fieldMap[0].key);
-  }
+  reactExports.useEffect(() => {
+    if (fieldKey === void 0) {
+      setFieldSmooth(fieldMap[0].key);
+    }
+  }, [fieldKey]);
   const handleHover = (key) => {
     if (hoverTimer.current) window.clearTimeout(hoverTimer.current);
     hoverTimer.current = window.setTimeout(() => {
@@ -19699,9 +19713,9 @@ function ControlsLayer({ path, img, radius, format, onPointerDown }) {
         id: control.id,
         cx: toPX({ x: control.pose.x, y: control.pose.y }, FIELD_REAL_DIMENSIONS, img).x,
         cy: toPX({ x: control.pose.x, y: control.pose.y }, FIELD_REAL_DIMENSIONS, img).y,
-        r: control.hovered ? radius * 1.2 : radius,
+        r: control.hovered ? radius * 1.1 : radius,
         fill: control.selected ? "rgba(180, 50, 11, .75)" : "rgba(160, 32, 7, .5)",
-        strokeWidth: idx === snap ? 2 * scale : 0
+        strokeWidth: idx === snap ? 1.1 * scale : 0
       }
     ),
     ["angleTurn", "pointTurn", "poseDrive", "start"].includes(control.kind) && (() => {
@@ -19709,7 +19723,8 @@ function ControlsLayer({ path, img, radius, format, onPointerDown }) {
       if (snapPose?.x === null || snapPose?.y === null || snapPose === null) return null;
       const active = control.selected;
       const hovered = control.hovered;
-      const r = active ? radius * 1.3 : hovered ? radius * 1.2 : radius;
+      const reduced = control.kind === "poseDrive" || control.kind === "start" ? 0.8 : 1;
+      const r = active ? radius * (1.3 * reduced) : hovered ? radius * (1.2 * reduced) : radius;
       const thickness = active ? 5 : hovered ? 4 : 2;
       const baseStroke = control.pose.x !== null ? "#1560BDB8" : active ? "rgba(160, 50, 11, .9)" : "#451717";
       const basePx = toPX({ x: snapPose.x, y: snapPose.y }, FIELD_REAL_DIMENSIONS, img);
@@ -19788,7 +19803,7 @@ function ControlsLayer({ path, img, radius, format, onPointerDown }) {
   ] }) }, control.id)) });
 }
 function CommandLayer({ path, img, visible }) {
-  if (visible) return null;
+  if (visible || !path) return null;
   return /* @__PURE__ */ jsxRuntimeExports.jsx("g", { children: path.segments.map((control, idx) => {
     if (!control.visible || control.pose.x === null || control.pose.y === null || control.command.name === "") {
       return null;
@@ -19830,7 +19845,7 @@ function Field() {
   const [clipboard, setClipboard] = useClipboard();
   const [settings] = useSettings();
   const startDrag = reactExports.useRef(false);
-  const radius = 17;
+  const radius = 15;
   const [drag, setDrag] = reactExports.useState({ dragging: false, lastPos: { x: 0, y: 0 } });
   const dragHistoryActive = reactExports.useRef(false);
   const dragDidMove = reactExports.useRef(false);
@@ -19944,14 +19959,10 @@ function Field() {
     const posInch = toInch(posSvg, FIELD_REAL_DIMENSIONS, img);
     const start = dragStartPointerInch.current;
     if (!start) return;
-    let dx = posInch.x - start.x;
-    let dy = posInch.y - start.y;
-    const smallMove = Math.abs(dx) < 1 && Math.abs(dy) < 1;
-    if (evt.ctrlKey || smallMove) {
-      dx = Math.round(dx);
-      dy = Math.round(dy);
-    }
-    if (dx === lastAppliedDelta.current.dx && dy === lastAppliedDelta.current.dy) {
+    const dx = posInch.x - start.x;
+    const dy = posInch.y - start.y;
+    const ctrlHeld = evt.ctrlKey;
+    if (!ctrlHeld && dx === lastAppliedDelta.current.dx && dy === lastAppliedDelta.current.dy) {
       return;
     }
     lastAppliedDelta.current = { dx, dy };
@@ -19963,8 +19974,12 @@ function Field() {
         if (!startPos) return c;
         const sx = startPos.x;
         const sy = startPos.y;
-        const newX = sx === null ? null : sx + dx;
-        const newY = sy === null ? null : sy + dy;
+        let newX = sx === null ? null : sx + dx;
+        let newY = sy === null ? null : sy + dy;
+        if (ctrlHeld) {
+          if (newX !== null) newX = Math.round(newX * 2) / 2;
+          if (newY !== null) newY = Math.round(newY * 2) / 2;
+        }
         return { ...c, pose: { ...c.pose, x: newX, y: newY } };
       });
       return { ...prev, segments: next };
@@ -20062,7 +20077,7 @@ function Field() {
         viewBox: `${0} ${0} ${FIELD_IMG_DIMENSIONS.w} ${FIELD_IMG_DIMENSIONS.h}`,
         width: FIELD_IMG_DIMENSIONS.w,
         height: FIELD_IMG_DIMENSIONS.h,
-        className: `${middleMouseDown ? `cursor-grab` : "cursor-default"}`,
+        className: `${drag.dragging ? "cursor-grabbing" : middleMouseDown ? "cursor-grab" : "cursor-default"}`,
         onContextMenu: (e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -20203,4 +20218,4 @@ function App() {
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-BKpiPjn8.js.map
+//# sourceMappingURL=index-CsirgrB0.js.map
