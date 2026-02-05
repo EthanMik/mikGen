@@ -17,8 +17,6 @@ export const builtInCommands: CommandString[] = [
     { name: "task", color: "#4ec9b0" },
     { name: "pros", color: "#4ec9b0" },
 
-    { name: "()", color: "#569cd6" },
-
     { name: "sec", color: "#9cdcfe" },
     { name: "msec", color: "#9cdcfe" },
 

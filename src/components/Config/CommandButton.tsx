@@ -3,20 +3,21 @@ import { useCommand } from "../../hooks/useCommands";
 import { RemoveCommandButton } from "./RemoveCommandButton";
 import { CommmandInput } from "./CommandInput";
 import { builtInCommands, type CommandString } from "../../core/Types/Command";
+import CommandColorMenu from "./CommandColorMenu";
 
 export default function CommandButton() {
-    const [ isOpen, setOpen ] = useState(false);
-    const [ commands,  ] = useCommand();
+    const [isOpen, setOpen] = useState(false);
+    const [commands,] = useCommand();
     const menuRef = useRef<HTMLDivElement>(null);
 
-    
+
     const handleToggleMenu = () => {
         setOpen((prev) => !prev)
     }
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {   
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
                 setOpen(false);
             }
         }
@@ -29,18 +30,28 @@ export default function CommandButton() {
     }, []);
 
     const splitCommand = (commandText: string): CommandString[] => {
-        const tokens = commandText.split(/([^a-zA-Z0-9]+)/).filter(t => t.length > 0);
-        
-        const cmdStr =  tokens.map(token => {
+        const tokens = commandText.split(/(\(|\)|[^a-zA-Z0-9()]+)/).filter(t => t.length > 0);
+
+        let balance = 0;
+        for (const token of tokens) {
+            if (token === "(") balance++;
+            if (token === ")") balance--;
+        }
+        const isBalanced = balance === 0;
+
+        const cmdStr = tokens.map(token => {
+            if (token === "(" || token === ")") {
+                return { name: token, color: isBalanced ? "#569cd6" : "#ff4444" };
+            }
+
             const builtIn = builtInCommands.find(cmd => cmd.name === token);
-            
+
             if (builtIn) {
                 return { name: token, color: builtIn.color };
             }
-            
+
             return { name: token, color: "#cccccc" };
         });
-        console.log(cmdStr);
         return cmdStr;
     }
 
@@ -59,22 +70,24 @@ export default function CommandButton() {
                         <div className="flex flex-col max-h-40 overflow-y-auto">
                             {commands.map((c) => (
                                 <div className="flex flex-row items-center justify-between pr-3">
-                                    <span className="text-[16px]">
-                                        {splitCommand(c.name).map((n) => (
-                                            <span
-                                                style={{ color: n.color }}
-                                                key={n.name}>
-                                                {n.name}
-                                            </span>
-                                        ))}
-                                    </span>
-
-                                    <RemoveCommandButton commandId={c.id}/>
+                                    <div className="flex flex-row items-center gap-2">
+                                        <CommandColorMenu />
+                                        <span className="text-[16px]">
+                                            {splitCommand(c.name).map((n) => (
+                                                <span
+                                                    style={{ color: n.color }}
+                                                    key={n.name}>
+                                                    {n.name}
+                                                </span>
+                                            ))}
+                                        </span>
+                                    </div>
+                                    <RemoveCommandButton commandId={c.id} />
                                 </div>
                             ))}
                         </div>
-        
-                        <CommmandInput width={175} height={30}/>
+
+                        <CommmandInput width={175} height={30} />
                     </div>
                 </div>
             )}
