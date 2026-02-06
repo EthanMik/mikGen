@@ -1,17 +1,21 @@
-import { clamp } from "../../Util";
+import { clamp, toRad } from "../../Util";
 import type { Robot } from "../../Robot";
 import type { PID } from "../PID";
 import { reduce_negative_180_to_180 } from "../Util";
 
-let driveDistanceStartPos: number | null = null;
+let driveDistanceStartX: number | null = null;
+let driveDistanceStartY: number | null = null;
 
 export function driveDistance(robot: Robot, dt: number, distance: number, heading: number, drivePID: PID, headingPID: PID) {
-    if (driveDistanceStartPos === null) {
-        driveDistanceStartPos = Math.hypot(robot.getX(), robot.getY());
+    if (driveDistanceStartX === null || driveDistanceStartY === null) {
+        driveDistanceStartX = robot.getX();
+        driveDistanceStartY = robot.getY();
     }
 
-    const currentPos = Math.hypot(robot.getX(), robot.getY());
-    const traveled = currentPos - driveDistanceStartPos;
+    const dx = robot.getX() - driveDistanceStartX;
+    const dy = robot.getY() - driveDistanceStartY;
+
+    const traveled = dx * Math.sin(toRad(heading)) + dy * Math.cos(toRad(heading));
 
     const drive_error = distance - traveled;
 
@@ -24,7 +28,8 @@ export function driveDistance(robot: Robot, dt: number, distance: number, headin
     heading_output = clamp(heading_output, -headingPID.maxSpeed, headingPID.maxSpeed);
 
     if (drivePID.isSettled()) {
-        driveDistanceStartPos = null; 
+        driveDistanceStartX = null;
+        driveDistanceStartY = null;
         drivePID.reset();
         headingPID.reset();
         return true;
