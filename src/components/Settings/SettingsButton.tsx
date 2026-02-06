@@ -32,6 +32,14 @@ export default function SettingsButton() {
         }))
     }
 
+    const numberedPath = settings.numberedPath;
+    const setNumberdPath = (state: boolean) => {
+        setSettings(prev => ({
+            ...prev,
+            numberedPath: state
+        }))
+    }
+
 
     const handleToggleMenu = () => {
         setOpen((prev) => !prev)
@@ -101,6 +109,17 @@ export default function SettingsButton() {
                             <div className="w-25 flex items-center justify-end">
                                 <label className="flex items-center gap-2 cursor-pointer select-none">
                                 <Checkbox checked={precisePath} setChecked={setPrecisePath} />
+                                </label>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-row gap-2">
+
+                            <span className="whitespace-nowrap text-[16px]">Numbered Path</span>
+
+                            <div className="w-25 flex items-center justify-end">
+                                <label className="flex items-center gap-2 cursor-pointer select-none">
+                                <Checkbox checked={numberedPath} setChecked={setNumberdPath} />
                                 </label>
                             </div>
                         </div>

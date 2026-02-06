@@ -197,16 +197,24 @@ export function mikLibToSim(path: Path) {
         
         if (control.kind === "distanceDrive") {
             const previousPos = getBackwardsSnapPose(path, idx - 1);
-            let distance = dist(previousPos?.x ?? 0, previousPos?.y ?? 0, x, y);
-            if (angle === 90) distance = -distance;
+            const distance = dist(previousPos?.x ?? 0, previousPos?.y ?? 0, x, y);
 
             const { drive, heading } = control.constants;
+            let started = false;
 
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
+                    if (!started) {
+                        DEBUG_printSegmentStart(idx, control.kind);
+                        started = true;
+                    }
+                    DEBUG_printRobotState(robot, dt);
                     distanceDrivePID.update(drive);
                     distanceHeadingPID.update(heading);
-                    return driveDistance(robot, dt, distance, 0, distanceDrivePID, distanceHeadingPID);
+
+                    const output = driveDistance(robot, dt, distance, angle, distanceDrivePID, distanceHeadingPID);
+                    if (output) DEBUG_printSegmentEnd(idx, control.kind);
+                    return output;
                 }
             );
         }

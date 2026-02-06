@@ -3,6 +3,7 @@ import type { Path } from "../../core/Types/Path";
 import { getBackwardsSnapIdx, getBackwardsSnapPose, getForwardSnapPose } from "../../core/Types/Path";
 import { calculateHeading, toPX, toRad, FIELD_REAL_DIMENSIONS, type Rectangle, FIELD_IMG_DIMENSIONS } from "../../core/Util";
 import type { Coordinate } from "../../core/Types/Coordinate";
+import { useSettings } from "../../hooks/useSettings";
 
 type ControlsLayerProps = {
 	path: Path;
@@ -16,9 +17,19 @@ export default function ControlsLayer({ path, img, radius, format, onPointerDown
 	const imgDefaultSize = (FIELD_IMG_DIMENSIONS.w + FIELD_IMG_DIMENSIONS.h) / 2;
 	const imgRealSize = (img.w + img.h) / 2
 	const scale = imgRealSize / imgDefaultSize;
+	const [ settings ] = useSettings();
 	radius = radius * scale;
 
 	const snap = getBackwardsSnapIdx(path, path.segments.length - 1);
+
+	const segmentNumbers = new Map<number, number>();
+	let displayNum = 1;
+	for (let i = 0; i < path.segments.length; i++) {
+		const seg = path.segments[i];
+		if (seg.pose.x !== null && seg.pose.y !== null) {
+			segmentNumbers.set(i, displayNum++);
+		}
+	}
 
 	return (
 		<>
@@ -140,10 +151,31 @@ export default function ControlsLayer({ path, img, radius, format, onPointerDown
 									/>
 								);
 							})()}
+
 						</>
 					)}
 				</g>
 			))}
+
+			{settings.numberedPath && path.segments.map((control, idx) => {
+				if (!control.visible || control.pose.x === null || control.pose.y === null) return null;
+				const pos = toPX({ x: control.pose.x, y: control.pose.y }, FIELD_REAL_DIMENSIONS, img);
+				const num = segmentNumbers.get(idx);
+				return (
+					<text
+						key={`num-${control.id}`}
+						pointerEvents="none"
+						x={pos.x}
+						y={pos.y}
+						textAnchor="middle"
+						dominantBaseline="central"
+						fontSize={radius * .9}
+						fill="#a0a0a06c"
+					>
+						{num}
+					</text>
+				);
+			})}
 		</>
 	);
 }
