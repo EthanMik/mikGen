@@ -1,3 +1,4 @@
+import { kPilon } from "../ReveiLibSim/RevConstants";
 import type { DriveDirection, PIDConstants, SwingDirection, TurnDirection } from "./MikConstants";
 
 export class PID {
@@ -6,6 +7,8 @@ export class PID {
     public kd: number;
     
     public starti: number;
+
+    public slew: number;
     public settleTime: number;
     public settleError: number;
     public timeout: number;
@@ -29,6 +32,7 @@ export class PID {
         this.ki = kPID.ki ? kPID.ki : 0;
         this.kd = kPID.kd ? kPID.kd : 0;
         this.starti = kPID.starti ? kPID.starti : 0;
+        this.slew = kPID.slew ? kPID.slew : 0;
         
         this.settleTime = kPID.settleTime ? kPID.settleTime : 0;
         this.settleError = kPID.settleError ? kPID.settleError : 0;
@@ -50,6 +54,7 @@ export class PID {
         this.ki = kPID.ki ? kPID.ki : 0;
         this.kd = kPID.kd ? kPID.kd : 0;
         this.starti = kPID.starti ? kPID.starti : 0;
+        this.slew = kPID.slew ? kPID.slew : 0;
         
         this.settleTime = kPID.settleTime ? kPID.settleTime : 0;
         this.settleError = kPID.settleError ? kPID.settleError : 0;

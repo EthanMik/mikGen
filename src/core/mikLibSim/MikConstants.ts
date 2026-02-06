@@ -9,6 +9,7 @@ export interface PIDConstants {
     ki: number | null, 
     kd: number | null, 
     starti: number | null,  
+    slew: number | null,
     settleTime: number | null, 
     settleError: number | null, 
     timeout: number | null
@@ -90,6 +91,7 @@ export function createPIDConstants(values: Partial<PIDConstants> = {}): PIDConst
         ki: values.ki ?? null,
         kd: values.kd ?? null,
         starti: values.starti ?? null,
+        slew: values.slew ?? null,
         settleTime: values.settleTime ?? null,
         settleError: values.settleError ?? null,
         timeout: values.timeout ?? null,
@@ -135,6 +137,7 @@ export const kMikPointDrive: PIDConstants = createPIDConstants({
     settleTime: 300,
     settleError: 3,
     timeout: 5000,
+    slew: 0
 });
 
 export const kMikDistanceDrive: PIDConstants = createPIDConstants({
@@ -155,6 +158,7 @@ export const kMikPointDriveHeading: PIDConstants = createPIDConstants({
     ki: 0,
     kd: 3,
     starti: 0,
+    slew: 0
 });
 
 export const kMikDistanceDriveHeading: PIDConstants = createPIDConstants({

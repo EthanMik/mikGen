@@ -46,8 +46,8 @@ const createDrivePIDGroup = (
         values: driveConstants,
         fields: [
         { key: "stopCoastPower", units: "percent", label: "Coast Power", input: { bounds: [0, 1], stepSize: .1, roundTo: 2 } },
-        { key: "stopCoastThreshold", units: "ms", label: "Coast Thresh", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
-        { key: "stopHarshThreshold", units: "ms", label: "Harsh Thresh", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+        { key: "stopCoastThreshold", units: "ms", label: "kThresh", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+        { key: "stopHarshThreshold", units: "ms", label: "kHarsh", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
         { key: "brakeTime", units: "ms", label: "Brake Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
         { key: "dropEarly", units: "in", label: "Drop Early", input: { bounds: [0, 100], stepSize: .5, roundTo: 1 } },
       ],
@@ -103,13 +103,14 @@ export function getRevConstantsConfig(
     path: Path, 
     setPath: React.Dispatch<SetStateAction<Path>>, 
     segmentId: string,
-): ConstantListField[] {
+): ConstantListField[] | undefined {
     const s = path.segments.find((c) => c.id === segmentId);
     if (s === undefined) return [];
 
     switch (s.kind) {
         case "pointDrive":
         case "poseDrive":
+        case "distanceDrive":
             return createDrivePIDGroup(format, setPath, segmentId, s.kind, s.constants.drive);
         case "pointTurn":
         case "angleTurn":
@@ -118,5 +119,6 @@ export function getRevConstantsConfig(
         case "pointSwing":
             return createTurnPIDGroup(format, setPath, segmentId, s.kind, s.constants.turn);
     }
+    return undefined;
 
 }

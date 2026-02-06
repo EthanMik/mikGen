@@ -1,4 +1,6 @@
-import { getDefaultConstants } from "../core/DefaultConstants";
+import { SIM_CONSTANTS } from "../core/ComputePathSim";
+import { getDefaultConstants, getSegmentName } from "../core/DefaultConstants";
+import type { SegmentKind } from "../core/InitialDefaults";
 import { driveDistance } from "../core/mikLibSim/DriveMotions/DriveDistance";
 import { driveToPoint } from "../core/mikLibSim/DriveMotions/DriveToPoint";
 import { driveToPose } from "../core/mikLibSim/DriveMotions/DriveToPose";
@@ -11,6 +13,14 @@ import { dist } from "../core/ReveiLibSim/Util";
 import type { Robot } from "../core/Robot";
 import type { Coordinate } from "../core/Types/Coordinate";
 import { getBackwardsSnapPose, getForwardSnapPose, type Path } from "../core/Types/Path";
+
+const LOG_SEGMENT_START_AND_END = true;
+const LOG_ROBOT_STATE = true;
+const LOG_SIMULATION_NUMBER = true;
+
+SIM_CONSTANTS.seconds = 99; // Runs the sim for a set amount of time DEFAULT 99 seconds
+let currentPathTime = -2/60; // Starts calculation of simulation at -2/60 seconds (to account for first frame and start position)
+let simComputed = 0; // Number of times the sim has been computed
 
 export function mikLibToSim(path: Path) {
     const pointTurnPID = new PID(getDefaultConstants("mikLib", "pointTurn").turn);
@@ -30,6 +40,8 @@ export function mikLibToSim(path: Path) {
 
     
     const auton: ((robot: Robot, dt: number) => boolean)[] = [];
+    currentPathTime = -2/60;
+    DEBUG_printSimulationStart();
 
     for (let idx = 0; idx < path.segments.length; idx++) {
         const control = path.segments[idx];
@@ -40,6 +52,7 @@ export function mikLibToSim(path: Path) {
         if (idx === 0) {
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
+                    DEBUG_printRobotState(robot, dt);
                     return robot.setPose(x, y, angle);
                 }
             )
@@ -48,22 +61,40 @@ export function mikLibToSim(path: Path) {
 
         if (control.kind === "pointDrive") {
             const { drive, heading } = control.constants;
+            let started = false;
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
+                    if (!started) {
+                        DEBUG_printSegmentStart(idx, control.kind);
+                        started = true;
+                    }
+                    DEBUG_printRobotState(robot, dt);
                     pointDrivePID.update(drive);
                     pointHeadingPID.update(heading);
-                    return driveToPoint(robot, dt, x, y, pointDrivePID, pointHeadingPID);
+
+                    const output = driveToPoint(robot, dt, x, y, pointDrivePID, pointHeadingPID); 
+                    if (output) DEBUG_printSegmentEnd(idx, control.kind);
+
+                    return output; 
                 }
             );
         }
 
         if (control.kind === "poseDrive") {
             const { drive, heading } = control.constants;
+            let started = false;
             auton.push(
-                (robot: Robot, dt: number): boolean => { 
+                (robot: Robot, dt: number): boolean => {
+                    if (!started) {
+                        DEBUG_printSegmentStart(idx, control.kind);
+                        started = true;
+                    }
+                    DEBUG_printRobotState(robot, dt);
                     poseDrivePID.update(drive);
                     poseHeadingPID.update(heading);
-                    return driveToPose(robot, dt, x, y, angle, poseDrivePID, poseHeadingPID);
+                    const output = driveToPose(robot, dt, x, y, angle, poseDrivePID, poseHeadingPID);
+                    if (output) DEBUG_printSegmentEnd(idx, control.kind);
+                    return output;
                 }
             );
         }
@@ -80,25 +111,40 @@ export function mikLibToSim(path: Path) {
                 : { x: 0, y: 5 };
 
             const { turn } = control.constants;
+            let started = false;
 
             auton.push(
-                (robot: Robot, dt: number): boolean => { 
+                (robot: Robot, dt: number): boolean => {
+                    if (!started) {
+                        DEBUG_printSegmentStart(idx, control.kind);
+                        started = true;
+                    }
+                    DEBUG_printRobotState(robot, dt);
                     pointTurnPID.update(turn);
-                    return turnToPoint(robot, dt, pos.x, pos.y, angle, pointTurnPID);
+                    const output = turnToPoint(robot, dt, pos.x, pos.y, angle, pointTurnPID);
+                    if (output) DEBUG_printSegmentEnd(idx, control.kind);
+                    return output;
                 }
-            );            
+            );
         }
 
         if (control.kind === "angleTurn") {
-            
             const { turn } = control.constants;
+            let started = false;
 
             auton.push(
-                (robot: Robot, dt: number): boolean => { 
-                    angleTurnPID.update(turn)
-                    return turnToAngle(robot, dt, angle, angleTurnPID);
+                (robot: Robot, dt: number): boolean => {
+                    if (!started) {
+                        DEBUG_printSegmentStart(idx, control.kind);
+                        started = true;
+                    }
+                    DEBUG_printRobotState(robot, dt);
+                    angleTurnPID.update(turn);
+                    const output = turnToAngle(robot, dt, angle, angleTurnPID);
+                    if (output) DEBUG_printSegmentEnd(idx, control.kind);
+                    return output;
                 }
-            );                 
+            );
         }
 
         if (control.kind === "pointSwing") {
@@ -113,25 +159,40 @@ export function mikLibToSim(path: Path) {
                 : { x: 0, y: 5 };
 
             const { swing } = control.constants;
+            let started = false;
 
             auton.push(
-                (robot: Robot, dt: number): boolean => { 
+                (robot: Robot, dt: number): boolean => {
+                    if (!started) {
+                        DEBUG_printSegmentStart(idx, control.kind);
+                        started = true;
+                    }
+                    DEBUG_printRobotState(robot, dt);
                     pointSwingPID.update(swing);
-                    return swingToPoint(robot, dt, pos.x, pos.y, angle, pointSwingPID);
+                    const output = swingToPoint(robot, dt, pos.x, pos.y, angle, pointSwingPID);
+                    if (output) DEBUG_printSegmentEnd(idx, control.kind);
+                    return output;
                 }
-            );            
+            );
         }
 
         if (control.kind === "angleSwing") {
-            
             const { swing } = control.constants;
+            let started = false;
 
             auton.push(
-                (robot: Robot, dt: number): boolean => { 
-                    angleSwingPID.update(swing)
-                    return swingToAngle(robot, dt, angle, angleSwingPID);
+                (robot: Robot, dt: number): boolean => {
+                    if (!started) {
+                        DEBUG_printSegmentStart(idx, control.kind);
+                        started = true;
+                    }
+                    DEBUG_printRobotState(robot, dt);
+                    angleSwingPID.update(swing);
+                    const output = swingToAngle(robot, dt, angle, angleSwingPID);
+                    if (output) DEBUG_printSegmentEnd(idx, control.kind);
+                    return output;
                 }
-            );                 
+            );
         }
         
         if (control.kind === "distanceDrive") {
@@ -141,18 +202,39 @@ export function mikLibToSim(path: Path) {
 
             const { drive, heading } = control.constants;
 
-
             auton.push(
-                (robot: Robot, dt: number): boolean => {
+                (robot: Robot, dt: number): boolean => { 
                     distanceDrivePID.update(drive);
                     distanceHeadingPID.update(heading);
-                    return driveDistance(robot, dt, distance, angle, distanceDrivePID, distanceHeadingPID);
+                    return driveDistance(robot, dt, distance, 0, distanceDrivePID, distanceHeadingPID);
                 }
-            );             
+            );
         }
 
 
     }
         
     return auton;
+}
+
+function DEBUG_printSegmentStart(idx: number, kind: SegmentKind) { 
+    if (!LOG_SEGMENT_START_AND_END) return;
+    console.log(`%cStarting ${getSegmentName("mikLib", kind)} ${idx}`, "color: lime; font-weight: bold");
+}
+
+function DEBUG_printSegmentEnd(idx: number, kind: SegmentKind) { 
+    if (!LOG_SEGMENT_START_AND_END) return;
+    console.log(`%cEnding ${getSegmentName("mikLib", kind)} ${idx}`, "color: #ff6b6b; font-weight: bold");
+}
+
+function DEBUG_printRobotState(robot: Robot, dt: number) { 
+    if (!LOG_ROBOT_STATE) return;
+    currentPathTime += dt;
+    console.log(`%cx: ${robot.getX().toFixed(2)}, y: ${robot.getY().toFixed(2)}, θ: ${robot.getAngle().toFixed(2)} dt: ${currentPathTime.toFixed(2)}s`, "color: cyan");
+}
+
+function DEBUG_printSimulationStart() {
+     if (!LOG_SIMULATION_NUMBER) return;
+    simComputed += 1;
+    console.log(`%cSTARTING SIMULATION COMPUTE #${simComputed}`, "color: violet; font-weight: bold");
 }

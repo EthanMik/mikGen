@@ -10,7 +10,7 @@ type CommandLayerProps = {
 };
 
 export default function CommandLayer({ path, img, visible }: CommandLayerProps) {
-  if (visible) return null;
+  if (visible || !path) return null;
 
   return (
     <g>
@@ -34,7 +34,7 @@ export default function CommandLayer({ path, img, visible }: CommandLayerProps) 
         return (
           <circle
             key={`cmd-${control.id}`}
-            fill="rgba(21, 102, 189, .75)"
+            fill={"#1566bd" + "BF"}
             r={8}
             cx={posPx.x}
             cy={posPx.y}

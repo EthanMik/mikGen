@@ -1,14 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { type FileFormat } from "../../hooks/useFileFormat";
+import { VALIDATED_APP_STATE, type FileFormat } from "../../hooks/appStateDefaults";
 import { createStore } from "../Store";
 import { mergeDeep } from "../Util";
 
-const saved = localStorage.getItem("appState");
-const initialData = saved ? JSON.parse(saved) : {};
-
 const MAX_UNDO_HISTORY = 50;
 
-export const undoHistory = createStore<Partial<FileFormat>[]>([initialData]);
+export const undoHistory = createStore<Partial<FileFormat>[]>([VALIDATED_APP_STATE]);
 export const redoHistory = createStore<Partial<FileFormat>[]>([]);
 
 export function AddToUndoHistory(snapshot: Partial<FileFormat>) {
@@ -17,9 +14,6 @@ export function AddToUndoHistory(snapshot: Partial<FileFormat>) {
     const previousState = current[current.length - 1] || {};
     const fullState = mergeDeep(previousState, snapshot);
 
-    // Replace defaults entirely rather than deep-merging, so that
-    // format-specific keys (e.g. mikLib's "swing" vs ReveilLib's "turn")
-    // don't bleed across formats in the undo history.
     if (snapshot.defaults !== undefined) {
         fullState.defaults = snapshot.defaults;
     }

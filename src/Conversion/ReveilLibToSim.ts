@@ -1,10 +1,10 @@
 import { SIM_CONSTANTS } from "../core/ComputePathSim";
+import { getSegmentName } from "../core/DefaultConstants";
 import { boomerangSegment, cleanupBoomerangSegment } from "../core/ReveiLibSim/DriveMotions/BoomerangSegment";
 import { cleanUplookAt, lookAt } from "../core/ReveiLibSim/DriveMotions/LookAt";
 import { cleanupPilonsSegment, pilonsSegment } from "../core/ReveiLibSim/DriveMotions/PilonsSegment";
 import { cleanupTurnSegment, turnSegment } from "../core/ReveiLibSim/DriveMotions/TurnSegment";
 import { cloneKRev } from "../core/ReveiLibSim/RevConstants";
-import { getRevSegmentNames } from "../core/ReveiLibSim/Util";
 import type { Robot } from "../core/Robot";
 import type { Coordinate } from "../core/Types/Coordinate";
 import { getBackwardsSnapPose, getForwardSnapPose, type Path } from "../core/Types/Path";
@@ -123,12 +123,12 @@ export function reveilLibToSim(path: Path) {
 
 function DEBUG_printSegmentStart(idx: number, kind: SegmentKind) { 
     if (!LOG_SEGMENT_START_AND_END) return;
-    console.log(`%cStarting ${getRevSegmentNames(kind)} ${idx}`, "color: lime; font-weight: bold");
+    console.log(`%cStarting ${getSegmentName("ReveilLib", kind)} ${idx}`, "color: lime; font-weight: bold");
 }
 
 function DEBUG_printSegmentEnd(idx: number, kind: SegmentKind) { 
     if (!LOG_SEGMENT_START_AND_END) return;
-    console.log(`%cEnding ${getRevSegmentNames(kind)} ${idx}`, "color: #ff6b6b; font-weight: bold");
+    console.log(`%cEnding ${getSegmentName("ReveilLib", kind)} ${idx}`, "color: #ff6b6b; font-weight: bold");
 }
 
 function DEBUG_printRobotState(robot: Robot, dt: number) { 

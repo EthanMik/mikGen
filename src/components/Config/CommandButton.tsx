@@ -1,116 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import enter from "../../assets/enter.svg";
-import cross from "../../assets/cross.svg"
 import { useCommand } from "../../hooks/useCommands";
-import { createCommand } from "../../core/Types/Command";
-
-type CommandInputProps = {
-    width: number,
-    height: number,
-}
-
-function CommmandInput({
-    width,
-    height
-}: CommandInputProps) {
-    const [ value, SetValue ] = useState<string>('');
-    const [ edit, setEdit ] = useState<string | null>(null);
-    const [ commands, setCommand ] = useCommand();
-
-    const display: string = edit !== null ? edit : value
-
-    const resetValue = () => {
-        setEdit("");
-    }
-
-    const executeInput = () => {
-        if (edit === null || edit === "" || commands.find((c) => c.name === edit)) return;
-        const finalEdit = edit.replace(/ /g, "_")
-        SetValue(finalEdit);
-
-        setCommand((prev) => [...prev, createCommand(finalEdit)])
-        cancel();
-    }
-
-    const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
-        setEdit(evt.target.value)
-    }
-
-    const handleKeyDown = (evt: React.KeyboardEvent<HTMLInputElement>) => {        
-        if (evt.key === "Enter" || evt.key == "Tab") {
-            executeInput()
-        }
-    }
-    
-    const handleOnClick = () => {
-        executeInput();
-    }
-
-    const cancel = () => {
-        resetValue();
-    }
-
-    return (
-        <div className="flex flex-row gap-3">
-            <input 
-                className={`bg-blackgray
-                outline-2 outline-transparent rounded-lg text-center text-white
-                hover:outline-lightgray
-                `}
-                
-                maxLength={20}
-
-                style={{
-                    fontSize: '16px', 
-                    width: width, 
-                    height : height,
-                }}
-                type="text"
-                value={ display }
-    
-                onChange={handleChange}
-                onKeyDown={handleKeyDown}
-            />
-            <button className="hover:bg-blackgrayhover rounded-sm cursor-pointer"
-                onClick={handleOnClick}>
-                <img src={enter}/>
-            </button>
-        </div>
-    );
-}
-
-type RemoveCommandButtonProps = {
-    commandId: string
-}
-
-function RemoveCommandButton({commandId}: RemoveCommandButtonProps) {
-    const [ , setCommand ] = useCommand();
-
-    const handleDeleteOnClick = () => {
-        setCommand((prev) => prev.filter((c) => c.id !== commandId))
-    }
-
-    return (
-        <div className="w-[25px] h-[25px]">
-            <button 
-                onClick={handleDeleteOnClick}
-                className="cursor-pointer rounded-sm hover:bg-blackgrayhover"
-            >
-                <img src={cross}
-                />
-            </button>
-
-        </div>
-
-    );
-}
+import { RemoveCommandButton } from "./RemoveCommandButton";
+import { CommmandInput } from "./CommandInput";
+import { builtInCommands, type CommandString } from "../../core/Types/Command";
+import CommandColorMenu from "./CommandColorMenu";
 
 export default function CommandButton() {
-    const [ isOpen, setOpen ] = useState(false);
-    const [ commands,  ] = useCommand();
+    const [isOpen, setOpen] = useState(false);
+    const [commands,] = useCommand();
     const menuRef = useRef<HTMLDivElement>(null);
 
-    
+
     const handleToggleMenu = () => {
         setOpen((prev) => !prev)
     }
@@ -129,6 +29,32 @@ export default function CommandButton() {
         }
     }, []);
 
+    const splitCommand = (commandText: string): CommandString[] => {
+        const tokens = commandText.split(/(\(|\)|[^a-zA-Z0-9()]+)/).filter(t => t.length > 0);
+
+        let balance = 0;
+        for (const token of tokens) {
+            if (token === "(") balance++;
+            if (token === ")") balance--;
+        }
+        const isBalanced = balance === 0;
+
+        const cmdStr = tokens.map(token => {
+            if (token === "(" || token === ")") {
+                return { name: token, color: isBalanced ? "#569cd6" : "#ff4444" };
+            }
+
+            const builtIn = builtInCommands.find(cmd => cmd.name === token);
+
+            if (builtIn) {
+                return { name: token, color: builtIn.color };
+            }
+
+            return { name: token, color: "#cccccc" };
+        });
+        return cmdStr;
+    }
+
     return (
         <div ref={menuRef} className={`relative ${isOpen ? "bg-medgray_hover" : "bg-none"} hover:bg-medgray_hover rounded-sm`}>
             <button onClick={handleToggleMenu} className="px-2 py-1 cursor-pointer">
@@ -144,13 +70,24 @@ export default function CommandButton() {
                         <div className="flex flex-col max-h-40 overflow-y-auto">
                             {commands.map((c) => (
                                 <div className="flex flex-row items-center justify-between pr-3">
-                                    <span className="text-[16px]">{c.name}</span>
-                                    <RemoveCommandButton commandId={c.id}/>
+                                    <div className="flex flex-row items-center gap-2">
+                                        <CommandColorMenu />
+                                        <span className="text-[16px]">
+                                            {splitCommand(c.name).map((n) => (
+                                                <span
+                                                    style={{ color: n.color }}
+                                                    key={n.name}>
+                                                    {n.name}
+                                                </span>
+                                            ))}
+                                        </span>
+                                    </div>
+                                    <RemoveCommandButton commandId={c.id} />
                                 </div>
                             ))}
                         </div>
-        
-                        <CommmandInput width={175} height={30}/>
+
+                        <CommmandInput width={175} height={30} />
                     </div>
                 </div>
             )}

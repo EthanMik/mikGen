@@ -42,7 +42,7 @@ export default function Field() {
   const [ settings, ] = useSettings();
 
   const startDrag = useRef(false);
-  const radius = 17;
+  const radius = 15;
 
   type dragProps = { dragging: boolean; lastPos: Coordinate };
   const [ drag, setDrag] = useState<dragProps>({ dragging: false, lastPos: { x: 0, y: 0 } });
@@ -170,17 +170,11 @@ export default function Field() {
       const start = dragStartPointerInch.current;
       if (!start) return;
 
-      let dx = posInch.x - start.x;
-      let dy = posInch.y - start.y;
+      const dx = posInch.x - start.x;
+      const dy = posInch.y - start.y;
+      const ctrlHeld = evt.ctrlKey;
 
-      const smallMove = Math.abs(dx) < 1 && Math.abs(dy) < 1;
-
-      if (evt.ctrlKey || smallMove) {
-        dx = Math.round(dx);
-        dy = Math.round(dy);
-      }
-
-      if (dx === lastAppliedDelta.current.dx && dy === lastAppliedDelta.current.dy) {
+      if (!ctrlHeld && dx === lastAppliedDelta.current.dx && dy === lastAppliedDelta.current.dy) {
         return;
       }
       lastAppliedDelta.current = { dx, dy };
@@ -196,8 +190,13 @@ export default function Field() {
           const sx = startPos.x;
           const sy = startPos.y;
 
-          const newX = sx === null ? null : sx + dx;
-          const newY = sy === null ? null : sy + dy;
+          let newX = sx === null ? null : sx + dx;
+          let newY = sy === null ? null : sy + dy;
+
+          if (ctrlHeld) {
+            if (newX !== null) newX = Math.round(newX * 2) / 2;
+            if (newY !== null) newY = Math.round(newY * 2) / 2;
+          }
 
           return { ...c, pose: { ...c.pose, x: newX, y: newY } };
         });
@@ -316,7 +315,7 @@ export default function Field() {
         viewBox={`${0} ${0} ${FIELD_IMG_DIMENSIONS.w} ${FIELD_IMG_DIMENSIONS.h}`}
         width={FIELD_IMG_DIMENSIONS.w}
         height={FIELD_IMG_DIMENSIONS.h}
-        className={`${middleMouseDown ? `cursor-grab` : "cursor-default"}`}
+        className={`${drag.dragging ? "cursor-grabbing" : middleMouseDown ? "cursor-grab" : "cursor-default"}`}
         onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
         onPointerDown={(e) => {
           if (e.button === 1) {

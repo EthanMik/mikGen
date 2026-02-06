@@ -1,8 +1,5 @@
 import { createSharedState } from "../core/SharedState";
 import type { Path } from "../core/Types/Path";
-import { DEFAULT_FORMAT } from "./useFileFormat";
+import { VALIDATED_APP_STATE } from "./appStateDefaults";
 
-const saved = localStorage.getItem("appState");
-const initialData = saved ? JSON.parse(saved) : DEFAULT_FORMAT;
-
-export const usePath = createSharedState<Path>(initialData.path);
+export const usePath = createSharedState<Path>(VALIDATED_APP_STATE.path);

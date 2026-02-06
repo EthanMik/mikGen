@@ -8,6 +8,7 @@ import useLocalStorageSync from "./hooks/useLocalStorageSync";
 import { clamp } from "./core/Util";
 import Field from "./components/Field/Field";
 import { useFileOpenSync } from "./hooks/useFileOpenSync";
+import { ScaleContext } from "./contexts/ScaleContext";
 
 export default function App() {
   useLocalStorageSync();
@@ -57,23 +58,25 @@ export default function App() {
   }, []);
 
   return (
-    <div ref={viewportRef} className="w-screen h-screen">
-      <div
-        ref={contentRef}
-        style={{ transform: `scale(${scale})`, transformOrigin: "top left" }}
-        className="inline-flex w-max h-max origin-top-left"
-      >
-        <div className="flex flex-col gap-[10px] ml-[10px] pl-[10px] pt-[10px]">
-          <Config />
-          <Field />
-          <PathSimulator />
-        </div>
+    <ScaleContext.Provider value={scale}>
+      <div ref={viewportRef} className="w-screen h-screen">
+        <div
+          ref={contentRef}
+          style={{ transform: `scale(${scale})`, transformOrigin: "top left" }}
+          className="inline-flex w-max h-max origin-top-left"
+        >
+          <div className="flex flex-col gap-[10px] ml-[10px] pl-[10px] pt-[10px]">
+            <Config />
+            <Field />
+            <PathSimulator />
+          </div>
 
-        <div className="flex flex-col gap-[10px] pt-[10px] pl-[10px]">
-          <PathConfig />
-          <ControlConfig />
+          <div className="flex flex-col gap-[10px] pt-[10px] pl-[10px]">
+            <PathConfig />
+            <ControlConfig />
+          </div>
         </div>
       </div>
-    </div>
+    </ScaleContext.Provider>
   );
 }

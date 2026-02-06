@@ -3,14 +3,11 @@ import pushbackVEXUMatchField from "../assets/pushback-match.png";
 import pushbackSkillsField from "../assets/pushback-skills.png";
 import pushbackV5MatchField from "../assets/pushback-matchv5.png"
 import emptyField from "../assets/empty-field.png";
-import { DEFAULT_FORMAT } from "./useFileFormat";
+import { VALIDATED_APP_STATE, type FieldType } from "./appStateDefaults";
 
-export type FieldType = "v5-match" | "v5-skills" | "vexu-match" | "empty" | "separator"
+export type { FieldType }
 
-const saved = localStorage.getItem("appState");
-const initialData = saved ? JSON.parse(saved) : DEFAULT_FORMAT;
-
-export const useField = createSharedState<FieldType>(initialData.field);
+export const useField = createSharedState<FieldType>(VALIDATED_APP_STATE.field);
 
 type Field = {
   key: FieldType;
