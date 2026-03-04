@@ -3,7 +3,7 @@ import { VALIDATED_APP_STATE, type FileFormat } from "../../hooks/appStateDefaul
 import { createStore } from "../Store";
 import { mergeDeep } from "../Util";
 
-const MAX_UNDO_HISTORY = 50;
+const MAX_UNDO_HISTORY = 100;
 
 export const undoHistory = createStore<Partial<FileFormat>[]>([VALIDATED_APP_STATE]);
 export const redoHistory = createStore<Partial<FileFormat>[]>([]);

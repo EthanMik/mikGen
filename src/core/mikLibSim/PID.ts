@@ -15,6 +15,7 @@ export class PID {
     public timeout: number;
 
     public maxSpeed: number = 1;
+    public oppositeSpeed: number = 0;
     public minSpeed: number = 0;
     public lead: number = 0;
     public setback: number = 0;
@@ -35,6 +36,7 @@ export class PID {
         this.starti = kPID.starti ? kPID.starti : 0;
         this.slew = kPID.slew ? kPID.slew : 0;
         this.drift = kPID.drift ? kPID.drift : 0;
+        this.oppositeSpeed = kPID.oppositeSpeed ? kPID.oppositeSpeed : 0;
         
         this.settleTime = kPID.settleTime ? kPID.settleTime : 0;
         this.settleError = kPID.settleError ? kPID.settleError : 0;
@@ -58,6 +60,7 @@ export class PID {
         this.starti = kPID.starti ? kPID.starti : 0;
         this.slew = kPID.slew ? kPID.slew : 0;
         this.drift = kPID.drift ? kPID.drift : 0;
+        this.oppositeSpeed = kPID.oppositeSpeed ? kPID.oppositeSpeed : 0;
         
         this.settleTime = kPID.settleTime ? kPID.settleTime : 0;
         this.settleError = kPID.settleError ? kPID.settleError : 0;

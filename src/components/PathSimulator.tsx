@@ -20,7 +20,7 @@ import { useSimulateGroup } from "../hooks/useSimulateGroup";
 // This fucking file is the biggest piece of shit i find a new bug every day
 
 function createRobot(): Robot {
-    const { width, height, speed, accel, lateralFriction } = robotConstantsStore.getState();
+    const { width, height, speed, accel, lateralFriction, cogOffsetX, cogOffsetY } = robotConstantsStore.getState();
 
     return new Robot(
         0, // Start x
@@ -32,7 +32,9 @@ function createRobot(): Robot {
         width,  // Track Width (inches)
         accel, // Max Accel (ft/s^2)
         accel, // Max Decel (ft/s^2)
-        lateralFriction // Lateral Friction (higher = less drift)
+        lateralFriction, // Lateral Friction (higher = less drift)
+        cogOffsetX, // CoG lateral offset (inches)
+        cogOffsetY  // CoG longitudinal offset (inches)
     );
 }
 
@@ -119,7 +121,7 @@ export default function PathSimulator() {
 
         setValue((clampedTime / computedPath.totalTime) * 100);
         
-    }, [changes.length, path, robotk, robotVisible]);
+    }, [changes.length, robotk, robotVisible]);
 
     
     useEffect(() => {

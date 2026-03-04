@@ -137,6 +137,11 @@ const createTurnPIDGroup = (
       values: turnConstants,
       fields: [
         { key: "maxSpeed", units: "volt", label: "Max Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
+
+        ...(segmentKind === "angleSwing" || segmentKind === "pointSwing"  ? [
+          { key: "oppositeSpeed", units: "volt",  label: "Oppos Speed", input: { bounds: [0, 12], stepSize: .1, roundTo: 1 } },
+        ] as any : []),
+
         { key: "kp", label: "kP", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 3 } },
         { key: "ki", label: "kI", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
         { key: "kd", label: "kD", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 3 } },

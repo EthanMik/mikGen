@@ -19,6 +19,7 @@ export interface PIDConstants {
     swingDirection: SwingDirection | null,
     turnDirection: TurnDirection | null,
     driveDirection: DriveDirection | null,
+    oppositeSpeed: number | null,
 }
 
 export type mikDriveConstants = {
@@ -53,7 +54,8 @@ export const PIDConstantsEqual = (a: PIDConstants, b: PIDConstants): boolean => 
         a.setback === b.setback && 
         a.turnDirection === b.turnDirection &&
         a.driveDirection === b.driveDirection &&
-        a.swingDirection === b.swingDirection
+        a.swingDirection === b.swingDirection &&
+        a.oppositeSpeed === b.oppositeSpeed
     );
 }
 
@@ -83,6 +85,8 @@ export function getUnequalPIDConstants(correctPIDConstants: PIDConstants, differ
     if (a.turnDirection !== b.turnDirection) out.turnDirection = b.turnDirection;
     if (a.driveDirection !== b.driveDirection) out.driveDirection = b.driveDirection;
 
+    if (a.oppositeSpeed !== b.oppositeSpeed) out.oppositeSpeed = b.oppositeSpeed;
+
     return out;  
 }
 
@@ -106,6 +110,7 @@ export function createPIDConstants(values: Partial<PIDConstants> = {}): PIDConst
         swingDirection: values.swingDirection ?? null,
         turnDirection: values.turnDirection ?? null,
         driveDirection: values.driveDirection ?? null,
+        oppositeSpeed: values.oppositeSpeed ?? null,
     };
 }
 
@@ -215,7 +220,8 @@ export const kMikAngleSwing: PIDConstants = createPIDConstants({
     settleTime: 300,
     timeout: 3000,
     swingDirection: "left",
-    slew: 0
+    slew: 0,
+    oppositeSpeed: 0
 })
 
 export const kMikPointSwing: PIDConstants = createPIDConstants({
@@ -229,5 +235,6 @@ export const kMikPointSwing: PIDConstants = createPIDConstants({
     settleTime: 300,
     timeout: 3000,
     swingDirection: "left",
-    slew: 0
+    slew: 0,
+    oppositeSpeed: 0
 })

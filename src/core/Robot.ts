@@ -6,7 +6,12 @@ export type RobotConstants = {
     height: number,
     speed: number,
     accel: number,
-    lateralFriction: number
+    lateralFriction: number,
+    // Offset of the robot's reference/tracking center from the kinematic center
+    // (midpoint between drive wheels), in the robot's local frame.
+    // NOT the same as odometry offsets — odometry offsets are relative to this point.
+    cogOffsetX: number, // lateral offset (positive = robot's right)
+    cogOffsetY: number, // longitudinal offset (positive = robot's forward)
 }
 
 export const defaultRobotConstants: RobotConstants = {
@@ -14,7 +19,9 @@ export const defaultRobotConstants: RobotConstants = {
     height: 14,
     speed: 6,
     accel: 15,
-    lateralFriction: 10
+    lateralFriction: 10,
+    cogOffsetX: 0,
+    cogOffsetY: 0,
 }
 
 export const robotConstantsStore = createObjectStore<RobotConstants>(defaultRobotConstants);
@@ -25,6 +32,7 @@ export class Robot {
     public maxSpeed: number;
     public trackWidth: number;
 
+    // Kinematic center (midpoint between drive wheels) — internal only
     private x: number = 0;
     private y: number = 0;
     private angle: number = 0;
@@ -37,7 +45,11 @@ export class Robot {
     public maxDecel: number;
     public lateralFriction: number;
 
-    constructor(startX: number, startY: number, startAngle: number, width: number, height: number, maxSpeed: number, trackWidth: number, maxAccel: number, maxDecel: number, lateralFriction: number = 10) {
+    // CoG offset in robot-local frame (not odometry offsets, which are relative to this point)
+    public cogOffsetX: number; // lateral (positive = robot's right)
+    public cogOffsetY: number; // longitudinal (positive = robot's forward)
+
+    constructor(startX: number, startY: number, startAngle: number, width: number, height: number, maxSpeed: number, trackWidth: number, maxAccel: number, maxDecel: number, lateralFriction: number = 10, cogOffsetX: number = 0, cogOffsetY: number = 0) {
         this.x = startX;
         this.y = startY;
         this.angle = startAngle;
@@ -48,6 +60,8 @@ export class Robot {
         this.maxAccel = maxAccel;
         this.maxDecel = maxDecel;
         this.lateralFriction = lateralFriction;
+        this.cogOffsetX = cogOffsetX;
+        this.cogOffsetY = cogOffsetY;
     }
 
     private setX(x: number) { 
@@ -62,8 +76,15 @@ export class Robot {
         this.angle = normalizeDeg(angle);
     }
 
-    getX() { return this.x; }
-    getY() { return this.y; }
+    // Returns the world-frame position of the CoG offset point
+    getX() {
+        const θ = toRad(this.angle);
+        return this.x + this.cogOffsetX * Math.cos(θ) + this.cogOffsetY * Math.sin(θ);
+    }
+    getY() {
+        const θ = toRad(this.angle);
+        return this.y - this.cogOffsetX * Math.sin(θ) + this.cogOffsetY * Math.cos(θ);
+    }
     getAngle() { return this.angle; }
 
     // Returns Velocity in in/s (includes lateral drift)
@@ -168,10 +189,12 @@ export class Robot {
         this.velY = 0;
     }
 
+    // x, y are the CoG offset point position; converts to kinematic center internally
     public setPose(x: number, y: number, angle: number) {
-        this.x = x;
-        this.y = y;
         this.angle = angle;
+        const θ = toRad(angle);
+        this.x = x - (this.cogOffsetX * Math.cos(θ) + this.cogOffsetY * Math.sin(θ));
+        this.y = y - (-this.cogOffsetX * Math.sin(θ) + this.cogOffsetY * Math.cos(θ));
         this.velX = 0;
         this.velY = 0;
 

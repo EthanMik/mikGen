@@ -44,6 +44,14 @@ export default function RobotButton() {
         }
     }
 
+    const updateCogOffsetX = (v: number | null) => {
+        if (v !== null) robotConstantsStore.merge({ cogOffsetX: v });
+    }
+
+    const updateCogOffsetY = (v: number | null) => {
+        if (v !== null) robotConstantsStore.merge({ cogOffsetY: v });
+    }
+
     const handleToggleMenu = () => {
         setOpen((prev) => !prev)
     }
@@ -147,6 +155,40 @@ export default function RobotButton() {
                                         setValue={updateAccel} 
                                         addToHistory={(accel: number) => AddToUndoHistory( {robot: { ...robot, accel: accel }} )}
                                     />
+                            </div>
+
+                            <div className="mt-0.5 pt-2 border-t border-gray-500/40 flex flex-col gap-2">
+                                <span className="text-[13px] text-gray-400">CoG Offset</span>
+                                <div className="flex flex-row items-center justify-between">
+                                    <span className="text-[16px]">Lateral</span>
+                                    <NumberInput
+                                        width={60}
+                                        height={35}
+                                        fontSize={16}
+                                        bounds={[-15, 15]}
+                                        stepSize={0.5}
+                                        roundTo={2}
+                                        units="in"
+                                        value={robot.cogOffsetX}
+                                        setValue={updateCogOffsetX}
+                                        addToHistory={(v: number) => AddToUndoHistory({ robot: { ...robot, cogOffsetX: v } })}
+                                    />
+                                </div>
+                                <div className="flex flex-row items-center justify-between">
+                                    <span className="text-[16px]">Forward</span>
+                                    <NumberInput
+                                        width={60}
+                                        height={35}
+                                        fontSize={16}
+                                        bounds={[-15, 15]}
+                                        stepSize={0.5}
+                                        roundTo={2}
+                                        units="in"
+                                        value={robot.cogOffsetY}
+                                        setValue={updateCogOffsetY}
+                                        addToHistory={(v: number) => AddToUndoHistory({ robot: { ...robot, cogOffsetY: v } })}
+                                    />
+                                </div>
                             </div>
 
                             <div className="mt-0.5 pt-2 border-t border-gray-500/40 flex flex-col gap-0">
