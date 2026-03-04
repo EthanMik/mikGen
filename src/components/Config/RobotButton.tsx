@@ -89,9 +89,9 @@ export default function RobotButton() {
             </button>
 
             {isOpen && (
-                <div className="absolute shadow-xs mt-1 shadow-black left-0 top-full w-40 z-40
-                    rounded-sm bg-medgray_hover min-h-2">
-                    <div className="flex flex-col mt-3 pl-3 pr-3 mb-1 gap-3">
+                <div className="absolute shadow-xs mt-1 shadow-black left-0 top-full w-43 z-40
+                    rounded-sm bg-medgray_hover min-h-2 max-h-47 overflow-y-auto">
+                    <div className="flex flex-col mt-3 pl-3 pr-4 mb-1 gap-3">
                         <div className="flex flex-col gap-2">
                             <div className="flex flex-row items-center justify-between">
                             <span className="text-[16px]">Width</span>
@@ -157,8 +157,11 @@ export default function RobotButton() {
                                     />
                             </div>
 
-                            <div className="mt-0.5 pt-2 border-t border-gray-500/40 flex flex-col gap-2">
-                                <span className="text-[13px] text-gray-400">CoG Offset</span>
+                            <div className="mt-0.5 flex flex-col gap-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[13px] text-gray-400 whitespace-nowrap">CoG Offset</span>
+                                    <div className="flex-1 border-t border-gray-500/40"></div>
+                                </div>
                                 <div className="flex flex-row items-center justify-between">
                                     <span className="text-[16px]">Lateral</span>
                                     <NumberInput
@@ -191,19 +194,23 @@ export default function RobotButton() {
                                 </div>
                             </div>
 
-                            <div className="mt-0.5 pt-2 border-t border-gray-500/40 flex flex-col gap-0">
+                            <div className="mt-0.5 flex flex-col gap-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[13px] text-gray-400 whitespace-nowrap">Lateral Friction</span>
+                                    <div className="flex-1 border-t border-gray-500/40"></div>
+                                </div>
                                 <div className="flex flex-row items-center justify-between h-[35px]">
                                     <span className="text-[16px]">All Omnis</span>
                                     <label className="flex items-center gap-2 cursor-pointer select-none">
                                         <Checkbox checked={allOmnis} setChecked={setAllOmnis} />
                                     </label>
                                 </div>
-                                <div className="flex flex-row items-center justify-between h-[35px]">
+                                {/*<div className="flex flex-row items-center justify-between h-[35px]">
                                     <span className="text-[16px] line-through">Holonomic</span>
                                     <label className="flex items-center gap-2 cursor-pointer select-none">
                                         <Checkbox checked={holonomic} setChecked={setHolonomic} />
                                     </label>
-                                </div>
+                                </div>*/}
                             </div>
 
                         </div>

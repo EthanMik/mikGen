@@ -64,15 +64,7 @@ export class Robot {
         this.cogOffsetY = cogOffsetY;
     }
 
-    private setX(x: number) { 
-        this.x = x 
-    }
-
-    private setY(y: number) { 
-        this.y = y 
-    }
-
-    private setAngle(angle: number) { 
+    private setAngle(angle: number) {
         this.angle = normalizeDeg(angle);
     }
 
@@ -150,36 +142,29 @@ export class Robot {
         const ω = (vL_in - vR_in) / b_in;
 
         // Update heading first
-        const θ = toRad(this.getAngle());
+        const θ = toRad(this.angle);
         const θNew = θ + ω * dt;
-        let θdegNew = toDeg(θNew);
-        θdegNew = normalizeDeg(θdegNew);
-        this.setAngle(θdegNew);
+        this.setAngle(toDeg(θNew));
 
         // Forward and lateral unit vectors in the NEW heading direction
-        const θUpdated = toRad(this.getAngle());
-        const forwardX = Math.sin(θUpdated);
-        const forwardY = Math.cos(θUpdated);
-        const lateralX = Math.cos(θUpdated);    // perpendicular right
-        const lateralY = -Math.sin(θUpdated);   // perpendicular right
+        const forwardX = Math.sin(θNew);
+        const forwardY = Math.cos(θNew);
+        const lateralX = Math.cos(θNew);    // perpendicular right
+        const lateralY = -Math.sin(θNew);   // perpendicular right
 
-        // Decompose current velocity into longitudinal and lateral components
-        const longComponent = this.velX * forwardX + this.velY * forwardY;
-        const latComponent  = this.velX * lateralX + this.velY * lateralY;
-
-        // Longitudinal: set directly from wheel speeds (tires grip in drive direction)
-        const newLong = v_in;
+        // Decompose current velocity into lateral component only (longitudinal is set from wheel speeds)
+        const latComponent = this.velX * lateralX + this.velY * lateralY;
 
         // Lateral: decay with friction (simulates tire slip during turns)
         const newLat = latComponent * Math.max(0, 1 - this.lateralFriction * dt);
 
         // Reconstruct actual velocity vector
-        this.velX = newLong * forwardX + newLat * lateralX;
-        this.velY = newLong * forwardY + newLat * lateralY;
+        this.velX = v_in * forwardX + newLat * lateralX;
+        this.velY = v_in * forwardY + newLat * lateralY;
 
-        // Update position using actual velocity
-        this.setX(this.getX() + this.velX * dt);
-        this.setY(this.getY() + this.velY * dt);
+        // Update kinematic center position using actual velocity
+        this.x += this.velX * dt;
+        this.y += this.velY * dt;
     }
 
     public stop() {

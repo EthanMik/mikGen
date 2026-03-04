@@ -43,16 +43,13 @@ export function slew_scaling(drive_output: number, prev_drive_output: number, sl
 export function clamp_max_slip(drive_output: number,current_X: number, current_Y: number, current_angle_deg: number,
     desired_X: number, desired_Y: number, drift: number): number {
     const heading = toRad(current_angle_deg);
+    const dx = desired_X - current_X;
+    const dy = desired_Y - current_Y;
 
-    const side = Math.sign(Math.sin(heading) * (desired_X - current_X) - Math.cos(heading) * (desired_Y - current_Y));
+    const perpDist = Math.abs(Math.sin(heading) * dy - Math.cos(heading) * dx);
+    const dist = Math.hypot(dx, dy);
 
-    const a = -Math.tan(heading);
-    const c = Math.tan(heading) * current_X - current_Y;
-    const perpDist = Math.abs(a * desired_X + desired_Y + c) / Math.sqrt(a * a + 1);
-    const dist = Math.hypot(desired_X - current_X, desired_Y - current_Y);
-    
-    const curvature = side * ((2 * perpDist) / (dist * dist));
-    const radius = 1.0 / Math.abs(curvature);
+    const radius = (dist * dist) / (2 * perpDist);
     const max_slip = Math.sqrt(drift * radius * 9.8);
     return clamp(drive_output, -max_slip, max_slip);
 }
@@ -62,7 +59,7 @@ export function overturn_scaling(drive_output: number, heading_output: number, m
     if (overturn > 0) {
         if (drive_output > 0) {
             return drive_output - overturn;
-        } else {
+        } else if (drive_output < 0) {
             return drive_output + overturn;
         }
     }
