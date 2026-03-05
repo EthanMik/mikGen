@@ -9,7 +9,6 @@ export default function RobotButton() {
     const menuRef = useRef<HTMLDivElement>(null);
     
     const robot =  robotConstantsStore.useStore();
-    const [ holonomic, setHolonomic ] = useState(false);
     const [ allOmnis, setAllOmnis ] = useState(false);
 
     useEffect(() => {
@@ -52,6 +51,11 @@ export default function RobotButton() {
         if (v !== null) robotConstantsStore.merge({ cogOffsetY: v });
     }
 
+    const updateExpansionFront  = (v: number | null) => { if (v !== null) robotConstantsStore.merge({ expansionFront: v }); }
+    const updateExpansionLeft   = (v: number | null) => { if (v !== null) robotConstantsStore.merge({ expansionLeft: v }); }
+    const updateExpansionRight  = (v: number | null) => { if (v !== null) robotConstantsStore.merge({ expansionRight: v }); }
+    const updateExpansionRear   = (v: number | null) => { if (v !== null) robotConstantsStore.merge({ expansionRear: v }); }
+
     const handleToggleMenu = () => {
         setOpen((prev) => !prev)
     }
@@ -88,9 +92,8 @@ export default function RobotButton() {
                 </span>
             </button>
 
-            {isOpen && (
-                <div className="absolute shadow-xs mt-1 shadow-black left-0 top-full w-43 z-40
-                    rounded-sm bg-medgray_hover min-h-2 max-h-47 overflow-y-auto">
+            <div className={`absolute shadow-xs mt-1 shadow-black left-0 top-full w-43 z-40
+                    rounded-sm bg-medgray_hover min-h-2 max-h-47 overflow-y-auto scrollbar-thin ${isOpen ? "" : "hidden"}`}>
                     <div className="flex flex-col mt-3 pl-3 pr-4 mb-1 gap-3">
                         <div className="flex flex-col gap-2">
                             <div className="flex flex-row items-center justify-between">
@@ -196,6 +199,34 @@ export default function RobotButton() {
 
                             <div className="mt-0.5 flex flex-col gap-2">
                                 <div className="flex items-center gap-2">
+                                    <span className="text-[13px] text-gray-400 whitespace-nowrap">Expansion</span>
+                                    <div className="flex-1 border-t border-gray-500/40"></div>
+                                </div>
+                                {(["Front", "Left", "Right", "Rear"] as const).map((side) => {
+                                    const key = `expansion${side}` as "expansionFront" | "expansionLeft" | "expansionRight" | "expansionRear";
+                                    const updater = { Front: updateExpansionFront, Left: updateExpansionLeft, Right: updateExpansionRight, Rear: updateExpansionRear }[side];
+                                    return (
+                                        <div key={side} className="flex flex-row items-center justify-between">
+                                            <span className="text-[16px]">{side}</span>
+                                            <NumberInput
+                                                width={60}
+                                                height={35}
+                                                fontSize={16}
+                                                bounds={[0, 30]}
+                                                stepSize={0.5}
+                                                roundTo={2}
+                                                units="in"
+                                                value={robot[key]}
+                                                setValue={updater}
+                                                addToHistory={(v: number) => AddToUndoHistory({ robot: { ...robot, [key]: v } })}
+                                            />
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            <div className="mt-0.5 flex flex-col gap-2">
+                                <div className="flex items-center gap-2">
                                     <span className="text-[13px] text-gray-400 whitespace-nowrap">Lateral Friction</span>
                                     <div className="flex-1 border-t border-gray-500/40"></div>
                                 </div>
@@ -217,7 +248,6 @@ export default function RobotButton() {
         
                     </div>
                 </div>
-            )}
         </div>
     )
 }

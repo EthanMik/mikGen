@@ -67,7 +67,7 @@ export default function CommandButton() {
                 <div className="absolute shadow-xs mt-1 shadow-black left-0 top-full w-60 
                     rounded-sm bg-medgray_hover min-h-2">
                     <div className="flex flex-col mt-2 pl-2 mb-2 gap-2">
-                        <div className="flex flex-col max-h-40 overflow-y-auto">
+                        <div className="flex flex-col max-h-40 overflow-y-auto scrollbar-thin">
                             {commands.map((c) => (
                                 <div className="flex flex-row items-center justify-between pr-3">
                                     <div className="flex flex-row items-center gap-2">

@@ -73,7 +73,7 @@ export default function PathConfig() {
       <PathConfigHeader name={name} isOpen={isOpen} setOpen={setOpen} />
 
       <div
-        className="mt-[10px] flex-1 min-h-2 overflow-y-auto
+        className="mt-[10px] flex-1 min-h-2 overflow-y-auto scrollbar-thin
         flex-col items-center overflow-x-hidden space-y-2 relative"
         onDrop={(e) => {
           // Container-level drop handler - uses current state to determine drop position

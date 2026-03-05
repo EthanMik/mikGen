@@ -12,6 +12,10 @@ export type RobotConstants = {
     // NOT the same as odometry offsets — odometry offsets are relative to this point.
     cogOffsetX: number, // lateral offset (positive = robot's right)
     cogOffsetY: number, // longitudinal offset (positive = robot's forward)
+    expansionFront: number,
+    expansionLeft: number,
+    expansionRight: number,
+    expansionRear: number,
 }
 
 export const defaultRobotConstants: RobotConstants = {
@@ -22,6 +26,10 @@ export const defaultRobotConstants: RobotConstants = {
     lateralFriction: 10,
     cogOffsetX: 0,
     cogOffsetY: 0,
+    expansionFront: 0,
+    expansionLeft: 0,
+    expansionRight: 0,
+    expansionRear: 0,
 }
 
 export const robotConstantsStore = createObjectStore<RobotConstants>(defaultRobotConstants);
@@ -49,7 +57,12 @@ export class Robot {
     public cogOffsetX: number; // lateral (positive = robot's right)
     public cogOffsetY: number; // longitudinal (positive = robot's forward)
 
-    constructor(startX: number, startY: number, startAngle: number, width: number, height: number, maxSpeed: number, trackWidth: number, maxAccel: number, maxDecel: number, lateralFriction: number = 10, cogOffsetX: number = 0, cogOffsetY: number = 0) {
+    public expansionFront: number;
+    public expansionLeft: number;
+    public expansionRight: number;
+    public expansionRear: number;
+
+    constructor(startX: number, startY: number, startAngle: number, width: number, height: number, maxSpeed: number, trackWidth: number, maxAccel: number, maxDecel: number, lateralFriction: number = 10, cogOffsetX: number = 0, cogOffsetY: number = 0, expansionFront: number = 0, expansionLeft: number = 0, expansionRight: number = 0, expansionRear: number = 0) {
         this.x = startX;
         this.y = startY;
         this.angle = startAngle;
@@ -62,6 +75,10 @@ export class Robot {
         this.lateralFriction = lateralFriction;
         this.cogOffsetX = cogOffsetX;
         this.cogOffsetY = cogOffsetY;
+        this.expansionFront = expansionFront;
+        this.expansionLeft = expansionLeft;
+        this.expansionRight = expansionRight;
+        this.expansionRear = expansionRear;
     }
 
     private setAngle(angle: number) {

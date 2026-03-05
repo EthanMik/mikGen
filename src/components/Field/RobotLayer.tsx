@@ -4,12 +4,13 @@ import type { Pose } from "../../core/Types/Pose";
 import type { Path } from "../../core/Types/Path";
 import type { Rectangle } from "../../core/Util";
 import { useSettings } from "../../hooks/useSettings";
+import type { RobotConstants } from "../../core/Robot";
 
 type RobotLayerProps = {
     img: Rectangle;
     pose: Pose | null;
     robotPose: Pose[];
-    robotConstants: { width: number; height: number };
+    robotConstants: RobotConstants;
     visible: boolean;
     path: Path;
 };
@@ -28,6 +29,10 @@ export default function RobotLayer({ img, pose, robotPose, robotConstants, visib
                     angle={pose.angle ?? 0}
                     width={robotConstants.width}
                     height={robotConstants.height}
+                    frontExpansion={robotConstants.expansionFront}
+                    leftExpansion={robotConstants.expansionLeft}
+                    rightExpansion={robotConstants.expansionRight}
+                    rearExpansion={robotConstants.expansionRear}    
                 />
             )}
 

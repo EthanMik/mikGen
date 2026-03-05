@@ -109,7 +109,7 @@ export default function Dropdown({
                 >
                     
                     <div className="flex flex-col mt-2 pl-2 pr-2 mb-2 gap-2">
-                        <div className="flex flex-col max-h-40 overflow-y-auto">
+                        <div className="flex flex-col max-h-40 overflow-y-auto scrollbar-thin">
                             {items.map((c) => (
                                 <button 
                                     key={c.id}

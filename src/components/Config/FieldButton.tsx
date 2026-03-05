@@ -134,7 +134,7 @@ export default function FieldButton() {
           className="absolute shadow-xs mt-1 shadow-black left-0 top-full w-50 rounded-sm bg-medgray_hover min-h-2"
           onMouseLeave={handleLeaveMenu}
         >
-          <div className="mt-2 pl-2 pr-2 mb-2 gap-1 flex flex-col max-h-40 overflow-y-auto">
+          <div className="mt-2 pl-2 pr-2 mb-2 gap-1 flex flex-col max-h-40 overflow-y-auto scrollbar-thin">
             {fieldMap.map((c) => (
               <>
                 {c.name !== "" && <button
