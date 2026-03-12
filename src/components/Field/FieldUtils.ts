@@ -38,6 +38,17 @@ export const getPreciseSegmentLines = (idx: number, img: Rectangle): string | nu
   return points.join(" ");
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getLead(m: any): number {
+  const lead1 = m?.constants?.drive?.lead;
+  const lead2 = m?.constants?.lateral?.lead
+
+  if (lead1) return lead1;
+  if (lead2) return lead2;
+  console.log(lead1, lead2);
+  return 0;
+}
+
 export const getSegmentLines = (idx: number, path: Path, img: Rectangle, precise = false): string | null => {
   if (idx <= 0) return null;
 
@@ -58,8 +69,7 @@ export const getSegmentLines = (idx: number, path: Path, img: Rectangle, precise
     return `${pStart.x},${pStart.y} ${pEnd.x},${pEnd.y}`;
   }
 
-  if (m.constants?.drive === undefined) return "";
-  const lead = m.constants.drive.lead ?? 0;
+  const lead = getLead(m);
   if (m.kind !== "poseDrive") return "";
 
   const ΘEnd = m.pose.angle ?? 0;

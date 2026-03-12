@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { SetStateAction } from "react";
 import type { Path } from "../Types/Path";
 import type { ConstantListField } from "../../components/PathMenu/MotionList";
+import type { ConstantField } from "../../components/PathMenu/ConstantRow";
 import type { SegmentKind } from "../Types/Segment";
 import type { Format } from "../../hooks/useFormat";
 import ccw from "../../assets/ccw.svg";
@@ -14,6 +14,7 @@ import leftswing from "../../assets/leftswing.svg"
 import rightswing from "../../assets/rightswing.svg"
 import { getDefaultConstants, updateDefaultConstants, updatePathConstants } from "../DefaultConstants";
 import type { CycleImageButtonProps } from "../../components/Util/CycleButton";
+import type { PIDConstants, mikDriveConstants, mikTurnConstants, mikSwingConstants } from "./MikConstants";
 
 const createDrivePIDGroup = (
   format: Format,
@@ -21,25 +22,25 @@ const createDrivePIDGroup = (
   setPath: React.Dispatch<SetStateAction<Path>>,
   segmentId: string,
   segmentKind: SegmentKind,
-  driveConstants: any,
-  headingConstants: any
+  driveConstants: PIDConstants,
+  headingConstants: PIDConstants
 ): ConstantListField[] => {
 
-  const onDriveChange = (partial: Partial<any>) =>
+  const onDriveChange = (partial: Partial<PIDConstants>) =>
     updatePathConstants(setPath, segmentId, { drive: partial });
-  
-  const onHeadingChange = (partial: Partial<any>) =>
+
+  const onHeadingChange = (partial: Partial<PIDConstants>) =>
     updatePathConstants(setPath, segmentId, { heading: partial });
-  
-  const setDefaultDrive = (partial: Partial<any>) => {
-    updateDefaultConstants(format, segmentKind, { drive: partial } as any);
-  }
-  
-  const setDefaultHeading = (partial: Partial<any>) => {
-    updateDefaultConstants(format, segmentKind, { heading: partial } as any);
+
+  const setDefaultDrive = (partial: Partial<PIDConstants>) => {
+    updateDefaultConstants(format, segmentKind, { drive: partial } as Partial<mikDriveConstants>);
   }
 
-  const currentDefaults: any = getDefaultConstants(format, segmentKind);
+  const setDefaultHeading = (partial: Partial<PIDConstants>) => {
+    updateDefaultConstants(format, segmentKind, { heading: partial } as Partial<mikDriveConstants>);
+  }
+
+  const currentDefaults = getDefaultConstants(format, segmentKind) as { drive?: PIDConstants; heading?: PIDConstants } | undefined;
 
   return [
     {
@@ -65,12 +66,12 @@ const createDrivePIDGroup = (
         { key: "kd", label: "kD", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
         { key: "starti", units: "in",  label: "Starti", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
         { key: "slew", units: "volt/10ms",  label: "Slew", input: { bounds: [0, 100], stepSize: .1, roundTo: 2 } },
-        
+
         ...(segmentKind === "poseDrive" ? [
           { key: "lead", label: "Lead", input: { bounds: [0, 1], stepSize: .1, roundTo: 2 } },
           { key: "setback", label: "Setback", units: "in", input: { bounds: [0, 100], stepSize: .5, roundTo: 2 } },
           { key: "drift", label: "Drift", units: "", input: { bounds: [0, 100], stepSize: 1, roundTo: 1 } },
-        ] as any : [])
+        ] as ConstantField[] : [])
       ],
       onChange: onDriveChange,
       setDefault: setDefaultDrive,
@@ -85,10 +86,10 @@ const createDrivePIDGroup = (
         { key: "ki", label: "kI", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
         { key: "kd", label: "kD", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 3 } },
         { key: "starti", units: "deg", label: "Starti", input: { bounds: [0, 360], stepSize: 1, roundTo: 2 } },
-        
+
         ...(segmentKind === "pointDrive" ? [
           { key: "slew", units: "volt/10ms",  label: "Slew", input: { bounds: [0, 100], stepSize: .1, roundTo: 1 } },
-        ] as any : []),
+        ] as ConstantField[] : []),
       ],
       onChange: onHeadingChange,
       setDefault: setDefaultHeading,
@@ -102,20 +103,20 @@ const createTurnPIDGroup = (
   setPath: React.Dispatch<SetStateAction<Path>>,
   segmentId: string,
   segmentKind: SegmentKind,
-  turnConstants: any,
+  turnConstants: PIDConstants,
   isSwing: boolean = false
 ): ConstantListField[] => {
-  
+
   const slot = isSwing ? "swing" : "turn";
 
-  const onChange = (partial: Partial<any>) =>
+  const onChange = (partial: Partial<PIDConstants>) =>
     updatePathConstants(setPath, segmentId, { [slot]: partial });
 
-  const setDefault = (partial: Partial<any>) => {
-    updateDefaultConstants(format, segmentKind, { [slot]: partial } as any);
+  const setDefault = (partial: Partial<PIDConstants>) => {
+    updateDefaultConstants(format, segmentKind, { [slot]: partial } as Partial<mikTurnConstants> | Partial<mikSwingConstants>);
   }
 
-  const currentDefaults: any = getDefaultConstants(format, segmentKind);
+  const currentDefaults = getDefaultConstants(format, segmentKind) as { turn?: PIDConstants; swing?: PIDConstants } | undefined;
   const specificDefaults = isSwing ? currentDefaults?.swing : currentDefaults?.turn;
 
   return [
@@ -140,7 +141,7 @@ const createTurnPIDGroup = (
 
         ...(segmentKind === "angleSwing" || segmentKind === "pointSwing"  ? [
           { key: "oppositeSpeed", units: "volt",  label: "Oppos Speed", input: { bounds: [0, 12], stepSize: .1, roundTo: 1 } },
-        ] as any : []),
+        ] as ConstantField[] : []),
 
         { key: "kp", label: "kP", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 3 } },
         { key: "ki", label: "kI", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
@@ -163,12 +164,13 @@ const getDirectionState = (
   field: string,
   slot: Slot
 ): string | null  => {
-    const segment = path.segments.find((s) => s.id === segmentId) as any;
-    return segment?.constants?.[slot]?.[field] ?? null; 
+    const segment = path.segments.find((s) => s.id === segmentId);
+    const constants = segment?.constants as Record<string, Record<string, string | null> | undefined> | undefined;
+    return constants?.[slot]?.[field] ?? null;
 };
 
 const createTurnDirectionGroup = (
-  path: Path, 
+  path: Path,
   setPath: React.Dispatch<SetStateAction<Path>>,
   segmentId: string,
   slot: Slot,
@@ -187,7 +189,7 @@ const createTurnDirectionGroup = (
 }
 
 const createDriveDirectionGroup = (
-  path: Path, 
+  path: Path,
   setPath: React.Dispatch<SetStateAction<Path>>,
   segmentId: string,
   slot: Slot,
@@ -207,7 +209,7 @@ const createDriveDirectionGroup = (
 }
 
 const createSwingDirectionGroup = (
-  path: Path, 
+  path: Path,
   setPath: React.Dispatch<SetStateAction<Path>>,
   segmentId: string,
   slot: Slot,
@@ -225,13 +227,13 @@ const createSwingDirectionGroup = (
 }
 
 export function getMikLibDirectionConfig(
-    path: Path, 
-    setPath: React.Dispatch<SetStateAction<Path>>, 
+    path: Path,
+    setPath: React.Dispatch<SetStateAction<Path>>,
     segmentId: string,
 ): CycleImageButtonProps[] | undefined {
     const s = path.segments.find((c) => c.id === segmentId);
     if (s === undefined) return [];
-    
+
     switch (s.kind) {
         case "pointDrive":
         case "poseDrive":
@@ -254,9 +256,9 @@ export function getMikLibDirectionConfig(
 }
 
 export function getmikLibConstantsConfig(
-    format: Format, 
-    path: Path, 
-    setPath: React.Dispatch<SetStateAction<Path>>, 
+    format: Format,
+    path: Path,
+    setPath: React.Dispatch<SetStateAction<Path>>,
     segmentId: string,
 ): ConstantListField[] | undefined {
     const s = path.segments.find((c) => c.id === segmentId);
@@ -264,14 +266,20 @@ export function getmikLibConstantsConfig(
 
     switch (s.kind) {
         case "pointDrive":
-        case "poseDrive":
-            return createDrivePIDGroup(format, path, setPath, segmentId, s.kind, s.constants.drive, s.constants.heading);
+        case "poseDrive": {
+            const constants = s.constants as mikDriveConstants;
+            return createDrivePIDGroup(format, path, setPath, segmentId, s.kind, constants.drive, constants.heading);
+        }
         case "pointTurn":
-        case "angleTurn":
-            return createTurnPIDGroup(format, setPath, segmentId, s.kind, s.constants.turn, false);
+        case "angleTurn": {
+            const constants = s.constants as mikTurnConstants;
+            return createTurnPIDGroup(format, setPath, segmentId, s.kind, constants.turn, false);
+        }
         case "angleSwing":
-        case "pointSwing":
-            return createTurnPIDGroup(format, setPath, segmentId, s.kind, s.constants.swing, true);
+        case "pointSwing": {
+            const constants = s.constants as mikSwingConstants;
+            return createTurnPIDGroup(format, setPath, segmentId, s.kind, constants.swing, true);
+        }
     }
     return undefined;
 }

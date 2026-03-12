@@ -7,6 +7,13 @@ Bugs:
 - make the group dropping css look better
 - control config not updating the path??
 - the robot does not snap to the starting point when pressing R
+- when editing the robot in config the time will get pushed back
+- turn segments are not mirroring properly
+- swing to angle segments are not appearing
+- the robot timeline is not getting updated on all events
+- moving segments with arrow keys spams undo timeline
+- numbered path is not saving to local storage correctly
+
 
 Todo:
 - add lemlib drive motions - jar template can just use mikLib with small modifications
@@ -15,6 +22,9 @@ Todo:
 - distance segments
 - make it so operators work in number input
 - add a apply all button with maybe a confirm menu?! will not apply to locked segments
+- remove commands as a whole, the system is too annoying to setup and mikGen is not 100% accurate and should be just used as visualization
+- instead of commands add a help button that provides path examples
+- make it so i can easily see the time and distance along the path 
 
 Planned:
 - tooltip when hovering over svg buttons

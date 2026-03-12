@@ -8,6 +8,7 @@ import type { Path } from "./Types/Path";
 import type { CycleImageButtonProps } from "../components/Util/CycleButton";
 import { getRevConstantsConfig } from "./ReveiLibSim/RevConstantsConfig";
 import { INITIAL_DEFAULTS, type DefaultConstant, globalDefaultsStore, getDefaultConstants } from "./InitialDefaults";
+import { getLemLibConstantsConfig, getLemLibDirectionConfig } from "./LemLibSim/LemConstantsConfig";
 
 export { INITIAL_DEFAULTS, type DefaultConstant, globalDefaultsStore, getDefaultConstants };
 
@@ -85,6 +86,7 @@ export function getFormatConstantsConfig(format: Format, path: Path, setPath: Re
     switch (format) {
         case "mikLib": return getmikLibConstantsConfig(format, path, setPath, segmentId);
         case "ReveilLib": return getRevConstantsConfig(format, path, setPath, segmentId);
+        case "LemLib": return getLemLibConstantsConfig(format, path, setPath, segmentId);
     }
     return [];
 }
@@ -92,6 +94,7 @@ export function getFormatConstantsConfig(format: Format, path: Path, setPath: Re
 export function getFormatDirectionConfig(format: Format, path: Path, setPath: React.Dispatch<SetStateAction<Path>>, segmentId: string): CycleImageButtonProps[] | undefined {
     switch (format) {
         case "mikLib": return getMikLibDirectionConfig(path, setPath, segmentId);
+        case "LemLib": return getLemLibDirectionConfig(path, setPath, segmentId);
     }
     return [];
 }

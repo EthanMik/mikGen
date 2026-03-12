@@ -1,4 +1,5 @@
 import { createObjectStore } from "./Store";
+import type { Pose } from "./Types/Pose";
 import { clamp, normalizeDeg, toDeg, toRad } from "./Util";
 
 export type RobotConstants = {
@@ -95,6 +96,8 @@ export class Robot {
         return this.y - this.cogOffsetX * Math.sin(θ) + this.cogOffsetY * Math.cos(θ);
     }
     getAngle() { return this.angle; }
+
+    getPose(): Pose { return { x: this.x, y: this.y, angle: this.angle } } 
 
     // Returns Velocity in in/s (includes lateral drift)
     public getXVelocity(): number {

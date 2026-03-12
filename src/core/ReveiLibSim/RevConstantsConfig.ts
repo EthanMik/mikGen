@@ -1,10 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import type { SetStateAction } from "react";
 import type { Format } from "../../hooks/useFormat";
 import type { Path } from "../Types/Path";
 import type { SegmentKind } from "../Types/Segment";
 import type { ConstantListField } from "../../components/PathMenu/MotionList";
+import type { ConstantField } from "../../components/PathMenu/ConstantRow";
+import type { ReveilLibConstants, revDriveConstants, revTurnConstants } from "./RevConstants";
 import { getDefaultConstants, updateDefaultConstants, updatePathConstants } from "../DefaultConstants";
 
 const createDrivePIDGroup = (
@@ -12,17 +13,17 @@ const createDrivePIDGroup = (
   setPath: React.Dispatch<SetStateAction<Path>>,
   segmentId: string,
   segmentKind: SegmentKind,
-  driveConstants: any,
+  driveConstants: ReveilLibConstants,
 ): ConstantListField[] => {
 
-  const onDriveChange = (partial: Partial<any>) =>
+  const onDriveChange = (partial: Partial<ReveilLibConstants>) =>
     updatePathConstants(setPath, segmentId, { drive: partial });
-  
-  const setDefaultDrive = (partial: Partial<any>) => {
-    updateDefaultConstants(format, segmentKind, { drive: partial } as any);
+
+  const setDefaultDrive = (partial: Partial<ReveilLibConstants>) => {
+    updateDefaultConstants(format, segmentKind, { drive: partial } as Partial<revDriveConstants>);
   }
 
-  const currentDefaults: any = getDefaultConstants(format, segmentKind);
+  const currentDefaults = getDefaultConstants(format, segmentKind) as { drive?: ReveilLibConstants } | undefined;
 
   return [
     {
@@ -35,7 +36,7 @@ const createDrivePIDGroup = (
 
         ...(segmentKind === "poseDrive" ? [
             { key: "lead", label: "Lead", input: { bounds: [0, 1], stepSize: .1, roundTo: 2 } },
-        ] as any: [])
+        ] as ConstantField[]: [])
     ],
     onChange: onDriveChange,
     setDefault: setDefaultDrive,
@@ -63,17 +64,17 @@ const createTurnPIDGroup = (
   setPath: React.Dispatch<SetStateAction<Path>>,
   segmentId: string,
   segmentKind: SegmentKind,
-  turnConstants: any,
+  turnConstants: ReveilLibConstants,
 ): ConstantListField[] => {
-  
-  const onChange = (partial: Partial<any>) =>
+
+  const onChange = (partial: Partial<ReveilLibConstants>) =>
     updatePathConstants(setPath, segmentId, { turn: partial });
 
-  const setDefault = (partial: Partial<any>) => {
-    updateDefaultConstants(format, segmentKind, { turn: partial } as any);
+  const setDefault = (partial: Partial<ReveilLibConstants>) => {
+    updateDefaultConstants(format, segmentKind, { turn: partial } as Partial<revTurnConstants>);
   }
 
-  const currentDefaults: any = getDefaultConstants(format, segmentKind);
+  const currentDefaults = getDefaultConstants(format, segmentKind) as { turn?: ReveilLibConstants } | undefined;
 
   return [
     {
@@ -88,7 +89,7 @@ const createTurnPIDGroup = (
 
         ...(segmentKind === "pointTurn" ? [
             { key: "dropEarly", units: "deg", label: "Drop Early", input: { bounds: [0, 9999], stepSize: 5, roundTo: 1 } },
-        ] as any: [])
+        ] as ConstantField[]: [])
 
       ],
       onChange: onChange,
@@ -99,9 +100,9 @@ const createTurnPIDGroup = (
 };
 
 export function getRevConstantsConfig(
-    format: Format, 
-    path: Path, 
-    setPath: React.Dispatch<SetStateAction<Path>>, 
+    format: Format,
+    path: Path,
+    setPath: React.Dispatch<SetStateAction<Path>>,
     segmentId: string,
 ): ConstantListField[] | undefined {
     const s = path.segments.find((c) => c.id === segmentId);
@@ -111,13 +112,13 @@ export function getRevConstantsConfig(
         case "pointDrive":
         case "poseDrive":
         case "distanceDrive":
-            return createDrivePIDGroup(format, setPath, segmentId, s.kind, s.constants.drive);
+            return createDrivePIDGroup(format, setPath, segmentId, s.kind, (s.constants as revDriveConstants).drive);
         case "pointTurn":
         case "angleTurn":
-            return createTurnPIDGroup(format, setPath, segmentId, s.kind, s.constants.turn);
+            return createTurnPIDGroup(format, setPath, segmentId, s.kind, (s.constants as revTurnConstants).turn);
         case "angleSwing":
         case "pointSwing":
-            return createTurnPIDGroup(format, setPath, segmentId, s.kind, s.constants.turn);
+            return createTurnPIDGroup(format, setPath, segmentId, s.kind, (s.constants as revTurnConstants).turn);
     }
     return undefined;
 
