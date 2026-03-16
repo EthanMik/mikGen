@@ -24,10 +24,15 @@ export class PID {
     public turnDirection: TurnDirection | null
     public driveDirection: DriveDirection | null
 
+    public disableEarlyExit = false;
+
+    public exit_error: number = 0;
+
     private acculatedError = 0;
     private previousError = 0;
     private timeSpentSettled = 0;
     private timeSpentRunning = 0;
+    private exiting = false;
 
     constructor(kPID: PIDConstants) {
         this.kp = kPID.kp ? kPID.kp : 0;
@@ -51,6 +56,8 @@ export class PID {
         this.swingDirection = kPID.swingDirection;
         this.turnDirection = kPID.turnDirection;
         this.driveDirection = kPID.driveDirection;
+
+        this.exit_error = kPID.exit_error ?? 0;
     }
 
     public update(kPID: PIDConstants) {
@@ -75,6 +82,8 @@ export class PID {
         this.swingDirection = kPID.swingDirection;
         this.turnDirection = kPID.turnDirection;
         this.driveDirection = kPID.driveDirection;
+
+        this.exit_error = kPID.exit_error ?? 0;
     }
 
     public compute(error: number) {
@@ -94,6 +103,9 @@ export class PID {
         } else {
             this.timeSpentSettled = 0;
         }
+        if (Math.abs(error) < this.exit_error && this.minSpeed > 0 && !this.disableEarlyExit) {
+            this.exiting = true;
+        }
 
         this.timeSpentRunning += 1/60 * 1000;
 
@@ -107,10 +119,15 @@ export class PID {
         if (this.timeSpentSettled > this.settleTime) {
             return true;
         }
+        if (this.exiting) {
+            this.exiting = false;
+            return true;
+        }
         return false;
     }
 
     public reset() {
+        this.exiting = false;
         this.previousError = 0;
         this.acculatedError = 0;
         this.timeSpentRunning = 0;

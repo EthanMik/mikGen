@@ -61,6 +61,7 @@ export function mikLibToSim(path: Path) {
 
         if (control.kind === "pointDrive") {
             const { drive, heading } = control.constants;
+
             let started = false;
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
@@ -71,6 +72,7 @@ export function mikLibToSim(path: Path) {
                     DEBUG_printRobotState(robot, dt);
                     pointDrivePID.update(drive);
                     pointHeadingPID.update(heading);
+                    pointDrivePID.disableEarlyExit = true;
 
                     const output = driveToPoint(robot, dt, x, y, pointDrivePID, pointHeadingPID); 
                     if (output) DEBUG_printSegmentEnd(idx, control.kind);
@@ -82,6 +84,7 @@ export function mikLibToSim(path: Path) {
 
         if (control.kind === "poseDrive") {
             const { drive, heading } = control.constants;
+            
             let started = false;
             auton.push(
                 (robot: Robot, dt: number): boolean => {
@@ -92,6 +95,7 @@ export function mikLibToSim(path: Path) {
                     DEBUG_printRobotState(robot, dt);
                     poseDrivePID.update(drive);
                     poseHeadingPID.update(heading);
+                    poseDrivePID.disableEarlyExit = true;
                     const output = driveToPose(robot, dt, x, y, angle, poseDrivePID, poseHeadingPID);
                     if (output) DEBUG_printSegmentEnd(idx, control.kind);
                     return output;

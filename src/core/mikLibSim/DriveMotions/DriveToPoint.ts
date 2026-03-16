@@ -4,10 +4,13 @@ import { kMikLibSpeed } from "../MikConstants";
 import type { PID } from "../PID";
 import { clamp_min_voltage, is_line_settled, left_voltage_scaling, reduce_negative_180_to_180, reduce_negative_90_to_90, right_voltage_scaling, slew_scaling } from "../Util";
 
+const DRIVE_LARGE_SETTLE_ERROR = 6;
+
 let pointStartHeading: number | null = null;
 let pointPrevLineSettled: boolean | null = null;
 let prevDriveOutput: number | null = null;
 let prevHeadingOutput: number | null = null;
+let lockedHeading: number | null = null;
 
 function exitDriveToPoint(drivePID: PID, headingPID: PID) {
     drivePID.reset();
@@ -16,6 +19,7 @@ function exitDriveToPoint(drivePID: PID, headingPID: PID) {
     pointPrevLineSettled = null;
     prevHeadingOutput = null;
     prevDriveOutput = null;
+    lockedHeading = null;
     return true;
 }
 
@@ -26,15 +30,19 @@ export function driveToPoint(robot: Robot, dt: number, x: number, y: number, dri
 
     if (pointStartHeading === null) {
         pointStartHeading = toDeg(Math.atan2(dx, dy));
-        pointPrevLineSettled = is_line_settled(x, y, pointStartHeading, robot.getX(), robot.getY());
+        const exitX = x - Math.sin(toRad(pointStartHeading)) * drivePID.exit_error;
+        const exitY = y - Math.cos(toRad(pointStartHeading)) * drivePID.exit_error;
+        pointPrevLineSettled = is_line_settled(exitX, exitY, pointStartHeading, robot.getX(), robot.getY());
     }
 
     if (drivePID.isSettled()) {
         return exitDriveToPoint(drivePID, headingPID);
     }
 
-    const line_settled = is_line_settled(x, y, pointStartHeading, robot.getX(), robot.getY());
-    if (line_settled && !pointPrevLineSettled!) {
+    const exitX = x - Math.sin(toRad(pointStartHeading)) * drivePID.exit_error;
+    const exitY = y - Math.cos(toRad(pointStartHeading)) * drivePID.exit_error;
+    const line_settled = is_line_settled(exitX, exitY, pointStartHeading, robot.getX(), robot.getY());
+    if (line_settled && !pointPrevLineSettled! && drivePID.minSpeed > 0) {
         return exitDriveToPoint(drivePID, headingPID);
     }
     pointPrevLineSettled = line_settled;
@@ -56,15 +64,15 @@ export function driveToPoint(robot: Robot, dt: number, x: number, y: number, dri
     if (drivePID.driveDirection !== null) heading_scale_factor = Math.max(0, heading_scale_factor);
 
     drive_output *= heading_scale_factor * driveSign;
+
+    const close = drive_error < DRIVE_LARGE_SETTLE_ERROR;
+    if (close) {
+        if (lockedHeading === null) lockedHeading = desiredHeading;
+        heading_error = reduce_negative_180_to_180(lockedHeading - robot.getAngle());
+    }
+
     if (drivePID.driveDirection === null) heading_error = reduce_negative_90_to_90(heading_error);
     let heading_output = headingPID.compute(heading_error);
-
-    let close: boolean = false;
-
-    if (drive_error < drivePID.settleError) {
-        heading_output = 0;
-        close = true
-    }
 
     drive_output = clamp(drive_output, -Math.abs(heading_scale_factor) * drivePID.maxSpeed, Math.abs(heading_scale_factor) * drivePID.maxSpeed);
     heading_output = clamp(heading_output, -headingPID.maxSpeed, headingPID.maxSpeed);

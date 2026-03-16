@@ -21,6 +21,8 @@ export function turnToAngle(robot: Robot, dt: number, angle: number, turnPID: PI
     const rawError = angle_error(angle - robot.getAngle(), null);
     let error = angle_error(angle - robot.getAngle(), turnPID.turnDirection);
 
+    console.log(turnPID.minSpeed, turnPID.exit_error, error);
+
     if (prevError === null || prevRawError === null) {
         prevError = error;
         prevRawError = rawError
