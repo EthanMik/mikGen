@@ -2,7 +2,7 @@
 import { clamp } from "../../core/Util";
 
 type SliderProps = {
-  sliderWidth: number,
+  sliderWidth?: number,
   sliderHeight: number,
   sliderColor?: string,
   knobWidth: number,
@@ -16,7 +16,7 @@ type SliderProps = {
 
 /** Uses value on a scale of 0-100 */
 export default function Slider({
-  sliderWidth,
+  sliderWidth = 0,
   sliderHeight,
   sliderColor = "--color-lightgray",
   knobWidth,
@@ -43,6 +43,7 @@ export default function Slider({
   const startDrag = (evt: React.MouseEvent) => {
     onChangeStart?.();
     evt.preventDefault();
+    evt.stopPropagation();
 
     
     const move = (evt: MouseEvent) => {
@@ -60,10 +61,10 @@ export default function Slider({
   }
 
   return (
-    <div className="rounded-sm relative bg-amber-50"
+    <div className="rounded-sm relative w-full"
       style={{
         backgroundColor: `var(${sliderColor})`,
-        width: `${sliderWidth}px`,
+        ...(sliderWidth > 0 ? { width: `${sliderWidth}px` } : {}),
         height: `${sliderHeight}px`,
       }}
       ref={trackRef}

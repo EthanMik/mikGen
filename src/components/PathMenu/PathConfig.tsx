@@ -3,7 +3,7 @@ import { usePath } from "../../hooks/usePath";
 import MotionList from "./MotionList";
 import PathConfigHeader from "./PathHeader";
 import { useFormat } from "../../hooks/useFormat";
-import { getFormatConstantsConfig, getFormatDirectionConfig, getFormatPathName, getFormatSpeed, globalDefaultsStore } from "../../core/DefaultConstants";
+import { getFormatConstantsConfig, getFormatDirectionConfig, getFormatPathName, getFormatSpeed, getSegmentName, globalDefaultsStore } from "../../core/DefaultConstants";
 import GroupList, { type GroupDropZone } from "./GroupList";
 import { moveMultipleSegments } from "./PathConfigUtils";
 
@@ -158,7 +158,7 @@ export default function PathConfig() {
             {/* DRIVE */}
             {idx > 0 && ( (c.kind === "pointDrive" || c.kind === "poseDrive") && c.groupId == undefined ) && (
               <MotionList
-                name="Drive"
+                name={getSegmentName(format, c.kind)}
                 speedScale={speedScale}
                 field={constantsFields}
                 directionField={directionFields}
@@ -175,7 +175,7 @@ export default function PathConfig() {
             {/* TURN */}
             {idx > 0 && ( (c.kind === "angleTurn" || c.kind === "pointTurn") && c.groupId == undefined ) && (
               <MotionList
-                name="Turn"
+                name={getSegmentName(format, c.kind)}
                 speedScale={speedScale}
                 field={constantsFields}
                 directionField={directionFields}
@@ -192,7 +192,7 @@ export default function PathConfig() {
             {/* SWING */}
             {idx > 0 && ( (c.kind === "pointSwing" || c.kind === "angleSwing") && c.groupId == undefined ) && (
               <MotionList
-                name="Swing"
+                name={getSegmentName(format, c.kind)}
                 speedScale={speedScale}
                 field={constantsFields}
                 directionField={directionFields}

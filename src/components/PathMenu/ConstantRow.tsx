@@ -49,7 +49,7 @@ export default function ConstantRow({
         <div className="flex flex-row items-center 
             justify-between h-[30px] pr-2 pl-2 gap-1"
         >
-            <span className={`w-[100px] ${labelColor}`}>{label} </span>
+            <span className={`w-[100px] text-left ${labelColor}`}>{label} </span>
             <NumberInput 
                 width={55} 
                 height={30}

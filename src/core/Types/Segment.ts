@@ -4,7 +4,6 @@ import { deepEqual, makeId } from "../Util";
 import type { mikDriveConstants, mikSwingConstants, mikTurnConstants } from "../mikLibSim/MikConstants";
 import type { revDriveConstants, revTurnConstants } from "../ReveiLibSim/RevConstants";
 import type { LemAngularConstants, LemMoveConstants } from "../LemLibSim/LemConstants";
-import { commandsEqual, createCommand, type Command } from "./Command";
 import type { Coordinate } from "./Coordinate";
 import { posesEqual, type Pose } from "./Pose";
 
@@ -86,7 +85,6 @@ export type Segment<F extends Format = Format, K extends SegmentKind = SegmentKi
   locked: boolean;
   visible: boolean;
   pose: Pose;
-  command: Command;
   format: F;
   kind: K;
   constants: ConstantsByFormat[F][K];
@@ -116,7 +114,6 @@ export function createPointDriveSegment<F extends Format>(format: F, position: C
     disabled: false,
     visible: true,
     pose: { x: position.x, y: position.y, angle: null },
-    command: createCommand(""),
     format,
     kind: "pointDrive",
     constants: getDefaultConstants(format, "pointDrive"),
@@ -132,7 +129,6 @@ export function createPoseDriveSegment<F extends Format>(format: F, pose: Pose):
     locked: false,
     visible: true,
     pose,
-    command: createCommand(''),
     format,
     kind: "poseDrive",
     constants: getDefaultConstants(format, "poseDrive"),
@@ -148,7 +144,6 @@ export function createPointTurnSegment<F extends Format>(format: F, pose: Pose):
     disabled: false,
     visible: true,
     pose,
-    command: createCommand(''),
     format,
     kind: "pointTurn",
     constants: getDefaultConstants(format, "pointTurn"),
@@ -163,7 +158,6 @@ export function createAngleTurnSegment<F extends Format>(format: F, heading: num
     locked: false,
     disabled: false,
     visible: true,
-    command: createCommand(''),
     pose: { x: null, y: null, angle: heading },
     format,
     kind: "angleTurn",
@@ -179,7 +173,6 @@ export function createAngleSwingSegment<F extends Format>(format: F, heading: nu
     locked: false,
     disabled: false,
     visible: true,
-    command: createCommand(''),
     pose: { x: null, y: null, angle: heading },
     format,
     kind: "angleSwing",
@@ -195,7 +188,6 @@ export function createPointSwingSegment<F extends Format>(format: F, pose: Pose)
     locked: false,
     disabled: false,
     visible: true,
-    command: createCommand(''),
     pose,
     format,
     kind: "pointSwing",
@@ -211,7 +203,6 @@ export function createDistanceSegment<F extends Format>(format: F, pose: Pose): 
     locked: false,
     disabled: false,
     visible: true,
-    command: createCommand(''),
     pose,
     format,
     kind: "distanceDrive",
@@ -226,7 +217,6 @@ export function segmentsEqual(a: Segment, b: Segment): boolean {
     a.visible === b.visible &&
     a.kind === b.kind &&
     posesEqual(a.pose, b.pose) &&
-    commandsEqual(a.command, b.command) &&
     deepEqual(a.constants, b.constants)
   );
 }

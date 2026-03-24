@@ -7,8 +7,6 @@ import lockOpen from "../../assets/lock-open.svg";
 import downArrow from "../../assets/down-arrow.svg";
 import Slider from "../Util/Slider";
 import { usePath } from "../../hooks/usePath";
-import CommandList from "./CommandList";
-import { createCommand, type Command } from "../../core/Types/Command";
 import type { ConstantField } from "./ConstantRow";
 import ConstantsList from "./ConstantsList";
 import CycleImageButton, { type CycleImageButtonProps } from "../Util/CycleButton";
@@ -65,7 +63,6 @@ export default function MotionList({
     const [ isEyeOpen, setEyeOpen ] = useState(true);
     const [ isLocked, setLocked ] = useState(false);
     const [ isOpen, setOpen ] = useState(false);
-    const [ command, setCommand ] = useState<Command>(createCommand(''));
     const [ format ] = useFormat();
 
     const pathRef = useRef(path);
@@ -190,17 +187,6 @@ export default function MotionList({
         setOpen(isOpenGlobal)
     }, [isOpenGlobal])
 
-    useEffect(() => {
-        setPath(prev => ({
-            ...prev, 
-            segments: prev.segments.map(
-                segment => segment.id === segmentId
-                ? {...segment, command: command } 
-                : {...segment}
-            )
-        }))        
-    }, [command, segmentId, setPath])
-
     const toggleSegment = (patch: (s: any) => any) => {
         setPath(prev => {
             
@@ -252,7 +238,12 @@ export default function MotionList({
     }, [path])
 
     return (
-        <div className={`flex flex-col gap-2 mt-[1px]`}>
+        <button 
+            className={`flex flex-col gap-2 mt-[1px]`}
+            onClick={() => {
+                if (selected) setOpen(!isOpen)
+            }}
+        >
             <button
             draggable={draggable}
             onDragStart={(e) => {
@@ -286,62 +277,55 @@ export default function MotionList({
             >
             <button
                 className="cursor-pointer shrink-0"
-                onClick={() => setOpen(!isOpen)}
+                onClick={(e) => { e.stopPropagation(); setOpen(!isOpen); }}
+
             >
-                {!isOpen ? (
-                <img className="w-[15px] h-[15px] rotate-270" src={downArrow} />
-                ) : (
-                <img className="w-[15px] h-[15px]" src={downArrow} />
-                )}
+                <img className={`w-[15px] h-[15px] transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} src={downArrow} />
             </button>
 
-            <button className="cursor-pointer shrink-0" onClick={handleEyeOnClick}>
+            <button className="cursor-pointer shrink-0" onClick={(e) => { e.stopPropagation(); handleEyeOnClick(); }}>
                 <img className="w-[20px] h-[20px]" src={isEyeOpen ? eyeOpen : eyeClosed} />
             </button>
 
-            <button className="cursor-pointer shrink-0" onClick={handleLockOnClick}>
+            <button className="cursor-pointer shrink-0" onClick={(e) => { e.stopPropagation(); handleLockOnClick(); }}>
                 <img className="w-[20px] h-[20px]" src={isLocked ? lockClose : lockOpen} />
             </button>
 
-            <span className="w-[50px] items-center shrink-0 text-left truncate">{name}</span>
-            
-            {!start && field !== undefined ? (
-                <Slider
-                    sliderWidth={!shrink ? 210 : 160}
-                    sliderHeight={5}
-                    knobHeight={16}
-                    knobWidth={16}
-                    value={(field[0]?.values?.["maxSpeed"] ?? 0) / speedScale * 100}
-                    
-                    setValue={(v: number) => field[0]?.onChange({ maxSpeed: (v / 100) * speedScale })}
-                    
-                    OnChangeEnd={(sliderValue: number) => {
-                        const currentPath = pathRef.current;
-                        const realValue = (sliderValue / 100) * speedScale;
+            <span className="shrink-0 text-left truncate max-w-[130px]">{name}</span>
 
-                        AddToUndoHistory({
-                            path: {
-                            ...currentPath,
-                            segments: currentPath.segments.map((s) => 
-                                s.id === segmentId 
-                                ? { ...s, constants: { ...s.constants, maxSpeed: realValue } } 
-                                : s
-                            ),
-                            }
-                        });
-                    }}
-                />
-            ) : (
-                <div className="w-[230px]" />
+            {!start && field !== undefined && (
+                <div onClick={(e) => e.stopPropagation()} className="flex-1 min-w-0 flex items-center gap-2">
+                    <Slider
+                        sliderHeight={5}
+                        knobHeight={16}
+                        knobWidth={16}
+                        value={(field[0]?.values?.["maxSpeed"] ?? 0) / speedScale * 100}
+
+                        setValue={(v: number) => field[0]?.onChange({ maxSpeed: (v / 100) * speedScale })}
+
+                        OnChangeEnd={(sliderValue: number) => {
+                            const currentPath = pathRef.current;
+                            const realValue = (sliderValue / 100) * speedScale;
+
+                            AddToUndoHistory({
+                                path: {
+                                ...currentPath,
+                                segments: currentPath.segments.map((s) =>
+                                    s.id === segmentId
+                                    ? { ...s, constants: { ...s.constants, maxSpeed: realValue } }
+                                    : s
+                                ),
+                                }
+                            });
+                        }}
+                    />
+                    <span className="shrink-0 text-left tabular-nums pl-1">
+                        {(field[0]?.values?.["maxSpeed"] ?? 0).toFixed(speedScale > 9.9 ? (speedScale > 99.9 ? 0 : 1) : 2)}
+                    </span>
+                </div>
             )}
 
-
-            {!start && (
-                <span className="w-6 shrink-0 text-left tabular-nums pl-1">
-                {field !== undefined && (field[0]?.values?.["maxSpeed"] ?? 0).toFixed(speedScale > 9.9 ? (speedScale > 99.9 ? 0 : 1) : 2)}
-                </span>
-            )}
-            {directionField !== undefined && directionField.length !== 0 && <div className="w-max flex flex-row items-center justify-end gap-2.5 pl-[12px]">
+            {directionField !== undefined && directionField.length !== 0 && <div onClick={(e) => e.stopPropagation()} className="ml-auto flex flex-row items-center gap-2.5">
                 {directionField.map((f, i) => (
                     <CycleImageButton
                         key={i}
@@ -357,6 +341,7 @@ export default function MotionList({
             </div>}
             </button>
                 <div
+                onClick={(e) => e.stopPropagation()}
                 className={`relative flex flex-col ml-9 gap-2 transition-all ${
                     isOpen ? "block" : "hidden"
                 }`}
@@ -365,7 +350,13 @@ export default function MotionList({
                 { /* Vertical Line */ }
                 <div className="absolute left-[-16px] top-0 h-full w-[4px] rounded-full bg-medlightgray" />
 
-                <CommandList command={command} setCommand={setCommand} />
+                <div className="flex pl-1.5 gap-3 text-left">
+                    <span>Time: 100<span className="text-[8px] text-lightgray align-super leading-none"> s</span></span>
+                    <span>Distance: 100<span className="text-[8px] text-lightgray align-super leading-none"> deg</span></span>
+                    <span>Traveled: 100<span className="text-[8px] text-lightgray align-super leading-none"> deg</span>  100<span className="text-[10px] text-lightgray align-super leading-none"> %</span></span>
+
+                </div>
+
                 {field !== undefined && field.map((f) => {
                     const fieldKeys = f.fields.map((m) => m.key);
                     const relevantValues = getValuesFromKeys(fieldKeys, f.values);
@@ -377,7 +368,7 @@ export default function MotionList({
                         header={f.header}
                         fields={f.fields}
                         values={relevantValues}
-                        isOpenGlobal={isOpenGlobal}
+                        isOpenGlobal={false}
                         onChange={f.onChange}
                         onReset={() => {
                             AddToUndoHistory({path: path})
@@ -394,6 +385,6 @@ export default function MotionList({
                     );
                 })}
                 </div>
-        </div>
+        </button>
     );
 }

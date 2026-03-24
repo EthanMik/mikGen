@@ -3,8 +3,6 @@ import { useFormat, type Format } from "../../hooks/useFormat";
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 import { usePath } from "../../hooks/usePath";
 import { getDefaultConstants, globalDefaultsStore } from "../../core/DefaultConstants";
-import { DEFAULT_COMMANDS } from "../../core/Types/Command";
-import { useCommand } from "../../hooks/useCommands";
 
 type PathFormats = {
     name: string,
@@ -22,7 +20,6 @@ export default function FormatButton() {
     const [isOpen, setOpen] = useState(false);
     const [format, setFormat] = useFormat();
     const [, setPath] = usePath();
-    const [commands, setCommands] = useCommand();
 
     const menuRef = useRef<HTMLDivElement>(null);
     const prevFormatRef = useRef<Format>(format);
@@ -46,7 +43,6 @@ export default function FormatButton() {
                     format: format,
                     defaults: structuredClone(globalDefaultsStore.getState()[format]),
                     path: newPath,
-                    commands: commands
                 });
             }
 
@@ -54,15 +50,6 @@ export default function FormatButton() {
                 ...newPath
             };
         });
-
-        const oldDefaults = DEFAULT_COMMANDS[prevFormatRef.current];
-        const newDefaults = DEFAULT_COMMANDS[format];
-
-        const customCommands = commands.filter(
-            cmd => !oldDefaults.some(def => def.name === cmd.name)
-        );
-
-        setCommands([...newDefaults, ...customCommands]);
 
         prevFormatRef.current = format;
     };

@@ -1,6 +1,5 @@
 import FileButton from "../File/FileButton";
 import SettingsButton from "../Settings/SettingsButton";
-import CommandButton from "./CommandButton";
 import FieldButton from "./FieldButton";
 import FormatButton from "./FormatButton";
 import RobotButton from "./RobotButton";
@@ -12,7 +11,6 @@ export default function Config() {
             <FieldButton/>
             <FormatButton />
             <RobotButton/>
-            <CommandButton/>
             <SettingsButton />
         </div>
     );

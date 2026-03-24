@@ -1,10 +1,21 @@
 import type { Robot } from "./Robot";
 import { createStore } from "./Store";
+import type { SegmentKind } from "./Types/Segment";
 
 export const SIM_CONSTANTS = {
     seconds: 99,
     dt: 1/60, // Sim is run at 60 hertz
 };
+
+export interface SegmentTelemetry {
+    totalTime: number,
+    totalDistance: number,
+    progressRaw: number,
+    progressPercent: number,
+    units: string,
+}
+
+export const pathTelemetry = createStore<SegmentTelemetry[]>([]);
 
 export interface Snapshot {
     t: number,

@@ -16,7 +16,6 @@ import { getPressedPositionInch, pointerToSvg } from "./FieldUtils";
 import RobotLayer from "./RobotLayer";
 import PathLayer from "./PathLayer";
 import ControlsLayer from "./ControlsLayer";
-import CommandLayer from "./CommandLayer";
 import { getFieldSrcFromKey, useField } from "../../hooks/useField";
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 import { useFileFormat } from "../../hooks/useFileFormat";
@@ -365,10 +364,7 @@ export default function Field() {
           robotConstants={robot}
           visible={robotVisible}
           path={path}
-        />
-
-        <CommandLayer path={path} img={img} visible={pathVisible} />
-
+      />
         {!pathVisible && (
           <ControlsLayer
             path={path}

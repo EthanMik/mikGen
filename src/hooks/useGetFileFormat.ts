@@ -1,6 +1,5 @@
 import { globalDefaultsStore } from "../core/DefaultConstants";
 import { robotConstantsStore } from "../core/Robot";
-import { useCommand } from "./useCommands";
 import { useField } from "./useField";
 import { type FileFormat } from "./useFileFormat";
 import { useFormat } from "./useFormat";
@@ -13,7 +12,6 @@ export function useGetFileFormat(): FileFormat {
     const defaults = globalDefaultsStore.getState()[format];
     const [ path, ] = usePath();
     const robot = robotConstantsStore.getState();
-    const [ commands, ] = useCommand(); 
     
     const next = ({
         format: format,
@@ -21,7 +19,6 @@ export function useGetFileFormat(): FileFormat {
         defaults: defaults,
         path: path,
         robot: robot,
-        commands: commands
     });
 
     return next;

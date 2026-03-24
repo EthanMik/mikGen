@@ -45,15 +45,7 @@ export default function PathConfigHeader({name, isOpen, setOpen} : PathConfigHea
 
           <button onClick={handleOpenOnClick}
           className="hover:bg-medgray_hover px-1 py-1 rounded-sm">
-            {
-            isOpen ? <img className={`w-[15px] h-[15px] rotate-180`}
-              src={downArrow}
-            /> :
-            <img className={`w-[15px] h-[15px] rotate-0`}
-              src={downArrow}
-            />
-
-            }
+            <img className={`w-[15px] h-[15px] transition-transform duration-200 ${isOpen ? "rotate-180" : "rotate-0"}`} src={downArrow} />
           </button>
           
           <AddSegmentButton/>

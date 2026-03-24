@@ -202,7 +202,7 @@ export function getSegmentName(format: Format, segment: SegmentKind): string {
         case "ReveilLib": {
             switch (segment) {
                 case "pointDrive": return "Pilons Segment";
-                case "poseDrive": return "Boomerang Segment";
+                case "poseDrive": return "Boomerang";
                 case "pointTurn": return "Look At";
                 case "angleTurn": return "Turn Segment";
             }
