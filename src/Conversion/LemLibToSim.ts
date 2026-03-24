@@ -8,8 +8,10 @@ import { swingToPoint } from "../core/LemLibSim/DriveMotions/SwingToPoint";
 import { turnToHeading } from "../core/LemLibSim/DriveMotions/TurnToHeading";
 import { turnToPoint } from "../core/LemLibSim/DriveMotions/TurnToPoint";
 import type { LemAngularConstants, LemMoveConstants } from "../core/LemLibSim/LemConstants";
+import { angle_error } from "../core/mikLibSim/Util";
 import type { Robot } from "../core/Robot";
 import type { Coordinate } from "../core/Types/Coordinate";
+import { toDeg } from "../core/Util";
 import { getBackwardsSnapPose, getForwardSnapPose, type Path } from "../core/Types/Path";
 
 const LOG_SEGMENT_START_AND_END = false;
@@ -22,7 +24,7 @@ let simComputed = 0;
 
 export function LemLibToSim(path: Path) {
 
-    const auton: ((robot: Robot, dt: number) => boolean)[] = [];
+    const auton: ((robot: Robot, dt: number) => [boolean, SegmentKind, number])[] = [];
     currentPathTime = -2/60;
     DEBUG_printSimulationStart();
 
@@ -34,28 +36,30 @@ export function LemLibToSim(path: Path) {
 
         if (idx === 0) {
             auton.push(
-                (robot: Robot, dt: number): boolean => {
+                (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
                     DEBUG_printRobotState(robot, dt);
-                    return robot.setPose(x, y, angle);
+                    return [robot.setPose(x, y, angle), "start", 0];
                 }
-            )
+            );
             continue;
         }
 
         if (control.kind === "pointDrive") {
             const constants = control.constants as LemMoveConstants;
             let started = false;
+            let targetDist = 0;
             resetMoveToPoint();
             auton.push(
-                (robot: Robot, dt: number): boolean => {
+                (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
                     if (!started) {
                         DEBUG_printSegmentStart(idx, control.kind);
+                        targetDist = Math.hypot(x - robot.getX(), y - robot.getY());
                         started = true;
                     }
                     DEBUG_printRobotState(robot, dt);
                     const output = moveToPoint(robot, dt, x, y, constants);
                     if (output) DEBUG_printSegmentEnd(idx, control.kind);
-                    return output;
+                    return [output, "pointDrive", targetDist];
                 }
             );
         }
@@ -63,17 +67,19 @@ export function LemLibToSim(path: Path) {
         if (control.kind === "poseDrive") {
             const constants = control.constants as LemMoveConstants;
             let started = false;
+            let targetDist = 0;
             resetMoveToPose();
             auton.push(
-                (robot: Robot, dt: number): boolean => {
+                (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
                     if (!started) {
                         DEBUG_printSegmentStart(idx, control.kind);
+                        targetDist = Math.hypot(x - robot.getX(), y - robot.getY());
                         started = true;
                     }
                     DEBUG_printRobotState(robot, dt);
                     const output = moveToPose(robot, dt, x, y, angle, constants);
                     if (output) DEBUG_printSegmentEnd(idx, control.kind);
-                    return output;
+                    return [output, "poseDrive", targetDist];
                 }
             );
         }
@@ -91,17 +97,20 @@ export function LemLibToSim(path: Path) {
 
             const constants = control.constants as LemAngularConstants;
             let started = false;
+            let targetDist = 0;
 
             auton.push(
-                (robot: Robot, dt: number): boolean => {
+                (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
                     if (!started) {
                         DEBUG_printSegmentStart(idx, control.kind);
+                        const targetAngle = toDeg(Math.atan2(pos.x - robot.getX(), pos.y - robot.getY())) + angle;
+                        targetDist = Math.abs(angle_error(targetAngle - robot.getAngle(), null)!);
                         started = true;
                     }
                     DEBUG_printRobotState(robot, dt);
                     const output = turnToPoint(robot, dt, pos.x, pos.y, angle, constants);
                     if (output) DEBUG_printSegmentEnd(idx, control.kind);
-                    return output;
+                    return [output, "pointTurn", targetDist];
                 }
             );
         }
@@ -109,17 +118,19 @@ export function LemLibToSim(path: Path) {
         if (control.kind === "angleTurn") {
             const constants = control.constants as LemAngularConstants;
             let started = false;
+            let targetDist = 0;
 
             auton.push(
-                (robot: Robot, dt: number): boolean => {
+                (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
                     if (!started) {
                         DEBUG_printSegmentStart(idx, control.kind);
+                        targetDist = Math.abs(angle_error(angle - robot.getAngle(), null)!);
                         started = true;
                     }
                     DEBUG_printRobotState(robot, dt);
                     const output = turnToHeading(robot, dt, angle, constants);
                     if (output) DEBUG_printSegmentEnd(idx, control.kind);
-                    return output;
+                    return [output, "angleTurn", targetDist];
                 }
             );
         }
@@ -137,17 +148,20 @@ export function LemLibToSim(path: Path) {
 
             const constants = control.constants as LemAngularConstants;
             let started = false;
+            let targetDist = 0;
 
             auton.push(
-                (robot: Robot, dt: number): boolean => {
+                (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
                     if (!started) {
                         DEBUG_printSegmentStart(idx, control.kind);
+                        const targetAngle = toDeg(Math.atan2(pos.x - robot.getX(), pos.y - robot.getY())) + angle;
+                        targetDist = Math.abs(angle_error(targetAngle - robot.getAngle(), null)!);
                         started = true;
                     }
                     DEBUG_printRobotState(robot, dt);
                     const output = swingToPoint(robot, dt, pos.x, pos.y, angle, constants);
                     if (output) DEBUG_printSegmentEnd(idx, control.kind);
-                    return output;
+                    return [output, "pointSwing", targetDist];
                 }
             );
         }
@@ -155,17 +169,19 @@ export function LemLibToSim(path: Path) {
         if (control.kind === "angleSwing") {
             const constants = control.constants as LemAngularConstants;
             let started = false;
+            let targetDist = 0;
 
             auton.push(
-                (robot: Robot, dt: number): boolean => {
+                (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
                     if (!started) {
                         DEBUG_printSegmentStart(idx, control.kind);
+                        targetDist = Math.abs(angle_error(angle - robot.getAngle(), null)!);
                         started = true;
                     }
                     DEBUG_printRobotState(robot, dt);
                     const output = swingToHeading(robot, dt, angle, constants);
                     if (output) DEBUG_printSegmentEnd(idx, control.kind);
-                    return output;
+                    return [output, "angleSwing", targetDist];
                 }
             );
         }
@@ -173,17 +189,19 @@ export function LemLibToSim(path: Path) {
         if (control.kind === "distanceDrive") {
             const constants = control.constants as LemMoveConstants;
             let started = false;
+            let targetDist = 0;
 
             auton.push(
-                (robot: Robot, dt: number): boolean => {
+                (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
                     if (!started) {
                         DEBUG_printSegmentStart(idx, control.kind);
+                        targetDist = Math.hypot(x - robot.getX(), y - robot.getY());
                         started = true;
                     }
                     DEBUG_printRobotState(robot, dt);
                     const output = moveToPoint(robot, dt, x, y, constants);
                     if (output) DEBUG_printSegmentEnd(idx, control.kind);
-                    return output;
+                    return [output, "distanceDrive", targetDist];
                 }
             );
         }

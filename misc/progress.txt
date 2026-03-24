@@ -18,6 +18,8 @@ Todo:
 - add a apply all button with maybe a confirm menu?! will not apply to locked segments
 - instead of commands add a help button that provides path examples
 - make it so i can easily see the time and distance along the path 
+- Fix group css for distance traveled so it appears
+- add an indicator for which segment is being traveled over
 
 Planned:
 - tooltip when hovering over svg buttons

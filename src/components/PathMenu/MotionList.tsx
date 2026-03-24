@@ -2,8 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import eyeOpen from "../../assets/eye-open.svg";
 import eyeClosed from "../../assets/eye-closed.svg";
-import lockClose from "../../assets/lock-close.svg";
-import lockOpen from "../../assets/lock-open.svg";
+import lockClose from "../../assets/clock-close.svg";
+import lockOpen from "../../assets/clock-open.svg";
 import downArrow from "../../assets/down-arrow.svg";
 import Slider from "../Util/Slider";
 import { usePath } from "../../hooks/usePath";
@@ -13,6 +13,8 @@ import CycleImageButton, { type CycleImageButtonProps } from "../Util/CycleButto
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 import { globalDefaultsStore } from "../../core/DefaultConstants";
 import { useFormat } from "../../hooks/useFormat";
+import { pathTelemetry } from "../../core/ComputePathSim";
+import { roundNum } from "../../core/Util";
 
 
 export type ConstantListField = {
@@ -30,7 +32,9 @@ type MotionListProps = {
     field: ConstantListField[] | undefined,
     directionField: CycleImageButtonProps[] | undefined,
     segmentId: string,
+    index: number,
     isOpenGlobal: boolean,
+    isTelemetryOpenGlobal?: boolean,
     start?: boolean,
     draggable?: boolean,
     onDragStart?: (e: React.DragEvent<HTMLButtonElement>) => void,
@@ -46,7 +50,9 @@ export default function MotionList({
     field,
     directionField,
     segmentId,
+    index,
     isOpenGlobal,
+    isTelemetryOpenGlobal,
     start = false,
     draggable = false,
     onDragStart,
@@ -59,9 +65,10 @@ export default function MotionList({
 
     const segment = path.segments.find(s => s.id === segmentId)!;
     const selected = path.segments.find((c) => c.id === segmentId)?.selected;
+    const [ telemetry ] = pathTelemetry.useStore();
 
     const [ isEyeOpen, setEyeOpen ] = useState(true);
-    const [ isLocked, setLocked ] = useState(false);
+    const [ isTelemetryOpen, setTelemetryOpen ] = useState(false);
     const [ isOpen, setOpen ] = useState(false);
     const [ format ] = useFormat();
 
@@ -187,6 +194,10 @@ export default function MotionList({
         setOpen(isOpenGlobal)
     }, [isOpenGlobal])
 
+    useEffect(() => {
+        if (isTelemetryOpenGlobal !== undefined) setTelemetryOpen(isTelemetryOpenGlobal);
+    }, [isTelemetryOpenGlobal])
+
     const toggleSegment = (patch: (s: any) => any) => {
         setPath(prev => {
             
@@ -204,17 +215,9 @@ export default function MotionList({
         toggleSegment(s => ({ ...s, visible: !s.visible }));
     };
 
-    const handleLockOnClick = () => {
-        toggleSegment(s => ({ ...s, locked: !s.locked }));
-    };
-
     useEffect(() => {
         setEyeOpen(segment.visible);
     }, [segment.visible])
-
-    useEffect(() => {
-        setLocked(segment.locked);
-    }, [segment.locked])
 
     const getValuesFromKeys = (
         keys: Array<string>,
@@ -237,15 +240,17 @@ export default function MotionList({
         }
     }, [path])
 
+    const telemetrySlice = pathTelemetry.getState()?.[index]; 
+
     return (
-        <button 
-            className={`flex flex-col gap-2 mt-[1px]`}
+        <button
+            className={`flex flex-col gap-2 mt-[1px] ${segment.locked ? "opacity-50 pointer-events-none" : ""}`}
             onClick={() => {
                 if (selected) setOpen(!isOpen)
             }}
         >
             <button
-            draggable={draggable}
+            draggable={draggable && !segment.locked}
             onDragStart={(e) => {
                 if (e.dataTransfer) {
                     e.dataTransfer.setData('text/plain', segmentId);
@@ -287,8 +292,8 @@ export default function MotionList({
                 <img className="w-[20px] h-[20px]" src={isEyeOpen ? eyeOpen : eyeClosed} />
             </button>
 
-            <button className="cursor-pointer shrink-0" onClick={(e) => { e.stopPropagation(); handleLockOnClick(); }}>
-                <img className="w-[20px] h-[20px]" src={isLocked ? lockClose : lockOpen} />
+            <button className="cursor-pointer shrink-0" onClick={(e) => { e.stopPropagation(); setTelemetryOpen(!isTelemetryOpen); }}>
+                <img className="w-[20px] h-[20px]" src={isTelemetryOpen ? lockClose : lockOpen} />
             </button>
 
             <span className="shrink-0 text-left truncate max-w-[130px]">{name}</span>
@@ -340,22 +345,24 @@ export default function MotionList({
 
             </div>}
             </button>
+
+                {isTelemetryOpen && telemetrySlice !== undefined && (
+                <div onClick={(e) => e.stopPropagation()} className="ml-9 flex pl-1.5 gap-3 text-left">
+                    <span>Time: {roundNum(telemetrySlice.totalTime)}<span className="text-[8px] text-lightgray align-super leading-none"> s</span></span>
+                    <span>Distance: {roundNum(telemetrySlice.totalDistance)}<span className="text-[8px] text-lightgray align-super leading-none"> deg</span></span>
+                    <span>Traveled: {roundNum(telemetrySlice.progressRaw)}<span className="text-[8px] text-lightgray align-super leading-none"> deg</span>  {roundNum(telemetrySlice.progressPercent)}<span className="text-[10px] text-lightgray align-super leading-none"> %</span></span>
+                </div>
+                )}
+
                 <div
                 onClick={(e) => e.stopPropagation()}
                 className={`relative flex flex-col ml-9 gap-2 transition-all ${
                     isOpen ? "block" : "hidden"
                 }`}
                 >
-                    
+
                 { /* Vertical Line */ }
                 <div className="absolute left-[-16px] top-0 h-full w-[4px] rounded-full bg-medlightgray" />
-
-                <div className="flex pl-1.5 gap-3 text-left">
-                    <span>Time: 100<span className="text-[8px] text-lightgray align-super leading-none"> s</span></span>
-                    <span>Distance: 100<span className="text-[8px] text-lightgray align-super leading-none"> deg</span></span>
-                    <span>Traveled: 100<span className="text-[8px] text-lightgray align-super leading-none"> deg</span>  100<span className="text-[10px] text-lightgray align-super leading-none"> %</span></span>
-
-                </div>
 
                 {field !== undefined && field.map((f) => {
                     const fieldKeys = f.fields.map((m) => m.key);

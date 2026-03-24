@@ -50,6 +50,9 @@ export const moveSegment = (
     // Prevent moving the start segment (index 0)
     if (fromIdx === 0) return prev;
 
+    // Prevent moving locked segments
+    if (draggedSeg.locked) return prev;
+
     // Prevent groups from being moved to position 0
     if (draggedSeg.kind === "group" && toIndex === 0) return prev;
 
@@ -151,6 +154,9 @@ export const moveMultipleSegments = (
 
     // Prevent moving if any segment is the start segment
     if (fromIndices.some(idx => idx === 0)) return prev;
+
+    // Prevent moving if any segment is locked
+    if (fromIndices.some(idx => original[idx].locked)) return prev;
 
     // Sort indices to maintain relative order
     const sortedIndices = [...fromIndices].sort((a, b) => a - b);

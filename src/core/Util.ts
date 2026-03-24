@@ -87,6 +87,11 @@ export function toRGBA(hex: string, alpha: number) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+export function roundNum(num: number) {
+  const numStr = String(num.toFixed(0));
+  return num.toFixed(Math.max(0, 3 - numStr.length))
+}
+
 export function makeId(length: number) {
     let result = "";
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

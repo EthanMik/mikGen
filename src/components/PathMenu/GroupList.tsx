@@ -21,6 +21,7 @@ type GroupListProps = {
     name: string,
     segmentId: string,
     isOpenGlobal: boolean,
+    isTelemetryOpenGlobal?: boolean,
     draggable?: boolean,
     onDragStart?: (e: React.DragEvent<HTMLButtonElement>) => void,
     onDragEnd?: (e: React.DragEvent<HTMLButtonElement>) => void,
@@ -35,6 +36,7 @@ export default function GroupList({
     name,
     segmentId,
     isOpenGlobal,
+    isTelemetryOpenGlobal,
     draggable = false,
     onDragStart,
     onDragEnd,
@@ -118,18 +120,17 @@ export default function GroupList({
     };
 
     const handleOnClick = (evt: React.PointerEvent<HTMLButtonElement>) => {
-        setPath(prev => {
-            const selectedState = segment.selected;
-            const next = {
+        if (segment.selected) {
+            setOpen(prev => !prev);
+        } else {
+            setPath(prev => ({
                 ...prev,
-                segments: prev.segments.map(s => (s.groupId === groupKey || s.id === segmentId 
-                    ? { ...s, selected: !selectedState } 
-                    : { ...s, selected: false } 
+                segments: prev.segments.map(s => (s.groupId === groupKey || s.id === segmentId
+                    ? { ...s, selected: true }
+                    : { ...s, selected: false }
                 )),
-            };
-            
-            return next;
-        });
+            }));
+        }
         evt.preventDefault();
         evt.stopPropagation();
     }
@@ -156,7 +157,19 @@ export default function GroupList({
     };
 
     const handleLockOnClick = (evt: React.MouseEvent<HTMLButtonElement>) => {
-        toggleSegment(s => ({ ...s, locked: !segment.locked }));
+        const newLocked = !segment.locked;
+        setPath(prev => {
+            const next = {
+                ...prev,
+                segments: prev.segments.map(s =>
+                    (s.id === segmentId || s.groupId === groupKey)
+                        ? { ...s, locked: newLocked }
+                        : s
+                ),
+            };
+            AddToUndoHistory({ path: next });
+            return next;
+        });
         evt.stopPropagation();
     };
 
@@ -360,7 +373,7 @@ export default function GroupList({
             
             <button
                 ref={headerRef}
-                draggable={draggable}
+                draggable={draggable && !segment.locked}
                 onDragStart={(e) => {
                     if (e.dataTransfer) {
                         e.dataTransfer.setData('text/plain', segmentId);
@@ -389,6 +402,7 @@ export default function GroupList({
                 onMouseLeave={handleGroupOnHoverEnd}
                 className={
                     `${isHoveringInto ? "bg-medlightgray brightness-125" : segment.selected ? "bg-medlightgray" : "bg-medgray"}
+                    ${segment.locked ? "opacity-70" : ""}
                     flex flex-row justify-start items-center
                     w-[450px] h-[35px] gap-[12px]
                     hover:brightness-95
@@ -428,11 +442,8 @@ export default function GroupList({
                     }, 0);
                 }}
                 onClick={(e) => {
-                    if (isEditing) {
-                        e.stopPropagation();
-                    } else {
-                        e.preventDefault();
-                    }
+                    e.stopPropagation();
+                    if (!isEditing) e.preventDefault();
                 }}
                 onBlur={() => {
                     setIsEditing(false);
@@ -553,7 +564,9 @@ export default function GroupList({
                                         field={constantsFields}
                                         directionField={directionFields}
                                         segmentId={c.id}
+                                        index={globalIdx}
                                         isOpenGlobal={isOpenGlobal}
+                                        isTelemetryOpenGlobal={isTelemetryOpenGlobal}
                                         draggable={true}
                                         onDragStart={() => startChildDragging(c.id)}
                                         onDragEnd={() => { setGlobalDraggingIds([]); setLocalOverIndex(null); }}
@@ -569,7 +582,9 @@ export default function GroupList({
                                         field={constantsFields}
                                         directionField={directionFields}
                                         segmentId={c.id}
+                                        index={globalIdx}
                                         isOpenGlobal={isOpenGlobal}
+                                        isTelemetryOpenGlobal={isTelemetryOpenGlobal}
                                         draggable={true}
                                         onDragStart={() => startChildDragging(c.id)}
                                         onDragEnd={() => { setGlobalDraggingIds([]); setLocalOverIndex(null); }}
@@ -585,7 +600,9 @@ export default function GroupList({
                                         field={constantsFields}
                                         directionField={directionFields}
                                         segmentId={c.id}
+                                        index={globalIdx}
                                         isOpenGlobal={isOpenGlobal}
+                                        isTelemetryOpenGlobal={isTelemetryOpenGlobal}
                                         draggable={true}
                                         onDragStart={() => startChildDragging(c.id)}
                                         onDragEnd={() => { setGlobalDraggingIds([]); setLocalOverIndex(null); }}

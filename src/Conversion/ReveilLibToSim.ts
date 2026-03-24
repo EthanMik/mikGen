@@ -11,8 +11,11 @@ import {
   cleanupTurnSegment,
   turnSegment,
 } from "../core/ReveiLibSim/DriveMotions/TurnSegment";
-import { cloneKRev } from "../core/ReveiLibSim/RevConstants";
+import { cloneKRev, type revDriveConstants, type revTurnConstants } from "../core/ReveiLibSim/RevConstants";
+import { wrapDeg180 } from "../core/ReveiLibSim/Util";
+import type { SegmentKind } from "../core/Types/Segment";
 import type { Robot } from "../core/Robot";
+import { toDeg } from "../core/Util";
 import type { Coordinate } from "../core/Types/Coordinate";
 import {
   getBackwardsSnapPose,
@@ -21,7 +24,7 @@ import {
 } from "../core/Types/Path";
 
 export function reveilLibToSim(path: Path) {
-  const auton: ((robot: Robot, dt: number) => boolean)[] = [];
+  const auton: ((robot: Robot, dt: number) => [boolean, SegmentKind, number])[] = [];
 
   for (let idx = 0; idx < path.segments.length; idx++) {
     const control = path.segments[idx];
@@ -30,25 +33,37 @@ export function reveilLibToSim(path: Path) {
     const angle = control.pose.angle ?? 0;
 
     if (idx === 0) {
-      auton.push((robot: Robot, dt: number): boolean => {
-        return robot.setPose(x, y, angle);
+      auton.push((robot: Robot, dt: number): [boolean, SegmentKind, number] => {
+        return [robot.setPose(x, y, angle), "start", 0];
       });
       continue;
     }
 
     if (control.kind === "pointDrive") {
-      const kPilon = cloneKRev(control.constants.drive);
+      const kPilon = cloneKRev((control.constants as revDriveConstants).drive);
       cleanupPilonsSegment();
-      auton.push((robot: Robot, dt: number): boolean => {
-        return pilonsSegment(robot, dt, x, y, kPilon);
+      let started = false;
+      let targetDist = 0;
+      auton.push((robot: Robot, dt: number): [boolean, SegmentKind, number] => {
+        if (!started) {
+          targetDist = Math.hypot(x - robot.getX(), y - robot.getY());
+          started = true;
+        }
+        return [pilonsSegment(robot, dt, x, y, kPilon), "pointDrive", targetDist];
       });
     }
 
     if (control.kind === "poseDrive") {
-      const kBoomerang = cloneKRev(control.constants.drive);
+      const kBoomerang = cloneKRev((control.constants as revDriveConstants).drive);
       cleanupBoomerangSegment();
-      auton.push((robot: Robot, dt: number): boolean => {
-        return boomerangSegment(robot, dt, x, y, angle, kBoomerang);
+      let started = false;
+      let targetDist = 0;
+      auton.push((robot: Robot, dt: number): [boolean, SegmentKind, number] => {
+        if (!started) {
+          targetDist = Math.hypot(x - robot.getX(), y - robot.getY());
+          started = true;
+        }
+        return [boomerangSegment(robot, dt, x, y, angle, kBoomerang), "poseDrive", targetDist];
       });
     }
 
@@ -62,18 +77,33 @@ export function reveilLibToSim(path: Path) {
           ? { x: previousPos.x ?? 0, y: (previousPos.y ?? 0) + 5 }
           : { x: 0, y: 5 };
 
-      const kLook = cloneKRev(control.constants.turn);
+      const kLook = cloneKRev((control.constants as revTurnConstants).turn);
+      const kind = control.kind;
       cleanUplookAt();
-      auton.push((robot: Robot, dt: number): boolean => {
-        return lookAt(robot, dt, pos.x, pos.y, angle ?? 0, kLook);
+      let started = false;
+      let targetDist = 0;
+      auton.push((robot: Robot, dt: number): [boolean, SegmentKind, number] => {
+        if (!started) {
+          const targetAngle = wrapDeg180(toDeg(Math.atan2(pos.x - robot.getX(), pos.y - robot.getY())) + angle);
+          targetDist = Math.abs(wrapDeg180(targetAngle - robot.getAngle()));
+          started = true;
+        }
+        return [lookAt(robot, dt, pos.x, pos.y, angle ?? 0, kLook), kind, targetDist];
       });
     }
 
     if (control.kind === "angleTurn" || control.kind === "pointSwing") {
-      const kTurn = cloneKRev(control.constants.turn);
+      const kTurn = cloneKRev((control.constants as revTurnConstants).turn);
+      const kind = control.kind;
       cleanupTurnSegment();
-      auton.push((robot: Robot, dt: number): boolean => {
-        return turnSegment(robot, dt, angle, kTurn);
+      let started = false;
+      let targetDist = 0;
+      auton.push((robot: Robot, dt: number): [boolean, SegmentKind, number] => {
+        if (!started) {
+          targetDist = Math.abs(wrapDeg180(angle - robot.getAngle()));
+          started = true;
+        }
+        return [turnSegment(robot, dt, angle, kTurn), kind, targetDist];
       });
     }
   }

@@ -1,5 +1,6 @@
 import type { Robot } from "../core/Robot";
 import type { Path } from "../core/Types/Path";
+import type { SegmentKind } from "../core/Types/Segment";
 import type { Format } from "../hooks/useFormat";
 import { LemLibToSim } from "./LemLibToSim";
 import { mikLibToSim } from "./mikLibToSim";
@@ -8,12 +9,12 @@ import { reveilLibToSim } from "./ReveilLibToSim";
 import { reveilLibToString, revToString } from "./ReveilLibToString";
 
 
-export function convertPathToSim(path: Path, format: Format): ((robot: Robot, dt: number) => boolean)[] {
+export function convertPathToSim(path: Path, format: Format): ((robot: Robot, dt: number) => [boolean, SegmentKind, number])[] {
     if (format === "mikLib") {
-        return mikLibToSim(path);   
+        return mikLibToSim(path);
     }
     if (format === "ReveilLib") {
-        const out = reveilLibToSim(path); 
+        const out = reveilLibToSim(path);
         return out;
     }
     if (format === "LemLib") {
@@ -21,7 +22,7 @@ export function convertPathToSim(path: Path, format: Format): ((robot: Robot, dt
         return out;
     }
 
-    const emptyAuton: ((robot: Robot, dt: number) => boolean)[] = [];
+    const emptyAuton: ((robot: Robot, dt: number) => [boolean, SegmentKind])[] = [];
     return emptyAuton
 }
 

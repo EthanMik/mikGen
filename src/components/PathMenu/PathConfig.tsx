@@ -12,6 +12,7 @@ export default function PathConfig() {
   const [ draggingIds, setDraggingIds ] = useState<string[]>([]);
   const [ overIndex, setOverIndex ] = useState<number | null>(null);
   const [ isOpen, setOpen ] = useState(false);
+  const [ isTelemetryOpen, setTelemetryOpen ] = useState(false);
   const [ format,  ] = useFormat();
 
   // Track which group's header drop zone is active, and what zone
@@ -70,7 +71,7 @@ export default function PathConfig() {
 
   return (
     <div className="bg-medgray w-[500px] h-[650px] rounded-lg p-[15px] flex flex-col">
-      <PathConfigHeader name={name} isOpen={isOpen} setOpen={setOpen} />
+      <PathConfigHeader name={name} isOpen={isOpen} setOpen={setOpen} isTelemetryOpen={isTelemetryOpen} onTelemetryToggle={() => setTelemetryOpen(p => !p)} />
 
       <div
         className="mt-[10px] flex-1 min-h-2 overflow-y-auto scrollbar-thin
@@ -144,6 +145,7 @@ export default function PathConfig() {
                 name={c.constants as string}
                 segmentId={c.id}
                 isOpenGlobal={isOpen}
+                isTelemetryOpenGlobal={isTelemetryOpen}
                 draggable={true}
                 onDragStart={() => startDragging(c.id)}
                 onDragEnd={stopDragging}
@@ -163,7 +165,9 @@ export default function PathConfig() {
                 field={constantsFields}
                 directionField={directionFields}
                 segmentId={c.id}
+                index={idx}
                 isOpenGlobal={isOpen}
+                isTelemetryOpenGlobal={isTelemetryOpen}
                 draggable={true}
                 onDragStart={() => startDragging(c.id)}
                 onDragEnd={stopDragging}
@@ -180,7 +184,9 @@ export default function PathConfig() {
                 field={constantsFields}
                 directionField={directionFields}
                 segmentId={c.id}
+                index={idx}
                 isOpenGlobal={isOpen}
+                isTelemetryOpenGlobal={isTelemetryOpen}
                 draggable={true}
                 onDragStart={() => startDragging(c.id)}
                 onDragEnd={stopDragging}
@@ -197,7 +203,9 @@ export default function PathConfig() {
                 field={constantsFields}
                 directionField={directionFields}
                 segmentId={c.id}
+                index={idx}
                 isOpenGlobal={isOpen}
+                isTelemetryOpenGlobal={isTelemetryOpen}
                 draggable={true}
                 onDragStart={() => startDragging(c.id)}
                 onDragEnd={stopDragging}
@@ -214,6 +222,7 @@ export default function PathConfig() {
                 field={[]}
                 directionField={[]}
                 segmentId={c.id}
+                index={idx}
                 isOpenGlobal={isOpen}
                 start={true}
                 draggable={false}
