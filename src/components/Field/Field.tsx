@@ -3,7 +3,7 @@ import { robotConstantsStore } from "../../core/Robot";
 import type { Coordinate } from "../../core/Types/Coordinate";
 import homeButton from "../../assets/home.svg";
 import { type Segment } from "../../core/Types/Segment";
-import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, toInch, type Rectangle } from "../../core/Util";
+import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, toInch, toRGBA, type Rectangle } from "../../core/Util";
 import { usePath } from "../../hooks/usePath";
 import { usePathVisibility } from "../../hooks/usePathVisibility";
 import { usePose } from "../../hooks/usePose";
@@ -25,6 +25,27 @@ import { useClipboard } from "../../hooks/useClipboard";
 import { useSettings } from "../../hooks/useSettings";
 
 export default function Field() {
+  const primary = toRGBA("#a02007", 0.5);
+  const secondary = toRGBA("#1560BD", 0.75);
+
+  const colors = {
+    node: {
+      fill: primary,
+      fillSelected: "rgba(180, 50, 11, .75)",
+      stroke: secondary,
+    },
+    indicator: {
+      stroke: "#451717",
+      strokeSelected: "rgba(160, 50, 11, .9)",
+      strokeWithPos: secondary,
+    },
+    numberLabel: "#a0a0a06c",
+    path: {
+      stroke: secondary,
+      strokeHovered: "rgba(180, 50, 11, 1)",
+    },
+  };
+
   const [ img, setImg ] = useState<Rectangle>( { x: 0, y: 0, w: 575, h: 575 })
   const [ fieldKey ] = useField();
 
@@ -335,7 +356,7 @@ export default function Field() {
       >
         <image href={getFieldSrcFromKey(fieldKey)} x={img.x} y={img.y} width={img.w} height={img.h} />
         
-        <PathLayer path={path} img={img} visible={pathVisible} precise={settings.precisePath} />
+        <PathLayer path={path} img={img} visible={pathVisible} precise={settings.precisePath} colors={colors} />
 
         <RobotLayer
           img={img}
@@ -354,6 +375,7 @@ export default function Field() {
             img={img}
             radius={radius}
             format={format}
+            colors={colors}
             onPointerDown={handleControlPointerDown}
           />
         )}

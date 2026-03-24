@@ -17,6 +17,7 @@ export type RobotConstants = {
     expansionLeft: number,
     expansionRight: number,
     expansionRear: number,
+    isMecnum: boolean,
 }
 
 export const defaultRobotConstants: RobotConstants = {
@@ -31,56 +32,41 @@ export const defaultRobotConstants: RobotConstants = {
     expansionLeft: 0,
     expansionRight: 0,
     expansionRear: 0,
+    isMecnum: false
 }
 
 export const robotConstantsStore = createObjectStore<RobotConstants>(defaultRobotConstants);
 
 export class Robot {
-    public width: number;
-    public height: number;
-    public maxSpeed: number;
-    public trackWidth: number;
-
-    // Kinematic center (midpoint between drive wheels) — internal only
-    private x: number = 0;
-    private y: number = 0;
-    private angle: number = 0;
-
+    // Tank drive robot
     private vL: number = 0;
     private vR: number = 0;
     private velX: number = 0;
     private velY: number = 0;
-    public maxAccel: number;
-    public maxDecel: number;
-    public lateralFriction: number;
 
-    // CoG offset in robot-local frame (not odometry offsets, which are relative to this point)
-    public cogOffsetX: number; // lateral (positive = robot's right)
-    public cogOffsetY: number; // longitudinal (positive = robot's forward)
+    private vFL: number = 0;
+    private vFR: number = 0;
+    private vRL: number = 0;
+    private vRR: number = 0;
 
-    public expansionFront: number;
-    public expansionLeft: number;
-    public expansionRight: number;
-    public expansionRear: number;
+    constructor(
+        private x: number,
+        private y: number,
+        private angle: number,
+        public width: number,
+        public height: number,
+        public maxSpeed: number,
+        public maxAccel: number,
+        public maxDecel: number,
+        public lateralFriction: number = 10,
 
-    constructor(startX: number, startY: number, startAngle: number, width: number, height: number, maxSpeed: number, trackWidth: number, maxAccel: number, maxDecel: number, lateralFriction: number = 10, cogOffsetX: number = 0, cogOffsetY: number = 0, expansionFront: number = 0, expansionLeft: number = 0, expansionRight: number = 0, expansionRear: number = 0) {
-        this.x = startX;
-        this.y = startY;
-        this.angle = startAngle;
-        this.width = width;
-        this.height = height;
-        this.maxSpeed = maxSpeed;
-        this.trackWidth = trackWidth;
-        this.maxAccel = maxAccel;
-        this.maxDecel = maxDecel;
-        this.lateralFriction = lateralFriction;
-        this.cogOffsetX = cogOffsetX;
-        this.cogOffsetY = cogOffsetY;
-        this.expansionFront = expansionFront;
-        this.expansionLeft = expansionLeft;
-        this.expansionRight = expansionRight;
-        this.expansionRear = expansionRear;
-    }
+        public cogOffsetX: number = 0, // lateral (positive = robot's right)
+        public cogOffsetY: number = 0, // longitudinal (positive = robot's forward)
+        public expansionFront: number = 0,
+        public expansionLeft: number = 0,
+        public expansionRight: number = 0,
+        public expansionRear: number = 0,
+    ) {}
 
     private setAngle(angle: number) {
         this.angle = normalizeDeg(angle);
@@ -126,7 +112,7 @@ export class Robot {
         const vL_in = this.vL * 12;
         const vR_in = this.vR * 12;
 
-        const b_in = this.trackWidth;
+        const b_in = this.width;
 
         if (b_in === 0) return 0;
 
@@ -136,7 +122,7 @@ export class Robot {
     }
 
     tankDrive(leftCmd: number, rightCmd: number, dt: number) {
-        const b_in = this.trackWidth;      // Distance between wheel centers (inches)
+        const b_in = this.width;      // Distance between wheel centers (inches)
         const v_max_ft = this.maxSpeed;    // Maximum linear velocity (feet/second)
 
         // Input is in the range -1 to 1, with - being reverse
@@ -187,11 +173,69 @@ export class Robot {
         this.y += this.velY * dt;
     }
 
+    mecanumDrive(flCmd: number, frCmd: number, rlCmd: number, rrCmd: number, dt: number) {
+        const fl = clamp(flCmd, -1, 1);
+        const fr = clamp(frCmd, -1, 1);
+        const rl = clamp(rlCmd, -1, 1);
+        const rr = clamp(rrCmd, -1, 1);
+
+        const tFL = fl * this.maxSpeed;
+        const tFR = fr * this.maxSpeed;
+        const tRL = rl * this.maxSpeed;
+        const tRR = rr * this.maxSpeed;
+
+        this.vFL = this.moveTowards(this.vFL, tFL, dt);
+        this.vFR = this.moveTowards(this.vFR, tFR, dt);
+        this.vRL = this.moveTowards(this.vRL, tRL, dt);
+        this.vRR = this.moveTowards(this.vRR, tRR, dt);
+
+        const FL = this.vFL * 12;
+        const FR = this.vFR * 12;
+        const RL = this.vRL * 12;
+        const RR = this.vRR * 12;
+
+
+        const vFwd   = (FL + FR + RL + RR) / 4;
+        const vRight = (-FL + FR + RL - RR) / 4;
+
+        const rx = this.height / 2;
+        const ry = this.width / 2;
+        const r = rx + ry;
+
+        const omega = (-FL + FR - RL + RR) / (4 * r);
+
+        const θ = toRad(this.angle);
+
+        const forwardX = Math.sin(θ);
+        const forwardY = Math.cos(θ);
+        const rightX   = Math.cos(θ);
+        const rightY   = -Math.sin(θ);
+
+        const vx = vFwd * forwardX + vRight * rightX; // in/s
+        const vy = vFwd * forwardY + vRight * rightY; // in/s
+
+        this.velX = vx;
+        this.velY = vy;
+
+        let xNew = this.x + vx * dt;
+        let yNew = this.y + vy * dt;
+        const θNew = θ + omega * dt;
+        
+        this.x = xNew;
+        this.y = yNew;
+        this.angle = θNew
+    }
+
     public stop() {
         this.vL = 0;
         this.vR = 0;
         this.velX = 0;
         this.velY = 0;
+
+        this.vFL = 0;
+        this.vFR = 0;
+        this.vRL = 0;
+        this.vRR = 0;
     }
 
     // x, y are the CoG offset point position; converts to kinematic center internally

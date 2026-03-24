@@ -77,6 +77,16 @@ export function toPX(position: Coordinate, field: Rectangle, img: Rectangle): Co
     return {x: dx, y: -dy}
 }
 
+export function toRGBA(hex: string, alpha: number) {
+  if (hex.at(0) !== "#" || hex.length !== 7) return "";
+  
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 export function makeId(length: number) {
     let result = "";
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

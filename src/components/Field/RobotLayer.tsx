@@ -18,6 +18,15 @@ type RobotLayerProps = {
 export default function RobotLayer({ img, pose, robotPose, robotConstants, visible, path }: RobotLayerProps) {
     const [ settings, ] = useSettings();
 
+    const mecnumColor: number[] = [29, 100, 8];
+    const tankColor: number[] = [150, 150, 150];
+
+    const expansionTransparency: number = 0.18;
+    const ghostTransparency: number = 0.05;
+    
+    const bgColor = robotConstants.isMecnum ? mecnumColor : tankColor;
+    const bgTransparency: number = 0.4;
+
     return (
         <>
             {/* Active Robot */}
@@ -29,6 +38,9 @@ export default function RobotLayer({ img, pose, robotPose, robotConstants, visib
                     angle={pose.angle ?? 0}
                     width={robotConstants.width}
                     height={robotConstants.height}
+                    bg={bgColor}
+                    expansionTransparency={expansionTransparency}
+                    bgTransparency={bgTransparency}
                     frontExpansion={robotConstants.expansionFront}
                     leftExpansion={robotConstants.expansionLeft}
                     rightExpansion={robotConstants.expansionRight}
@@ -48,7 +60,13 @@ export default function RobotLayer({ img, pose, robotPose, robotConstants, visib
                         angle={p.angle ?? 0}
                         width={robotConstants.width}
                         height={robotConstants.height}
-                        bg={"rgba(150, 150, 150, 0.05)"}
+                        bg={bgColor}
+                        bgTransparency={ghostTransparency}
+                        expansionTransparency={ghostTransparency}
+                        frontExpansion={robotConstants.expansionFront}
+                        leftExpansion={robotConstants.expansionLeft}
+                        rightExpansion={robotConstants.expansionRight}
+                        rearExpansion={robotConstants.expansionRear}    
                     />
                 )}
             </React.Fragment>

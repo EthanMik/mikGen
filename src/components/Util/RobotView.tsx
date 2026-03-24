@@ -7,7 +7,9 @@ type RobotViewProps = {
     angle: number,
     width: number,
     height: number,
-    bg?: string,
+    bg: number[],
+    bgTransparency: number,
+    expansionTransparency: number,
     frontExpansion?: number,
     leftExpansion?: number,
     rightExpansion?: number,
@@ -30,6 +32,8 @@ export default function RobotView({
     width,
     height,
     bg,
+    bgTransparency,
+    expansionTransparency,
     frontExpansion,
     leftExpansion,
     rightExpansion,
@@ -49,13 +53,10 @@ export default function RobotView({
     const robotX = -pxWidth / 2;
     const robotY = -pxHeight / 2;
 
-    const expansionColor: string = "rgba(150, 150, 150, 0.18)";
-    // const expansionColor: string = "rgba(155, 55, 19, 0.13)";
-
     return (
         <g transform={`translate(${pos.x} ${pos.y}) rotate(${normAngle})`}>
             <rect
-                fill={bg ?? "rgba(150, 150, 150, 0.4)"}
+                fill={`rgba(${[...bg, bgTransparency].join(", ")})`}
                 stroke="black"
                 strokeWidth={.5}
                 x={robotX}
@@ -75,7 +76,7 @@ export default function RobotView({
 
             {/* Front expansion */}
             <rect
-                fill={expansionColor}
+                fill={`rgba(${[...bg, expansionTransparency].join(", ")})`}
                 stroke="rgb(0, 0, 0)"
                 strokeWidth={.5}
                 x={robotX}
@@ -86,7 +87,7 @@ export default function RobotView({
 
             {/* Rear expansion */}
             <rect
-                fill={expansionColor}
+                fill={`rgba(${[...bg, expansionTransparency].join(", ")})`}
                 stroke="rgb(0, 0, 0)"
                 strokeWidth={.5}
                 x={robotX}
@@ -97,7 +98,7 @@ export default function RobotView({
 
             {/* Left expansion */}
             <rect
-                fill={expansionColor}
+                fill={`rgba(${[...bg, expansionTransparency].join(", ")})`}
                 stroke="rgb(0, 0, 0)"
                 strokeWidth={.5}
                 x={robotX - pxLeftExpansion}
@@ -108,7 +109,7 @@ export default function RobotView({
 
             {/* Right expansion */}
             <rect
-                fill={expansionColor}
+                fill={`rgba(${[...bg, expansionTransparency].join(", ")})`}
                 stroke="rgb(0, 0, 0)"
                 strokeWidth={.5}
                 x={robotX + pxWidth}

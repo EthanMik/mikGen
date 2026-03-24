@@ -3,13 +3,17 @@ import Checkbox from "../Util/Checkbox";
 import NumberInput from "../Util/NumberInput";
 import { robotConstantsStore } from "../../core/Robot";
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
+import { useFormat } from "../../hooks/useFormat";
 
 export default function RobotButton() {
     const [ isOpen, setOpen ] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
     
+    const [ format ] = useFormat();
+
     const robot =  robotConstantsStore.useStore();
     const [ allOmnis, setAllOmnis ] = useState(false);
+    const [ mecnum, setMecnum ] = useState(false);
 
     useEffect(() => {
         if (allOmnis) {
@@ -18,6 +22,14 @@ export default function RobotButton() {
             robotConstantsStore.merge({ lateralFriction: 50 });
         }
     }, [allOmnis])
+
+    useEffect(() => {
+        if (allOmnis) {
+            robotConstantsStore.merge({ isMecnum: mecnum });
+        } else {
+            robotConstantsStore.merge({ isMecnum: mecnum });
+        }
+    }, [mecnum])
 
     const updateWidth = (width: number | null) => {
         if (width !== null) {
@@ -236,13 +248,20 @@ export default function RobotButton() {
                                         <Checkbox checked={allOmnis} setChecked={setAllOmnis} />
                                     </label>
                                 </div>
-                                {/*<div className="flex flex-row items-center justify-between h-[35px]">
-                                    <span className="text-[16px] line-through">Holonomic</span>
-                                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                                        <Checkbox checked={holonomic} setChecked={setHolonomic} />
-                                    </label>
-                                </div>*/}
                             </div>
+
+                            {format === "ReveilLib" &&  <div className="mt-0.5 flex flex-col gap-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[13px] text-gray-400 whitespace-nowrap">Robot Type</span>
+                                    <div className="flex-1 border-t border-gray-500/40"></div>
+                                </div>
+                                <div className="flex flex-row items-center justify-between h-[35px]">
+                                    <span className="text-[16px]">Mecnum</span>
+                                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                                        <Checkbox checked={mecnum} setChecked={setMecnum} />
+                                    </label>
+                                </div>
+                            </div>}
 
                         </div>
         

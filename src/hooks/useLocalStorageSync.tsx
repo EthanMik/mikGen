@@ -10,7 +10,8 @@ export default function useLocalStorageSync() {
         localStorage.setItem("ghostRobots", settings.ghostRobots ? "true" : "false");
         localStorage.setItem("robotPosition", settings.robotPosition ? "true" : "false");
         localStorage.setItem("precisePath", settings.precisePath ? "true" : "false");
-    }, [settings.ghostRobots, settings.robotPosition, settings.precisePath]);
+        localStorage.setItem("numberedPath", settings.numberedPath ? "true" : "false");
+    }, [settings.ghostRobots, settings.robotPosition, settings.precisePath, settings.numberedPath]);
 
     const skipFirstState = useRef(true);
 

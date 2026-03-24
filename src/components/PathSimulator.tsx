@@ -29,7 +29,6 @@ function createRobot(): Robot {
         width, // Width (inches)
         height, // Height (inches)
         speed, // Speed (ft/s)
-        width,  // Track Width (inches)
         accel, // Max Accel (ft/s^2)
         accel, // Max Decel (ft/s^2)
         lateralFriction, // Lateral Friction (higher = less drift)
@@ -109,21 +108,22 @@ export default function PathSimulator() {
         const pathSim = cullSimulatedPath(fullSim);
         computedPathStore.setState(pathSim);
 
-        setRobotPose(computedPath.endTrajectory);
-        
+        setRobotPose(pathSim.endTrajectory);
+
         if (!robotVisible) {
             setPlaying(false);
             return;
         };
 
-        if (!computedPath.trajectory.length || computedPath.totalTime <= 0) return;
+        if (!pathSim.trajectory.length || pathSim.totalTime <= 0) return;
 
-        const clampedTime = clamp(time, 0, computedPath.totalTime);
+        const clampedTime = clamp(time, 0, pathSim.totalTime);
         if (clampedTime !== time) setTime(clampedTime);
-        
-        if (robotVisible) forceSnapTime(computedPath, clampedTime);
 
-        setValue((clampedTime / computedPath.totalTime) * 100);
+        if (robotVisible) forceSnapTime(pathSim, clampedTime);
+
+        skip.current = true;
+        setValue((clampedTime / pathSim.totalTime) * 100);
         
     }, [changes.length, robotk, robotVisible]);
 

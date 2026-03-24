@@ -16,7 +16,7 @@ const initialRobotsPosition = savedRobotPosition === null ? false : savedRobotPo
 const savedPrecisePath = localStorage.getItem("precisePath");
 const initialPrecisePath = savedPrecisePath === null ? false : savedPrecisePath === "true";
 
-const savedNumberedPath = localStorage.getItem("precisePath");
+const savedNumberedPath = localStorage.getItem("numberedPath");
 const initialNumberedPath = savedNumberedPath === null ? false : savedNumberedPath === "true";
 
 export const useSettings = createSharedState<Settings>({
@@ -24,5 +24,4 @@ export const useSettings = createSharedState<Settings>({
     robotPosition: initialRobotsPosition,
     precisePath: initialPrecisePath,
     numberedPath: initialNumberedPath
-
 })

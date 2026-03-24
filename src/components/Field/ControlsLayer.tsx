@@ -5,15 +5,22 @@ import { calculateHeading, toPX, toRad, FIELD_REAL_DIMENSIONS, type Rectangle, F
 import type { Coordinate } from "../../core/Types/Coordinate";
 import { useSettings } from "../../hooks/useSettings";
 
+type Colors = {
+	node: { fill: string; fillSelected: string; stroke: string };
+	indicator: { stroke: string; strokeSelected: string; strokeWithPos: string };
+	numberLabel: string;
+};
+
 type ControlsLayerProps = {
 	path: Path;
 	img: Rectangle;
 	radius: number;
 	format: string;
+	colors: Colors;
 	onPointerDown: (e: React.PointerEvent<SVGGElement>, id: string) => void;
 };
 
-export default function ControlsLayer({ path, img, radius, format, onPointerDown }: ControlsLayerProps) {
+export default function ControlsLayer({ path, img, radius, format, colors, onPointerDown }: ControlsLayerProps) {
 	const imgDefaultSize = (FIELD_IMG_DIMENSIONS.w + FIELD_IMG_DIMENSIONS.h) / 2;
 	const imgRealSize = (img.w + img.h) / 2
 	const scale = imgRealSize / imgDefaultSize;
@@ -40,13 +47,12 @@ export default function ControlsLayer({ path, img, radius, format, onPointerDown
 							{/* Drive Segment (Circle) */}
 							{control.pose.x !== null && control.pose.y !== null && (
 								<circle
-									className="stroke-[#1560BD]"
-									style={control.locked ? { cursor: "not-allowed" } : { cursor: "grab" }}
+									style={{ stroke: colors.node.stroke, ...(control.locked ? { cursor: "not-allowed" } : { cursor: "grab" }) }}
 									id={control.id}
 									cx={toPX({ x: control.pose.x, y: control.pose.y }, FIELD_REAL_DIMENSIONS, img).x}
 									cy={toPX({ x: control.pose.x, y: control.pose.y }, FIELD_REAL_DIMENSIONS, img).y}
 									r={control.hovered ? radius * 1.1 : radius}
-									fill={control.selected ? "rgba(180, 50, 11, .75)" : "rgba(160, 32, 7, .5)"}
+									fill={control.selected ? colors.node.fillSelected : colors.node.fill}
 									strokeWidth={idx === snap ? 1.1 * scale : 0}
 								/>
 							)}
@@ -62,7 +68,7 @@ export default function ControlsLayer({ path, img, radius, format, onPointerDown
 								const r = active ? radius * (1.3 * reduced) : hovered ? radius * (1.2 * reduced) : radius;
 
 								const thickness = active ? 5 : hovered ? 4 : 2;
-								const baseStroke = control.pose.x !== null ? "#1560BDB8" : active ? "rgba(160, 50, 11, .9)" : "#451717";
+								const baseStroke = control.pose.x !== null ? colors.indicator.strokeWithPos : active ? colors.indicator.strokeSelected : colors.indicator.stroke;
 
 								const basePx = toPX({ x: snapPose.x, y: snapPose.y }, FIELD_REAL_DIMENSIONS, img);
 								let angle = control.pose.angle ?? 0;
@@ -109,7 +115,7 @@ export default function ControlsLayer({ path, img, radius, format, onPointerDown
 								const hovered = control.hovered;
 								const r = active ? radius * 1.3 : hovered ? radius * 1.2 : radius;
 								const thickness = active ? 5 : hovered ? 4 : 2;
-								const baseStroke = active ? "rgba(160, 50, 11, .9)" : "#451717";
+								const baseStroke = active ? colors.indicator.strokeSelected : colors.indicator.stroke;
 
 								let angle = control.pose.angle ?? 0;
 								if (control.kind === "pointSwing") {
@@ -170,7 +176,7 @@ export default function ControlsLayer({ path, img, radius, format, onPointerDown
 						textAnchor="middle"
 						dominantBaseline="central"
 						fontSize={radius * .9}
-						fill="#a0a0a06c"
+						fill={colors.numberLabel}
 					>
 						{num}
 					</text>
