@@ -37,7 +37,10 @@ export interface PathSim {
     endTrajectory: EndSnapShot[];
     segmentTrajectorys: Snapshot[][];
     segmentCumulativeDists: number[][];
+    timeOffset: number;
 }
+
+export const activeSimSegmentStore = createStore<number>(-1);
 
 export const computedPathStore = createStore<PathSim>({
     totalTime: 0,
@@ -45,6 +48,7 @@ export const computedPathStore = createStore<PathSim>({
     endTrajectory: [],
     segmentTrajectorys: [],
     segmentCumulativeDists: [],
+    timeOffset: 0,
 });
 
 export function precomputePath(
@@ -161,5 +165,5 @@ export function precomputePath(
 
     pathTelemetry.setState(telemetry);
 
-    return {totalTime: t, trajectory, endTrajectory, segmentTrajectorys, segmentCumulativeDists};
+    return {totalTime: t, trajectory, endTrajectory, segmentTrajectorys, segmentCumulativeDists, timeOffset: 0};
 }

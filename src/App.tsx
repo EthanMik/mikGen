@@ -59,7 +59,7 @@ export default function App() {
 
   return (
     <ScaleContext.Provider value={scale}>
-      <div ref={viewportRef} className="w-screen h-screen">
+      <div ref={viewportRef} className="w-screen h-screen overflow-hidden">
         <div
           ref={contentRef}
           style={{ transform: `scale(${scale})`, transformOrigin: "top left" }}

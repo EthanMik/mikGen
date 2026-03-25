@@ -13,7 +13,7 @@ import CycleImageButton, { type CycleImageButtonProps } from "../Util/CycleButto
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 import { globalDefaultsStore } from "../../core/DefaultConstants";
 import { useFormat } from "../../hooks/useFormat";
-import { pathTelemetry } from "../../core/ComputePathSim";
+import { activeSimSegmentStore, pathTelemetry } from "../../core/ComputePathSim";
 import { roundNum } from "../../core/Util";
 
 
@@ -66,6 +66,7 @@ export default function MotionList({
     const segment = path.segments.find(s => s.id === segmentId)!;
     const selected = path.segments.find((c) => c.id === segmentId)?.selected;
     const [ telemetry ] = pathTelemetry.useStore();
+    const activeSimSegment = activeSimSegmentStore.useStore();
 
     const [ isEyeOpen, setEyeOpen ] = useState(true);
     const [ isTelemetryOpen, setTelemetryOpen ] = useState(false);
@@ -240,7 +241,8 @@ export default function MotionList({
         }
     }, [path])
 
-    const telemetrySlice = pathTelemetry.getState()?.[index]; 
+    const groupsBefore = path.segments.slice(0, index).filter(s => s.kind === "group").length;
+    const telemetrySlice = pathTelemetry.getState()?.[index - groupsBefore];
 
     return (
         <button
@@ -269,7 +271,7 @@ export default function MotionList({
             onMouseLeave={EndHover}
             style={{ width: `${!shrink ? 450 : 400}px` }}
             className={`${selected ? "bg-medlightgray" : ""}
-                flex flex-row justify-start items-center
+                relative flex flex-row justify-start items-center
                 h-[35px] gap-[12px]
                 bg-medgray
                 hover:brightness-92
@@ -280,6 +282,7 @@ export default function MotionList({
                 ${draggingIds.includes(segmentId) ? "opacity-10" : ""}
             `}
             >
+            <div className={`absolute left-0 top-[20%] h-[60%] w-[3px] rounded-full bg-lightgray transition-opacity duration-150 ${activeSimSegment === index - groupsBefore ? "opacity-100" : "opacity-0"}`} />
             <button
                 className="cursor-pointer shrink-0"
                 onClick={(e) => { e.stopPropagation(); setOpen(!isOpen); }}
@@ -346,25 +349,25 @@ export default function MotionList({
             </div>}
             </button>
 
-                {isTelemetryOpen && telemetrySlice !== undefined && (
-                <div onClick={(e) => e.stopPropagation()} className="ml-9 flex pl-1.5 gap-3 text-left">
-                    <span>Time: {roundNum(telemetrySlice.totalTime)}<span className="text-[8px] text-lightgray align-super leading-none"> s</span></span>
-                    <span>Distance: {roundNum(telemetrySlice.totalDistance)}<span className="text-[8px] text-lightgray align-super leading-none"> deg</span></span>
-                    <span>Traveled: {roundNum(telemetrySlice.progressRaw)}<span className="text-[8px] text-lightgray align-super leading-none"> deg</span>  {roundNum(telemetrySlice.progressPercent)}<span className="text-[10px] text-lightgray align-super leading-none"> %</span></span>
-                </div>
-                )}
-
                 <div
                 onClick={(e) => e.stopPropagation()}
-                className={`relative flex flex-col ml-9 gap-2 transition-all ${
-                    isOpen ? "block" : "hidden"
+                className={`relative flex flex-col ml-9 gap-2 ${
+                    (!isTelemetryOpen || telemetrySlice === undefined) && !isOpen ? "hidden" : ""
                 }`}
                 >
 
                 { /* Vertical Line */ }
                 <div className="absolute left-[-16px] top-0 h-full w-[4px] rounded-full bg-medlightgray" />
 
-                {field !== undefined && field.map((f) => {
+                {isTelemetryOpen && telemetrySlice !== undefined && (
+                    <div className="flex pl-1.5 gap-2 text-left">
+                        <span>Time: {roundNum(telemetrySlice.totalTime)}<span className="text-[8px] text-lightgray align-super leading-none"> s</span></span>
+                        <span>Distance: {roundNum(telemetrySlice.totalDistance)}<span className="text-[8px] text-lightgray align-super leading-none"> {telemetrySlice.units}</span></span>
+                        <span>Traveled: {roundNum(telemetrySlice.progressRaw)}<span className="text-[8px] text-lightgray align-super leading-none"> {telemetrySlice.units}</span>  {roundNum(telemetrySlice.progressPercent)}<span className="text-[10px] text-lightgray align-super leading-none"> %</span></span>
+                    </div>
+                )}
+
+                {isOpen && field !== undefined && field.map((f) => {
                     const fieldKeys = f.fields.map((m) => m.key);
                     const relevantValues = getValuesFromKeys(fieldKeys, f.values);
                     const relevantDefaults = getValuesFromKeys(fieldKeys, f.defaults);
