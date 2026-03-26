@@ -3,10 +3,10 @@ import { getSegmentName } from "../core/DefaultConstants";
 import type { SegmentKind } from "../core/InitialDefaults";
 import { moveToPose, resetMoveToPose } from "../core/LemLibSim/DriveMotions/MoveToPose";
 import { moveToPoint, resetMoveToPoint } from "../core/LemLibSim/DriveMotions/MoveToPoint";
-import { swingToHeading } from "../core/LemLibSim/DriveMotions/SwingToHeading";
-import { swingToPoint } from "../core/LemLibSim/DriveMotions/SwingToPoint";
-import { turnToHeading } from "../core/LemLibSim/DriveMotions/TurnToHeading";
-import { turnToPoint } from "../core/LemLibSim/DriveMotions/TurnToPoint";
+import { resetSwingToHeading, swingToHeading } from "../core/LemLibSim/DriveMotions/SwingToHeading";
+import { resetSwingToPoint, swingToPoint } from "../core/LemLibSim/DriveMotions/SwingToPoint";
+import { resetTurnToHeading, turnToHeading } from "../core/LemLibSim/DriveMotions/TurnToHeading";
+import { resetTurnToPoint, turnToPoint } from "../core/LemLibSim/DriveMotions/TurnToPoint";
 import type { LemAngularConstants, LemMoveConstants } from "../core/LemLibSim/LemConstants";
 import { angle_error } from "../core/mikLibSim/Util";
 import type { Robot } from "../core/Robot";
@@ -98,7 +98,7 @@ export function LemLibToSim(path: Path) {
             const constants = control.constants as LemAngularConstants;
             let started = false;
             let targetDist = 0;
-
+            resetTurnToPoint();
             auton.push(
                 (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
                     if (!started) {
@@ -119,7 +119,7 @@ export function LemLibToSim(path: Path) {
             const constants = control.constants as LemAngularConstants;
             let started = false;
             let targetDist = 0;
-
+            resetTurnToHeading();
             auton.push(
                 (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
                     if (!started) {
@@ -149,7 +149,7 @@ export function LemLibToSim(path: Path) {
             const constants = control.constants as LemAngularConstants;
             let started = false;
             let targetDist = 0;
-
+            resetSwingToPoint();
             auton.push(
                 (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
                     if (!started) {
@@ -170,7 +170,7 @@ export function LemLibToSim(path: Path) {
             const constants = control.constants as LemAngularConstants;
             let started = false;
             let targetDist = 0;
-
+            resetSwingToHeading();
             auton.push(
                 (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
                     if (!started) {

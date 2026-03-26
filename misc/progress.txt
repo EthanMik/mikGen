@@ -19,8 +19,6 @@ Todo:
 - instead of commands add a help button that provides path examples
 - make it so i can easily see the time and distance along the path 
 - Fix group css for distance traveled so it appears
-- add an indicator for which segment is being traveled over
-- segment groups telemetry is too being
 - segments in groups do not have correct names
 
 Planned:

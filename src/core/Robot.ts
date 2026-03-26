@@ -7,16 +7,13 @@ export type RobotConstants = {
     height: number,
     speed: number,
     accel: number,
-    lateralFriction: number,
-    // Offset of the robot's reference/tracking center from the kinematic center
-    // (midpoint between drive wheels), in the robot's local frame.
-    // NOT the same as odometry offsets — odometry offsets are relative to this point.
     cogOffsetX: number, // lateral offset (positive = robot's right)
     cogOffsetY: number, // longitudinal offset (positive = robot's forward)
     expansionFront: number,
     expansionLeft: number,
     expansionRight: number,
     expansionRear: number,
+    isOmni: boolean,
     isMecnum: boolean,
 }
 
@@ -25,13 +22,13 @@ export const defaultRobotConstants: RobotConstants = {
     height: 14,
     speed: 6,
     accel: 15,
-    lateralFriction: 10,
     cogOffsetX: 0,
     cogOffsetY: 0,
     expansionFront: 0,
     expansionLeft: 0,
     expansionRight: 0,
     expansionRear: 0,
+    isOmni: false,
     isMecnum: false
 }
 
@@ -49,6 +46,8 @@ export class Robot {
     private vRL: number = 0;
     private vRR: number = 0;
 
+    private lateralFriction: number = 0;
+
     constructor(
         private x: number,
         private y: number,
@@ -58,7 +57,6 @@ export class Robot {
         public maxSpeed: number,
         public maxAccel: number,
         public maxDecel: number,
-        public lateralFriction: number = 10,
 
         public cogOffsetX: number = 0, // lateral (positive = robot's right)
         public cogOffsetY: number = 0, // longitudinal (positive = robot's forward)
@@ -66,7 +64,16 @@ export class Robot {
         public expansionLeft: number = 0,
         public expansionRight: number = 0,
         public expansionRear: number = 0,
-    ) {}
+
+        public isOmnis: boolean = false,
+        public isMecnum: boolean = false
+    ) {
+        if (isOmnis) {
+            this.lateralFriction = 50;
+        } else {
+            this.lateralFriction = 10;
+        }
+    }
 
     private setAngle(angle: number) {
         this.angle = normalizeDeg(angle);

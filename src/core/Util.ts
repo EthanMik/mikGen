@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import type { Coordinate } from "./Types/Coordinate";
+import { getBackwardsSnapPose, getForwardSnapPose, type Path } from "./Types/Path";
 import type { Pose } from "./Types/Pose";
 
 export interface Rectangle {
@@ -75,6 +76,20 @@ export function toPX(position: Coordinate, field: Rectangle, img: Rectangle): Co
     const dy = -img.y + sy * (position.y - field.y)
 
     return {x: dx, y: -dy}
+}
+
+export function findPointToFace(path: Path, idx: number): Coordinate {
+  const previousPos = getBackwardsSnapPose(path, idx - 1);
+  const turnToPos = getForwardSnapPose(path, idx);
+
+  const pos: Coordinate =
+    turnToPos
+      ? { x: turnToPos.x ?? 0, y: turnToPos.y ?? 0 }
+      : previousPos
+      ? { x: previousPos.x ?? 0, y: (previousPos.y ?? 0) + 5 }
+      : { x: 0, y: 5 };
+      
+  return pos;
 }
 
 export function toRGBA(hex: string, alpha: number) {

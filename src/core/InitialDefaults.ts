@@ -5,7 +5,7 @@ import type { revDriveConstants, revTurnConstants } from "./ReveiLibSim/RevConst
 import { createObjectStore } from "./Store";
 import { cloneLemConstants, kLemAngular, kLemLinear, type LemAngularConstants, type LemMoveConstants } from "./LemLibSim/LemConstants";
 
-type Format = "mikLib" | "ReveilLib" | "JAR-Template" | "LemLib" | "RW-Template"
+type Format = "mikLib" | "ReveilLib" | "JAR-Template" | "LemLib" | "RW-Template" | "RevMecanum";
 
 type SegmentKind = "pointDrive" | "poseDrive" | "pointTurn" | "angleTurn" | "angleSwing" | "pointSwing" | "distanceDrive" | "start" | "group";
 
@@ -24,6 +24,17 @@ export type ConstantsByFormat = {
     group: string;
   };
   ReveilLib: {
+    distanceDrive: revDriveConstants;
+    pointDrive: revDriveConstants;
+    poseDrive: revDriveConstants;
+    pointTurn: revTurnConstants;
+    angleTurn: revTurnConstants;
+    angleSwing: revTurnConstants;
+    pointSwing: revTurnConstants;
+    start: undefined;
+    group: string;
+  };
+  RevMecanum: {
     distanceDrive: revDriveConstants;
     pointDrive: revDriveConstants;
     poseDrive: revDriveConstants;
@@ -99,7 +110,17 @@ export const INITIAL_DEFAULTS: DefaultConstant = {
         group: "",
         start: undefined,
     },
-
+    RevMecanum: {
+        distanceDrive: { drive: cloneKRev(kPilon) },
+        pointDrive: { drive: cloneKRev(kPilon) },
+        poseDrive: { drive: cloneKRev(kBoomerang) },
+        pointTurn: { turn: cloneKRev(kLootAt) },
+        angleTurn: { turn: cloneKRev(kTurn) },
+        angleSwing: { turn: cloneKRev(kTurn) },
+        pointSwing: { turn: cloneKRev(kTurn) },
+        group: "",
+        start: undefined,     
+    },
     "JAR-Template": {
         distanceDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
         pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },

@@ -9,7 +9,7 @@ import lockOpen from "../../assets/lock-open.svg";
 import downArrow from "../../assets/down-arrow.svg";
 import { usePath } from "../../hooks/usePath";
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
-import { getFormatConstantsConfig, getFormatDirectionConfig, getFormatSpeed } from "../../core/DefaultConstants";
+import { getFormatConstantsConfig, getFormatDirectionConfig, getFormatSpeed, getSegmentName } from "../../core/DefaultConstants";
 import { useFormat, type Format } from "../../hooks/useFormat";
 import MotionList from "./MotionList";
 import { moveMultipleSegments } from "./PathConfigUtils";
@@ -559,7 +559,7 @@ export default function GroupList({
 
                                 {(c.kind === "pointDrive" || c.kind === "poseDrive") && (
                                     <MotionList
-                                        name="Drive"
+                                        name={getSegmentName(format, c.kind)}
                                         speedScale={speedScale}
                                         field={constantsFields}
                                         directionField={directionFields}
@@ -577,7 +577,7 @@ export default function GroupList({
 
                                 {(c.kind === "angleTurn" || c.kind === "pointTurn") && (
                                     <MotionList
-                                        name="Turn"
+                                        name={getSegmentName(format, c.kind)}
                                         speedScale={speedScale}
                                         field={constantsFields}
                                         directionField={directionFields}
@@ -595,7 +595,7 @@ export default function GroupList({
 
                                 {(c.kind === "pointSwing" || c.kind === "angleSwing") && (
                                     <MotionList
-                                        name="Swing"
+                                        name={getSegmentName(format, c.kind)}
                                         speedScale={speedScale}
                                         field={constantsFields}
                                         directionField={directionFields}
