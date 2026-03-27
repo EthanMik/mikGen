@@ -2,8 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import eyeOpen from "../../assets/eye-open.svg";
 import eyeClosed from "../../assets/eye-closed.svg";
-import lockClose from "../../assets/clock-close.svg";
-import lockOpen from "../../assets/clock-open.svg";
+import clockClose from "../../assets/clock-close.svg";
+import clockOpen from "../../assets/clock-open.svg";
 import downArrow from "../../assets/down-arrow.svg";
 import Slider from "../Util/Slider";
 import { usePath } from "../../hooks/usePath";
@@ -11,6 +11,7 @@ import type { ConstantField } from "./ConstantRow";
 import ConstantsList from "./ConstantsList";
 import CycleImageButton, { type CycleImageButtonProps } from "../Util/CycleButton";
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
+import { setupDragTransfer } from "./PathConfigUtils";
 import { globalDefaultsStore } from "../../core/DefaultConstants";
 import { useFormat } from "../../hooks/useFormat";
 import { activeSimSegmentStore, pathTelemetry } from "../../core/ComputePathSim";
@@ -254,14 +255,7 @@ export default function MotionList({
             <button
             draggable={draggable && !segment.locked}
             onDragStart={(e) => {
-                if (e.dataTransfer) {
-                    e.dataTransfer.setData('text/plain', segmentId);
-                    e.dataTransfer.effectAllowed = 'move';
-                    // Hide the ghost image
-                    const emptyImg = new Image();
-                    emptyImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-                    e.dataTransfer.setDragImage(emptyImg, 0, 0);
-                }
+                setupDragTransfer(e, segmentId);
                 if (onDragStart) onDragStart(e);
             }}
             onDragEnd={(e) => { if (onDragEnd) onDragEnd(e); }}
@@ -296,7 +290,7 @@ export default function MotionList({
             </button>
 
             <button className="cursor-pointer shrink-0" onClick={(e) => { e.stopPropagation(); setTelemetryOpen(!isTelemetryOpen); }}>
-                <img className="w-[20px] h-[20px]" src={isTelemetryOpen ? lockClose : lockOpen} />
+                <img className="w-[20px] h-[20px]" src={isTelemetryOpen ? clockClose : clockOpen} />
             </button>
 
             <span className="shrink-0 text-left truncate max-w-[130px]">{name}</span>
