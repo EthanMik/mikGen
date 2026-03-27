@@ -16,6 +16,42 @@ type NumberInputProps = {
 
 type Direction = -1 | 1;
 
+function evaluate(expr: string): number {
+  const tokens: string[] = [];
+  let i = 0;
+
+  while (i < expr.length) {
+    if (expr[i] === ' ') { i++; continue; }
+
+    const isUnary =
+      expr[i] === '-' &&
+      (tokens.length === 0 || ['+', '-', '*', '/'].includes(tokens[tokens.length - 1]));
+
+    if (isUnary || /\d/.test(expr[i])) {
+      let num = isUnary ? '-' : '';
+      if (isUnary) i++;
+      while (i < expr.length && /[\d.]/.test(expr[i])) num += expr[i++];
+      tokens.push(num);
+    } else if (['+', '-', '*', '/'].includes(expr[i])) {
+      tokens.push(expr[i++]);
+    } else {
+      i++;
+    }
+  }
+
+  let result = parseFloat(tokens[0]);
+  for (let j = 1; j < tokens.length; j += 2) {
+    const op = tokens[j];
+    const num = parseFloat(tokens[j + 1]);
+    if (op === '+') result += num;
+    else if (op === '-') result -= num;
+    else if (op === '*') result *= num;
+    else if (op === '/') result = result / num;
+  }
+
+  return result;
+}
+
 export default function NumberInput({
   fontSize,
   width,
@@ -107,12 +143,14 @@ export default function NumberInput({
       return;
     }
 
-    if (!isFinite(Number(edit))) {
+    const num = evaluate(edit);
+
+    if (num === undefined) {
       resetValue();
       return;
     }
 
-    const num = parseFloat(edit);
+    
     const clampNum = clamp(num, bounds[0], bounds[1]);
     if (clampNum === undefined) return;
 

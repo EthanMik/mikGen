@@ -4,9 +4,7 @@ Bugs:
 - make the group dropping css look better
 - control config not updating the path??
 - the robot does not snap to the starting point when pressing R
-- turn segments are not mirroring properly
 - the robot timeline is not getting updated on all events
-- moving segments with arrow keys and heading with scroll wheel spams undo timeline
 
 
 Todo:
