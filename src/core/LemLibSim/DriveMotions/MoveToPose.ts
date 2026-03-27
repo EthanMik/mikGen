@@ -66,6 +66,7 @@ export function moveToPose(robot: Robot, dt: number, x: number, y: number, angle
     if (distTarget < 7.5 && !close) {
         close = true;
         effectiveMaxSpeed = Math.max(Math.abs(prevLateralOut), 60);
+        
     }
 
     if (lateralLargeExit.getExit() && lateralSmallExit.getExit()) lateralSettled = true;

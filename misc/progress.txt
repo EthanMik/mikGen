@@ -8,13 +8,10 @@ Bugs:
 
 
 Todo:
-- copy with merge, code leaves other auton code untouched
 - distance segments
-- make it so operators work in number input
 - add a apply all button with maybe a confirm menu?! will not apply to locked segments
 - instead of commands add a help button that provides path examples
 - Fix group css for distance traveled so it appears
-- segments in groups do not have correct names
 - add jar template and rw-template drive algorithms
 
 Planned:

@@ -52,8 +52,8 @@ const createMoveGroup = (
       header: "Motion Settings",
       values: driveConstants,
       fields: [
-        { key: "maxSpeed", label: "Max Speed", input: { bounds: [0, 127], stepSize: 1, roundTo: 1 } },
-        { key: "minSpeed", label: "Min Speed", input: { bounds: [0, 127], stepSize: 1, roundTo: 1 } },
+        { key: "maxSpeed", label: "Max Speed", input: { bounds: [0, 127], stepSize: 10, roundTo: 0 } },
+        { key: "minSpeed", label: "Min Speed", input: { bounds: [0, 127], stepSize: 10, roundTo: 0 } },
         { key: "timeout", units: "ms", label: "Timeout", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
         { key: "earlyExitRange", units: "in", label: "Early Exit", input: { bounds: [0, 100], stepSize: 1, roundTo: 1 } },
 
@@ -136,8 +136,8 @@ const createAngularGroup = (
       header: "Motion Settings",
       values: turnConstants,
       fields: [
-        { key: "maxSpeed", label: "Max Speed", input: { bounds: [0, 127], stepSize: 1, roundTo: 1 } },
-        { key: "minSpeed", label: "Min Speed", input: { bounds: [0, 127], stepSize: 1, roundTo: 1 } },
+        { key: "maxSpeed", label: "Max Speed", input: { bounds: [0, 127], stepSize: 10, roundTo: 0 } },
+        { key: "minSpeed", label: "Min Speed", input: { bounds: [0, 127], stepSize: 10, roundTo: 0 } },
         { key: "timeout", units: "ms", label: "Timeout", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
         { key: "earlyExitRange", units: "in", label: "Early Exit Range", input: { bounds: [0, 100], stepSize: 1, roundTo: 1 } },
       ],

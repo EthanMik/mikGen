@@ -51,7 +51,7 @@ export default function ConstantRow({
 
     return (
         <div className={`flex flex-row items-center
-            justify-between h-[40px] pr-2 pl-2 gap-1 rounded-lg
+            justify-between h-[35px] pr-2 pl-2 gap-1 rounded-lg
             
             hover:brightness-90
             transition-all duration-100
