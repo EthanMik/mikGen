@@ -3,10 +3,11 @@ import type { Path } from "../core/Types/Path";
 import type { SegmentKind } from "../core/Types/Segment";
 import type { Format } from "../hooks/useFormat";
 import { LemLibToSim } from "./LemLibToSim";
+import { LemLibToString } from "./LemLibToString";
 import { mikLibToSim } from "./mikLibToSim";
 import { mikLibToString } from "./mikLibToString";
 import { reveilLibToSim } from "./ReveilLibToSim";
-import { reveilLibToString, revToString } from "./ReveilLibToString";
+import { revToString } from "./ReveilLibToString";
 
 
 export function convertPathToSim(path: Path, format: Format): ((robot: Robot, dt: number) => [boolean, SegmentKind, number])[] {
@@ -22,8 +23,8 @@ export function convertPathToSim(path: Path, format: Format): ((robot: Robot, dt
         return out;
     }
 
-    const emptyAuton: ((robot: Robot, dt: number) => [boolean, SegmentKind])[] = [];
-    return emptyAuton
+    const emptyAuton: ((robot: Robot, dt: number) => [boolean, SegmentKind, number])[] = [];
+    return emptyAuton;
 }
 
 export function convertPathToString(path: Path, format: Format, selected = false) {
@@ -32,5 +33,8 @@ export function convertPathToString(path: Path, format: Format, selected = false
     }
     if (format === "ReveilLib") {
         return revToString(path, selected);
+    }
+    if (format === "LemLib") {
+        return LemLibToString(path, selected);
     }
 }

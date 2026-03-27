@@ -73,9 +73,6 @@ export function mikLibToString(path: Path, selected: boolean = false) {
         const x = roundOff(control.pose.x, 2)
         const y = roundOff(control.pose.y, 2)
         const angle = roundOff(control.pose.angle, 2)
-
-        const commandName = control.command.name;
-        const commandPercent = roundOff(control.command.percent, 0);
         
         if (idx === 0) {
             pathString += (
@@ -90,11 +87,6 @@ export function mikLibToString(path: Path, selected: boolean = false) {
             for (const k of Object.keys(constants)) {
                 const c = keyToMikLibConstant(k, constants[k], "Turn");
                 if (c !== "") constantsList.push(c);
-            }
-
-            if (commandName !== "") {
-                constantsList.push(`.callback = [](){ ${commandName} }`);
-                if (Number(commandPercent) !== 0) constantsList.push(`.callback_after_percent = ${commandPercent}`);
             }
 
             const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");     
@@ -129,11 +121,6 @@ export function mikLibToString(path: Path, selected: boolean = false) {
             const turnX = roundOff(pos.x, 2);
             const turnY = roundOff(pos.y, 2);
 
-            if (commandName !== "") {
-                constantsList.push(`.callback = [](){ ${commandName} }`);
-                if (Number(commandPercent) !== 0) constantsList.push(`.callback_after_percent = ${commandPercent}`);
-            }
-
             const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");     
 
             pathString += constantsList.length === 0
@@ -149,11 +136,6 @@ export function mikLibToString(path: Path, selected: boolean = false) {
             for (const k of Object.keys(constants)) {
                 const c = keyToMikLibConstant(k, constants[k], "Turn");
                 if (c !== "") constantsList.push(c);
-            }
-
-            if (commandName !== "") {
-                constantsList.push(`.callback = [](){ ${commandName} }`);
-                if (Number(commandPercent) !== 0) constantsList.push(`.callback_after_percent = ${commandPercent}`);
             }
 
             const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");     
@@ -190,11 +172,6 @@ export function mikLibToString(path: Path, selected: boolean = false) {
             const turnX = roundOff(pos.x, 2);
             const turnY = roundOff(pos.y, 2);
 
-            if (commandName !== "") {
-                constantsList.push(`.callback = [](){ ${commandName} }`);
-                if (Number(commandPercent) !== 0) constantsList.push(`.callback_after_percent = ${commandPercent}`);
-            }
-
             const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");     
 
             const direction = control.constants.swing.swingDirection;
@@ -220,11 +197,6 @@ export function mikLibToString(path: Path, selected: boolean = false) {
                 if (headingC !== "") constantsList.push(headingC);
             }
 
-            if (commandName !== "") {
-                constantsList.push(`.callback = [](){ ${commandName} }`);
-                if (Number(commandPercent) !== 0) constantsList.push(`.callback_after_percent = ${commandPercent}`);
-            }
-
             const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");     
 
             pathString += constantsList.length === 0
@@ -246,11 +218,6 @@ export function mikLibToString(path: Path, selected: boolean = false) {
             for (const k of Object.keys(headingConstants)) {
                 const headingC = keyToMikLibConstant(k, headingConstants[k], "Heading");
                 if (headingC !== "") constantsList.push(headingC);
-            }
-
-            if (commandName !== "") {
-                constantsList.push(`.callback = [](){ ${commandName} }`);
-                if (Number(commandPercent) !== 0) constantsList.push(`.callback_after_percent = ${commandPercent}`);
             }
 
             const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");     

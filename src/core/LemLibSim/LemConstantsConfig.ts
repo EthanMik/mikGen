@@ -142,9 +142,9 @@ const createAngularGroup = (
         { key: "kd", label: "kD", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
         { key: "antiWindup",  label: "Anti Windup", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 2 } },
         { key: "smallError", units: "in", label: "Small Error", input: { bounds: [0, 100], stepSize: .1, roundTo: 2 } },
-        { key: "smallErrorTimeout", units: "ms",  label: "Small Error Timeout", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+        { key: "smallErrorTimeout", units: "ms",  label: "Sml Timeout", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
         { key: "largeError", units: "in",  label: "Large Error", input: { bounds: [0, 100], stepSize: .1, roundTo: 2 } },
-        { key: "largeErrorTimeout", units: "ms",  label: "Large Error Timeout", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+        { key: "largeErrorTimeout", units: "ms",  label: "Lge Timeout", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
         { key: "slew",  label: "Slew", input: { bounds: [0, 127], stepSize: 1, roundTo: 1 } },
 
       ],

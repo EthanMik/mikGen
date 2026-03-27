@@ -58,10 +58,11 @@ export const LemConstantsEqual = (a: LemConstants, b: LemConstants): boolean => 
     );
 }
 
-export function getUnequalLemConstants(correct: LemConstants, different: LemConstants): Partial<LemConstants> {
+export function getUnequalLemConstants(correct: LemConstants | undefined, different: LemConstants | undefined): Partial<LemConstants> {
     const out: Partial<LemConstants> = {};
     const a = correct;
     const b = different;
+    if (a === undefined || b === undefined) return out;
 
     if (a.horizontalDrift !== b.horizontalDrift) out.horizontalDrift = b.horizontalDrift;
     if (a.kp !== b.kp) out.kp = b.kp;

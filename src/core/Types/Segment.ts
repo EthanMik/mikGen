@@ -41,6 +41,17 @@ export type ConstantsByFormat = {
     start: undefined;
     group: string;
   };
+  RevMecanum: {
+    distanceDrive: revDriveConstants;
+    pointDrive: revDriveConstants;
+    poseDrive: revDriveConstants;
+    pointTurn: revTurnConstants;
+    angleTurn: revTurnConstants;
+    angleSwing: revTurnConstants;
+    pointSwing: revTurnConstants;
+    start: undefined;
+    group: string;
+  };
   "JAR-Template": {
     distanceDrive: mikDriveConstants;
     pointDrive: mikDriveConstants;
