@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import flipHorizontal from "../assets/flip-horizontal.svg";
 import flipVertical from "../assets/flip-vertical.svg";
-import { AddToUndoHistory } from "../core/Undo/UndoHistory";
+import { AddToUndoHistory, undoHistory } from "../core/Undo/UndoHistory";
 import { normalizeDeg } from "../core/Util";
 import { useFormat } from "../hooks/useFormat";
 import { usePath } from "../hooks/usePath";
@@ -18,7 +18,16 @@ function MirrorControl({
     src,
     mirrorDirection
 }: MirrorControlProps) {
-    const [ , setPath ] = usePath();
+    const [ path, setPath ] = usePath();
+
+    const undoRef = useRef(false); 
+
+    useEffect(() => {
+        if (undoRef.current) {
+            AddToUndoHistory( { path: path});
+            undoRef.current = false;
+        }
+    }, [path])
 
     const mirrorX = () => {
         setPath(prev => ({
@@ -32,6 +41,10 @@ function MirrorControl({
                 } : c
             )
         }));
+        if (path.segments.filter((m) => m.selected).length > 0) {
+            undoRef.current = true;
+        }
+
     }
 
     const mirrorY = () => {
@@ -46,6 +59,9 @@ function MirrorControl({
                 } : c
             )
         }));        
+        if (path.segments.filter((m) => m.selected).length > 0) {
+            undoRef.current = true;
+        }   
     }
 
     const handleOnClick = () => {
