@@ -12,13 +12,12 @@ import rev from "../../assets/reverse.svg"
 import fwdrev from "../../assets/fwdrev.svg"
 import leftswing from "../../assets/leftswing.svg"
 import rightswing from "../../assets/rightswing.svg"
-import { getDefaultConstants, updateDefaultConstants, updatePathConstants } from "../DefaultConstants";
+import { getDefaultConstants, updateDefaultConstants, updatePathConstants, updatePathConstantsByKind } from "../DefaultConstants";
 import type { CycleImageButtonProps } from "../../components/Util/CycleButton";
 import type { PIDConstants, mikDriveConstants, mikTurnConstants, mikSwingConstants } from "./MikConstants";
 
 const createDrivePIDGroup = (
   format: Format,
-  path: Path,
   setPath: React.Dispatch<SetStateAction<Path>>,
   segmentId: string,
   segmentKind: SegmentKind,
@@ -31,6 +30,12 @@ const createDrivePIDGroup = (
 
   const onHeadingChange = (partial: Partial<PIDConstants>) =>
     updatePathConstants(setPath, segmentId, { heading: partial });
+
+  const onApplyDrive = (partial: Partial<PIDConstants>) =>
+    updatePathConstantsByKind(setPath, segmentKind, { drive: partial });
+
+  const onApplyHeading = (partial: Partial<PIDConstants>) =>
+    updatePathConstantsByKind(setPath, segmentKind, { heading: partial });
 
   const setDefaultDrive = (partial: Partial<PIDConstants>) => {
     updateDefaultConstants(format, segmentKind, { drive: partial } as Partial<mikDriveConstants>);
@@ -55,6 +60,7 @@ const createDrivePIDGroup = (
       ],
       onChange: onDriveChange,
       setDefault: setDefaultDrive,
+      onApply: onApplyDrive,
       defaults: currentDefaults?.drive ?? {}
     },
     {
@@ -76,6 +82,7 @@ const createDrivePIDGroup = (
       ],
       onChange: onDriveChange,
       setDefault: setDefaultDrive,
+      onApply: onApplyDrive,
       defaults: currentDefaults?.drive ?? {}
     },
     {
@@ -94,6 +101,7 @@ const createDrivePIDGroup = (
       ],
       onChange: onHeadingChange,
       setDefault: setDefaultHeading,
+      onApply: onApplyHeading,
       defaults: currentDefaults?.heading ?? {}
     },
   ];
@@ -112,6 +120,9 @@ const createTurnPIDGroup = (
 
   const onChange = (partial: Partial<PIDConstants>) =>
     updatePathConstants(setPath, segmentId, { [slot]: partial });
+
+  const onApply = (partial: Partial<PIDConstants>) =>
+    updatePathConstantsByKind(setPath, segmentKind, { [slot]: partial });
 
   const setDefault = (partial: Partial<PIDConstants>) => {
     updateDefaultConstants(format, segmentKind, { [slot]: partial } as Partial<mikTurnConstants> | Partial<mikSwingConstants>);
@@ -133,6 +144,7 @@ const createTurnPIDGroup = (
       ],
       onChange: onChange,
       setDefault: setDefault,
+      onApply: onApply,
       defaults: specificDefaults ?? {}
     },
     {
@@ -153,6 +165,7 @@ const createTurnPIDGroup = (
       ],
       onChange: onChange,
       setDefault: setDefault,
+      onApply: onApply,
       defaults: specificDefaults ?? {}
     },
   ];
@@ -270,7 +283,7 @@ export function getmikLibConstantsConfig(
         case "pointDrive":
         case "poseDrive": {
             const constants = s.constants as mikDriveConstants;
-            return createDrivePIDGroup(format, path, setPath, segmentId, s.kind, constants.drive, constants.heading);
+            return createDrivePIDGroup(format, setPath, segmentId, s.kind, constants.drive, constants.heading);
         }
         case "pointTurn":
         case "angleTurn": {

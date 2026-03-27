@@ -25,6 +25,7 @@ export type ConstantListField = {
     defaults: Partial<any>;
     onChange: (partial: Partial<any>) => void;
     setDefault: (partial: Partial<any>) => void;
+    onApply: (partial: Partial<any>) => void;
 }
 
 type MotionListProps = {
@@ -384,6 +385,7 @@ export default function MotionList({
                                 defaults: structuredClone(globalDefaultsStore.getState()[format]) as any,
                             });
                         }}
+                        onApply={f.onApply}
                         defaults={relevantDefaults}
                     />
                     );

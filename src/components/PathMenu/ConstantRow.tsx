@@ -24,6 +24,8 @@ type ConstantRowProps = {
   value: number | null;
   onChange: (v: number | null) => void;
   input?: NumberInputSettings;
+  selected?: boolean;
+  onToggleSelect?: () => void;
 };
 
 export default function ConstantRow({
@@ -33,6 +35,8 @@ export default function ConstantRow({
     units = "",
     onChange,
     input,
+    selected = false,
+    onToggleSelect,
 } : ConstantRowProps) {
     const [ path, ] = usePath();
 
@@ -45,13 +49,23 @@ export default function ConstantRow({
       }
     }, [path])
 
-    return (        
-        <div className="flex flex-row items-center 
-            justify-between h-[30px] pr-2 pl-2 gap-1"
+    return (
+        <div className={`flex flex-row items-center
+            justify-between h-[40px] pr-2 pl-2 gap-1 rounded-lg
+            
+            hover:brightness-90
+            transition-all duration-100
+            active:scale-[0.995]
+            ${selected ? "bg-medlightgray" : ""}`}
         >
-            <span className={`w-[100px] text-left ${labelColor}`}>{label} </span>
-            <NumberInput 
-                width={55} 
+            <button
+                className={`w-[100px] text-left ${labelColor} ${onToggleSelect ? "cursor-pointer" : "cursor-default"}`}
+                onClick={onToggleSelect}
+            >
+                {label}
+            </button>
+            <NumberInput
+                width={55}
                 height={30}
                 fontSize={16}
                 value={value}
@@ -60,7 +74,7 @@ export default function ConstantRow({
                 bounds={input?.bounds ?? [0, 100]}
                 stepSize={input?.stepSize ?? 1}
                 roundTo={input?.roundTo ?? 5}
-                addToHistory={ () => { undoRef.current = true; } }                
+                addToHistory={ () => { undoRef.current = true; } }
             />
         </div>
     );

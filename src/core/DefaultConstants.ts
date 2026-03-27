@@ -82,6 +82,42 @@ export function updatePathConstants(
     }));
 }
 
+export function updatePathConstantsByKind(
+    setPath: React.Dispatch<React.SetStateAction<Path>>,
+    segmentKind: SegmentKind,
+    partial: any
+) {
+    setPath((prev) => ({
+        ...prev,
+        segments: prev.segments.map((s) => {
+            if (s.kind !== segmentKind) return s;
+
+            const key = Object.keys(partial)[0];
+
+            if (key && typeof partial[key] === 'object' && !Array.isArray(partial[key])) {
+                return {
+                    ...s,
+                    constants: {
+                        ...s.constants,
+                        [key]: {
+                            ...(s.constants as any)[key],
+                            ...partial[key],
+                        },
+                    } as any,
+                };
+            }
+
+            return {
+                ...s,
+                constants: {
+                    ...s.constants,
+                    ...partial,
+                } as any,
+            };
+        }),
+    }));
+}
+
 export function getFormatConstantsConfig(format: Format, path: Path, setPath: React.Dispatch<SetStateAction<Path>>, segmentId: string): ConstantListField[] | undefined {
     switch (format) {
         case "mikLib": return getmikLibConstantsConfig(format, path, setPath, segmentId);

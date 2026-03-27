@@ -11,7 +11,7 @@ import fwd from "../../assets/fwd.svg"
 import rev from "../../assets/reverse.svg"
 import leftswing from "../../assets/leftswing.svg"
 import rightswing from "../../assets/rightswing.svg"
-import { getDefaultConstants, updateDefaultConstants, updatePathConstants } from "../DefaultConstants";
+import { getDefaultConstants, updateDefaultConstants, updatePathConstants, updatePathConstantsByKind } from "../DefaultConstants";
 import type { CycleImageButtonProps } from "../../components/Util/CycleButton";
 import type { LemConstants, LemMoveConstants, LemAngularConstants } from "./LemConstants";
 
@@ -30,6 +30,12 @@ const createMoveGroup = (
 
   const onAngularChange = (partial: Partial<LemConstants>) =>
     updatePathConstants(setPath, segmentId, { angular: partial });
+
+  const onApplyLateral = (partial: Partial<LemConstants>) =>
+    updatePathConstantsByKind(setPath, segmentKind, { lateral: partial });
+
+  const onApplyAngular = (partial: Partial<LemConstants>) =>
+    updatePathConstantsByKind(setPath, segmentKind, { angular: partial });
 
   const setDefaultLateral = (partial: Partial<LemConstants>) => {
     updateDefaultConstants(format, segmentKind, { lateral: partial } as Partial<LemMoveConstants>);
@@ -58,6 +64,7 @@ const createMoveGroup = (
       ],
       onChange: onLateralChange,
       setDefault: setDefaultLateral,
+      onApply: onApplyLateral,
       defaults: currentDefaults?.lateral ?? {}
     },
     {
@@ -77,6 +84,7 @@ const createMoveGroup = (
       ],
       onChange: onLateralChange,
       setDefault: setDefaultLateral,
+      onApply: onApplyLateral,
       defaults: currentDefaults?.lateral ?? {}
     },
     {
@@ -96,6 +104,7 @@ const createMoveGroup = (
       ],
       onChange: onAngularChange,
       setDefault: setDefaultAngular,
+      onApply: onApplyAngular,
       defaults: currentDefaults?.angular ?? {}
     },
   ];
@@ -111,6 +120,9 @@ const createAngularGroup = (
 
   const onChange = (partial: Partial<LemConstants>) =>
     updatePathConstants(setPath, segmentId, { angular: partial });
+
+  const onApply = (partial: Partial<LemConstants>) =>
+    updatePathConstantsByKind(setPath, segmentKind, { angular: partial });
 
   const setDefault = (partial: Partial<LemConstants>) => {
     updateDefaultConstants(format, segmentKind, { angular: partial } as Partial<LemAngularConstants>);
@@ -131,6 +143,7 @@ const createAngularGroup = (
       ],
       onChange: onChange,
       setDefault: setDefault,
+      onApply: onApply,
       defaults: specificDefaults ?? {}
     },
     {
@@ -150,6 +163,7 @@ const createAngularGroup = (
       ],
       onChange: onChange,
       setDefault: setDefault,
+      onApply: onApply,
       defaults: specificDefaults ?? {}
     },
   ];

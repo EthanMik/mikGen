@@ -6,7 +6,7 @@ import type { SegmentKind } from "../Types/Segment";
 import type { ConstantListField } from "../../components/PathMenu/MotionList";
 import type { ConstantField } from "../../components/PathMenu/ConstantRow";
 import type { ReveilLibConstants, revDriveConstants, revTurnConstants } from "./RevConstants";
-import { getDefaultConstants, updateDefaultConstants, updatePathConstants } from "../DefaultConstants";
+import { getDefaultConstants, updateDefaultConstants, updatePathConstants, updatePathConstantsByKind } from "../DefaultConstants";
 
 const createDrivePIDGroup = (
   format: Format,
@@ -18,6 +18,9 @@ const createDrivePIDGroup = (
 
   const onDriveChange = (partial: Partial<ReveilLibConstants>) =>
     updatePathConstants(setPath, segmentId, { drive: partial });
+
+  const onApplyDrive = (partial: Partial<ReveilLibConstants>) =>
+    updatePathConstantsByKind(setPath, segmentKind, { drive: partial });
 
   const setDefaultDrive = (partial: Partial<ReveilLibConstants>) => {
     updateDefaultConstants(format, segmentKind, { drive: partial } as Partial<revDriveConstants>);
@@ -40,6 +43,7 @@ const createDrivePIDGroup = (
     ],
     onChange: onDriveChange,
     setDefault: setDefaultDrive,
+    onApply: onApplyDrive,
     defaults: currentDefaults?.drive ?? {}
     },
     {
@@ -54,6 +58,7 @@ const createDrivePIDGroup = (
       ],
       onChange: onDriveChange,
       setDefault: setDefaultDrive,
+      onApply: onApplyDrive,
       defaults: currentDefaults?.drive ?? {}
     },
   ];
@@ -69,6 +74,9 @@ const createTurnPIDGroup = (
 
   const onChange = (partial: Partial<ReveilLibConstants>) =>
     updatePathConstants(setPath, segmentId, { turn: partial });
+
+  const onApply = (partial: Partial<ReveilLibConstants>) =>
+    updatePathConstantsByKind(setPath, segmentKind, { turn: partial });
 
   const setDefault = (partial: Partial<ReveilLibConstants>) => {
     updateDefaultConstants(format, segmentKind, { turn: partial } as Partial<revTurnConstants>);
@@ -94,6 +102,7 @@ const createTurnPIDGroup = (
       ],
       onChange: onChange,
       setDefault: setDefault,
+      onApply: onApply,
       defaults: currentDefaults?.turn ?? {}
     },
   ];
