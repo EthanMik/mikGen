@@ -41,43 +41,25 @@ export default function FieldMacros() {
         evt.preventDefault();
 
         setPath(prev => {
-            const newSegments = (
-                prev.segments.map((c) =>
-                    c.selected
-                        ? {
-                            ...c,
-                            pose: {
-                                ...c.pose,
-                                x: c.pose.x !== null
-                                    ? clamp(
-                                    c.pose.x + xScale,
-                                    MIN_FIELD_X,
-                                    MAX_FIELD_X
-                                    ) : c.pose.x,
-                                y: c.pose.y !== null 
-                                    ? clamp(
-                                    c.pose.y + yScale,
-                                    MIN_FIELD_Y,
-                                    MAX_FIELD_Y
-                                    )
-                                    : c.pose.y
-                                    
-                            },
-                        }
-                        : c
-                )
-            );  
-            AddToUndoHistory({ path: { ...prev, segments: newSegments }})
+            const newSegments = prev.segments.map((c) =>
+                c.selected
+                    ? {
+                        ...c,
+                        pose: {
+                            ...c.pose,
+                            x: c.pose.x !== null
+                                ? clamp(c.pose.x + xScale, MIN_FIELD_X, MAX_FIELD_X)
+                                : c.pose.x,
+                            y: c.pose.y !== null
+                                ? clamp(c.pose.y + yScale, MIN_FIELD_Y, MAX_FIELD_Y)
+                                : c.pose.y,
+                        },
+                    }
+                    : c
+            );
 
-            return {
-                ...prev,
-                segments: newSegments
-            }
-        })
-
-        setPath((prev) => ({
-            ...prev,
-        }));
+            return { ...prev, segments: newSegments };
+        });
     }
 
     /** Use mouse wheel to change angle of selected segment
@@ -92,6 +74,7 @@ export default function FieldMacros() {
 
     function moveHeading(
         evt: WheelEvent,
+        path: Path,
         setPath: React.Dispatch<React.SetStateAction<Path>>,
     ) {
         const BASE_STEP = 90;
@@ -102,7 +85,10 @@ export default function FieldMacros() {
 
         const BIG_IDLE_MS = 50;
 
+        
+
         if (!evt.shiftKey) return;
+        if (path.segments.filter(c => c.selected).every(c => c.pose.angle === null)) return false;
         evt.preventDefault();
 
         let dy = evt.deltaY;
@@ -127,25 +113,20 @@ export default function FieldMacros() {
                         : c
                 );
 
-                AddToUndoHistory({ path: { ...prev, segments: newSegments } });
-
-                return {
-                    ...prev,
-                    segments: newSegments,
-                };
+                return { ...prev, segments: newSegments };
             });
         };
 
         if (evt.ctrlKey) {
             smallAccum += dy;
 
-            if (Math.abs(smallAccum) < SMALL_TICK_PX) return;
+            if (Math.abs(smallAccum) < SMALL_TICK_PX) return false;
 
             const dir = smallAccum < 0 ? 1 : -1;
             smallAccum = 0;
 
             apply(dir * SMALL_STEP);
-            return;
+            return true;
         }
 
 
@@ -155,17 +136,18 @@ export default function FieldMacros() {
             bigAccum = 0;
         }, BIG_IDLE_MS);
 
-        if (bigLocked) return;
+        if (bigLocked) return false;
 
         bigAccum += dy;
-        if (Math.abs(bigAccum) < BIG_TICK_PX) return;
+        if (Math.abs(bigAccum) < BIG_TICK_PX) return false;
 
         const dir = bigAccum < 0 ? 1 : -1;
 
         bigAccum = 0;
-        bigLocked = true; 
+        bigLocked = true;
 
         apply(dir * BASE_STEP);
+        return true;
     }
 
 

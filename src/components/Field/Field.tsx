@@ -49,8 +49,12 @@ export default function Field() {
   const [ fieldKey ] = useField();
 
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const pathRef = useRef<Path | null>(null);
+  const headingHistoryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const moveHistoryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [path, setPath] = usePath();
+  pathRef.current = path;
   const [pose] = usePose();
   const [robotPose] = useRobotPose();
   const robot = useSyncExternalStore(robotConstantsStore.subscribe, robotConstantsStore.getState);
@@ -96,6 +100,12 @@ export default function Field() {
       if (evt.ctrlKey && evt.key.toLowerCase() === "r") return;
       unselectPath(evt, setPath);
       moveControl(evt, setPath);
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(evt.key)) {
+        if (moveHistoryTimerRef.current) clearTimeout(moveHistoryTimerRef.current);
+        moveHistoryTimerRef.current = setTimeout(() => {
+          if (pathRef.current) AddToUndoHistory({ path: pathRef.current });
+        }, 400);
+      }
       cut(evt, path, setClipboard, setPath);
       copy(evt, path, setClipboard);
       paste(evt, setPath, clipboard);
@@ -103,7 +113,7 @@ export default function Field() {
       selectPath(evt, setPath);
       selectInversePath(evt, setPath);
       undo(evt, setFileFormat);
-      
+
       fieldZoomKeyboard(evt, setImg);
       toggleRobotVisibility(evt, setRobotVisibility);
     };
@@ -111,7 +121,12 @@ export default function Field() {
     const handleWheelDown = (evt: WheelEvent) => {
       const target = evt.target as HTMLElement | null;
       if (target?.isContentEditable || target?.tagName === "INPUT") return;
-      moveHeading(evt, setPath);
+      if (moveHeading(evt, path, setPath)) {
+        if (headingHistoryTimerRef.current) clearTimeout(headingHistoryTimerRef.current);
+        headingHistoryTimerRef.current = setTimeout(() => {
+          if (pathRef.current) AddToUndoHistory({ path: pathRef.current });
+        }, 400);
+      }
     };
 
     document.addEventListener("keydown", handleKeyDown);
