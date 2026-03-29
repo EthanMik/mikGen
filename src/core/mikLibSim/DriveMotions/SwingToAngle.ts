@@ -1,71 +1,73 @@
 import type { Robot } from "../../Robot";
 import { clamp } from "../../Util";
-import { kMikLibSpeed } from "../MikConstants";
-import type { PID } from "../PID";
+import { kMikLibSpeed, type mikConstants } from "../MikConstants";
+import { PID } from "../PID";
 import { angle_error, clamp_min_voltage, slew_scaling } from "../Util";
 
 let crossed: boolean = false;
-let prevError: number | null = null; 
-let prevRawError: number | null = null;
-let prevOutput: number | null = null;
+let prev_error: number = 0;
+let prev_raw_error: number = 0;
+let prev_output: number = 0;
+let swingPID: PID;
 
-function resetSwingToAngle(swingPID: PID, robot: Robot, dt: number) {
+let start = true;
+
+function resetSwingToAngle() {
     crossed = false;
-    prevOutput = null;
-    prevError = null;
-    prevRawError = null;
+    prev_error = 0;
+    prev_raw_error = 0;
+    prev_output = 0;
     swingPID.reset();
-    // robot.tankDrive(0, 0, dt);
+    start = true;
 }
 
-export function swingToAngle(robot: Robot, dt: number, angle: number, swingPID: PID) {
-    const rawError = angle_error(angle - robot.getAngle(), null);
-    let error = angle_error(angle - robot.getAngle(), swingPID.turnDirection);
-    
-    if (prevError === null || prevRawError === null) {
-        prevError = error;
-        prevRawError = rawError;
+export function swingToAngle(robot: Robot, dt: number, angle: number, p: mikConstants) {
+    const raw_error = angle_error(angle - robot.getAngle(), null);
+    let error = angle_error(angle - robot.getAngle(), p.turn_direction);
+
+    if (start) {
+        prev_error = error;
+        prev_raw_error = raw_error;
+        swingPID = new PID(p.kp, p.ki, p.kd, p.starti, p.settle_time, p.settle_error, p.timeout, p.min_voltage > 0 ? p.exit_error : 0);
+        start = false;
     }
-    
-    if (Math.sign(rawError) != Math.sign(prevRawError)) {
+
+    if (Math.sign(raw_error) != Math.sign(prev_raw_error)) {
         crossed = true;
     }
-    prevRawError = rawError;
-    
+    prev_raw_error = raw_error;
+
     if (crossed) {
-        error = rawError;
+        error = raw_error;
     } else {
-        error = angle_error(angle - robot.getAngle(), swingPID.turnDirection);
+        error = angle_error(angle - robot.getAngle(), p.turn_direction);
     }
-    
-    if (swingPID.minSpeed != 0 && crossed && Math.sign(error) != Math.sign(prevError)) {
-        resetSwingToAngle(swingPID, robot, dt);
+
+    if (p.min_voltage != 0 && crossed && Math.sign(error) != Math.sign(prev_error)) {
+        resetSwingToAngle();
         return true;
     }
-    prevError = error;
+    prev_error = error;
 
     let output = swingPID.compute(error);
-    
+
     if (swingPID.isSettled()) {
-        resetSwingToAngle(swingPID, robot, dt);
+        resetSwingToAngle();
         return true;
     }
 
-    output = clamp(output, -swingPID.maxSpeed, swingPID.maxSpeed);
-    output = slew_scaling(output, prevOutput ?? 0, swingPID.slew * (dt / 0.01), Math.abs(error) > swingPID.starti);
-    output = clamp_min_voltage(output, swingPID.minSpeed);
-    // const oppositeOutput = clamp(output, -swingPID.oppositeSpeed, swingPID.oppositeSpeed)
+    output = clamp(output, -p.maxSpeed, p.maxSpeed);
+    output = slew_scaling(output, prev_output ?? 0, p.slew * (dt / 0.01), Math.abs(error) > p.starti);
+    output = clamp_min_voltage(output, p.min_voltage);
+    prev_output = output;
 
-    prevOutput = output;
+    const scale = output / p.maxSpeed;
 
-    const scale = output / swingPID.maxSpeed;
-
-    if (swingPID.swingDirection === "left") {
-        robot.tankDrive(output / kMikLibSpeed, (swingPID.oppositeSpeed * scale) / kMikLibSpeed, dt);
+    if (p.swing_direction === "left") {
+        robot.tankDrive(output / kMikLibSpeed, (p.opposite_voltage * scale) / kMikLibSpeed, dt);
     } else {
-        robot.tankDrive((-swingPID.oppositeSpeed * scale) / kMikLibSpeed, -output / kMikLibSpeed, dt);
+        robot.tankDrive((-p.opposite_voltage * scale) / kMikLibSpeed, -output / kMikLibSpeed, dt);
     }
-    
+
     return false;
 }
-

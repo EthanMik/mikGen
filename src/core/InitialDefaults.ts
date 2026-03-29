@@ -1,6 +1,5 @@
 import { cloneKRev, kBoomerang, kLootAt, kPilon, kTurn } from "./ReveiLibSim/RevConstants";
-import { clonePID, kMikAngleSwing, kMikAngleTurn, kMikBoomerang, kMikBoomerangHeading, kMikDistanceDrive, kMikDistanceDriveHeading, kMikPointDrive, kMikPointDriveHeading, kMikPointSwing, kMikPointTurn } from "./mikLibSim/MikConstants";
-import type { mikDriveConstants, mikSwingConstants, mikTurnConstants } from "./mikLibSim/MikConstants";
+import { cloneKMik, kMikDrive, kMikHeading, kMikSwing, kMikTurn, type mikDriveConstants, type mikSwingConstants, type mikTurnConstants } from "./mikLibSim/MikConstants";
 import type { revDriveConstants, revTurnConstants } from "./ReveiLibSim/RevConstants";
 import { createObjectStore } from "./Store";
 import { cloneLemConstants, kLemAngular, kLemLinear, type LemAngularConstants, type LemMoveConstants } from "./LemLibSim/LemConstants";
@@ -88,13 +87,13 @@ export type DefaultConstant = {
 
 export const INITIAL_DEFAULTS: DefaultConstant = {
     mikLib: {
-        distanceDrive: { drive: clonePID(kMikDistanceDrive), heading: clonePID(kMikDistanceDriveHeading) },
-        pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
-        poseDrive: { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
-        pointTurn: { turn: clonePID(kMikPointTurn) },
-        angleTurn: { turn: clonePID(kMikAngleTurn) },
-        angleSwing: { swing: clonePID(kMikAngleSwing) },
-        pointSwing: { swing: clonePID(kMikPointSwing) },
+        distanceDrive: { drive: cloneKMik(kMikDrive), heading: cloneKMik(kMikHeading) },
+        pointDrive: { drive: cloneKMik(kMikDrive), heading: cloneKMik(kMikHeading) },
+        poseDrive: { drive: cloneKMik(kMikDrive), heading: cloneKMik(kMikHeading) },
+        pointTurn: { turn: cloneKMik(kMikTurn) },
+        angleTurn: { turn: cloneKMik(kMikTurn) },
+        angleSwing: { swing: cloneKMik(kMikSwing) },
+        pointSwing: { swing: cloneKMik(kMikSwing) },
         group: "",
         start: undefined,
     },
@@ -122,13 +121,13 @@ export const INITIAL_DEFAULTS: DefaultConstant = {
         start: undefined,     
     },
     "JAR-Template": {
-        distanceDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
-        pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
-        poseDrive: { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
-        pointTurn: { turn: clonePID(kMikPointTurn) },
-        angleTurn: { turn: clonePID(kMikAngleTurn) },
-        angleSwing: { swing: clonePID(kMikAngleSwing) },
-        pointSwing: { swing: clonePID(kMikPointSwing) },
+        distanceDrive: { drive: cloneKMik(kMikDrive), heading: cloneKMik(kMikHeading) },
+        pointDrive: { drive: cloneKMik(kMikDrive), heading: cloneKMik(kMikHeading) },
+        poseDrive: { drive: cloneKMik(kMikDrive), heading: cloneKMik(kMikHeading) },
+        pointTurn: { turn: cloneKMik(kMikTurn) },
+        angleTurn: { turn: cloneKMik(kMikTurn) },
+        angleSwing: { swing: cloneKMik(kMikSwing) },
+        pointSwing: { swing: cloneKMik(kMikSwing) },
         group: "",
         start: undefined,
     },
@@ -146,13 +145,13 @@ export const INITIAL_DEFAULTS: DefaultConstant = {
     },
 
     "RW-Template": {
-        distanceDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
-        pointDrive: { drive: clonePID(kMikPointDrive), heading: clonePID(kMikPointDriveHeading) },
-        poseDrive: { drive: clonePID(kMikBoomerang), heading: clonePID(kMikBoomerangHeading) },
-        pointTurn: { turn: clonePID(kMikPointTurn) },
-        angleTurn: { turn: clonePID(kMikAngleTurn) },
-        angleSwing: { swing: clonePID(kMikAngleSwing) },
-        pointSwing: { swing: clonePID(kMikPointSwing) },
+        distanceDrive: { drive: cloneKMik(kMikDrive), heading: cloneKMik(kMikHeading) },
+        pointDrive: { drive: cloneKMik(kMikDrive), heading: cloneKMik(kMikHeading) },
+        poseDrive: { drive: cloneKMik(kMikDrive), heading: cloneKMik(kMikHeading) },
+        pointTurn: { turn: cloneKMik(kMikTurn) },
+        angleTurn: { turn: cloneKMik(kMikTurn) },
+        angleSwing: { swing: cloneKMik(kMikSwing) },
+        pointSwing: { swing: cloneKMik(kMikSwing) },
         group: "",
         start: undefined,
     },
@@ -169,13 +168,13 @@ export function getDefaultConstants<F extends Format, K extends keyof ConstantsB
     const deepClone = (obj: unknown): ConstantsByFormat[F][K] => {
         const o = obj as Record<string, unknown>;
         if ('drive' in o && 'heading' in o) {
-            return { drive: clonePID(o.drive as Parameters<typeof clonePID>[0]), heading: clonePID(o.heading as Parameters<typeof clonePID>[0]) } as ConstantsByFormat[F][K];
+            return { drive: cloneKMik(o.drive as Parameters<typeof cloneKMik>[0]), heading: cloneKMik(o.heading as Parameters<typeof cloneKMik>[0]) } as ConstantsByFormat[F][K];
         }
         if ('turn' in o) {
-            return { turn: clonePID(o.turn as Parameters<typeof clonePID>[0]) } as ConstantsByFormat[F][K];
+            return { turn: cloneKMik(o.turn as Parameters<typeof cloneKMik>[0]) } as ConstantsByFormat[F][K];
         }
         if ('swing' in o) {
-            return { swing: clonePID(o.swing as Parameters<typeof clonePID>[0]) } as ConstantsByFormat[F][K];
+            return { swing: cloneKMik(o.swing as Parameters<typeof cloneKMik>[0]) } as ConstantsByFormat[F][K];
         }
         if ('lateral' in o && 'angular' in o) {
             return { lateral: cloneLemConstants(o.lateral as Parameters<typeof cloneLemConstants>[0]), angular: cloneLemConstants(o.angular as Parameters<typeof cloneLemConstants>[0]) } as ConstantsByFormat[F][K];

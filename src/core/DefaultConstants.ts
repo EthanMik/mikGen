@@ -152,6 +152,7 @@ export function getFormatSpeed(format: Format): number {
         case "JAR-Template": return 12;
         case "RW-Template": return 12;
         case "LemLib": return 127;
+        case "RevMecanum": return 1;
     }
 }
 

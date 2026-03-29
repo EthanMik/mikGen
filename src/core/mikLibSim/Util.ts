@@ -1,6 +1,5 @@
 import { clamp, toRad } from "../Util";
 import type { TurnDirection } from "./MikConstants";
-import { kMikLibSpeed } from "./MikConstants";
 
 export function angle_error(error: number, direction: TurnDirection | null) {
     if (direction === null) return reduce_negative_180_to_180(error);
@@ -11,6 +10,14 @@ export function angle_error(error: number, direction: TurnDirection | null) {
         case "counterclockwise":
             return error > 0 ? error - 360 : error;
     }
+}
+
+export function reduce_0_to_360(angle: number) {
+    while(!(angle >= 0 && angle < 360)) {
+        if(angle < 0) { angle += 360; }
+        if(angle >= 360) { angle -= 360; }
+    }
+    return angle;
 }
 
 export function reduce_negative_180_to_180(angle: number) {

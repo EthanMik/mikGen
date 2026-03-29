@@ -1,5 +1,5 @@
 import { SIM_CONSTANTS } from "../core/ComputePathSim";
-import { getDefaultConstants, getSegmentName } from "../core/DefaultConstants";
+import { getSegmentName } from "../core/DefaultConstants";
 import type { SegmentKind } from "../core/InitialDefaults";
 import { driveDistance } from "../core/mikLibSim/DriveMotions/DriveDistance";
 import { driveToPoint } from "../core/mikLibSim/DriveMotions/DriveToPoint";
@@ -8,38 +8,22 @@ import { swingToAngle } from "../core/mikLibSim/DriveMotions/SwingToAngle";
 import { swingToPoint } from "../core/mikLibSim/DriveMotions/SwingToPoint";
 import { turnToAngle } from "../core/mikLibSim/DriveMotions/TurnToAngle";
 import { turnToPoint } from "../core/mikLibSim/DriveMotions/TurnToPoint";
-import { PID } from "../core/mikLibSim/PID";
 import { angle_error } from "../core/mikLibSim/Util";
 import type { mikDriveConstants, mikSwingConstants, mikTurnConstants } from "../core/mikLibSim/MikConstants";
 import { dist } from "../core/ReveiLibSim/Util";
 import type { Robot } from "../core/Robot";
-import type { Coordinate } from "../core/Types/Coordinate";
-import { toDeg } from "../core/Util";
-import { getBackwardsSnapPose, getForwardSnapPose, type Path } from "../core/Types/Path";
+import { findPointToFace, toDeg } from "../core/Util";
+import { getBackwardsSnapPose, type Path } from "../core/Types/Path";
 
 const LOG_SEGMENT_START_AND_END = true;
-const LOG_ROBOT_STATE = false;
-const LOG_SIMULATION_NUMBER = false;
+const LOG_ROBOT_STATE = true;
+const LOG_SIMULATION_NUMBER = true;
 
 SIM_CONSTANTS.seconds = 99;
 let currentPathTime = -2/60;
 let simComputed = 0;
 
 export function mikLibToSim(path: Path) {
-    const pointTurnPID = new PID(getDefaultConstants("mikLib", "pointTurn").turn);
-    const angleTurnPID = new PID(getDefaultConstants("mikLib", "angleTurn").turn);
-
-    const pointDrivePID = new PID(getDefaultConstants("mikLib", "pointDrive").drive);
-    const pointHeadingPID = new PID(getDefaultConstants("mikLib", "pointDrive").heading);
-
-    const poseDrivePID = new PID(getDefaultConstants("mikLib", "poseDrive").drive);
-    const poseHeadingPID = new PID(getDefaultConstants("mikLib", "poseDrive").heading);
-
-    const pointSwingPID = new PID(getDefaultConstants("mikLib", "pointSwing").swing);
-    const angleSwingPID = new PID(getDefaultConstants("mikLib", "angleSwing").swing);
-
-    const distanceDrivePID = new PID(getDefaultConstants("mikLib", "distanceDrive").drive);
-    const distanceHeadingPID = new PID(getDefaultConstants("mikLib", "distanceDrive").heading);
 
     const auton: ((robot: Robot, dt: number) => [boolean, SegmentKind, number])[] = [];
     currentPathTime = -2/60;
@@ -50,6 +34,7 @@ export function mikLibToSim(path: Path) {
         const x = control.pose.x ?? 0;
         const y = control.pose.y ?? 0;
         const angle = control.pose.angle ?? 0;
+        const k = control.constants;
 
         if (idx === 0) {
             auton.push(
@@ -62,7 +47,9 @@ export function mikLibToSim(path: Path) {
         }
 
         if (control.kind === "pointDrive") {
-            const { drive, heading } = control.constants as mikDriveConstants;
+            const drive = (k as mikDriveConstants).drive;
+            const heading = (k as mikDriveConstants).heading;
+
             let started = false;
             let targetDist = 0;
 
@@ -74,11 +61,8 @@ export function mikLibToSim(path: Path) {
                         started = true;
                     }
                     DEBUG_printRobotState(robot, dt);
-                    pointDrivePID.update(drive);
-                    pointHeadingPID.update(heading);
-                    pointDrivePID.disableEarlyExit = true;
 
-                    const output = driveToPoint(robot, dt, x, y, pointDrivePID, pointHeadingPID);
+                    const output = driveToPoint(robot, dt, x, y, drive, heading);
                     if (output) DEBUG_printSegmentEnd(idx, control.kind);
                     return [output, "pointDrive", targetDist];
                 }
@@ -86,7 +70,9 @@ export function mikLibToSim(path: Path) {
         }
 
         if (control.kind === "poseDrive") {
-            const { drive, heading } = control.constants as mikDriveConstants;
+            const drive = (k as mikDriveConstants).drive;
+            const heading = (k as mikDriveConstants).heading;
+
             let started = false;
             let targetDist = 0;
 
@@ -98,10 +84,7 @@ export function mikLibToSim(path: Path) {
                         started = true;
                     }
                     DEBUG_printRobotState(robot, dt);
-                    poseDrivePID.update(drive);
-                    poseHeadingPID.update(heading);
-                    poseDrivePID.disableEarlyExit = true;
-                    const output = driveToPose(robot, dt, x, y, angle, poseDrivePID, poseHeadingPID);
+                    const output = driveToPose(robot, dt, x, y, angle, drive, heading);
                     if (output) DEBUG_printSegmentEnd(idx, control.kind);
                     return [output, "poseDrive", targetDist];
                 }
@@ -109,17 +92,9 @@ export function mikLibToSim(path: Path) {
         }
 
         if (control.kind === "pointTurn") {
-            const previousPos = getBackwardsSnapPose(path, idx - 1);
-            const turnToPos = getForwardSnapPose(path, idx);
+            const pos = findPointToFace(path, idx);
+            const turn = (k as mikTurnConstants).turn;            
 
-            const pos: Coordinate =
-            turnToPos
-                ? { x: turnToPos.x ?? 0, y: turnToPos.y ?? 0 }
-                : previousPos
-                ? { x: previousPos.x ?? 0, y: (previousPos.y ?? 0) + 5 }
-                : { x: 0, y: 5 };
-
-            const { turn } = control.constants as mikTurnConstants;
             let started = false;
             let targetDist = 0;
 
@@ -132,8 +107,7 @@ export function mikLibToSim(path: Path) {
                         started = true;
                     }
                     DEBUG_printRobotState(robot, dt);
-                    pointTurnPID.update(turn);
-                    const output = turnToPoint(robot, dt, pos.x, pos.y, angle, pointTurnPID);
+                    const output = turnToPoint(robot, dt, pos.x, pos.y, angle, turn);
                     if (output) DEBUG_printSegmentEnd(idx, control.kind);
                     return [output, "pointTurn", targetDist];
                 }
@@ -141,7 +115,7 @@ export function mikLibToSim(path: Path) {
         }
 
         if (control.kind === "angleTurn") {
-            const { turn } = control.constants as mikTurnConstants;
+            const turn = (k as mikTurnConstants).turn;            
             let started = false;
             let targetDist = 0;
 
@@ -153,8 +127,7 @@ export function mikLibToSim(path: Path) {
                         started = true;
                     }
                     DEBUG_printRobotState(robot, dt);
-                    angleTurnPID.update(turn);
-                    const output = turnToAngle(robot, dt, angle, angleTurnPID);
+                    const output = turnToAngle(robot, dt, angle, turn);
                     if (output) DEBUG_printSegmentEnd(idx, control.kind);
                     return [output, "angleTurn", targetDist];
                 }
@@ -162,17 +135,9 @@ export function mikLibToSim(path: Path) {
         }
 
         if (control.kind === "pointSwing") {
-            const previousPos = getBackwardsSnapPose(path, idx - 1);
-            const turnToPos = getForwardSnapPose(path, idx);
+            const pos = findPointToFace(path, idx);
 
-            const pos: Coordinate =
-            turnToPos
-                ? { x: turnToPos.x ?? 0, y: turnToPos.y ?? 0 }
-                : previousPos
-                ? { x: previousPos.x ?? 0, y: (previousPos.y ?? 0) + 5 }
-                : { x: 0, y: 5 };
-
-            const { swing } = control.constants as mikSwingConstants;
+            const swing = (k as mikSwingConstants).swing;
             let started = false;
             let targetDist = 0;
 
@@ -185,8 +150,7 @@ export function mikLibToSim(path: Path) {
                         started = true;
                     }
                     DEBUG_printRobotState(robot, dt);
-                    pointSwingPID.update(swing);
-                    const output = swingToPoint(robot, dt, pos.x, pos.y, angle, pointSwingPID);
+                    const output = swingToPoint(robot, dt, pos.x, pos.y, angle, swing);
                     if (output) DEBUG_printSegmentEnd(idx, control.kind);
                     return [output, "pointSwing", targetDist];
                 }
@@ -194,7 +158,7 @@ export function mikLibToSim(path: Path) {
         }
 
         if (control.kind === "angleSwing") {
-            const { swing } = control.constants as mikSwingConstants;
+            const swing = (k as mikSwingConstants).swing;
             let started = false;
             let targetDist = 0;
 
@@ -206,8 +170,7 @@ export function mikLibToSim(path: Path) {
                         started = true;
                     }
                     DEBUG_printRobotState(robot, dt);
-                    angleSwingPID.update(swing);
-                    const output = swingToAngle(robot, dt, angle, angleSwingPID);
+                    const output = swingToAngle(robot, dt, angle, swing);
                     if (output) DEBUG_printSegmentEnd(idx, control.kind);
                     return [output, "angleSwing", targetDist];
                 }
@@ -218,7 +181,9 @@ export function mikLibToSim(path: Path) {
             const previousPos = getBackwardsSnapPose(path, idx - 1);
             const distance = dist(previousPos?.x ?? 0, previousPos?.y ?? 0, x, y);
 
-            const { drive, heading } = control.constants as mikDriveConstants;
+            const drive = (k as mikDriveConstants).drive;
+            const heading = (k as mikDriveConstants).heading;
+
             let started = false;
 
             auton.push(
@@ -228,10 +193,8 @@ export function mikLibToSim(path: Path) {
                         started = true;
                     }
                     DEBUG_printRobotState(robot, dt);
-                    distanceDrivePID.update(drive);
-                    distanceHeadingPID.update(heading);
 
-                    const output = driveDistance(robot, dt, distance, angle, distanceDrivePID, distanceHeadingPID);
+                    const output = driveDistance(robot, dt, distance, angle, drive, heading);
                     if (output) DEBUG_printSegmentEnd(idx, control.kind);
                     return [output, "distanceDrive", distance];
                 }

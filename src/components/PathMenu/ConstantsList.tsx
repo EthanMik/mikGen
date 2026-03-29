@@ -4,7 +4,7 @@ import downArrow from "../../assets/down-arrow.svg";
 import type { ConstantField } from "./ConstantRow";
 import ConstantRow from "./ConstantRow";
 import { deepEqual } from "../../core/Util";
-import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
+import { AddToUndoHistory, undoHistory } from "../../core/Undo/UndoHistory";
 import { usePath } from "../../hooks/usePath";
 
 type ConstantsListProps = {
@@ -32,8 +32,19 @@ export default function ConstantsList({
 }: ConstantsListProps) {
     const [open, setOpen] = useState(false);
     const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
+    const [applied, setApplied] = useState(false);
     const [path] = usePath();
     const undoRef = useRef(false);
+    const skipNextHistoryChange = useRef(false);
+    const historyLength = undoHistory.useSelector((h) => h.length);
+
+    useEffect(() => {
+        if (skipNextHistoryChange.current) {
+            skipNextHistoryChange.current = false;
+            return;
+        }
+        setApplied(false);
+    }, [historyLength]);
 
     useEffect(() => {
         if (undoRef.current) {
@@ -144,11 +155,15 @@ export default function ConstantsList({
 
                     <button
                         className={`
-                        bg-medgray hover:bg-medgray_hover px-2 rounded-sm cursor-pointer
-                        transition-all duration-100 active:scale-[0.995] active:bg-medgray_hover/70
+                        bg-medgray px-2 rounded-sm
+                        transition-all duration-100 active:scale-[0.995]
+                        ${applied ? "opacity-40 cursor-not-allowed" : "hover:bg-medgray_hover cursor-pointer active:bg-medgray_hover/70"}
                         `}
                         onClick={(e) => {
                             e.stopPropagation();
+                            if (applied) return;
+                            skipNextHistoryChange.current = true;
+                            setApplied(true);
                             undoRef.current = true;
                             const vals = hasSelection ? buildSelectedPartial(values) : values;
                             onApply(vals);

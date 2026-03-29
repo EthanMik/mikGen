@@ -1,8 +1,7 @@
 import { getDefaultConstants } from "../core/DefaultConstants";
-import { getUnequalPIDConstants, type PIDConstants } from "../core/mikLibSim/MikConstants";
-import type { Coordinate } from "../core/Types/Coordinate";
-import { getBackwardsSnapPose, getForwardSnapPose, type Path } from "../core/Types/Path";
-import { trimZeros } from "../core/Util";
+import { getUnequalmikConstants, type mikConstants, type mikDriveConstants, type mikSwingConstants, type mikTurnConstants } from "../core/mikLibSim/MikConstants";
+import { type Path } from "../core/Types/Path";
+import { findPointToFace, trimZeros } from "../core/Util";
 
 const roundOff = (val: number | undefined | null | string, digits: number) => {
     if (val === null || val === undefined || typeof val === "string") return "";
@@ -14,54 +13,64 @@ type ConstantType = "Drive" | "Heading" | "Turn";
 const keyToMikLibConstant = (key: string, value: number | string, constantType: ConstantType): string => {
     if (constantType === "Drive") {
         switch (key) {
-            case "kp" : return `.drive_k.p = ${roundOff(value, 3)}`  
-            case "ki" : return `.drive_k.i = ${roundOff(value, 5)}`
-            case "kd" : return `.drive_k.d = ${roundOff(value, 3)}`
-            case "starti" : return `.drive_k.starti = ${roundOff(value, 2)}`
-            case "maxSpeed" : return `.max_voltage = ${roundOff(value, 1)}`  
-            case "driveDirection" : return (value === null ? 
-                "" : `.drive_direction = mik::${
-                    value === "forward" ? "fwd" : "rev"
-                }`
-            ) 
+            case "kp"      : return `.drive_k.p = ${roundOff(value, 3)}`
+            case "ki"      : return `.drive_k.i = ${roundOff(value, 5)}`
+            case "kd"      : return `.drive_k.d = ${roundOff(value, 3)}`
+            case "starti"  : return `.drive_k.starti = ${roundOff(value, 2)}`
+            case "maxSpeed": return `.max_voltage = ${roundOff(value, 1)}`
+            case "drift"   : return `.drift = ${roundOff(value, 2)}`
         }
     } else if (constantType === "Heading") {
         switch (key) {
-            case "kp" : return `.heading_k.p = ${roundOff(value, 3)}`  
-            case "ki" : return `.heading_k.i = ${roundOff(value, 5)}`
-            case "kd" : return `.heading_k.d = ${roundOff(value, 3)}`
-            case "starti" : return `.heading_k.starti = ${roundOff(value, 2)}`
-            case "maxSpeed" : return `.heading_max_voltage = ${roundOff(value, 1)}`  
+            case "kp"      : return `.heading_k.p = ${roundOff(value, 3)}`
+            case "ki"      : return `.heading_k.i = ${roundOff(value, 5)}`
+            case "kd"      : return `.heading_k.d = ${roundOff(value, 3)}`
+            case "starti"  : return `.heading_k.starti = ${roundOff(value, 2)}`
+            case "maxSpeed": return `.heading_max_voltage = ${roundOff(value, 1)}`
         }
     } else if (constantType === "Turn") {
         switch (key) {
-            case "kp" : return `.k.p = ${roundOff(value, 3)}`  
-            case "ki" : return `.k.i = ${roundOff(value, 5)}`
-            case "kd" : return `.k.d = ${roundOff(value, 3)}`
-            case "starti" : return `.k.starti = ${roundOff(value, 2)}`
-            case "maxSpeed" : return `.max_voltage = ${roundOff(value, 1)}`  
-            case "turnDirection" : return (value === null ? 
-                "" : `.turn_direction = mik::${
-                    value === "clockwise" ? "cw" : "ccw"
-                }`
-            ) 
+            case "kp"            : return `.k.p = ${roundOff(value, 3)}`
+            case "ki"            : return `.k.i = ${roundOff(value, 5)}`
+            case "kd"            : return `.k.d = ${roundOff(value, 3)}`
+            case "starti"        : return `.k.starti = ${roundOff(value, 2)}`
+            case "maxSpeed"      : return `.max_voltage = ${roundOff(value, 1)}`
+            case "turn_direction": return value === null ? "" : `.turn_direction = mik::${value === "clockwise" ? "cw" : "ccw"}`
         }
     }
 
     switch (key) {
-        case "minSpeed" : return `.min_voltage = ${roundOff(value, 1)}`  
-        case "settleTime" : return `.settle_time = ${roundOff(value, 0)}`
-        case "settleError" : return `.settle_error = ${roundOff(value, 2)}`
-        case "timeout" : return `.timeout = ${roundOff(value, 0)}`
-        case "lead" : return `.lead = ${roundOff(value, 2)}`
-        case "setback": return `.setback = ${roundOff(value, 2)}`
-
+        case "min_voltage"  : return `.min_voltage = ${roundOff(value, 1)}`
+        case "settle_time"  : return `.settle_time = ${roundOff(value, 0)}`
+        case "settle_error" : return `.settle_error = ${roundOff(value, 2)}`
+        case "timeout"      : return `.timeout = ${roundOff(value, 0)}`
+        case "lead"         : return `.lead = ${roundOff(value, 2)}`
     }
     return ""
 }
 
+const getConstantList = (constants: Partial<mikConstants>, constantType: ConstantType): string[] => {
+    const constantsList: string[] = [];
+    for (const k of Object.keys(constants)) {
+        const value = constants[k as keyof mikConstants];
+        if (value === undefined) continue;
+        const c = keyToMikLibConstant(k, value as number | string, constantType);
+        if (c !== "") constantsList.push(c);
+    }
+    return constantsList;
+}
+
 export function mikLibToString(path: Path, selected: boolean = false) {
     let pathString: string = '';
+
+    const kDefault = {
+        angleTurn : getDefaultConstants("mikLib", "angleTurn"),
+        pointTurn : getDefaultConstants("mikLib", "pointTurn"),
+        angleSwing: getDefaultConstants("mikLib", "angleSwing"),
+        pointSwing: getDefaultConstants("mikLib", "pointSwing"),
+        pointDrive: getDefaultConstants("mikLib", "pointDrive"),
+        poseDrive : getDefaultConstants("mikLib", "poseDrive"),
+    };
 
     for (let idx = 0; idx < path.segments.length; idx++) {
         const control = path.segments[idx];
@@ -69,162 +78,105 @@ export function mikLibToString(path: Path, selected: boolean = false) {
         if (selected && !control.selected) continue;
 
         const kind = control.kind;
+        const k = control.constants;
 
         const x = roundOff(control.pose.x, 2)
         const y = roundOff(control.pose.y, 2)
         const angle = roundOff(control.pose.angle, 2)
-        
+
         if (idx === 0) {
-            pathString += (
-                `    chassis.set_coordinates(${x}, ${y}, ${angle});`
-            )        
+            pathString += `    chassis.set_coordinates(${x}, ${y}, ${angle});`
             continue;
         }
-        
-        if (kind === "angleTurn") {
-            const constants = getUnequalPIDConstants(getDefaultConstants("mikLib", kind).turn, control.constants.turn);
-            const constantsList: string[] = [];
-            for (const k of Object.keys(constants)) {
-                const c = keyToMikLibConstant(k, constants[k], "Turn");
-                if (c !== "") constantsList.push(c);
-            }
 
-            const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");     
+        if (kind === "angleTurn") {
+            const { turn } = k as mikTurnConstants;
+            const constantsList = getConstantList(getUnequalmikConstants(kDefault.angleTurn.turn, turn), "Turn");
+            const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");
 
             pathString += constantsList.length === 0
             ? `\n    chassis.turn_to_angle(${angle});`
-            : constantsList.length === 1 
+            : constantsList.length === 1
             ? `\n    chassis.turn_to_angle(${angle}, { ${constantsList[0]} });`
             : `\n    chassis.turn_to_angle(${angle}, {\n${formattedConstants}\n    });`
         }
 
         if (kind === "pointTurn") {
-            const constants = getUnequalPIDConstants(getDefaultConstants("mikLib", kind).turn, control.constants.turn);
-            const constantsList: string[] = [];
+            const { turn } = k as mikTurnConstants;
+            const constantsList = getConstantList(getUnequalmikConstants(kDefault.pointTurn.turn, turn), "Turn");
 
-            if (Number(angle) !== 0) constantsList.push(`.angle_offset = ${angle}`)
-            for (const k of Object.keys(constants)) {
-                const c = keyToMikLibConstant(k, constants[k], "Turn");
-                if (c !== "") constantsList.push(c);
-            }
+            if (Number(angle) !== 0) constantsList.unshift(`.angle_offset = ${angle}`)
 
-            const previousPos = getBackwardsSnapPose(path, idx - 1);
-            const turnToPos = getForwardSnapPose(path, idx);
+            const pos = findPointToFace(path, idx);
 
-            const pos: Coordinate =
-            turnToPos
-                ? { x: turnToPos.x ?? 0, y: turnToPos.y ?? 0 }
-                : previousPos
-                ? { x: previousPos.x ?? 0, y: (previousPos.y ?? 0) + 5 }
-                : { x: 0, y: 5 };
-            
             const turnX = roundOff(pos.x, 2);
             const turnY = roundOff(pos.y, 2);
-
-            const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");     
+            const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");
 
             pathString += constantsList.length === 0
             ? `\n    chassis.turn_to_point(${turnX}, ${turnY});`
-            : constantsList.length === 1 
+            : constantsList.length === 1
             ? `\n    chassis.turn_to_point(${turnX}, ${turnY}, { ${constantsList[0]} });`
             : `\n    chassis.turn_to_point(${turnX}, ${turnY}, {\n${formattedConstants}\n    });`
         }
-        
+
         if (kind === "angleSwing") {
-            const constants = getUnequalPIDConstants(getDefaultConstants("mikLib", kind).swing, control.constants.swing);
-            const constantsList: string[] = [];
-            for (const k of Object.keys(constants)) {
-                const c = keyToMikLibConstant(k, constants[k], "Turn");
-                if (c !== "") constantsList.push(c);
-            }
-
-            const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");     
-
-            const direction = control.constants.swing.swingDirection;
+            const { swing } = k as mikSwingConstants;
+            const constantsList = getConstantList(getUnequalmikConstants(kDefault.angleSwing.swing, swing), "Turn");
+            const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");
 
             pathString += constantsList.length === 0
-            ? `\n    chassis.${direction}_swing_to_angle(${angle});`
-            : constantsList.length === 1 
-            ? `\n    chassis.${direction}_swing_to_angle(${angle}, { ${constantsList[0]} });`
-            : `\n    chassis.${direction}_swing_to_angle(${angle}, {\n${formattedConstants}\n    });`
+            ? `\n    chassis.${swing.swing_direction}_swing_to_angle(${angle});`
+            : constantsList.length === 1
+            ? `\n    chassis.${swing.swing_direction}_swing_to_angle(${angle}, { ${constantsList[0]} });`
+            : `\n    chassis.${swing.swing_direction}_swing_to_angle(${angle}, {\n${formattedConstants}\n    });`
         }
 
         if (kind === "pointSwing") {
-            const constants = getUnequalPIDConstants(getDefaultConstants("mikLib", kind).swing, control.constants.swing);
-            const constantsList: string[] = [];
+            const { swing } = k as mikSwingConstants;
+            const constantsList = getConstantList(getUnequalmikConstants(kDefault.pointSwing.swing, swing), "Turn");
 
-            if (Number(angle) !== 0) constantsList.push(`.angle_offset = ${angle}`)
-            for (const k of Object.keys(constants)) {
-                const c = keyToMikLibConstant(k, constants[k], "Turn");
-                if (c !== "") constantsList.push(c);
-            }
+            if (Number(angle) !== 0) constantsList.unshift(`.angle_offset = ${angle}`)
 
-            const previousPos = getBackwardsSnapPose(path, idx - 1);
-            const turnToPos = getForwardSnapPose(path, idx);
+            const pos = findPointToFace(path, idx);
 
-            const pos: Coordinate =
-            turnToPos
-                ? { x: turnToPos.x ?? 0, y: turnToPos.y ?? 0 }
-                : previousPos
-                ? { x: previousPos.x ?? 0, y: (previousPos.y ?? 0) + 5 }
-                : { x: 0, y: 5 };
-            
             const turnX = roundOff(pos.x, 2);
             const turnY = roundOff(pos.y, 2);
-
-            const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");     
-
-            const direction = control.constants.swing.swingDirection;
+            const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");
 
             pathString += constantsList.length === 0
-            ? `\n    chassis.${direction}_swing_to_point(${turnX}, ${turnY});`
-            : constantsList.length === 1 
-            ? `\n    chassis.${direction}_swing_to_point(${turnX}, ${turnY}, { ${constantsList[0]} });`
-            : `\n    chassis.${direction}_swing_to_point(${turnX}, ${turnY}, {\n${formattedConstants}\n    });`
+            ? `\n    chassis.${swing.swing_direction}_swing_to_point(${turnX}, ${turnY});`
+            : constantsList.length === 1
+            ? `\n    chassis.${swing.swing_direction}_swing_to_point(${turnX}, ${turnY}, { ${constantsList[0]} });`
+            : `\n    chassis.${swing.swing_direction}_swing_to_point(${turnX}, ${turnY}, {\n${formattedConstants}\n    });`
         }
 
         if (kind === "pointDrive") {
-            const driveConstants: Partial<PIDConstants> = getUnequalPIDConstants(getDefaultConstants("mikLib", kind).drive, control.constants.drive);
-            const headingConstants: Partial<PIDConstants> = getUnequalPIDConstants(getDefaultConstants("mikLib", kind).heading, control.constants.heading);
-            const constantsList: string[] = [];
-
-            for (const k of Object.keys(driveConstants)) {
-            const driveC = keyToMikLibConstant(k, driveConstants[k], "Drive");
-                if (driveC !== "") constantsList.push(driveC);
-            }
-            for (const k of Object.keys(headingConstants)) {
-                const headingC = keyToMikLibConstant(k, headingConstants[k], "Heading");
-                if (headingC !== "") constantsList.push(headingC);
-            }
-
-            const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");     
+            const { drive, heading } = k as mikDriveConstants;
+            const constantsList = [
+                ...getConstantList(getUnequalmikConstants(kDefault.pointDrive.drive, drive), "Drive"),
+                ...getConstantList(getUnequalmikConstants(kDefault.pointDrive.heading, heading), "Heading"),
+            ];
+            const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");
 
             pathString += constantsList.length === 0
             ? `\n    chassis.drive_to_point(${x}, ${y});`
-            : constantsList.length === 1 
+            : constantsList.length === 1
             ? `\n    chassis.drive_to_point(${x}, ${y}, { ${constantsList[0]} });`
             : `\n    chassis.drive_to_point(${x}, ${y}, {\n${formattedConstants}\n    });`
         }
 
         if (kind === "poseDrive") {
-            const driveConstants: Partial<PIDConstants> = getUnequalPIDConstants(getDefaultConstants("mikLib", kind).drive, control.constants.drive);
-            const headingConstants: Partial<PIDConstants> = getUnequalPIDConstants(getDefaultConstants("mikLib", kind).heading, control.constants.heading);
-            const constantsList: string[] = [];
-
-            for (const k of Object.keys(driveConstants)) {
-                const driveC = keyToMikLibConstant(k, driveConstants[k], "Drive");
-                if (driveC !== "") constantsList.push(driveC);
-            }
-            for (const k of Object.keys(headingConstants)) {
-                const headingC = keyToMikLibConstant(k, headingConstants[k], "Heading");
-                if (headingC !== "") constantsList.push(headingC);
-            }
-
-            const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");     
+            const { drive, heading } = k as mikDriveConstants;
+            const constantsList = [
+                ...getConstantList(getUnequalmikConstants(kDefault.poseDrive.drive, drive), "Drive"),
+                ...getConstantList(getUnequalmikConstants(kDefault.poseDrive.heading, heading), "Heading"),
+            ];
+            const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");
 
             pathString += constantsList.length === 0
             ? `\n    chassis.drive_to_pose(${x}, ${y}, ${angle});`
-            : constantsList.length === 1 
+            : constantsList.length === 1
             ? `\n    chassis.drive_to_pose(${x}, ${y}, ${angle}, { ${constantsList[0]} });`
             : `\n    chassis.drive_to_pose(${x}, ${y}, ${angle}, {\n${formattedConstants}\n    });`
         }

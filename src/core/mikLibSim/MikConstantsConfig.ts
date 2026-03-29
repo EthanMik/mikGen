@@ -7,55 +7,55 @@ import type { Format } from "../../hooks/useFormat";
 import ccw from "../../assets/ccw.svg";
 import cw from "../../assets/cw.svg";
 import cwccw from "../../assets/cwwcw.svg";
-import fwd from "../../assets/fwd.svg"
-import rev from "../../assets/reverse.svg"
-import fwdrev from "../../assets/fwdrev.svg"
+// import fwd from "../../assets/fwd.svg"
+// import rev from "../../assets/reverse.svg"
+// import fwdrev from "../../assets/fwdrev.svg"
 import leftswing from "../../assets/leftswing.svg"
 import rightswing from "../../assets/rightswing.svg"
 import { getDefaultConstants, updateDefaultConstants, updatePathConstants, updatePathConstantsByKind } from "../DefaultConstants";
 import type { CycleImageButtonProps } from "../../components/Util/CycleButton";
-import type { PIDConstants, mikDriveConstants, mikTurnConstants, mikSwingConstants } from "./MikConstants";
+import type { mikConstants, mikDriveConstants, mikTurnConstants, mikSwingConstants } from "./MikConstants";
 
 const createDrivePIDGroup = (
   format: Format,
   setPath: React.Dispatch<SetStateAction<Path>>,
   segmentId: string,
   segmentKind: SegmentKind,
-  driveConstants: PIDConstants,
-  headingConstants: PIDConstants
+  driveConstants: mikConstants,
+  headingConstants: mikConstants
 ): ConstantListField[] => {
 
-  const onDriveChange = (partial: Partial<PIDConstants>) =>
+  const onDriveChange = (partial: Partial<mikConstants>) =>
     updatePathConstants(setPath, segmentId, { drive: partial });
 
-  const onHeadingChange = (partial: Partial<PIDConstants>) =>
+  const onHeadingChange = (partial: Partial<mikConstants>) =>
     updatePathConstants(setPath, segmentId, { heading: partial });
 
-  const onApplyDrive = (partial: Partial<PIDConstants>) =>
+  const onApplyDrive = (partial: Partial<mikConstants>) =>
     updatePathConstantsByKind(setPath, segmentKind, { drive: partial });
 
-  const onApplyHeading = (partial: Partial<PIDConstants>) =>
+  const onApplyHeading = (partial: Partial<mikConstants>) =>
     updatePathConstantsByKind(setPath, segmentKind, { heading: partial });
 
-  const setDefaultDrive = (partial: Partial<PIDConstants>) => {
+  const setDefaultDrive = (partial: Partial<mikConstants>) => {
     updateDefaultConstants(format, segmentKind, { drive: partial } as Partial<mikDriveConstants>);
   }
 
-  const setDefaultHeading = (partial: Partial<PIDConstants>) => {
+  const setDefaultHeading = (partial: Partial<mikConstants>) => {
     updateDefaultConstants(format, segmentKind, { heading: partial } as Partial<mikDriveConstants>);
   }
 
-  const currentDefaults = getDefaultConstants(format, segmentKind) as { drive?: PIDConstants; heading?: PIDConstants } | undefined;
+  const currentDefaults = getDefaultConstants(format, segmentKind) as { drive?: mikConstants; heading?: mikConstants } | undefined;
 
   return [
     {
       header: "Exit Conditions",
       values: driveConstants,
       fields: [
-        { key: "settleError", units: "in", label: "Settle Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
-        { key: "settleTime", units: "ms", label: "Settle Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+        { key: "settle_error", units: "in", label: "Settle Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
+        { key: "settle_time", units: "ms", label: "Settle Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
         { key: "timeout", units: "ms", label: "Timeout", input: { bounds: [0, 9999], stepSize: 100, roundTo: 0 } },
-        { key: "minSpeed", units: "volt", label: "Min Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
+        { key: "min_voltage", units: "volt", label: "Min Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
         { key: "exit_error", units: "in", label: "Exit Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
       ],
       onChange: onDriveChange,
@@ -76,7 +76,6 @@ const createDrivePIDGroup = (
 
         ...(segmentKind === "poseDrive" ? [
           { key: "lead", label: "Lead", input: { bounds: [0, 1], stepSize: .1, roundTo: 2 } },
-          { key: "setback", label: "Setback", units: "in", input: { bounds: [0, 100], stepSize: .5, roundTo: 2 } },
           { key: "drift", label: "Drift", units: "", input: { bounds: [0, 100], stepSize: 1, roundTo: 1 } },
         ] as ConstantField[] : [])
       ],
@@ -112,23 +111,23 @@ const createTurnPIDGroup = (
   setPath: React.Dispatch<SetStateAction<Path>>,
   segmentId: string,
   segmentKind: SegmentKind,
-  turnConstants: PIDConstants,
+  turnConstants: mikConstants,
   isSwing: boolean = false
 ): ConstantListField[] => {
 
   const slot = isSwing ? "swing" : "turn";
 
-  const onChange = (partial: Partial<PIDConstants>) =>
+  const onChange = (partial: Partial<mikConstants>) =>
     updatePathConstants(setPath, segmentId, { [slot]: partial });
 
-  const onApply = (partial: Partial<PIDConstants>) =>
+  const onApply = (partial: Partial<mikConstants>) =>
     updatePathConstantsByKind(setPath, segmentKind, { [slot]: partial });
 
-  const setDefault = (partial: Partial<PIDConstants>) => {
+  const setDefault = (partial: Partial<mikConstants>) => {
     updateDefaultConstants(format, segmentKind, { [slot]: partial } as Partial<mikTurnConstants> | Partial<mikSwingConstants>);
   }
 
-  const currentDefaults = getDefaultConstants(format, segmentKind) as { turn?: PIDConstants; swing?: PIDConstants } | undefined;
+  const currentDefaults = getDefaultConstants(format, segmentKind) as { turn?: mikConstants; swing?: mikConstants } | undefined;
   const specificDefaults = isSwing ? currentDefaults?.swing : currentDefaults?.turn;
 
   return [
@@ -136,10 +135,10 @@ const createTurnPIDGroup = (
       header: "Exit Conditions",
       values: turnConstants,
       fields: [
-        { key: "settleError", label: "Settle Error", units: "deg", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
-        { key: "settleTime", label: "Settle Time", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+        { key: "settle_error", label: "Settle Error", units: "deg", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
+        { key: "settle_time", label: "Settle Time", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
         { key: "timeout", label: "Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 100, roundTo: 0 } },
-        { key: "minSpeed", label: "Min Speed", units: "volt", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
+        { key: "min_voltage", label: "Min Speed", units: "volt", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
         { key: "exit_error", units: "deg", label: "Exit Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
       ],
       onChange: onChange,
@@ -154,7 +153,7 @@ const createTurnPIDGroup = (
         { key: "maxSpeed", units: "volt", label: "Max Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
 
         ...(segmentKind === "angleSwing" || segmentKind === "pointSwing"  ? [
-          { key: "oppositeSpeed", units: "volt",  label: "Oppos Speed", input: { bounds: [0, 12], stepSize: .1, roundTo: 1 } },
+          { key: "opposite_voltage", units: "volt",  label: "Oppos Speed", input: { bounds: [0, 12], stepSize: .1, roundTo: 1 } },
         ] as ConstantField[] : []),
 
         { key: "kp", label: "kP", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 3 } },
@@ -197,31 +196,31 @@ const createTurnDirectionGroup = (
       { src: cwccw, key: null },
     ],
     onKeyChange: (key: string | null) => {
-      updatePathConstants(setPath, segmentId, { [slot] : { turnDirection: key } })
+      updatePathConstants(setPath, segmentId, { [slot] : { turn_direction: key } })
     },
-    value: getDirectionState(path, segmentId, "turnDirection", slot)
+    value: getDirectionState(path, segmentId, "turn_direction", slot)
   }
 }
 
-const createDriveDirectionGroup = (
-  path: Path,
-  setPath: React.Dispatch<SetStateAction<Path>>,
-  segmentId: string,
-  slot: Slot,
-): CycleImageButtonProps => {
+// const createDriveDirectionGroup = (
+//   path: Path,
+//   setPath: React.Dispatch<SetStateAction<Path>>,
+//   segmentId: string,
+//   slot: Slot,
+// ): CycleImageButtonProps => {
 
-  return {
-    imageKeys: [
-      { src: fwd, key: "forward" },
-      { src: rev, key: "reverse" },
-      { src: fwdrev, key: null },
-    ],
-    onKeyChange: (key: string | null) => {
-      updatePathConstants(setPath, segmentId, { [slot]: { driveDirection: key } })
-    },
-    value: getDirectionState(path, segmentId, "driveDirection", slot)
-  }
-}
+//   return {
+//     imageKeys: [
+//       { src: fwd, key: "forward" },
+//       { src: rev, key: "reverse" },
+//       { src: fwdrev, key: null },
+//     ],
+//     onKeyChange: (key: string | null) => {
+//       updatePathConstants(setPath, segmentId, { [slot]: { driveDirection: key } })
+//     },
+//     value: getDirectionState(path, segmentId, "driveDirection", slot)
+//   }
+// }
 
 const createSwingDirectionGroup = (
   path: Path,
@@ -235,9 +234,9 @@ const createSwingDirectionGroup = (
       { src: leftswing, key: "left" },
     ],
     onKeyChange: (key: string | null) => {
-      updatePathConstants(setPath, segmentId, { [slot]: { swingDirection: key } })
+      updatePathConstants(setPath, segmentId, { [slot]: { swing_direction: key } })
     },
-    value: getDirectionState(path, segmentId, "swingDirection", slot)
+    value: getDirectionState(path, segmentId, "swing_direction", slot)
   }
 }
 
@@ -250,12 +249,12 @@ export function getMikLibDirectionConfig(
     if (s === undefined) return [];
 
     switch (s.kind) {
-        case "pointDrive":
-        case "poseDrive":
-        case "distanceDrive":
-            return [
-            createDriveDirectionGroup(path, setPath, segmentId, "drive"),
-            ]
+        // case "pointDrive":
+        // case "poseDrive":
+        // case "distanceDrive":
+        //     return [
+        //     createDriveDirectionGroup(path, setPath, segmentId, "drive"),
+        //     ]
         case "pointTurn":
         case "angleTurn":
         return [

@@ -1,122 +1,54 @@
-import { kPilon } from "../ReveiLibSim/RevConstants";
-import type { DriveDirection, PIDConstants, SwingDirection, TurnDirection } from "./MikConstants";
-
 export class PID {
-    public kp: number;
-    public ki: number;
-    public kd: number;
-    
-    public starti: number;
-
-    public slew: number;
-    public drift: number;   
-    public settleTime: number;
-    public settleError: number;
-    public timeout: number;
-
-    public maxSpeed: number = 1;
-    public oppositeSpeed: number = 0;
-    public minSpeed: number = 0;
-    public lead: number = 0;
-    public setback: number = 0;
-
-    public swingDirection: SwingDirection | null
-    public turnDirection: TurnDirection | null
-    public driveDirection: DriveDirection | null
-
-    public disableEarlyExit = false;
-
-    public exit_error: number = 0;
-
-    private acculatedError = 0;
-    private previousError = 0;
-    private timeSpentSettled = 0;
-    private timeSpentRunning = 0;
+    private accumulated_error = 0;
+    private previous_error = 0;
+    private time_spent_settled = 0;
+    private time_spent_running = 0;
     private exiting = false;
 
-    constructor(kPID: PIDConstants) {
-        this.kp = kPID.kp ? kPID.kp : 0;
-        this.ki = kPID.ki ? kPID.ki : 0;
-        this.kd = kPID.kd ? kPID.kd : 0;
-        this.starti = kPID.starti ? kPID.starti : 0;
-        this.slew = kPID.slew ? kPID.slew : 0;
-        this.drift = kPID.drift ? kPID.drift : 0;
-        this.oppositeSpeed = kPID.oppositeSpeed ? kPID.oppositeSpeed : 0;
-        
-        this.settleTime = kPID.settleTime ? kPID.settleTime : 0;
-        this.settleError = kPID.settleError ? kPID.settleError : 0;
-        this.timeout = kPID.timeout ? kPID.timeout : 0;
-        
-        this.maxSpeed = kPID.maxSpeed ? kPID.maxSpeed : 0;
-        this.minSpeed = kPID.minSpeed ? kPID.minSpeed : 0;
+    constructor(
+        public kp: number,
+        public ki: number,
+        public kd: number,
+        public starti: number,
+        public settle_time: number,
+        public settle_error: number,
+        public timeout: number,
+        public exit_error: number,
 
-        this.lead = kPID.lead ? kPID.lead : 0;        
-        this.setback = kPID.setback ? kPID.setback : 0;   
+    ) {}
 
-        this.swingDirection = kPID.swingDirection;
-        this.turnDirection = kPID.turnDirection;
-        this.driveDirection = kPID.driveDirection;
-
-        this.exit_error = kPID.exit_error ?? 0;
-    }
-
-    public update(kPID: PIDConstants) {
-        this.kp = kPID.kp ? kPID.kp : 0;
-        this.ki = kPID.ki ? kPID.ki : 0;
-        this.kd = kPID.kd ? kPID.kd : 0;
-        this.starti = kPID.starti ? kPID.starti : 0;
-        this.slew = kPID.slew ? kPID.slew : 0;
-        this.drift = kPID.drift ? kPID.drift : 0;
-        this.oppositeSpeed = kPID.oppositeSpeed ? kPID.oppositeSpeed : 0;
-        
-        this.settleTime = kPID.settleTime ? kPID.settleTime : 0;
-        this.settleError = kPID.settleError ? kPID.settleError : 0;
-        this.timeout = kPID.timeout ? kPID.timeout : 0;
-        
-        this.maxSpeed = kPID.maxSpeed ? kPID.maxSpeed : 0;
-        this.minSpeed = kPID.minSpeed ? kPID.minSpeed : 0; 
-
-        this.lead = kPID.lead ? kPID.lead : 0;        
-        this.setback = kPID.setback ? kPID.setback : 0;       
-        
-        this.swingDirection = kPID.swingDirection;
-        this.turnDirection = kPID.turnDirection;
-        this.driveDirection = kPID.driveDirection;
-
-        this.exit_error = kPID.exit_error ?? 0;
-    }
 
     public compute(error: number) {
         if (Math.abs(error) < this.starti){
-            this.acculatedError += error;
+            this.accumulated_error += error;
         }
-        if ((error > 0 && this.previousError < 0) || (error < 0 && this.previousError > 0)) { 
-            this.acculatedError = 0; 
+        if ((error > 0 && this.previous_error < 0) || (error < 0 && this.previous_error > 0)) { 
+            this.accumulated_error = 0; 
         }
 
-        const output = this.kp * error + this.ki * this.acculatedError + this.kd * (error - this.previousError);
+        const output = this.kp * error + this.ki * this.accumulated_error + this.kd * (error - this.previous_error);
 
-        this.previousError = error;
+        this.previous_error = error;
 
-        if(Math.abs(error) < this.settleError) {
-            this.timeSpentSettled += 1/60 * 1000; // sim is run at 60 fps
+        if(Math.abs(error) < this.settle_error) {
+            this.time_spent_settled += 1/60 * 1000; // sim is run at 60 fps
         } else {
-            this.timeSpentSettled = 0;
+            this.time_spent_settled = 0;
         }
-        if (Math.abs(error) < this.exit_error && this.minSpeed > 0 && !this.disableEarlyExit) {
+        if (Math.abs(error) < this.exit_error) {
             this.exiting = true;
         }
 
-        this.timeSpentRunning += 1/60 * 1000;
+        this.time_spent_running += 1/60 * 1000;
 
         return output;
     }
 
     public isSettled(): boolean {
-        if (this.timeSpentRunning > this.timeout && this.timeout != 0) {
+        if (this.time_spent_running > this.timeout && this.timeout != 0) {
             return true;
         }
-        if (this.timeSpentSettled > this.settleTime) {
+        if (this.time_spent_settled > this.settle_time) {
             return true;
         }
         if (this.exiting) {
@@ -128,9 +60,9 @@ export class PID {
 
     public reset() {
         this.exiting = false;
-        this.previousError = 0;
-        this.acculatedError = 0;
-        this.timeSpentRunning = 0;
-        this.timeSpentSettled = 0;
+        this.previous_error = 0;
+        this.accumulated_error = 0;
+        this.time_spent_running = 0;
+        this.time_spent_settled = 0;
     }
 }

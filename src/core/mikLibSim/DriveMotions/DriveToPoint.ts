@@ -1,89 +1,92 @@
 import type { Robot } from "../../Robot";
 import { clamp, toDeg, toRad } from "../../Util";
-import { kMikLibSpeed } from "../MikConstants";
-import type { PID } from "../PID";
+import { kMikLibSpeed, type mikConstants } from "../MikConstants";
+import { PID } from "../PID";
 import { clamp_min_voltage, is_line_settled, left_voltage_scaling, reduce_negative_180_to_180, reduce_negative_90_to_90, right_voltage_scaling, slew_scaling } from "../Util";
 
 const DRIVE_LARGE_SETTLE_ERROR = 6;
 
-let pointStartHeading: number | null = null;
-let pointPrevLineSettled: boolean | null = null;
-let prevDriveOutput: number | null = null;
-let prevHeadingOutput: number | null = null;
-let lockedHeading: number | null = null;
+let desired_heading: number = 0;
+let prev_line_settled: boolean = false;
+let prev_drive_output: number = 0;
+let prev_heading_output: number = 0;
+let heading_locked: boolean = false;
+let locked_heading: number = 0;
+let drivePID: PID;
+let headingPID: PID;
 
-function exitDriveToPoint(drivePID: PID, headingPID: PID) {
+let start = true;
+
+function resetDriveToPoint() {
     drivePID.reset();
     headingPID.reset();
-    pointStartHeading = null;
-    pointPrevLineSettled = null;
-    prevHeadingOutput = null;
-    prevDriveOutput = null;
-    lockedHeading = null;
-    return true;
+    desired_heading = 0;
+    prev_line_settled = false;
+    prev_drive_output = 0;
+    prev_heading_output = 0;
+    heading_locked = false;
+    locked_heading = 0;
+    start = true;
 }
 
-export function driveToPoint(robot: Robot, dt: number, x: number, y: number, drivePID: PID, headingPID: PID) {
-    const dx = x - robot.getX();
-    const dy = y - robot.getY();
-    const headingToPoint = toDeg(Math.atan2(dx, dy));
-
-    if (pointStartHeading === null) {
-        pointStartHeading = toDeg(Math.atan2(dx, dy));
-        const exitX = x - Math.sin(toRad(pointStartHeading)) * drivePID.exit_error;
-        const exitY = y - Math.cos(toRad(pointStartHeading)) * drivePID.exit_error;
-        pointPrevLineSettled = is_line_settled(exitX, exitY, pointStartHeading, robot.getX(), robot.getY(), drivePID.exit_error);
+export function driveToPoint(robot: Robot, dt: number, x: number, y: number, drive_p: mikConstants, heading_p: mikConstants) {
+    if (start) {
+        drivePID = new PID(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
+        headingPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, heading_p.timeout, 0);
+        desired_heading = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
+        start = false;
     }
 
     if (drivePID.isSettled()) {
-        return exitDriveToPoint(drivePID, headingPID);
+        resetDriveToPoint();
+        return true;
+    
     }
-
-    const exitX = x - Math.sin(toRad(pointStartHeading)) * drivePID.exit_error;
-    const exitY = y - Math.cos(toRad(pointStartHeading)) * drivePID.exit_error;
-    const line_settled = is_line_settled(exitX, exitY, pointStartHeading, robot.getX(), robot.getY(), drivePID.exit_error);
-    if (line_settled && !pointPrevLineSettled! && drivePID.minSpeed > 0) {
-        return exitDriveToPoint(drivePID, headingPID);
+    
+    const line_settled = is_line_settled(x, y, desired_heading, robot.getX(), robot.getY(), drive_p.exit_error);
+    if (!(line_settled === prev_line_settled) && drive_p.min_voltage > 0) {
+        resetDriveToPoint();
+        return true;
     }
-    pointPrevLineSettled = line_settled;
+    prev_line_settled = line_settled;
 
-    const drive_error = Math.hypot(dx, dy);
+    desired_heading = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
+    console.log(desired_heading);
 
-    let desiredHeading = headingToPoint;
-    let driveSign = 1;
+    const drive_error = Math.hypot(x - robot.getX(), y - robot.getY());
 
-    if (drivePID.driveDirection === "reverse") {
-        desiredHeading = reduce_negative_180_to_180(headingToPoint + 180);
-        driveSign = -1;
-    }
-
-    let heading_error = reduce_negative_180_to_180(desiredHeading - robot.getAngle());
+    let heading_error = reduce_negative_180_to_180(desired_heading - robot.getAngle());
+    console.log(heading_error, desired_heading, robot.getAngle());
+    
     let drive_output = drivePID.compute(drive_error);
 
-    let heading_scale_factor = Math.cos(toRad(heading_error));
-    if (drivePID.driveDirection !== null) heading_scale_factor = Math.max(0, heading_scale_factor);
+    const heading_scale_factor = Math.cos(toRad(heading_error));
 
-    drive_output *= heading_scale_factor * driveSign;
+    drive_output *= heading_scale_factor;
 
-    const close = drive_error < DRIVE_LARGE_SETTLE_ERROR;
-    if (close) {
-        if (lockedHeading === null) lockedHeading = desiredHeading;
-        heading_error = reduce_negative_180_to_180(lockedHeading - robot.getAngle());
+    if (drive_error < DRIVE_LARGE_SETTLE_ERROR) {
+        if (!heading_locked) {
+            locked_heading = desired_heading;
+            console.log(locked_heading);
+            heading_locked = true;
+        }
+        heading_error = reduce_negative_180_to_180(locked_heading - robot.getAngle());
     }
 
-    if (drivePID.driveDirection === null) heading_error = reduce_negative_90_to_90(heading_error);
+    heading_error = reduce_negative_90_to_90(heading_error);
+
     let heading_output = headingPID.compute(heading_error);
 
-    drive_output = clamp(drive_output, -Math.abs(heading_scale_factor) * drivePID.maxSpeed, Math.abs(heading_scale_factor) * drivePID.maxSpeed);
-    heading_output = clamp(heading_output, -headingPID.maxSpeed, headingPID.maxSpeed);
-    
-    drive_output = slew_scaling(drive_output, prevDriveOutput ?? 0, drivePID.slew * (dt / 0.01), !close); // normalizes dt from 16ms to 10ms to match mikLib
-    heading_output = slew_scaling(heading_output, prevHeadingOutput ?? 0, headingPID.slew * (dt / 0.01));
-    
-    drive_output = clamp_min_voltage(drive_output, drivePID.minSpeed);
+    drive_output = clamp(drive_output, -Math.abs(heading_scale_factor) * drive_p.maxSpeed, Math.abs(heading_scale_factor) * drive_p.maxSpeed);
+    heading_output = clamp(heading_output, -heading_p.maxSpeed, heading_p.maxSpeed);
 
-    prevDriveOutput = drive_output;
-    prevHeadingOutput = heading_output;
+    drive_output = slew_scaling(drive_output, prev_drive_output, drive_p.slew * (dt / 0.01), !heading_locked);
+    heading_output = slew_scaling(heading_output, prev_heading_output, heading_p.slew * (dt / 0.01));
+
+    drive_output = clamp_min_voltage(drive_output, drive_p.min_voltage);
+
+    prev_drive_output = drive_output;
+    prev_heading_output = heading_output;
 
     robot.tankDrive(left_voltage_scaling(drive_output, heading_output) / kMikLibSpeed, right_voltage_scaling(drive_output, heading_output) / kMikLibSpeed, dt);
 
