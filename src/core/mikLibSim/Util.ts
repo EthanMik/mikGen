@@ -1,5 +1,6 @@
 import { clamp, toRad } from "../Util";
 import type { TurnDirection } from "./MikConstants";
+import { kMikLibSpeed } from "./MikConstants";
 
 export function angle_error(error: number, direction: TurnDirection | null) {
     if (direction === null) return reduce_negative_180_to_180(error);
@@ -28,8 +29,8 @@ export function reduce_negative_90_to_90(angle: number) {
     return angle;
 }
 
-export function is_line_settled(desired_X: number, desired_Y: number, desired_angle_deg: number, current_X: number, current_Y: number): boolean {
-    return (desired_Y - current_Y) * Math.cos(toRad(desired_angle_deg)) <= -(desired_X - current_X) * Math.sin(toRad(desired_angle_deg));
+export function is_line_settled(desired_X: number, desired_Y: number, desired_angle_deg: number, current_X: number, current_Y: number, exit_error: number): boolean {
+    return (desired_Y - current_Y) * Math.cos(toRad(desired_angle_deg)) <= -(desired_X - current_X) * Math.sin(toRad(desired_angle_deg)) + exit_error;
 }
 
 export function slew_scaling(drive_output: number, prev_drive_output: number, slew: number, scale: boolean = true) {
@@ -50,7 +51,8 @@ export function clamp_max_slip(drive_output: number,current_X: number, current_Y
     const dist = Math.hypot(dx, dy);
 
     const radius = (dist * dist) / (2 * perpDist);
-    const max_slip = Math.sqrt(drift * radius * 9.8);
+    const max_slip = Math.sqrt(drift * radius * 9.8) * kMikLibSpeed / 127;
+    console.log(drive_output, max_slip);
     return clamp(drive_output, -max_slip, max_slip);
 }
 
