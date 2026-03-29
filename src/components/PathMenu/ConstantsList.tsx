@@ -89,7 +89,6 @@ export default function ConstantsList({
                 hover:brightness-90
                 transition-all duration-100
                 active:scale-[0.995]
-                ${isDirty ? "bg-medlightgray " : ""}
                 relative
             `}
                 onClick={() => setOpen(!open)}

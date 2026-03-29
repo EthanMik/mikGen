@@ -51,8 +51,7 @@ export function clamp_max_slip(drive_output: number,current_X: number, current_Y
     const dist = Math.hypot(dx, dy);
 
     const radius = (dist * dist) / (2 * perpDist);
-    const max_slip = Math.sqrt(drift * radius * 9.8) * kMikLibSpeed / 127;
-    console.log(drive_output, max_slip);
+    const max_slip = Math.sqrt(drift * radius * 9.8);
     return clamp(drive_output, -max_slip, max_slip);
 }
 

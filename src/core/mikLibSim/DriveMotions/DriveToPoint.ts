@@ -32,7 +32,7 @@ export function driveToPoint(robot: Robot, dt: number, x: number, y: number, dri
         pointStartHeading = toDeg(Math.atan2(dx, dy));
         const exitX = x - Math.sin(toRad(pointStartHeading)) * drivePID.exit_error;
         const exitY = y - Math.cos(toRad(pointStartHeading)) * drivePID.exit_error;
-        pointPrevLineSettled = is_line_settled(exitX, exitY, pointStartHeading, robot.getX(), robot.getY());
+        pointPrevLineSettled = is_line_settled(exitX, exitY, pointStartHeading, robot.getX(), robot.getY(), drivePID.exit_error);
     }
 
     if (drivePID.isSettled()) {
@@ -41,7 +41,7 @@ export function driveToPoint(robot: Robot, dt: number, x: number, y: number, dri
 
     const exitX = x - Math.sin(toRad(pointStartHeading)) * drivePID.exit_error;
     const exitY = y - Math.cos(toRad(pointStartHeading)) * drivePID.exit_error;
-    const line_settled = is_line_settled(exitX, exitY, pointStartHeading, robot.getX(), robot.getY());
+    const line_settled = is_line_settled(exitX, exitY, pointStartHeading, robot.getX(), robot.getY(), drivePID.exit_error);
     if (line_settled && !pointPrevLineSettled! && drivePID.minSpeed > 0) {
         return exitDriveToPoint(drivePID, headingPID);
     }

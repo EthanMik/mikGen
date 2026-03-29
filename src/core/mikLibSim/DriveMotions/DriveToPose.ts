@@ -11,6 +11,7 @@ let crossed_line: boolean = false;
 let prev_crossed_line: boolean = false;
 let prev_drive_output: number = 0;
 let settling: boolean = false;
+let isReverse: boolean = false;
 
 let start = true;
 
@@ -21,11 +22,15 @@ function resetDriveToPose(drivePID: PID, headingPID: PID) {
 	prev_crossed_line = false;
 	prev_drive_output = 0;
 	settling = false;
+	isReverse = false;
+	start = true;
 }
 
 export function driveToPose(robot: Robot, dt: number, x: number, y: number, angle: number, drivePID: PID, headingPID: PID): boolean {
 	if (start) {
 		resetDriveToPose(drivePID, headingPID);
+		const rawHeadingError = reduce_negative_180_to_180(toDeg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle());
+		isReverse = Math.abs(rawHeadingError) > 90;
 		start = false;
 	}
 	
@@ -34,9 +39,7 @@ export function driveToPose(robot: Robot, dt: number, x: number, y: number, angl
 		return true;
 	}
 
-	if (drivePID.driveDirection === "reverse") angle = normalizeDeg(angle + 180);
-
-	console.log(drivePID.driveDirection);
+	if (isReverse) angle = normalizeDeg(angle + 180);
 
 	const target_distance = Math.hypot(x - robot.getX(), y - robot.getY());
 	
@@ -60,7 +63,7 @@ export function driveToPose(robot: Robot, dt: number, x: number, y: number, angl
 	
 	let drive_error = Math.hypot(carrot_X - robot.getX(), carrot_Y - robot.getY());
 	let current_angle = robot.getAngle();
-	if (drivePID.driveDirection === "reverse") current_angle = current_angle + 180;
+	if (isReverse) current_angle = current_angle + 180;
 
 	let heading_error = reduce_negative_180_to_180(toDeg(Math.atan2(carrot_X - robot.getX(), carrot_Y - robot.getY())) - current_angle);
 	
@@ -83,10 +86,8 @@ export function driveToPose(robot: Robot, dt: number, x: number, y: number, angl
 	drive_output = clamp_max_slip(drive_output, robot.getX(), robot.getY(), robot.getAngle(), settling ? x : carrot_X, settling ? y : carrot_Y, drivePID.drift);
 	drive_output = overturn_scaling(drive_output, heading_output, drivePID.maxSpeed);
 
-	console.log(drivePID.drift);
-
-	if (drivePID.driveDirection === "forward" && !settling) drive_output = Math.max(drive_output, 0);
-	else if (drivePID.driveDirection === "reverse" && !settling) drive_output = Math.min(drive_output, 0);
+	if (!isReverse && !settling) drive_output = Math.max(drive_output, 0);
+	else if (isReverse && !settling) drive_output = Math.min(drive_output, 0);
 
 	drive_output = clamp_min_voltage(drive_output, drivePID.minSpeed);
 

@@ -17,7 +17,7 @@ import type { Coordinate } from "../core/Types/Coordinate";
 import { toDeg } from "../core/Util";
 import { getBackwardsSnapPose, getForwardSnapPose, type Path } from "../core/Types/Path";
 
-const LOG_SEGMENT_START_AND_END = false;
+const LOG_SEGMENT_START_AND_END = true;
 const LOG_ROBOT_STATE = false;
 const LOG_SIMULATION_NUMBER = false;
 
