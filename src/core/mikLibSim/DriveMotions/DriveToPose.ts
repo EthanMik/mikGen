@@ -60,7 +60,7 @@ export function driveToPose(robot: Robot, dt: number, x: number, y: number, angl
     const carrot_settled = is_line_settled(carrot_X, carrot_Y, angle, robot.getX(), robot.getY(), drive_p.exit_error);
     crossed_line = line_settled === carrot_settled;
 
-    if (!crossed_line && prev_crossed_line && drive_p.min_voltage > 0 && settling) {
+    if (!crossed_line && prev_crossed_line && drive_p.min_voltage > 0) {
         resetDriveToPose();
         return true;
     }
@@ -77,8 +77,7 @@ export function driveToPose(robot: Robot, dt: number, x: number, y: number, angl
         heading_error = reduce_negative_180_to_180(angle - current_angle);
         drive_error *= Math.cos(toRad(reduce_negative_180_to_180(toDeg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle())));
     } else {
-        const angle_to_carrot_raw = reduce_negative_180_to_180(toDeg(Math.atan2(carrot_X - robot.getX(), carrot_Y - robot.getY())) - robot.getAngle());
-        drive_error *= Math.sign(Math.cos(toRad(angle_to_carrot_raw)));
+        drive_error *= Math.sign(Math.cos(toRad(reduce_negative_180_to_180(toDeg(Math.atan2(carrot_X - robot.getX(), carrot_Y - robot.getY())) - robot.getAngle()))));
     }
 
     let drive_output = drivePID.compute(drive_error);

@@ -7,6 +7,8 @@ export type RobotConstants = {
     height: number,
     speed: number,
     accel: number,
+    lateralTau: number,  // first-order lag time constant for lateral (linear) motion (seconds)
+    angularTau: number,  // first-order lag time constant for angular (turning) motion (seconds)
     cogOffsetX: number, // lateral offset (positive = robot's right)
     cogOffsetY: number, // longitudinal offset (positive = robot's forward)
     expansionFront: number,
@@ -22,6 +24,8 @@ export const defaultRobotConstants: RobotConstants = {
     height: 14,
     speed: 6,
     accel: 15,
+    lateralTau: 0.2,
+    angularTau: 0.1,
     cogOffsetX: 0,
     cogOffsetY: 0,
     expansionFront: 0,
@@ -66,12 +70,14 @@ export class Robot {
         public expansionRear: number = 0,
 
         public isOmnis: boolean = false,
-        public isMecnum: boolean = false
+        public isMecnum: boolean = false,
+        public lateralTau: number,
+        public angularTau: number,
     ) {
         if (isOmnis) {
-            this.lateralFriction = 50;
-        } else {
             this.lateralFriction = 10;
+        } else {
+            this.lateralFriction = 50;
         }
     }
 
@@ -129,55 +135,90 @@ export class Robot {
     }
 
     tankDrive(leftCmd: number, rightCmd: number, dt: number) {
-        const b_in = this.width;      // Distance between wheel centers (inches)
-        const v_max_ft = this.maxSpeed;    // Maximum linear velocity (feet/second)
+        const b_in = this.width;
+        const v_max_ft = this.maxSpeed;
 
-        // Input is in the range -1 to 1, with - being reverse
         const left  = clamp(leftCmd,  -1, 1);
         const right = clamp(rightCmd, -1, 1);
 
-        // Convert commands to wheel velocities (ft/s)
         const targetVL_ft = left  * v_max_ft;
         const targetVR_ft = right * v_max_ft;
 
-        // Apply acceleration limits to smoothly approach target velocity
-        this.vL = this.moveTowards(this.vL, targetVL_ft, dt);
-        this.vR = this.moveTowards(this.vR, targetVR_ft, dt);
+        // Decompose into linear and angular, apply separate first-order lag
+        const targetLinear   = (targetVL_ft + targetVR_ft) / 2;
+        const targetAngular  = (targetVR_ft - targetVL_ft) / 2;
+        const currentLinear  = (this.vL + this.vR) / 2;
+        const currentAngular = (this.vR - this.vL) / 2;
 
-        // Convert wheel velocities to inches/second for position calculations
+        const kLat = 1 - Math.exp(-dt / this.lateralTau);
+        const kAng = 1 - Math.exp(-dt / this.angularTau);
+
+        const newLinear  = currentLinear  + (targetLinear  - currentLinear)  * kLat;
+        const newAngular = currentAngular + (targetAngular - currentAngular) * kAng;
+
+        this.vL = newLinear - newAngular;
+        this.vR = newLinear + newAngular;
+
+        // Convert to inches/second
         const vL_in = this.vL * 12;
         const vR_in = this.vR * 12;
 
-        // Calculate linear velocity (in/s)
-        const v_in = (vR_in + vL_in) / 2;
+        // Tracker deltas this timestep (analogous to forward_delta / sideways_delta)
+        const forward_delta  = ((vL_in + vR_in) / 2) * dt;
+        const sideways_delta = 0; // no sideways tracker in diff drive, but kept for naming consistency
 
-        // Calculate angular velocity using differential drive kinematic equation
-        const ω = (vL_in - vR_in) / b_in;
+        // Orientation
+        const prev_orientation_rad = toRad(this.angle);
+        const orientation_delta_rad = (vL_in - vR_in) / b_in * dt;
+        const orientation_rad = prev_orientation_rad + orientation_delta_rad;
 
-        // Update heading first
-        const θ = toRad(this.angle);
-        const θNew = θ + ω * dt;
-        this.setAngle(toDeg(θNew));
+        this.angle = toDeg(orientation_rad);
+        this.setAngle(this.angle);
 
-        // Forward and lateral unit vectors in the NEW heading direction
-        const forwardX = Math.sin(θNew);
-        const forwardY = Math.cos(θNew);
-        const lateralX = Math.cos(θNew);    // perpendicular right
-        const lateralY = -Math.sin(θNew);   // perpendicular right
+        // Local displacement (5225A tracking document style)
+        let local_X_position;
+        let local_Y_position;
 
-        // Decompose current velocity into lateral component only (longitudinal is set from wheel speeds)
+        if (Math.abs(orientation_delta_rad) < 1e-7) {
+            local_X_position = sideways_delta;
+            local_Y_position = forward_delta;
+        } else {
+            local_X_position = (2 * Math.sin(orientation_delta_rad / 2)) * (sideways_delta / orientation_delta_rad);
+            local_Y_position = (2 * Math.sin(orientation_delta_rad / 2)) * (forward_delta / orientation_delta_rad);
+        }
+
+        // Convert to polar, then rotate into global frame
+        let local_polar_angle;
+        let local_polar_length;
+
+        if (Math.abs(local_X_position) < 1e-7 && Math.abs(local_Y_position) < 1e-7) {
+            local_polar_angle  = 0;
+            local_polar_length = 0;
+        } else {
+            local_polar_angle  = Math.atan2(local_Y_position, local_X_position);
+            local_polar_length = Math.sqrt(local_X_position ** 2 + local_Y_position ** 2);
+        }
+
+        const global_polar_angle = local_polar_angle - prev_orientation_rad - (orientation_delta_rad / 2);
+
+        const X_position_delta = local_polar_length * Math.cos(global_polar_angle);
+        const Y_position_delta = local_polar_length * Math.sin(global_polar_angle);
+
+        this.x += X_position_delta;
+        this.y += Y_position_delta;
+
+        // Update velocity for lateral slip
+        const v_in = forward_delta / dt;
+        const forwardX =  Math.sin(orientation_rad);
+        const forwardY =  Math.cos(orientation_rad);
+        const lateralX =  Math.cos(orientation_rad);
+        const lateralY = -Math.sin(orientation_rad);
+
         const latComponent = this.velX * lateralX + this.velY * lateralY;
-
-        // Lateral: decay with friction (simulates tire slip during turns)
         const newLat = latComponent * Math.max(0, 1 - this.lateralFriction * dt);
 
-        // Reconstruct actual velocity vector
         this.velX = v_in * forwardX + newLat * lateralX;
         this.velY = v_in * forwardY + newLat * lateralY;
-
-        // Update kinematic center position using actual velocity
-        this.x += this.velX * dt;
-        this.y += this.velY * dt;
     }
 
     mecanumDrive(flCmd: number, frCmd: number, rlCmd: number, rrCmd: number, dt: number) {
@@ -211,12 +252,12 @@ export class Robot {
 
         const omega = (-FL + FR - RL + RR) / (4 * r);
 
-        const θ = toRad(this.angle);
+        const theta = toRad(this.angle);
 
-        const forwardX = Math.sin(θ);
-        const forwardY = Math.cos(θ);
-        const rightX   = Math.cos(θ);
-        const rightY   = -Math.sin(θ);
+        const forwardX = Math.sin(theta);
+        const forwardY = Math.cos(theta);
+        const rightX   = Math.cos(theta);
+        const rightY   = -Math.sin(theta);
 
         const vx = vFwd * forwardX + vRight * rightX; // in/s
         const vy = vFwd * forwardY + vRight * rightY; // in/s
@@ -224,13 +265,9 @@ export class Robot {
         this.velX = vx;
         this.velY = vy;
 
-        let xNew = this.x + vx * dt;
-        let yNew = this.y + vy * dt;
-        const θNew = θ + omega * dt;
-        
-        this.x = xNew;
-        this.y = yNew;
-        this.angle = θNew
+        this.x = this.x + vx * dt;
+        this.y = this.y + vy * dt;
+        this.angle = toDeg(theta + omega * dt);        
     }
 
     public stop() {

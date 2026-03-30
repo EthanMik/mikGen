@@ -39,10 +39,12 @@ export default function RobotButton() {
         }
     }
     
-    const updateAccel = (accel: number | null) => {
-        if (accel !== null) {
-            robotConstantsStore.merge({ accel: accel });
-        }
+    const updateLateralTau = (v: number | null) => {
+        if (v !== null) robotConstantsStore.merge({ lateralTau: v });
+    }
+
+    const updateAngularTau = (v: number | null) => {
+        if (v !== null) robotConstantsStore.merge({ angularTau: v });
     }
 
     const updateCogOffsetX = (v: number | null) => {
@@ -146,20 +148,41 @@ export default function RobotButton() {
                                     />
                             </div>
 
-                            <div className="flex flex-row items-center justify-between">
-                                <span className="text-[16px]">Accel</span>
-                                    <NumberInput 
-                                        width={60} 
+                            <div className="mt-0.5 flex flex-col gap-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[13px] text-gray-400 whitespace-nowrap">Motor Response</span>
+                                    <div className="flex-1 border-t border-gray-500/40"></div>
+                                </div>
+                                <div className="flex flex-row items-center justify-between">
+                                    <span className="text-[16px]">Drive</span>
+                                    <NumberInput
+                                        width={60}
                                         height={35}
-                                        fontSize={16} 
-                                        bounds={[0, 100]} 
-                                        stepSize={1}
+                                        fontSize={16}
+                                        bounds={[0, 2]}
+                                        stepSize={0.05}
                                         roundTo={2}
-                                        units="ft/s²"
-                                        value={robot.accel} 
-                                        setValue={updateAccel} 
-                                        addToHistory={(accel: number) => AddToUndoHistory( {robot: { ...robot, accel: accel }} )}
+                                        units="s"
+                                        value={robot.lateralTau}
+                                        setValue={updateLateralTau}
+                                        addToHistory={(v: number) => AddToUndoHistory({ robot: { ...robot, lateralTau: v } })}
                                     />
+                                </div>
+                                <div className="flex flex-row items-center justify-between">
+                                    <span className="text-[16px]">Turn</span>
+                                    <NumberInput
+                                        width={60}
+                                        height={35}
+                                        fontSize={16}
+                                        bounds={[0, 2]}
+                                        stepSize={0.05}
+                                        roundTo={2}
+                                        units="s"
+                                        value={robot.angularTau}
+                                        setValue={updateAngularTau}
+                                        addToHistory={(v: number) => AddToUndoHistory({ robot: { ...robot, angularTau: v } })}
+                                    />
+                                </div>
                             </div>
 
                             <div className="mt-0.5 flex flex-col gap-2">

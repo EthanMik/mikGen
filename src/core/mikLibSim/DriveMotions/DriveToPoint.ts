@@ -42,7 +42,8 @@ export function driveToPoint(robot: Robot, dt: number, x: number, y: number, dri
         return true;
     
     }
-    
+
+    console.log(drive_p.exit_error)
     const line_settled = is_line_settled(x, y, desired_heading, robot.getX(), robot.getY(), drive_p.exit_error);
     if (!(line_settled === prev_line_settled) && drive_p.min_voltage > 0) {
         resetDriveToPoint();
@@ -51,12 +52,10 @@ export function driveToPoint(robot: Robot, dt: number, x: number, y: number, dri
     prev_line_settled = line_settled;
 
     desired_heading = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
-    console.log(desired_heading);
 
     const drive_error = Math.hypot(x - robot.getX(), y - robot.getY());
 
     let heading_error = reduce_negative_180_to_180(desired_heading - robot.getAngle());
-    console.log(heading_error, desired_heading, robot.getAngle());
     
     let drive_output = drivePID.compute(drive_error);
 
@@ -67,7 +66,6 @@ export function driveToPoint(robot: Robot, dt: number, x: number, y: number, dri
     if (drive_error < DRIVE_LARGE_SETTLE_ERROR) {
         if (!heading_locked) {
             locked_heading = desired_heading;
-            console.log(locked_heading);
             heading_locked = true;
         }
         heading_error = reduce_negative_180_to_180(locked_heading - robot.getAngle());
@@ -88,7 +86,10 @@ export function driveToPoint(robot: Robot, dt: number, x: number, y: number, dri
     prev_drive_output = drive_output;
     prev_heading_output = heading_output;
 
-    robot.tankDrive(left_voltage_scaling(drive_output, heading_output) / kMikLibSpeed, right_voltage_scaling(drive_output, heading_output) / kMikLibSpeed, dt);
+    const leftVoltage = left_voltage_scaling(drive_output, heading_output) / kMikLibSpeed;
+    const rightVoltage = right_voltage_scaling(drive_output, heading_output) / kMikLibSpeed;
+
+    robot.tankDrive(leftVoltage, rightVoltage, dt);
 
     return false;
 }
