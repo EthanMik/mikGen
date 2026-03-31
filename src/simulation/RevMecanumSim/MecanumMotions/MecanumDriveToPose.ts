@@ -1,18 +1,20 @@
 import type { Robot } from "../../../core/Robot";
-import { clamp, toRad } from "../../../core/Util";
+import { clamp, toDeg, toRad } from "../../../core/Util";
 import { kMikLibSpeed } from "../../mikLibSim/MikConstants";
 import { PID } from "../../mikLibSim/PID";
-import { reduce_negative_180_to_180 } from "../../mikLibSim/Util";
+import { clamp_min_voltage, is_line_settled, reduce_negative_180_to_180 } from "../../mikLibSim/Util";
 import type { RevMecanumConstants } from "../RevMecanumConstant";
 
 let drivePID: PID;
 let turnPID: PID;
+let prev_line_settled: boolean = false;
 
 let start = true;
 
 function resetMecanumDriveToPose() {
     drivePID.reset();
     turnPID.reset();
+    prev_line_settled = false;
     start = true;
 }
 
@@ -28,7 +30,17 @@ export function mecanumDriveToPose(robot: Robot, dt: number, x: number, y: numbe
         return true;
     }
 
+    const desired_heading = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
+    
+    const line_settled = is_line_settled(x, y, desired_heading, robot.getX(), robot.getY(), drive_p.exit_error);
+    if (!(line_settled === prev_line_settled) && drive_p.min_voltage > 0) {
+        resetMecanumDriveToPose();
+        return true;
+    }
+    prev_line_settled = line_settled;
+
     const drive_error = Math.hypot(x - robot.getX(), y - robot.getY());
+
     const turn_error = reduce_negative_180_to_180(angle - robot.getAngle());
 
     let drive_output = drivePID.compute(drive_error);
@@ -36,6 +48,9 @@ export function mecanumDriveToPose(robot: Robot, dt: number, x: number, y: numbe
 
     drive_output = clamp(drive_output, -drive_p.maxSpeed, drive_p.maxSpeed);
     turn_output = clamp(turn_output, -heading_p.maxSpeed, heading_p.maxSpeed);
+
+    drive_output = clamp_min_voltage(drive_output, drive_p.min_voltage);
+    turn_output = clamp_min_voltage(turn_output, heading_p.min_voltage);
 
     const heading_error = Math.atan2(y - robot.getY(), x - robot.getX());
 
