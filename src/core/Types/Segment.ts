@@ -6,6 +6,7 @@ import type { revDriveConstants, revTurnConstants } from "../../simulation/Revei
 import type { LemAngularConstants, LemMoveConstants } from "../../simulation/LemLibSim/LemConstants";
 import type { Coordinate } from "./Coordinate";
 import { posesEqual, type Pose } from "./Pose";
+import type { RevMecanumDriveConstants, RevMecanumSwingConstants, RevMecanumTurnConstants } from "../../simulation/RevMecanumSim/RevMecanumConstant";
 
 export type SegmentKind =
   | "pointDrive"
@@ -42,13 +43,13 @@ export type ConstantsByFormat = {
     group: string;
   };
   RevMecanum: {
-    distanceDrive: revDriveConstants;
-    pointDrive: revDriveConstants;
-    poseDrive: revDriveConstants;
-    pointTurn: revTurnConstants;
-    angleTurn: revTurnConstants;
-    angleSwing: revTurnConstants;
-    pointSwing: revTurnConstants;
+    distanceDrive: RevMecanumDriveConstants;
+    pointDrive: RevMecanumDriveConstants;
+    poseDrive: RevMecanumDriveConstants;
+    pointTurn: RevMecanumTurnConstants;
+    angleTurn: RevMecanumTurnConstants;
+    angleSwing: RevMecanumSwingConstants;
+    pointSwing: RevMecanumSwingConstants;
     start: undefined;
     group: string;
   };

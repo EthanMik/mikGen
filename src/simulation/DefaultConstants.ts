@@ -9,6 +9,7 @@ import type { CycleImageButtonProps } from "../components/Util/CycleButton";
 import { getRevConstantsConfig } from "./ReveiLibSim/RevConstantsConfig";
 import { INITIAL_DEFAULTS, type DefaultConstant, globalDefaultsStore, getDefaultConstants } from "./InitialDefaults";
 import { getLemLibConstantsConfig, getLemLibDirectionConfig } from "./LemLibSim/LemConstantsConfig";
+import { getRevMecanumConstantsConfig, getRevMecanumDirectionConfig } from "./RevMecanumSim/RevMecamumConstantsConfig";
 
 export { INITIAL_DEFAULTS, type DefaultConstant, globalDefaultsStore, getDefaultConstants };
 
@@ -123,6 +124,7 @@ export function getFormatConstantsConfig(format: Format, path: Path, setPath: Re
         case "mikLib": return getmikLibConstantsConfig(format, path, setPath, segmentId);
         case "ReveilLib": return getRevConstantsConfig(format, path, setPath, segmentId);
         case "LemLib": return getLemLibConstantsConfig(format, path, setPath, segmentId);
+        case "RevMecanum": return getRevMecanumConstantsConfig(format, path, setPath, segmentId);
     }
     return [];
 }
@@ -131,6 +133,7 @@ export function getFormatDirectionConfig(format: Format, path: Path, setPath: Re
     switch (format) {
         case "mikLib": return getMikLibDirectionConfig(path, setPath, segmentId);
         case "LemLib": return getLemLibDirectionConfig(path, setPath, segmentId);
+        case "RevMecanum": return getRevMecanumDirectionConfig(path, setPath, segmentId);
     }
     return [];
 }
@@ -142,6 +145,7 @@ export function getFormatPathName(format: Format) {
         case "JAR-Template": return "JAR-Template Path";
         case "LemLib": return "LemLib Path";
         case "RW-Template": return "RW-Template Path"
+        case "RevMecanum": return "RevMecanum Path";
     }
 }
 
@@ -178,6 +182,18 @@ export function segmentAllowed(format: Format, segment: SegmentKind): boolean {
                 case "angleTurn": return true;
                 case "angleSwing": return false;
                 case "pointSwing": return false;
+                case "distanceDrive": return false;
+            }
+            break;
+        }
+        case "RevMecanum": {
+            switch (segment) {
+                case "pointDrive": return true;
+                case "poseDrive": return true;
+                case "pointTurn": return true;
+                case "angleTurn": return true;
+                case "angleSwing": return true;
+                case "pointSwing": return true;
                 case "distanceDrive": return false;
             }
             break;
@@ -242,6 +258,17 @@ export function getSegmentName(format: Format, segment: SegmentKind): string {
                 case "poseDrive": return "Boomerang";
                 case "pointTurn": return "Look At";
                 case "angleTurn": return "Turn Segment";
+            }
+            break;
+        }
+        case "RevMecanum": {
+            switch (segment) {
+                case "pointDrive": return "Point Drive";
+                case "poseDrive": return "Arc Drive";
+                case "pointTurn": return "Point Turn";
+                case "angleTurn": return "Angle Turn";
+                case "angleSwing": return "Angle Swing";
+                case "pointSwing": return "Point Swing";
             }
             break;
         }
