@@ -20,7 +20,7 @@ import { useSimulateGroup } from "../hooks/useSimulateGroup";
 // This fucking file is the biggest piece of shit i find a new bug every day
 
 function createRobot(): Robot {
-    const { width, height, speed, accel, lateralTau, angularTau, isOmni, cogOffsetX, cogOffsetY, expansionFront, expansionLeft, expansionRight, expansionRear, isMecnum } = robotConstantsStore.getState();
+    const { width, height, speed, lateralTau, angularTau, isOmni, cogOffsetX, cogOffsetY, expansionFront, expansionLeft, expansionRight, expansionRear, isMecnum } = robotConstantsStore.getState();
 
     return new Robot(
         0, // Start x
@@ -29,8 +29,6 @@ function createRobot(): Robot {
         width, // Width (inches)
         height, // Height (inches)
         speed, // Speed (ft/s)
-        accel, // Max Accel (ft/s^2)
-        accel, // Max Decel (ft/s^2)
         cogOffsetX, // CoG lateral offset (inches)
         cogOffsetY, // CoG longitudinal offset (inches)
         expansionFront,
