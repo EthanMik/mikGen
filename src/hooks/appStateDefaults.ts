@@ -1,4 +1,4 @@
-import { INITIAL_DEFAULTS, type DefaultConstant } from "../core/InitialDefaults"
+import { INITIAL_DEFAULTS, type DefaultConstant } from "../simulation/InitialDefaults"
 import { defaultRobotConstants, type RobotConstants } from "../core/Robot"
 import type { Path } from "../core/Types/Path"
 

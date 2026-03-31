@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useFileFormat, type FileFormat } from "./useFileFormat";
 import { useFormat } from "./useFormat";
 import { useField } from "./useField";
-import { globalDefaultsStore } from "../core/DefaultConstants";
+import { globalDefaultsStore } from "../simulation/DefaultConstants";
 import { usePath } from "./usePath";
 import { robotConstantsStore } from "../core/Robot";
 

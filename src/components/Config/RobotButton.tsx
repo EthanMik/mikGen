@@ -150,7 +150,7 @@ export default function RobotButton() {
 
                             <div className="mt-0.5 flex flex-col gap-2">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[13px] text-gray-400 whitespace-nowrap">Motor Response</span>
+                                    <span className="text-[13px] text-gray-400 whitespace-nowrap">Time Constant (Accel)</span>
                                     <div className="flex-1 border-t border-gray-500/40"></div>
                                 </div>
                                 <div className="flex flex-row items-center justify-between">

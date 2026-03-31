@@ -3,7 +3,7 @@ import plus from "../../assets/plus.svg"
 import { usePath } from "../../hooks/usePath";
 import FieldMacros from "../../macros/FieldMacros";
 import { useFormat } from "../../hooks/useFormat";
-import { getSegmentName, segmentAllowed } from "../../core/DefaultConstants";
+import { getSegmentName, segmentAllowed } from "../../simulation/DefaultConstants";
 
 export default function AddSegmentButton() {
     const [ isOpen, setOpen ] = useState(false);

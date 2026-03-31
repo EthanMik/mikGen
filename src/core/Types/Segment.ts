@@ -1,9 +1,9 @@
 import type { Format } from "../../hooks/appStateDefaults";
-import { getDefaultConstants } from "../InitialDefaults";
+import { getDefaultConstants } from "../../simulation/InitialDefaults";
 import { deepEqual, makeId } from "../Util";
-import type { mikDriveConstants, mikSwingConstants, mikTurnConstants } from "../mikLibSim/MikConstants";
-import type { revDriveConstants, revTurnConstants } from "../ReveiLibSim/RevConstants";
-import type { LemAngularConstants, LemMoveConstants } from "../LemLibSim/LemConstants";
+import type { mikDriveConstants, mikSwingConstants, mikTurnConstants } from "../../simulation/mikLibSim/MikConstants";
+import type { revDriveConstants, revTurnConstants } from "../../simulation/ReveiLibSim/RevConstants";
+import type { LemAngularConstants, LemMoveConstants } from "../../simulation/LemLibSim/LemConstants";
 import type { Coordinate } from "./Coordinate";
 import { posesEqual, type Pose } from "./Pose";
 

@@ -7,7 +7,7 @@ import { createAngleSwingSegment, createAngleTurnSegment, createDistanceSegment,
 import type { Coordinate } from "../core/Types/Coordinate";
 import type { Pose } from "../core/Types/Pose";
 import type { Format } from "../hooks/useFormat";
-import { convertPathToString } from "../Conversion/Conversion";
+import { convertPathToString } from "../simulation/Conversion";
 import { pointerToSvg } from "../components/Field/FieldUtils";
 import type { FileFormat } from "../hooks/useFileFormat";
 import { AddToUndoHistory, redoHistory, undoHistory } from "../core/Undo/UndoHistory";

@@ -9,7 +9,7 @@ import lockOpen from "../../assets/lock-open.svg";
 import downArrow from "../../assets/down-arrow.svg";
 import { usePath } from "../../hooks/usePath";
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
-import { getFormatConstantsConfig, getFormatDirectionConfig, getFormatSpeed, getSegmentName } from "../../core/DefaultConstants";
+import { getFormatConstantsConfig, getFormatDirectionConfig, getFormatSpeed, getSegmentName } from "../../simulation/DefaultConstants";
 import { useFormat, type Format } from "../../hooks/useFormat";
 import MotionList from "./MotionList";
 import { moveMultipleSegments, setupDragTransfer, buildDraggingIds, MOTION_KIND_SET } from "./PathConfigUtils";

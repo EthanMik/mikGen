@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useFormat, type Format } from "../../hooks/useFormat";
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 import { usePath } from "../../hooks/usePath";
-import { getDefaultConstants, globalDefaultsStore } from "../../core/DefaultConstants";
+import { getDefaultConstants, globalDefaultsStore } from "../../simulation/DefaultConstants";
 
 type PathFormats = {
     name: string,

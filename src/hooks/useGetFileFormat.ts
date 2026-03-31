@@ -1,4 +1,4 @@
-import { globalDefaultsStore } from "../core/DefaultConstants";
+import { globalDefaultsStore } from "../simulation/DefaultConstants";
 import { robotConstantsStore } from "../core/Robot";
 import { useField } from "./useField";
 import { type FileFormat } from "./useFileFormat";

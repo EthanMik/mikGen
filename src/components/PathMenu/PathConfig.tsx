@@ -3,7 +3,7 @@ import { usePath } from "../../hooks/usePath";
 import MotionList from "./MotionList";
 import PathConfigHeader from "./PathHeader";
 import { useFormat } from "../../hooks/useFormat";
-import { getFormatConstantsConfig, getFormatDirectionConfig, getFormatPathName, getFormatSpeed, getSegmentName, globalDefaultsStore } from "../../core/DefaultConstants";
+import { getFormatConstantsConfig, getFormatDirectionConfig, getFormatPathName, getFormatSpeed, getSegmentName, globalDefaultsStore } from "../../simulation/DefaultConstants";
 import GroupList, { type GroupDropZone } from "./GroupList";
 import { moveMultipleSegments, buildDraggingIds, MOTION_KIND_SET } from "./PathConfigUtils";
 

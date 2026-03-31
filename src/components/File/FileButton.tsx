@@ -4,7 +4,7 @@ import FileRenamePopup from "./FileRenamePopup";
 import { useGetFileFormat } from "../../hooks/useGetFileFormat";
 import { useFormat } from "../../hooks/useFormat";
 import { useFileFormat, type FileFormat } from "../../hooks/useFileFormat";
-import { INITIAL_DEFAULTS } from "../../core/DefaultConstants";
+import { INITIAL_DEFAULTS } from "../../simulation/DefaultConstants";
 import { defaultRobotConstants } from "../../core/Robot";
 import { useField } from "../../hooks/useField";
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";

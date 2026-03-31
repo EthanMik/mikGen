@@ -12,7 +12,7 @@ import ConstantsList from "./ConstantsList";
 import CycleImageButton, { type CycleImageButtonProps } from "../Util/CycleButton";
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 import { setupDragTransfer } from "./PathConfigUtils";
-import { globalDefaultsStore } from "../../core/DefaultConstants";
+import { globalDefaultsStore } from "../../simulation/DefaultConstants";
 import { useFormat } from "../../hooks/useFormat";
 import { activeSimSegmentStore, pathTelemetry } from "../../core/ComputePathSim";
 import { roundNum } from "../../core/Util";

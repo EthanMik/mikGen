@@ -10,7 +10,7 @@ import Checkbox from "./Util/Checkbox";
 import Slider from "./Util/Slider";
 import { usePath } from "../hooks/usePath";
 import { PathSimMacros } from "../macros/PathSimMacros";
-import { convertPathToSim } from "../Conversion/Conversion";
+import { convertPathToSim } from "../simulation/Conversion";
 import { useFormat } from "../hooks/useFormat";
 import { useRobotPose } from "../hooks/useRobotPose";
 import { useSettings } from "../hooks/useSettings";
