@@ -206,86 +206,86 @@ export class Robot {
         this.velY = v_in * forwardY + newLat * lateralY;
     }
 
-    // mecanumDrive(flCmd: number, frCmd: number, rlCmd: number, rrCmd: number, dt: number) {
-    //     const fl = clamp(flCmd, -1, 1);
-    //     const fr = clamp(frCmd, -1, 1);
-    //     const rl = clamp(rlCmd, -1, 1);
-    //     const rr = clamp(rrCmd, -1, 1);
+    mecanumDrive(flCmd: number, frCmd: number, rlCmd: number, rrCmd: number, dt: number) {
+        const fl = clamp(flCmd, -1, 1);
+        const fr = clamp(frCmd, -1, 1);
+        const rl = clamp(rlCmd, -1, 1);
+        const rr = clamp(rrCmd, -1, 1);
 
-    //     const tFL = fl * this.maxSpeed;
-    //     const tFR = fr * this.maxSpeed;
-    //     const tRL = rl * this.maxSpeed;
-    //     const tRR = rr * this.maxSpeed;
+        const tFL = fl * this.maxSpeed;
+        const tFR = fr * this.maxSpeed;
+        const tRL = rl * this.maxSpeed;
+        const tRR = rr * this.maxSpeed;
 
-    //     // Decompose wheel commands into forward, lateral, angular components
-    //     const r = (this.height + this.width) / 2;
-    //     const targetFwd   = (tFL + tFR + tRL + tRR) / 4;
-    //     const targetLat   = (-tFL + tFR + tRL - tRR) / 4;
-    //     const targetOmega = (-tFL + tFR - tRL + tRR) / (4 * r); // rad/s (ft units)
+        // Decompose wheel commands into forward, lateral, angular components
+        const r = (this.height + this.width) / 2;
+        const targetFwd   = (tFL + tFR + tRL + tRR) / 4;
+        const targetLat   = (-tFL + tFR + tRL - tRR) / 4;
+        const targetOmega = (-tFL + tFR - tRL + tRR) / (4 * r); // rad/s (ft units)
 
-    //     // Recover current components from wheel velocities
-    //     const curFwd   = (this.vFL + this.vFR + this.vRL + this.vRR) / 4;
-    //     const curLat   = (-this.vFL + this.vFR + this.vRL - this.vRR) / 4;
-    //     const curOmega = (-this.vFL + this.vFR - this.vRL + this.vRR) / (4 * r);
+        // Recover current components from wheel velocities
+        const curFwd   = (this.vFL + this.vFR + this.vRL + this.vRR) / 4;
+        const curLat   = (-this.vFL + this.vFR + this.vRL - this.vRR) / 4;
+        const curOmega = (-this.vFL + this.vFR - this.vRL + this.vRR) / (4 * r);
 
-    //     // First-order lag with separate lateral and angular time constants
-    //     const kLat = 1 - Math.exp(-dt / this.lateralTau);
-    //     const kAng = 1 - Math.exp(-dt / this.angularTau);
+        // First-order lag with separate lateral and angular time constants
+        const kLat = 1 - Math.exp(-dt / this.lateralTau);
+        const kAng = 1 - Math.exp(-dt / this.angularTau);
 
-    //     const newFwd   = curFwd   + (targetFwd   - curFwd)   * kLat;
-    //     const newLat   = curLat   + (targetLat   - curLat)   * kLat;
-    //     const newOmega = curOmega + (targetOmega - curOmega) * kAng;
+        const newFwd   = curFwd   + (targetFwd   - curFwd)   * kLat;
+        const newLat   = curLat   + (targetLat   - curLat)   * kLat;
+        const newOmega = curOmega + (targetOmega - curOmega) * kAng;
 
-    //     // Reconstruct wheel velocities (ft/s) from filtered components
-    //     this.vFL = newFwd - newLat - newOmega * r;
-    //     this.vFR = newFwd + newLat + newOmega * r;
-    //     this.vRL = newFwd + newLat - newOmega * r;
-    //     this.vRR = newFwd - newLat + newOmega * r;
+        // Reconstruct wheel velocities (ft/s) from filtered components
+        this.vFL = newFwd - newLat - newOmega * r;
+        this.vFR = newFwd + newLat + newOmega * r;
+        this.vRL = newFwd + newLat - newOmega * r;
+        this.vRR = newFwd - newLat + newOmega * r;
 
-    //     // Convert to in/s
-    //     const fwd_in   = newFwd   * 12;
-    //     const lat_in   = newLat   * 12;
-    //     const omega_in = newOmega * 12; // rad/s (inches denominator irrelevant for angle)
+        // Convert to in/s
+        const fwd_in   = newFwd   * 12;
+        const lat_in   = newLat   * 12;
+        const omega_in = newOmega * 12; // rad/s (inches denominator irrelevant for angle)
 
-    //     // Arc odometry (5225A tracking document style)
-    //     const forward_delta  = fwd_in * dt;
-    //     const sideways_delta = lat_in * dt;
-    //     const prev_orientation_rad = toRad(this.angle);
-    //     const orientation_delta_rad = omega_in * dt;
-    //     const orientation_rad = prev_orientation_rad + orientation_delta_rad;
+        // Arc odometry (5225A tracking document style)
+        const forward_delta  = fwd_in * dt;
+        const sideways_delta = lat_in * dt;
+        const prev_orientation_rad = toRad(this.angle);
+        const orientation_delta_rad = omega_in * dt;
+        const orientation_rad = prev_orientation_rad + orientation_delta_rad;
 
-    //     this.setAngle(toDeg(orientation_rad));
+        this.setAngle(toDeg(orientation_rad));
 
-    //     let local_X_position: number;
-    //     let local_Y_position: number;
+        let local_X_position: number;
+        let local_Y_position: number;
 
-    //     if (Math.abs(orientation_delta_rad) < 1e-7) {
-    //         local_X_position = sideways_delta;
-    //         local_Y_position = forward_delta;
-    //     } else {
-    //         const c = 2 * Math.sin(orientation_delta_rad / 2);
-    //         local_X_position = c * (sideways_delta / orientation_delta_rad);
-    //         local_Y_position = c * (forward_delta  / orientation_delta_rad);
-    //     }
+        if (Math.abs(orientation_delta_rad) < 1e-7) {
+            local_X_position = sideways_delta;
+            local_Y_position = forward_delta;
+        } else {
+            const c = 2 * Math.sin(orientation_delta_rad / 2);
+            local_X_position = c * (sideways_delta / orientation_delta_rad);
+            local_Y_position = c * (forward_delta  / orientation_delta_rad);
+        }
 
-    //     const local_polar_angle  = Math.atan2(local_Y_position, local_X_position);
-    //     const local_polar_length = Math.sqrt(local_X_position ** 2 + local_Y_position ** 2);
+        const local_polar_angle  = Math.atan2(local_Y_position, local_X_position);
+        const local_polar_length = Math.sqrt(local_X_position ** 2 + local_Y_position ** 2);
 
-    //     const global_polar_angle = local_polar_angle - prev_orientation_rad - (orientation_delta_rad / 2);
+        const global_polar_angle = local_polar_angle - prev_orientation_rad - (orientation_delta_rad / 2);
 
-    //     this.x += local_polar_length * Math.cos(global_polar_angle);
-    //     this.y += local_polar_length * Math.sin(global_polar_angle);
+        this.x += local_polar_length * Math.cos(global_polar_angle);
+        this.y += local_polar_length * Math.sin(global_polar_angle);
 
-    //     // Update world-frame velocity
-    //     const theta = orientation_rad;
-    //     const forwardX = Math.sin(theta);
-    //     const forwardY = Math.cos(theta);
-    //     const rightX   =  Math.cos(theta);
-    //     const rightY   = -Math.sin(theta);
+        // Update world-frame velocity
+        const theta = orientation_rad;
+        const forwardX = Math.sin(theta);
+        const forwardY = Math.cos(theta);
+        const rightX   =  Math.cos(theta);
+        const rightY   = -Math.sin(theta);
 
-    //     this.velX = fwd_in * forwardX + lat_in * rightX;
-    //     this.velY = fwd_in * forwardY + lat_in * rightY;
-    // }
+        this.velX = fwd_in * forwardX + lat_in * rightX;
+        this.velY = fwd_in * forwardY + lat_in * rightY;
+    }
 
 
     private moveTowards(current: number, target: number, dt: number): number {
@@ -298,52 +298,52 @@ export class Robot {
         return current + Math.sign(diff) * maxDelta;
     }
 
-    mecanumDrive(flCmd: number, frCmd: number, rlCmd: number, rrCmd: number, dt: number) {
-        const fl = clamp(flCmd, -1, 1);
-        const fr = clamp(frCmd, -1, 1);
-        const rl = clamp(rlCmd, -1, 1);
-        const rr = clamp(rrCmd, -1, 1);
+    // mecanumDrive(flCmd: number, frCmd: number, rlCmd: number, rrCmd: number, dt: number) {
+    //     const fl = clamp(flCmd, -1, 1);
+    //     const fr = clamp(frCmd, -1, 1);
+    //     const rl = clamp(rlCmd, -1, 1);
+    //     const rr = clamp(rrCmd, -1, 1);
 
-        const tFL = fl * this.maxSpeed;
-        const tFR = fr * this.maxSpeed;
-        const tRL = rl * this.maxSpeed;
-        const tRR = rr * this.maxSpeed;
+    //     const tFL = fl * this.maxSpeed;
+    //     const tFR = fr * this.maxSpeed;
+    //     const tRL = rl * this.maxSpeed;
+    //     const tRR = rr * this.maxSpeed;
 
-        this.vFL = this.moveTowards(this.vFL, tFL, dt);
-        this.vFR = this.moveTowards(this.vFR, tFR, dt);
-        this.vRL = this.moveTowards(this.vRL, tRL, dt);
-        this.vRR = this.moveTowards(this.vRR, tRR, dt);
+    //     this.vFL = this.moveTowards(this.vFL, tFL, dt);
+    //     this.vFR = this.moveTowards(this.vFR, tFR, dt);
+    //     this.vRL = this.moveTowards(this.vRL, tRL, dt);
+    //     this.vRR = this.moveTowards(this.vRR, tRR, dt);
 
-        const FL = this.vFL * 12;
-        const FR = this.vFR * 12;
-        const RL = this.vRL * 12;
-        const RR = this.vRR * 12;
+    //     const FL = this.vFL * 12;
+    //     const FR = this.vFR * 12;
+    //     const RL = this.vRL * 12;
+    //     const RR = this.vRR * 12;
 
 
-        const vFwd   = (FL + FR + RL + RR) / 4;
-        const vRight = (-FL + FR + RL - RR) / 4;
+    //     const vFwd   = (FL + FR + RL + RR) / 4;
+    //     const vRight = (-FL + FR + RL - RR) / 4;
 
-        const rx = this.width / 2;
-        const ry = this.height / 2;
-        const r = rx + ry;
+    //     const rx = this.width / 2;
+    //     const ry = this.height / 2;
+    //     const r = rx + ry;
 
-        const omega = (-FL + FR - RL + RR) / (4 * r);
+    //     const omega = (-FL + FR - RL + RR) / (4 * r);
 
-        const θ = toRad(this.getAngle());
+    //     const θ = toRad(this.getAngle());
 
-        const forwardX = Math.sin(θ);
-        const forwardY = Math.cos(θ);
-        const rightX   = Math.cos(θ);
-        const rightY   = -Math.sin(θ);
+    //     const forwardX = Math.sin(θ);
+    //     const forwardY = Math.cos(θ);
+    //     const rightX   = Math.cos(θ);
+    //     const rightY   = -Math.sin(θ);
 
-        const vx = vFwd * forwardX + vRight * rightX; // in/s
-        const vy = vFwd * forwardY + vRight * rightY; // in/s
+    //     const vx = vFwd * forwardX + vRight * rightX; // in/s
+    //     const vy = vFwd * forwardY + vRight * rightY; // in/s
 
-        const θNew = θ + omega * dt;
-        this.x += vx * dt;
-        this.y += vy * dt;
-        this.angle = (normalizeDeg(toDeg(θNew)));
-    }
+    //     const θNew = θ + omega * dt;
+    //     this.x += vx * dt;
+    //     this.y += vy * dt;
+    //     this.angle = (normalizeDeg(toDeg(θNew)));
+    // }
 
 
 
