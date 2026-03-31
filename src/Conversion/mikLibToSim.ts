@@ -14,6 +14,7 @@ import { dist } from "../core/ReveiLibSim/Util";
 import type { Robot } from "../core/Robot";
 import { findPointToFace, toDeg } from "../core/Util";
 import { getBackwardsSnapPose, type Path } from "../core/Types/Path";
+import { driveWithVoltage } from "../core/mikLibSim/DriveMotions/DriveWithVoltage";
 
 const LOG_SEGMENT_START_AND_END = true;
 const LOG_ROBOT_STATE = true;
@@ -45,6 +46,15 @@ export function mikLibToSim(path: Path) {
             );
             continue;
         }
+
+        // auton.push(
+        //     (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
+        //         return [driveWithVoltage(robot, dt, 12, -12, 1500), "pointDrive", 0];
+        //     }
+        // );
+        
+        // break;
+
 
         if (control.kind === "pointDrive") {
             const drive = (k as mikDriveConstants).drive;

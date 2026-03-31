@@ -138,22 +138,26 @@ export class Robot {
         const b_in = this.width;
         const v_max_ft = this.maxSpeed;
 
-        const left  = clamp(leftCmd,  -1, 1);
+        const left = clamp(leftCmd, -1, 1);
         const right = clamp(rightCmd, -1, 1);
 
-        const targetVL_ft = left  * v_max_ft;
+        const targetVL_ft = left * v_max_ft;
         const targetVR_ft = right * v_max_ft;
 
         // Decompose into linear and angular, apply separate first-order lag
-        const targetLinear   = (targetVL_ft + targetVR_ft) / 2;
-        const targetAngular  = (targetVR_ft - targetVL_ft) / 2;
-        const currentLinear  = (this.vL + this.vR) / 2;
+        const targetLinear = (targetVL_ft + targetVR_ft) / 2;
+        const targetAngular = (targetVR_ft - targetVL_ft) / 2;
+        const currentLinear = (this.vL + this.vR) / 2;
         const currentAngular = (this.vR - this.vL) / 2;
 
-        const kLat = 1 - Math.exp(-dt / this.lateralTau);
-        const kAng = 1 - Math.exp(-dt / this.angularTau);
+        // Use decel tau when velocity magnitude is shrinking — back-EMF assists braking
+        const isLatDecel = Math.abs(targetLinear) < Math.abs(currentLinear);
+        const isAngDecel = Math.abs(targetAngular) < Math.abs(currentAngular);
 
-        const newLinear  = currentLinear  + (targetLinear  - currentLinear)  * kLat;
+        const kLat = 1 - Math.exp(-dt / (isLatDecel ? this.lateralTau : this.lateralTau));
+        const kAng = 1 - Math.exp(-dt / (isAngDecel ? this.angularTau : this.angularTau));
+
+        const newLinear = currentLinear + (targetLinear - currentLinear) * kLat;
         const newAngular = currentAngular + (targetAngular - currentAngular) * kAng;
 
         this.vL = newLinear - newAngular;
@@ -164,8 +168,8 @@ export class Robot {
         const vR_in = this.vR * 12;
 
         // Tracker deltas this timestep (analogous to forward_delta / sideways_delta)
-        const forward_delta  = ((vL_in + vR_in) / 2) * dt;
-        const sideways_delta = 0; // no sideways tracker in diff drive, but kept for naming consistency
+        const forward_delta = ((vL_in + vR_in) / 2) * dt;
+        const sideways_delta = 0;
 
         // Orientation
         const prev_orientation_rad = toRad(this.angle);
@@ -192,10 +196,10 @@ export class Robot {
         let local_polar_length;
 
         if (Math.abs(local_X_position) < 1e-7 && Math.abs(local_Y_position) < 1e-7) {
-            local_polar_angle  = 0;
+            local_polar_angle = 0;
             local_polar_length = 0;
         } else {
-            local_polar_angle  = Math.atan2(local_Y_position, local_X_position);
+            local_polar_angle = Math.atan2(local_Y_position, local_X_position);
             local_polar_length = Math.sqrt(local_X_position ** 2 + local_Y_position ** 2);
         }
 
@@ -209,9 +213,9 @@ export class Robot {
 
         // Update velocity for lateral slip
         const v_in = forward_delta / dt;
-        const forwardX =  Math.sin(orientation_rad);
-        const forwardY =  Math.cos(orientation_rad);
-        const lateralX =  Math.cos(orientation_rad);
+        const forwardX = Math.sin(orientation_rad);
+        const forwardY = Math.cos(orientation_rad);
+        const lateralX = Math.cos(orientation_rad);
         const lateralY = -Math.sin(orientation_rad);
 
         const latComponent = this.velX * lateralX + this.velY * lateralY;
@@ -243,7 +247,7 @@ export class Robot {
         const RR = this.vRR * 12;
 
 
-        const vFwd   = (FL + FR + RL + RR) / 4;
+        const vFwd = (FL + FR + RL + RR) / 4;
         const vRight = (-FL + FR + RL - RR) / 4;
 
         const rx = this.height / 2;
@@ -256,8 +260,8 @@ export class Robot {
 
         const forwardX = Math.sin(theta);
         const forwardY = Math.cos(theta);
-        const rightX   = Math.cos(theta);
-        const rightY   = -Math.sin(theta);
+        const rightX = Math.cos(theta);
+        const rightY = -Math.sin(theta);
 
         const vx = vFwd * forwardX + vRight * rightX; // in/s
         const vy = vFwd * forwardY + vRight * rightY; // in/s
@@ -267,7 +271,7 @@ export class Robot {
 
         this.x = this.x + vx * dt;
         this.y = this.y + vy * dt;
-        this.angle = toDeg(theta + omega * dt);        
+        this.angle = toDeg(theta + omega * dt);
     }
 
     public stop() {
