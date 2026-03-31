@@ -3,22 +3,22 @@ import Checkbox from "../Util/Checkbox";
 import NumberInput from "../Util/NumberInput";
 import { robotConstantsStore } from "../../core/Robot";
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
-import { useFormat } from "../../hooks/useFormat";
+import { useFormat, type Format } from "../../hooks/useFormat";
+import { usePath } from "../../hooks/usePath";
+import { getDefaultConstants, globalDefaultsStore } from "../../simulation/InitialDefaults";
 
 export default function RobotButton() {
+    const [ , setPath ] = usePath();
+    const [ format, setFormat ] = useFormat();
+    
     const [ isOpen, setOpen ] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
+    const prevFormatRef = useRef<Format>(format);
     
-    const [ format ] = useFormat();
-
     const robot =  robotConstantsStore.useStore();
     
     const updateOmnis = (omni: boolean) => {
         robotConstantsStore.merge({ isOmni: omni });
-    }
-    
-    const updateMecnum = (mecnum: boolean) => {
-        robotConstantsStore.merge({ isMecnum: mecnum });
     }
 
     const updateWidth = (width: number | null) => {
@@ -86,6 +86,35 @@ export default function RobotButton() {
             document.removeEventListener("keydown", handleClose)
         }
     }, []);
+
+
+    const changeFormat = (format: Format) => {
+        setFormat(format);
+        setPath(prev => {
+            const newPath = {
+                ...prev,
+                segments: prev.segments.map((s) => ({
+                    ...s,
+                    format: format,
+                    constants: getDefaultConstants(format, s.kind),
+                }))
+            }
+
+            if (prevFormatRef.current !== format) {
+                AddToUndoHistory({
+                    format: format,
+                    defaults: structuredClone(globalDefaultsStore.getState()[format]),
+                    path: newPath,
+                });
+            }
+
+            return {
+                ...newPath
+            };
+        });
+
+        prevFormatRef.current = format;
+    };
 
     return (
         <div ref={menuRef} className={`relative ${isOpen ? "bg-medgray_hover" : "bg-none"} hover:bg-medgray_hover rounded-sm`}>
@@ -266,7 +295,7 @@ export default function RobotButton() {
                                 </div>
                             </div>
 
-                            {format === "ReveilLib" &&  <div className="mt-0.5 flex flex-col gap-2">
+                            {(format === "ReveilLib" || format === "RevMecanum") &&  <div className="mt-0.5 flex flex-col gap-2">
                                 <div className="flex items-center gap-2">
                                     <span className="text-[13px] text-gray-400 whitespace-nowrap">Robot Type</span>
                                     <div className="flex-1 border-t border-gray-500/40"></div>
@@ -274,9 +303,8 @@ export default function RobotButton() {
                                 <div className="flex flex-row items-center justify-between h-[35px]">
                                     <span className="text-[16px]">Mecnum</span>
                                     <label className="flex items-center gap-2 cursor-pointer select-none">
-                                        <Checkbox checked={robot.isMecnum} setChecked={(checked: boolean) => {
-                                            updateMecnum(checked);
-                                            AddToUndoHistory({robot: {...robot, isMecnum: checked}});
+                                        <Checkbox checked={format === "RevMecanum"} setChecked={(checked: boolean) => {
+                                            changeFormat(checked ? "RevMecanum" : "ReveilLib");
                                         }} />
                                     </label>
                                 </div>

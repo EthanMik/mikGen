@@ -5,6 +5,7 @@ import type { Path } from "../../core/Types/Path";
 import type { Rectangle } from "../../core/Util";
 import { useSettings } from "../../hooks/useSettings";
 import type { RobotConstants } from "../../core/Robot";
+import { useFormat } from "../../hooks/useFormat";
 
 type RobotLayerProps = {
     img: Rectangle;
@@ -17,14 +18,15 @@ type RobotLayerProps = {
 
 export default function RobotLayer({ img, pose, robotPose, robotConstants, visible, path }: RobotLayerProps) {
     const [ settings, ] = useSettings();
-
+    const [ format, ] = useFormat();
+ 
     const mecnumColor: number[] = [29, 100, 8];
     const tankColor: number[] = [150, 150, 150];
 
     const expansionTransparency: number = 0.18;
     const ghostTransparency: number = 0.05;
     
-    const bgColor = robotConstants.isMecnum ? mecnumColor : tankColor;
+    const bgColor = format === "RevMecanum" ? mecnumColor : tankColor;
     const bgTransparency: number = 0.4;
 
     return (

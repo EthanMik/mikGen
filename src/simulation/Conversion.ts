@@ -8,6 +8,7 @@ import { mikLibToSim } from "./mikLibSim/mikLibToSim";
 import { mikLibToString } from "./mikLibSim/mikLibToString";
 import { reveilLibToSim } from "./ReveiLibSim/ReveilLibToSim";
 import { revToString } from "./ReveiLibSim/ReveilLibToString";
+import { RevMecanumToSim } from "./RevMecanumSim/RevMecanumToSim";
 
 
 export function convertPathToSim(path: Path, format: Format): ((robot: Robot, dt: number) => [boolean, SegmentKind, number])[] {
@@ -20,6 +21,10 @@ export function convertPathToSim(path: Path, format: Format): ((robot: Robot, dt
     }
     if (format === "LemLib") {
         const out = LemLibToSim(path);
+        return out;
+    }
+    if (format === "RevMecanum") {
+        const out = RevMecanumToSim(path);
         return out;
     }
 

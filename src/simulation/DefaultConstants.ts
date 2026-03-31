@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { SetStateAction } from "react";
 import type { ConstantListField } from "../components/PathMenu/MotionList";
 import type { Format } from "../hooks/appStateDefaults";
@@ -18,29 +17,22 @@ export function updateDefaultConstants<F extends Format, K extends keyof Constan
         const currentFormatDefaults = prev[format];
         const currentSegmentDefaults = currentFormatDefaults[kind];
 
-        const mergedSegment: any = { ...currentSegmentDefaults };
+        const merged = { ...currentSegmentDefaults as object } as Record<string, unknown>;
+        const updates = patch as Record<string, unknown>;
 
-        const keys = Object.keys(patch) as Array<keyof typeof patch>;
-
-        for (const key of keys) {
-            const patchValue = patch[key];
-            const existingValue = mergedSegment[key];
-
-            if (
-                typeof patchValue === 'object' && patchValue !== null &&
-                typeof existingValue === 'object' && existingValue !== null
-            ) {
-                mergedSegment[key] = { ...existingValue, ...patchValue };
-            } else {
-                mergedSegment[key] = patchValue;
-            }
+        for (const key of Object.keys(updates)) {
+            const pv = updates[key];
+            const ev = merged[key];
+            merged[key] = (typeof pv === 'object' && pv !== null && typeof ev === 'object' && ev !== null)
+                ? { ...ev as object, ...pv as object }
+                : pv;
         }
 
         return {
             ...prev,
             [format]: {
                 ...prev[format],
-                [kind]: mergedSegment
+                [kind]: merged as ConstantsByFormat[F][K]
             }
         };
     });
@@ -156,7 +148,7 @@ export function getFormatSpeed(format: Format): number {
         case "JAR-Template": return 12;
         case "RW-Template": return 12;
         case "LemLib": return 127;
-        case "RevMecanum": return 1;
+        case "RevMecanum": return 12;
     }
 }
 

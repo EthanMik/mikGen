@@ -1,93 +1,50 @@
 import type { Robot } from "../../../core/Robot";
-import type { Pose, PoseState } from "../../../core/Types/Pose";
-import { getConstantMotionPower } from "../../ReveiLibSim/ConstantMotion";
-import type { ReveilLibConstants } from "../../ReveiLibSim/RevConstants";
-import { PilonsCorrection } from "../../ReveiLibSim/PilonsCorrection";
-import { SimpleStop, type StopState } from "../../ReveiLibSim/SimpleStop";
-import { toRevCoordinate, toRevVelocity, wrapDeg180 } from "../../ReveiLibSim/Util";
+import { clamp, toRad } from "../../../core/Util";
+import { kMikLibSpeed } from "../../mikLibSim/MikConstants";
+import { PID } from "../../mikLibSim/PID";
+import { reduce_negative_180_to_180 } from "../../mikLibSim/Util";
+import type { RevMecanumConstants } from "../RevMecanumConstant";
 
-type PilonSegmentStatus = "DRIVE" | "BRAKE" | "EXIT";
+let drivePID: PID;
+let turnPID: PID;
 
-let pilonsSegmentStartPoint: Pose | null = null;
-let pilonsSegmentLastStatus: PilonSegmentStatus = "DRIVE";
-let stop: SimpleStop | null = null;
-let brakeElapsed: number | null = null;
+let start = true;
 
-export function cleanupPilonsSegment() {
-    pilonsSegmentLastStatus = "DRIVE";
-    pilonsSegmentStartPoint = null;
-    brakeElapsed = null;
-    stop?.reset();
-    stop = null;
+function resetMecanumDriveToPose() {
+    drivePID.reset();
+    turnPID.reset();
+    start = true;
 }
 
-export function pilonsSegment(robot: Robot, dt: number, x: number, y: number, constants: ReveilLibConstants) : boolean {             
-    // Convert to rev coords
-    const revCoords = toRevCoordinate(x, y);
-    x = revCoords.x;
-    y = revCoords.y;
-
-    const dropEarly = constants.dropEarly ?? 0;
-    const speed = constants.maxSpeed ?? 0;
-    
-    const correction = new PilonsCorrection(constants.kCorrection ?? 0, constants.maxError ?? 0);
-
-    if (stop === null) {
-        stop = new SimpleStop(constants.stopHarshThreshold ?? 0, constants.stopCoastThreshold ?? 0, constants.stopCoastPower ?? 0, constants.stopTimeout);
+export function mecanumDriveToPose(robot: Robot, dt: number, x: number, y: number, angle: number, drive_p: RevMecanumConstants, heading_p: RevMecanumConstants) {
+    if (start) {
+        drivePID = new PID(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
+        turnPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, drive_p.timeout, 0);
+        start = false;
     }
 
-    if (pilonsSegmentStartPoint === null) {
-        const revRobotPos = toRevCoordinate(robot.getX(), robot.getY());
-        pilonsSegmentStartPoint = { x: revRobotPos.x, y: revRobotPos.y, angle: wrapDeg180(robot.getAngle()) };
-    }
-
-    const revRobotPos = toRevCoordinate(robot.getX(), robot.getY());
-    const revRobotVel = toRevVelocity(robot.getXVelocity(), robot.getYVelocity());
-
-    const currentState: PoseState = { x: revRobotPos.x, y: revRobotPos.y, angle: wrapDeg180(robot.getAngle()), xVel: revRobotVel.xVel, yVel: revRobotVel.yVel } 
-    const targetPoint: Pose = { x: x, y: y, angle: 0 };
-    const startPoint = { ...pilonsSegmentStartPoint };
-    const newState: StopState = stop.getStopState(currentState, targetPoint, startPoint, dropEarly, dt)
-
-    if (pilonsSegmentLastStatus == "EXIT" || newState == "EXIT") {
-        robot.tankDrive(0, 0, dt);
-        cleanupPilonsSegment();
-        // console.log("BREAK")
+    if ((drivePID.isSettled() && turnPID.isSettled())) {
+        resetMecanumDriveToPose();
         return true;
     }
 
-    if (pilonsSegmentLastStatus === "BRAKE" || newState === "BRAKE") {
-        if (brakeElapsed === null) brakeElapsed = 0;
-        brakeElapsed += dt;
+    const drive_error = Math.hypot(x - robot.getX(), y - robot.getY());
+    const turn_error = reduce_negative_180_to_180(angle - robot.getAngle());
 
-        robot.tankDrive(0, 0, dt);
-        pilonsSegmentLastStatus = "BRAKE";
+    let drive_output = drivePID.compute(drive_error);
+    let turn_output = turnPID.compute(turn_error);
 
-        if ((brakeElapsed * 1000) >= (constants.brakeTime ?? 0)) {
-            cleanupPilonsSegment();
-            // console.log("BREAK")
-            return true;
-        }
-        return false;
-    }
+    drive_output = clamp(drive_output, -drive_p.maxSpeed, drive_p.maxSpeed);
+    turn_output = clamp(turn_output, -heading_p.maxSpeed, heading_p.maxSpeed);
 
-    const pows: [number, number] = getConstantMotionPower(speed, startPoint, targetPoint);
+    const heading_error = Math.atan2(y - robot.getY(), x - robot.getX());
 
-    if (newState == "COAST") {
-        let power = stop.getCoastPower();
-        const left = pows[0];
-        const right = pows[1];
+    const left_front_output  = drive_output * Math.cos(toRad(robot.getAngle()) + heading_error - Math.PI / 4) + turn_output;
+    const left_back_output   = drive_output * Math.cos(-toRad(robot.getAngle()) - heading_error + 3 * Math.PI / 4) + turn_output;
+    const right_back_output  = drive_output * Math.cos(toRad(robot.getAngle()) + heading_error - Math.PI / 4) - turn_output;
+    const right_front_output = drive_output * Math.cos(-toRad(robot.getAngle()) - heading_error + 3 * Math.PI / 4) - turn_output;
 
-        if (left + right < 0) power *= -1;
+    robot.mecanumDrive(right_front_output / kMikLibSpeed, left_front_output / kMikLibSpeed, right_back_output / kMikLibSpeed, left_back_output / kMikLibSpeed, dt);
 
-        pilonsSegmentLastStatus = "DRIVE";
-        robot.tankDrive(power, power, dt);
-        return false;
-    }
-
-    const correctedPows = correction.applyCorrection(currentState, targetPoint, startPoint, pows);
-
-    pilonsSegmentLastStatus = "DRIVE";
-    robot.tankDrive(correctedPows[0], correctedPows[1], dt);
     return false;
 }

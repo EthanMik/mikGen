@@ -29,31 +29,29 @@ const createDrivePIDGroup = (
     updatePathConstants(setPath, segmentId, { drive: partial });
 
   const onHeadingChange = (partial: Partial<RevMecanumConstants>) =>
-    updatePathConstants(setPath, segmentId, { heading: partial });
+    updatePathConstants(setPath, segmentId, { turn: partial });
 
   const onApplyDrive = (partial: Partial<RevMecanumConstants>) =>
     updatePathConstantsByKind(setPath, segmentKind, { drive: partial });
 
   const onApplyHeading = (partial: Partial<RevMecanumConstants>) =>
-    updatePathConstantsByKind(setPath, segmentKind, { heading: partial });
+    updatePathConstantsByKind(setPath, segmentKind, { turn: partial });
 
   const setDefaultDrive = (partial: Partial<RevMecanumConstants>) => {
     updateDefaultConstants(format, segmentKind, { drive: partial } as Partial<RevMecanumDriveConstants>);
   }
 
   const setDefaultHeading = (partial: Partial<RevMecanumConstants>) => {
-    updateDefaultConstants(format, segmentKind, { heading: partial } as Partial<RevMecanumDriveConstants>);
+    updateDefaultConstants(format, segmentKind, { turn: partial } as Partial<RevMecanumDriveConstants>);
   }
 
-  const currentDefaults = getDefaultConstants(format, segmentKind) as { drive?: RevMecanumConstants; heading?: RevMecanumConstants } | undefined;
+  const currentDefaults = getDefaultConstants(format, segmentKind) as { drive?: RevMecanumConstants; turn?: RevMecanumConstants } | undefined;
 
   return [
     {
       header: "Exit Conditions",
       values: driveConstants,
       fields: [
-        { key: "settle_error", units: "in", label: "Settle Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
-        { key: "settle_time", units: "ms", label: "Settle Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
         { key: "timeout", units: "ms", label: "Timeout", input: { bounds: [0, 9999], stepSize: 100, roundTo: 0 } },
         { key: "min_voltage", units: "volt", label: "Min Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
         { key: "exit_error", units: "in", label: "Exit Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
@@ -73,6 +71,8 @@ const createDrivePIDGroup = (
         { key: "kd", label: "kD", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
         { key: "starti", units: "in",  label: "Starti", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
         { key: "slew", units: "volt/10ms",  label: "Slew", input: { bounds: [0, 100], stepSize: .1, roundTo: 2 } },
+        { key: "settle_error", units: "in", label: "Settle Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
+        { key: "settle_time", units: "ms", label: "Settle Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
 
         ...(segmentKind === "poseDrive" ? [
           { key: "lead", label: "Lead", input: { bounds: [0, 1], stepSize: .1, roundTo: 2 } },
@@ -85,7 +85,7 @@ const createDrivePIDGroup = (
       defaults: currentDefaults?.drive ?? {}
     },
     {
-      header: "Heading Constants",
+      header: "Turn Constants",
       values: headingConstants,
       fields: [
         { key: "maxSpeed", units: "volt", label: "Max Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
@@ -93,7 +93,9 @@ const createDrivePIDGroup = (
         { key: "ki", label: "kI", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
         { key: "kd", label: "kD", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 3 } },
         { key: "starti", units: "deg", label: "Starti", input: { bounds: [0, 360], stepSize: 1, roundTo: 2 } },
-
+        { key: "settle_error", units: "in", label: "Settle Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
+        { key: "settle_time", units: "ms", label: "Settle Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+        
         ...(segmentKind === "pointDrive" ? [
           { key: "slew", units: "volt/10ms",  label: "Slew", input: { bounds: [0, 100], stepSize: .1, roundTo: 1 } },
         ] as ConstantField[] : []),
@@ -101,7 +103,7 @@ const createDrivePIDGroup = (
       onChange: onHeadingChange,
       setDefault: setDefaultHeading,
       onApply: onApplyHeading,
-      defaults: currentDefaults?.heading ?? {}
+      defaults: currentDefaults?.turn ?? {}
     },
   ];
 };
@@ -257,7 +259,7 @@ export function getRevMecanumConstantsConfig(
         case "pointDrive":
         case "poseDrive": {
             const constants = s.constants as RevMecanumDriveConstants;
-            return createDrivePIDGroup(format, setPath, segmentId, s.kind, constants.drive, constants.heading);
+            return createDrivePIDGroup(format, setPath, segmentId, s.kind, constants.drive, constants.turn);
         }
         case "pointTurn":
         case "angleTurn": {

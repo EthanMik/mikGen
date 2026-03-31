@@ -67,7 +67,6 @@ export default function MotionList({
 
     const segment = path.segments.find(s => s.id === segmentId)!;
     const selected = path.segments.find((c) => c.id === segmentId)?.selected;
-    const [ telemetry ] = pathTelemetry.useStore();
     const activeSimSegment = activeSimSegmentStore.useStore();
 
     const [ isEyeOpen, setEyeOpen ] = useState(true);

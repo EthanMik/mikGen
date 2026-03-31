@@ -54,6 +54,17 @@ export function clamp(value: number, min: number, max: number) {
     return Math.min(Math.max(value, min), max);
 }
 
+/** Shallow-clones an object, also shallow-cloning each plain-object value one level deep. */
+export function cloneConstants<T extends object>(obj: T): T {
+    const result: Record<string, unknown> = {};
+    for (const [key, val] of Object.entries(obj)) {
+        result[key] = (typeof val === 'object' && val !== null && !Array.isArray(val))
+            ? { ...val }
+            : val;
+    }
+    return result as T;
+}
+
 export function toRad(degrees: number) { return (degrees * Math.PI) / 180; }
 
 export function toDeg(radians: number) { return (radians * 180) / Math.PI; }

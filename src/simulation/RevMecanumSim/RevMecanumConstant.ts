@@ -23,7 +23,7 @@ export interface RevMecanumConstants {
 
 export type RevMecanumDriveConstants = {
     drive: RevMecanumConstants;
-    heading: RevMecanumConstants;
+    turn: RevMecanumConstants;
 };
 
 export type RevMecanumTurnConstants = {
@@ -88,7 +88,7 @@ export function getUnequalRevMecanumConstants(correctRevMecanumConstants: RevMec
 
 export const clonekRevMecanum = (c: RevMecanumConstants): RevMecanumConstants => ({ ...c });
 
-export const kMecanum: RevMecanumConstants = {
+export const kMecanumTurn: RevMecanumConstants = {
     maxSpeed: 12,
     kp: .4,
     ki: .03,
@@ -109,7 +109,7 @@ export const kMecanum: RevMecanumConstants = {
 
 };
 
-export const kMikHeading: RevMecanumConstants = {
+export const kMecanumHeading: RevMecanumConstants = {
     maxSpeed: 10,
     kp: .4,
     ki: 0,
@@ -129,7 +129,7 @@ export const kMikHeading: RevMecanumConstants = {
     swing_direction: null,
 };
 
-export const kMikSwing: RevMecanumConstants = {
+export const kMecanumSwing: RevMecanumConstants = {
     maxSpeed: 12,
     kp: .4,
     ki: 0.01,
@@ -149,7 +149,7 @@ export const kMikSwing: RevMecanumConstants = {
     swing_direction: null,
 };
 
-export const kMikDrive: RevMecanumConstants = {
+export const kMecanumDrive: RevMecanumConstants = {
     maxSpeed: 8,
     kp: 1.5,
     ki: 0,
