@@ -1,0 +1,64 @@
+import type { Robot } from "../../../core/Robot";
+import { clamp } from "../../../core/Util";
+import { kMikLibSpeed } from "../../mikLibSim/MikConstants";
+import { PID } from "../../mikLibSim/PID";
+import { angle_error, clamp_min_voltage } from "../../mikLibSim/Util";
+import type { RevMecanumConstants } from "../RevMecanumConstant";
+
+let crossed: boolean = false;
+let prev_error: number = 0;
+let prev_raw_error: number = 0;
+let turnPID: PID;
+
+let start = true;
+
+function resetMecanumTurnToAngle() {
+    crossed = false;
+    prev_error = 0;
+    prev_raw_error = 0;
+    turnPID.reset();
+    start = true;
+}
+
+export function mecanumTurnToAngle(robot: Robot, dt: number, angle: number, p: RevMecanumConstants) {
+    const raw_error = angle_error(angle - robot.getAngle(), null);
+    let error = angle_error(angle - robot.getAngle(), p.turn_direction);
+
+    if (start) {
+        prev_error = error;
+        prev_raw_error = raw_error;
+        turnPID = new PID(p.kp, p.ki, p.kd, p.starti, p.settle_time, p.settle_error, p.timeout, p.min_voltage > 0 ? p.exit_error : 0);
+        start = false;
+    }
+
+    if (Math.sign(raw_error) != Math.sign(prev_raw_error)) {
+        crossed = true;
+    }
+    prev_raw_error = raw_error;
+
+    if (crossed) {
+        error = raw_error;
+    } else {
+        error = angle_error(angle - robot.getAngle(), p.turn_direction);
+    }
+
+    if (p.min_voltage != 0 && crossed && Math.sign(error) != Math.sign(prev_error)) {
+        resetMecanumTurnToAngle();
+        return true;
+    }
+    prev_error = error;
+
+    let output = turnPID.compute(error);
+
+    if (turnPID.isSettled()) {
+        resetMecanumTurnToAngle();
+        return true;
+    }
+
+    output = clamp(output, -p.maxSpeed, p.maxSpeed);
+    output = clamp_min_voltage(output, p.min_voltage) / kMikLibSpeed;
+
+    robot.mecanumDrive(-output, output, -output, output, dt);
+
+    return false;
+}

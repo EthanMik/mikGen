@@ -184,8 +184,8 @@ export function segmentAllowed(format: Format, segment: SegmentKind): boolean {
                 case "poseDrive": return true;
                 case "pointTurn": return true;
                 case "angleTurn": return true;
-                case "angleSwing": return true;
-                case "pointSwing": return true;
+                case "angleSwing": return false;
+                case "pointSwing": return false;
                 case "distanceDrive": return false;
             }
             break;

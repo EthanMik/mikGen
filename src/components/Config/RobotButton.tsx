@@ -301,7 +301,7 @@ export default function RobotButton() {
                                     <div className="flex-1 border-t border-gray-500/40"></div>
                                 </div>
                                 <div className="flex flex-row items-center justify-between h-[35px]">
-                                    <span className="text-[16px]">Mecnum</span>
+                                    <span className="text-[16px]">Mecanum</span>
                                     <label className="flex items-center gap-2 cursor-pointer select-none">
                                         <Checkbox checked={format === "RevMecanum"} setChecked={(checked: boolean) => {
                                             changeFormat(checked ? "RevMecanum" : "ReveilLib");

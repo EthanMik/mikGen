@@ -3,15 +3,13 @@ import { getSegmentName } from "../DefaultConstants";
 import type { SegmentKind } from "../InitialDefaults";
 import type { Robot } from "../../core/Robot";
 import { findPointToFace, toDeg } from "../../core/Util";
-import type { RevMecanumDriveConstants, RevMecanumSwingConstants, RevMecanumTurnConstants } from "./RevMecanumConstant";
+import type { RevMecanumDriveConstants, RevMecanumTurnConstants } from "./RevMecanumConstant";
 import { angle_error } from "../mikLibSim/Util";
 import type { Path } from "../../core/Types/Path";
-import { turnToPoint } from "../mikLibSim/DriveMotions/TurnToPoint";
-import { turnToAngle } from "../mikLibSim/DriveMotions/TurnToAngle";
-import { swingToPoint } from "../mikLibSim/DriveMotions/SwingToPoint";
-import { swingToAngle } from "../mikLibSim/DriveMotions/SwingToAngle";
 import { mecanumDriveToPose } from "./MecanumMotions/MecanumDriveToPose";
-import { MecanumDriveToPoint } from "./MecanumMotions/MecanumDriveToPoint";
+import { mecanumDriveToPoint } from "./MecanumMotions/MecanumDriveToPoint";
+import { mecanumTurnToPoint } from "./MecanumMotions/MecanumTurnToPoint";
+import { mecanumTurnToAngle } from "./MecanumMotions/MecanumTurnToAngle";
 
 const LOG_SEGMENT_START_AND_END = true;
 const LOG_ROBOT_STATE = true;
@@ -60,7 +58,7 @@ export function RevMecanumToSim(path: Path) {
                     }
                     DEBUG_printRobotState(robot, dt);
 
-                    const output = MecanumDriveToPoint(robot, dt, x, y, drive, heading);
+                    const output = mecanumDriveToPoint(robot, dt, x, y, drive, heading);
                     if (output) DEBUG_printSegmentEnd(idx, control.kind);
                     return [output, "pointDrive", targetDist];
                 }
@@ -105,7 +103,7 @@ export function RevMecanumToSim(path: Path) {
                         started = true;
                     }
                     DEBUG_printRobotState(robot, dt);
-                    const output = turnToPoint(robot, dt, pos.x, pos.y, angle, turn);
+                    const output = mecanumTurnToPoint(robot, dt, pos.x, pos.y, angle, turn);
                     if (output) DEBUG_printSegmentEnd(idx, control.kind);
                     return [output, "pointTurn", targetDist];
                 }
@@ -125,57 +123,13 @@ export function RevMecanumToSim(path: Path) {
                         started = true;
                     }
                     DEBUG_printRobotState(robot, dt);
-                    const output = turnToAngle(robot, dt, angle, turn);
+                    const output = mecanumTurnToAngle(robot, dt, angle, turn);
                     if (output) DEBUG_printSegmentEnd(idx, control.kind);
                     return [output, "angleTurn", targetDist];
                 }
             );
         }
-
-        if (control.kind === "pointSwing") {
-            const pos = findPointToFace(path, idx);
-
-            const swing = (k as RevMecanumSwingConstants).swing;
-            let started = false;
-            let targetDist = 0;
-
-            auton.push(
-                (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
-                    if (!started) {
-                        DEBUG_printSegmentStart(idx, control.kind);
-                        const targetAngle = toDeg(Math.atan2(pos.x - robot.getX(), pos.y - robot.getY())) + angle;
-                        targetDist = Math.abs(angle_error(targetAngle - robot.getAngle(), null)!);
-                        started = true;
-                    }
-                    DEBUG_printRobotState(robot, dt);
-                    const output = swingToPoint(robot, dt, pos.x, pos.y, angle, swing);
-                    if (output) DEBUG_printSegmentEnd(idx, control.kind);
-                    return [output, "pointSwing", targetDist];
-                }
-            );
-        }
-
-        if (control.kind === "angleSwing") {
-            const swing = (k as RevMecanumSwingConstants).swing;
-            let started = false;
-            let targetDist = 0;
-
-            auton.push(
-                (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
-                    if (!started) {
-                        DEBUG_printSegmentStart(idx, control.kind);
-                        targetDist = Math.abs(angle_error(angle - robot.getAngle(), null)!);
-                        started = true;
-                    }
-                    DEBUG_printRobotState(robot, dt);
-                    const output = swingToAngle(robot, dt, angle, swing);
-                    if (output) DEBUG_printSegmentEnd(idx, control.kind);
-                    return [output, "angleSwing", targetDist];
-                }
-            );
-        }
     }
-
 
     return auton;
 }
