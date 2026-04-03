@@ -71,9 +71,8 @@ export function moveToPose(robot: Robot, dt: number, x: number, y: number, angle
     if (lateralLargeExit.getExit() && lateralSmallExit.getExit()) lateralSettled = true;
 
     // calculate carrot point
-    const carrot = close
-        ? target
-        : target.sub(new LemPose(Math.cos(target.theta), Math.sin(target.theta)).mulScalar(params.lead * distTarget));
+    let carrot = target.sub((new LemPose(Math.cos(target.theta), Math.sin(target.theta))).mulScalar(params.lead * distTarget));
+    if (close) carrot = target;
 
     // motion chaining: check if robot and carrot are on the same side of target
     const robotSide = (pose.y - target.y) * -Math.sin(target.theta) <= (pose.x - target.x) * Math.cos(target.theta) + params.earlyExitRange;
@@ -88,7 +87,7 @@ export function moveToPose(robot: Robot, dt: number, x: number, y: number, angle
 
     // calculate error
     const adjustedRobotTheta = params.forwards === "forward" ? pose.theta : pose.theta + Math.PI;
-    const angularErr = close
+    const angularError = close
         ? angleError(adjustedRobotTheta, target.theta)
         : angleError(adjustedRobotTheta, pose.angle(carrot));
 
@@ -99,12 +98,12 @@ export function moveToPose(robot: Robot, dt: number, x: number, y: number, angle
     // update exit conditions
     lateralSmallExit.update(lateralError, dt);
     lateralLargeExit.update(lateralError, dt);
-    angularSmallExit.update(toDeg(angularErr), dt);
-    angularLargeExit.update(toDeg(angularErr), dt);
+    angularSmallExit.update(toDeg(angularError), dt);
+    angularLargeExit.update(toDeg(angularError), dt);
 
     // get output from PIDs
     let lateralOut = lateralPID.update(lateralError);
-    let angularOut = angularPID.update(toDeg(angularErr));
+    let angularOut = angularPID.update(toDeg(angularError));
 
     // apply restrictions on angular speed
     angularOut = clamp(angularOut, -effectiveMaxSpeed, effectiveMaxSpeed);

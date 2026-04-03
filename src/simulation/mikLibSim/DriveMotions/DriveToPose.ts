@@ -35,8 +35,9 @@ export function driveToPose(robot: Robot, dt: number, x: number, y: number, angl
         headingPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, heading_p.timeout, 0);
         drive_max_speed = drive_p.maxSpeed;
         const rawHeadingError = reduce_negative_180_to_180(toDeg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle());
-        reverse = Math.abs(rawHeadingError) > 90;
+        reverse = Math.abs(rawHeadingError) > 100;
         start = false;
+        prev_crossed_line = is_line_settled(x, y, angle, robot.getX(), robot.getY(), drive_p.exit_error);
     }
 
     if (drivePID.isSettled()) {
@@ -48,19 +49,20 @@ export function driveToPose(robot: Robot, dt: number, x: number, y: number, angl
 
     const target_distance = Math.hypot(x - robot.getX(), y - robot.getY());
 
-    const carrot_X = x - Math.sin(toRad(angle)) * (drive_p.lead * target_distance);
-    const carrot_Y = y - Math.cos(toRad(angle)) * (drive_p.lead * target_distance);
+    let carrot_X = x - Math.sin(toRad(angle)) * (drive_p.lead * target_distance);
+    let carrot_Y = y - Math.cos(toRad(angle)) * (drive_p.lead * target_distance);
 
     if (target_distance < DRIVE_LARGE_SETTLE_ERROR && !settling) {
         settling = true;
         drive_max_speed = Math.max(Math.abs(prev_drive_output), BOOMERANG_MIN_VOLTAGE);
     }
-
+    
     const line_settled = is_line_settled(x, y, angle, robot.getX(), robot.getY(), drive_p.exit_error);
-    const carrot_settled = is_line_settled(carrot_X, carrot_Y, angle, robot.getX(), robot.getY(), drive_p.exit_error);
+    const carrot_settled = is_line_settled(x, y, angle, carrot_X, carrot_Y, drive_p.exit_error);
     crossed_line = line_settled === carrot_settled;
+    console.log(line_settled, carrot_settled, crossed_line, prev_crossed_line, settling);
 
-    if (!crossed_line && prev_crossed_line && drive_p.min_voltage > 0) {
+    if (!crossed_line && prev_crossed_line && settling && drive_p.min_voltage > 0) {
         resetDriveToPose();
         return true;
     }
@@ -76,6 +78,8 @@ export function driveToPose(robot: Robot, dt: number, x: number, y: number, angl
         drive_error = target_distance;
         heading_error = reduce_negative_180_to_180(angle - current_angle);
         drive_error *= Math.cos(toRad(reduce_negative_180_to_180(toDeg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle())));
+        carrot_X = x;
+        carrot_Y = y;
     } else {
         drive_error *= Math.sign(Math.cos(toRad(reduce_negative_180_to_180(toDeg(Math.atan2(carrot_X - robot.getX(), carrot_Y - robot.getY())) - robot.getAngle()))));
     }
@@ -87,7 +91,7 @@ export function driveToPose(robot: Robot, dt: number, x: number, y: number, angl
 
     drive_output = clamp(drive_output, -drive_max_speed, drive_max_speed);
     drive_output = slew_scaling(drive_output, prev_drive_output, drive_p.slew * (dt / 0.01), !settling);
-    drive_output = clamp_max_slip(drive_output, robot.getX(), robot.getY(), robot.getAngle(), settling ? x : carrot_X, settling ? y : carrot_Y, drive_p.drift);
+    drive_output = clamp_max_slip(drive_output, robot.getX(), robot.getY(), current_angle, carrot_X, carrot_Y, drive_p.drift);
     drive_output = overturn_scaling(drive_output, heading_output, drive_max_speed);
 
     if (!reverse && !settling) drive_output = Math.max(drive_output, 0);

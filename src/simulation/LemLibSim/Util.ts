@@ -53,16 +53,12 @@ export function avg(values: number[]): number {
     return sum / values.length;
 }
 
-export function ema(current: number, previous: number, smooth: number): number {
-    return current * smooth + previous * (1 - smooth);
-}
-
 export function getCurvature(pose: LemPose, other: LemPose): number {
     const theta = pose.theta;
     const side = Math.sign(Math.sin(theta) * (other.x - pose.x) - Math.cos(theta) * (other.y - pose.y));
     const a = -Math.tan(theta);
     const c = Math.tan(theta) * pose.x - pose.y;
-    const x = Math.abs(a * other.x + other.y + c) / Math.sqrt(a * a + 1);
+    const x = Math.abs(a * other.x + other.y + c) / Math.sqrt((a * a) + 1);
     const d = Math.hypot(other.x - pose.x, other.y - pose.y);
 
     return side * (2 * x) / (d * d);
