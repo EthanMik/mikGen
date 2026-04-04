@@ -54,12 +54,12 @@ export function mecanumDriveToPose(robot: Robot, dt: number, x: number, y: numbe
 
     const heading_error = Math.atan2(y - robot.getY(), x - robot.getX());
 
-    const left_front_output  = drive_output * Math.cos(toRad(robot.getAngle()) + heading_error - Math.PI / 4) + turn_output;
-    const left_back_output   = drive_output * Math.cos(-toRad(robot.getAngle()) - heading_error + 3 * Math.PI / 4) + turn_output;
-    const right_back_output  = drive_output * Math.cos(toRad(robot.getAngle()) + heading_error - Math.PI / 4) - turn_output;
-    const right_front_output = drive_output * Math.cos(-toRad(robot.getAngle()) - heading_error + 3 * Math.PI / 4) - turn_output;
+    const left_front_output  = (drive_output * Math.cos(toRad(robot.getAngle()) + heading_error - Math.PI / 4) + turn_output) / kMikLibSpeed;
+    const left_back_output   = (drive_output * Math.cos(-toRad(robot.getAngle()) - heading_error + 3 * Math.PI / 4) + turn_output) / kMikLibSpeed;
+    const right_back_output  = (drive_output * Math.cos(toRad(robot.getAngle()) + heading_error - Math.PI / 4) - turn_output) / kMikLibSpeed;
+    const right_front_output = (drive_output * Math.cos(-toRad(robot.getAngle()) - heading_error + 3 * Math.PI / 4) - turn_output) / kMikLibSpeed;
 
-    robot.mecanumDrive(right_front_output / kMikLibSpeed, left_front_output / kMikLibSpeed, right_back_output / kMikLibSpeed, left_back_output / kMikLibSpeed, dt);
+    robot.mecanumDrive(right_front_output, left_front_output, right_back_output, left_back_output, dt);
 
     return false;
 }
