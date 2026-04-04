@@ -73,9 +73,9 @@ const createDrivePIDGroup = (
         { key: "slew", units: "volt/10ms",  label: "Slew", input: { bounds: [0, 100], stepSize: .1, roundTo: 2 } },
         { key: "settle_error", units: "in", label: "Settle Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
         { key: "settle_time", units: "ms", label: "Settle Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+        { key: "start_turn", label: "Start Turn", input: { bounds: [0, 99], stepSize: 1, roundTo: 1 } },
 
         ...(segmentKind === "poseDrive" ? [
-          { key: "lead", label: "Lead", input: { bounds: [0, 1], stepSize: .1, roundTo: 2 } },
           { key: "drift", label: "Drift", units: "", input: { bounds: [0, 100], stepSize: 1, roundTo: 1 } },
         ] as ConstantField[] : [])
       ],

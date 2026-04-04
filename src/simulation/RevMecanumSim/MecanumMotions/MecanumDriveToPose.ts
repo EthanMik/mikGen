@@ -8,6 +8,7 @@ import type { RevMecanumConstants } from "../RevMecanumConstant";
 let drivePID: PID;
 let turnPID: PID;
 let prev_line_settled: boolean = false;
+let start_angle: number = 0;
 
 let start = true;
 
@@ -15,6 +16,7 @@ function resetMecanumDriveToPose() {
     drivePID.reset();
     turnPID.reset();
     prev_line_settled = false;
+    start_angle = 0;
     start = true;
 }
 
@@ -22,6 +24,8 @@ export function mecanumDriveToPose(robot: Robot, dt: number, x: number, y: numbe
     if (start) {
         drivePID = new PID(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
         turnPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, drive_p.timeout, 0);
+        start_angle = robot.getAngle();
+
         start = false;
     }
 
@@ -41,7 +45,12 @@ export function mecanumDriveToPose(robot: Robot, dt: number, x: number, y: numbe
 
     const drive_error = Math.hypot(x - robot.getX(), y - robot.getY());
 
+    if (drive_error > drive_p.start_turn && drive_p.start_turn > 0) {
+        angle = start_angle;
+    }
     const turn_error = reduce_negative_180_to_180(angle - robot.getAngle());
+
+    console.log(drive_p);
 
     let drive_output = drivePID.compute(drive_error);
     let turn_output = turnPID.compute(turn_error);
@@ -53,6 +62,7 @@ export function mecanumDriveToPose(robot: Robot, dt: number, x: number, y: numbe
     turn_output = clamp_min_voltage(turn_output, heading_p.min_voltage);
 
     const heading_error = Math.atan2(y - robot.getY(), x - robot.getX());
+
 
     const left_front_output  = (drive_output * Math.cos(toRad(robot.getAngle()) + heading_error - Math.PI / 4) + turn_output) / kMikLibSpeed;
     const left_back_output   = (drive_output * Math.cos(-toRad(robot.getAngle()) - heading_error + 3 * Math.PI / 4) + turn_output) / kMikLibSpeed;

@@ -15,7 +15,7 @@ export interface RevMecanumConstants {
     settle_time: number, 
     settle_error: number, 
     timeout: number
-    lead: number,
+    start_turn: number,
     swing_direction: SwingDirection | null,
     turn_direction: TurnDirection | null,
     exit_error: number,
@@ -36,7 +36,6 @@ export type RevMecanumSwingConstants = {
 
 export const kRevMecanumSpeed = 1;
 
-
 export const revMecanumConstantsEqual = (a: RevMecanumConstants, b: RevMecanumConstants): boolean => {
     return (
         a.maxSpeed === b.maxSpeed &&
@@ -50,7 +49,7 @@ export const revMecanumConstantsEqual = (a: RevMecanumConstants, b: RevMecanumCo
         a.settle_time === b.settle_time &&
         a.settle_error === b.settle_error &&
         a.timeout === b.timeout &&
-        a.lead === b.lead &&
+        a.start_turn === b.start_turn &&
         a.turn_direction === b.turn_direction &&
         a.swing_direction === b.swing_direction &&
         a.exit_error === b.exit_error
@@ -76,7 +75,7 @@ export function getUnequalRevMecanumConstants(correctRevMecanumConstants: RevMec
     if (a.settle_error !== b.settle_error) out.settle_error = b.settle_error;
     if (a.timeout !== b.timeout) out.timeout = b.timeout;
 
-    if (a.lead !== b.lead) out.lead = b.lead;
+    if (a.start_turn !== b.start_turn) out.start_turn = b.start_turn;
 
     if (a.swing_direction !== b.swing_direction) out.swing_direction = b.swing_direction;
     if (a.turn_direction !== b.turn_direction) out.turn_direction = b.turn_direction;
@@ -103,7 +102,7 @@ export const kMecanumTurn: RevMecanumConstants = {
     min_voltage: 0,
     exit_error: 0,
     drift: 2,
-    lead: 0.5,
+    start_turn: 0,
     turn_direction: null,
     swing_direction: null,
 
@@ -124,7 +123,7 @@ export const kMecanumHeading: RevMecanumConstants = {
     min_voltage: 0,
     exit_error: 0,
     drift: 2,
-    lead: 0.5,
+    start_turn: 0,
     turn_direction: null,
     swing_direction: null,
 };
@@ -144,7 +143,7 @@ export const kMecanumSwing: RevMecanumConstants = {
     min_voltage: 0,
     exit_error: 0,
     drift: 2,
-    lead: 0.5,
+    start_turn: 0,
     turn_direction: null,
     swing_direction: null,
 };
@@ -164,7 +163,7 @@ export const kMecanumDrive: RevMecanumConstants = {
     min_voltage: 0,
     exit_error: 0,
     drift: 2,
-    lead: 0.5,
+    start_turn: 0,
     turn_direction: null,
     swing_direction: null,
 };
