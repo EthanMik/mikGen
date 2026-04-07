@@ -212,8 +212,8 @@ export default function ControlConfig() {
                             width={80}
                             height={40}
                             fontSize={18}
-                            setValue={format === "ReveilLib" ? updateYValue : updateXValue }
-                            value={format === "ReveilLib" ? getYValue() : getXValue() }
+                            setValue={format === "ReveilLib" || format === "RevMecanum" ? updateYValue : updateXValue }
+                            value={format === "ReveilLib" || format === "RevMecanum" ? getYValue() : getXValue() }
                             stepSize={1}
                             roundTo={2}
                             bounds={[-999, 999]}
@@ -229,8 +229,8 @@ export default function ControlConfig() {
                             fontSize={18}
                             stepSize={1}
                             roundTo={2}
-                            setValue={format === "ReveilLib" ? updateXValue : updateYValue } 
-                            value={format === "ReveilLib" ? getXValue() : getYValue() } 
+                            setValue={format === "ReveilLib" || format === "RevMecanum" ? updateXValue : updateYValue } 
+                            value={format === "ReveilLib" || format === "RevMecanum" ? getXValue() : getYValue() } 
                             bounds={[-999, 999]}
                             units="in"
                             addToHistory={() => {undoRef.current = true}}
