@@ -43,6 +43,8 @@ export class Robot {
 
     private vFL: number = 0;
     private vFR: number = 0;
+    private vCL: number = 0;
+    private vCR: number = 0;
     private vRL: number = 0;
     private vRR: number = 0;
 
@@ -80,12 +82,12 @@ export class Robot {
 
     // Returns the world-frame position of the CoG offset point
     getX() {
-        const θ = toRad(this.angle);
-        return this.x + this.cogOffsetX * Math.cos(θ) + this.cogOffsetY * Math.sin(θ);
+        const theta = toRad(this.angle);
+        return this.x + this.cogOffsetX * Math.cos(theta) + this.cogOffsetY * Math.sin(theta);
     }
     getY() {
-        const θ = toRad(this.angle);
-        return this.y - this.cogOffsetX * Math.sin(θ) + this.cogOffsetY * Math.cos(θ);
+        const theta = toRad(this.angle);
+        return this.y - this.cogOffsetX * Math.sin(theta) + this.cogOffsetY * Math.cos(theta);
     }
     getAngle() { return this.angle; }
 
@@ -117,13 +119,12 @@ export class Robot {
 
     tankDrive(leftCmd: number, rightCmd: number, dt: number) {
         const b_in = this.width - 2;
-        const v_max_ft = this.maxSpeed;
 
         const left = clamp(leftCmd, -1, 1);
         const right = clamp(rightCmd, -1, 1);
 
-        const targetVL_ft = left * v_max_ft;
-        const targetVR_ft = right * v_max_ft;
+        const targetVL_ft = left * this.maxSpeed;
+        const targetVR_ft = right * this.maxSpeed;
 
         // Decompose into linear and angular, apply separate first-order lag
         const targetLinear = (targetVL_ft + targetVR_ft) / 2;
@@ -131,12 +132,8 @@ export class Robot {
         const currentLinear = (this.vL + this.vR) / 2;
         const currentAngular = (this.vR - this.vL) / 2;
 
-        // Use decel tau when velocity magnitude is shrinking — back-EMF assists braking
-        const isLatDecel = Math.abs(targetLinear) < Math.abs(currentLinear);
-        const isAngDecel = Math.abs(targetAngular) < Math.abs(currentAngular);
-
-        const kLat = 1 - Math.exp(-dt / (isLatDecel ? this.lateralTau : this.lateralTau));
-        const kAng = 1 - Math.exp(-dt / (isAngDecel ? this.angularTau : this.angularTau));
+        const kLat = 1 - Math.exp(-dt / (this.lateralTau));
+        const kAng = 1 - Math.exp(-dt / (this.angularTau));
 
         const newLinear = currentLinear + (targetLinear - currentLinear) * kLat;
         const newAngular = currentAngular + (targetAngular - currentAngular) * kAng;
@@ -144,66 +141,19 @@ export class Robot {
         this.vL = newLinear - newAngular;
         this.vR = newLinear + newAngular;
 
-        // Convert to inches/second
         const vL_in = this.vL * 12;
         const vR_in = this.vR * 12;
 
-        // Tracker deltas this timestep (analogous to forward_delta / sideways_delta)
-        const forward_delta = ((vL_in + vR_in) / 2) * dt;
-        const sideways_delta = 0;
-
-        // Orientation
-        const prev_orientation_rad = toRad(this.angle);
+        const fwd_speed = (vL_in + vR_in) / 2;
         const orientation_delta_rad = (vL_in - vR_in) / b_in * dt;
-        const orientation_rad = prev_orientation_rad + orientation_delta_rad;
 
-        this.angle = toDeg(orientation_rad);
-        this.setAngle(this.angle);
+        // Compute lateral slip speed using the new orientation
+        const new_orientation_rad = toRad(this.angle) + orientation_delta_rad;
+        const rightX =  Math.cos(new_orientation_rad);
+        const rightY = -Math.sin(new_orientation_rad);
+        const lat_speed = (this.velX * rightX + this.velY * rightY) * Math.max(0, 1 - this.lateralFriction * dt);
 
-        // Local displacement (5225A tracking document style)
-        let local_X_position;
-        let local_Y_position;
-
-        if (Math.abs(orientation_delta_rad) < 1e-7) {
-            local_X_position = sideways_delta;
-            local_Y_position = forward_delta;
-        } else {
-            local_X_position = (2 * Math.sin(orientation_delta_rad / 2)) * (sideways_delta / orientation_delta_rad);
-            local_Y_position = (2 * Math.sin(orientation_delta_rad / 2)) * (forward_delta / orientation_delta_rad);
-        }
-
-        // Convert to polar, then rotate into global frame
-        let local_polar_angle;
-        let local_polar_length;
-
-        if (Math.abs(local_X_position) < 1e-7 && Math.abs(local_Y_position) < 1e-7) {
-            local_polar_angle = 0;
-            local_polar_length = 0;
-        } else {
-            local_polar_angle = Math.atan2(local_Y_position, local_X_position);
-            local_polar_length = Math.sqrt(local_X_position ** 2 + local_Y_position ** 2);
-        }
-
-        const global_polar_angle = local_polar_angle - prev_orientation_rad - (orientation_delta_rad / 2);
-
-        const X_position_delta = local_polar_length * Math.cos(global_polar_angle);
-        const Y_position_delta = local_polar_length * Math.sin(global_polar_angle);
-
-        this.x += X_position_delta;
-        this.y += Y_position_delta;
-
-        // Update velocity for lateral slip
-        const v_in = forward_delta / dt;
-        const forwardX = Math.sin(orientation_rad);
-        const forwardY = Math.cos(orientation_rad);
-        const lateralX = Math.cos(orientation_rad);
-        const lateralY = -Math.sin(orientation_rad);
-
-        const latComponent = this.velX * lateralX + this.velY * lateralY;
-        const newLat = latComponent * Math.max(0, 1 - this.lateralFriction * dt);
-
-        this.velX = v_in * forwardX + newLat * lateralX;
-        this.velY = v_in * forwardY + newLat * lateralY;
+        this.odometryUpdate(fwd_speed * dt, 0, orientation_delta_rad, fwd_speed, lat_speed);
     }
 
     mecanumDrive(flCmd: number, frCmd: number, rlCmd: number, rrCmd: number, dt: number) {
@@ -226,7 +176,6 @@ export class Robot {
         const curLat   = (-this.vFL + this.vFR + this.vRL - this.vRR) / 4;
         const curOmega = (-this.vFL + this.vFR - this.vRL + this.vRR) / (4 * r);
 
-        // Time constants to make robot accel
         const kLat = 1 - Math.exp(-dt / this.lateralTau);
         const kAng = 1 - Math.exp(-dt / this.angularTau);
 
@@ -239,18 +188,68 @@ export class Robot {
         this.vRL = newFwd + newLat - newOmega * r;
         this.vRR = newFwd - newLat + newOmega * r;
 
-        // Convert to in/s
+        const fwd_in = newFwd * 12;
+        const lat_in = newLat * 12;
+        const omega_in = newOmega * 12;
+
+        this.odometryUpdate(fwd_in * dt, lat_in * dt, omega_in * dt, fwd_in, lat_in);
+    }
+
+    // 4 mecanum corner wheels + 2 center omni wheels (asterisk layout)
+    asteriskDrive(flCmd: number, frCmd: number, clCmd: number, crCmd: number, rlCmd: number, rrCmd: number, dt: number) {
+        const fl = clamp(flCmd, -1, 1);
+        const fr = clamp(frCmd, -1, 1);
+        const cl = clamp(clCmd, -1, 1);
+        const cr = clamp(crCmd, -1, 1);
+        const rl = clamp(rlCmd, -1, 1);
+        const rr = clamp(rrCmd, -1, 1);
+
+        const r_m = (this.height + (this.width - 2)) / 2;  // mecanum corner turning radius (in)
+        const b   = this.width - 2;                         // center omni track width (in)
+
+        const tFL = fl * this.maxSpeed;
+        const tFR = fr * this.maxSpeed;
+        const tCL = cl * this.maxSpeed;
+        const tCR = cr * this.maxSpeed;
+        const tRL = rl * this.maxSpeed;
+        const tRR = rr * this.maxSpeed;
+
+        // Forward: average all 6 wheels (lat and omega terms cancel)
+        const targetFwd   = (tFL + tFR + tCL + tCR + tRL + tRR) / 6;
+        // Lateral: only mecanum corners can strafe
+        const targetLat   = (-tFL + tFR + tRL - tRR) / 4;
+        // Omega: weighted average of corner mecanum estimate (×4) and center omni estimate (×2)
+        const targetOmega = ((-tFL + tFR - tRL + tRR) / r_m + 2 * (tCR - tCL) / b) / 6;
+
+        const curFwd      = (this.vFL + this.vFR + this.vCL + this.vCR + this.vRL + this.vRR) / 6;
+        const curLat      = (-this.vFL + this.vFR + this.vRL - this.vRR) / 4;
+        const curOmega    = ((-this.vFL + this.vFR - this.vRL + this.vRR) / r_m + 2 * (this.vCR - this.vCL) / b) / 6;
+
+        const kLat = 1 - Math.exp(-dt / this.lateralTau);
+        const kAng = 1 - Math.exp(-dt / this.angularTau);
+
+        const newFwd   = curFwd   + (targetFwd   - curFwd)   * kLat;
+        const newLat   = curLat   + (targetLat   - curLat)   * kLat;
+        const newOmega = curOmega + (targetOmega - curOmega) * kAng;
+
+        this.vFL = newFwd - newLat - newOmega * r_m;
+        this.vFR = newFwd + newLat + newOmega * r_m;
+        this.vCL = newFwd - newOmega * (b / 2);
+        this.vCR = newFwd + newOmega * (b / 2);
+        this.vRL = newFwd + newLat - newOmega * r_m;
+        this.vRR = newFwd - newLat + newOmega * r_m;
+
         const fwd_in   = newFwd   * 12;
         const lat_in   = newLat   * 12;
         const omega_in = newOmega * 12;
 
-        // Arc odometry (5225A tracking document style)
-        const forward_delta  = fwd_in * dt;
-        const sideways_delta = lat_in * dt;
-        const prev_orientation_rad = toRad(this.angle);
-        const orientation_delta_rad = omega_in * dt;
-        const orientation_rad = prev_orientation_rad + orientation_delta_rad;
+        this.odometryUpdate(fwd_in * dt, lat_in * dt, omega_in * dt, fwd_in, lat_in);
+    }
 
+    // Arc odometry (5225A tracking document style) + world-frame velocity update
+    private odometryUpdate(forward_delta: number, sideways_delta: number, orientation_delta_rad: number, fwd_speed: number, lat_speed: number) {
+        const prev_orientation_rad = toRad(this.angle);
+        const orientation_rad = prev_orientation_rad + orientation_delta_rad;
         this.setAngle(toDeg(orientation_rad));
 
         let local_X_position: number;
@@ -265,23 +264,15 @@ export class Robot {
             local_Y_position = c * (forward_delta  / orientation_delta_rad);
         }
 
-        const local_polar_angle  = Math.atan2(local_Y_position, local_X_position);
         const local_polar_length = Math.sqrt(local_X_position ** 2 + local_Y_position ** 2);
+        if (local_polar_length > 0) {
+            const global_polar_angle = Math.atan2(local_Y_position, local_X_position) - prev_orientation_rad - (orientation_delta_rad / 2);
+            this.x += local_polar_length * Math.cos(global_polar_angle);
+            this.y += local_polar_length * Math.sin(global_polar_angle);
+        }
 
-        const global_polar_angle = local_polar_angle - prev_orientation_rad - (orientation_delta_rad / 2);
-
-        this.x += local_polar_length * Math.cos(global_polar_angle);
-        this.y += local_polar_length * Math.sin(global_polar_angle);
-
-        // Update world-frame velocity
-        const theta = orientation_rad;
-        const forwardX = Math.sin(theta);
-        const forwardY = Math.cos(theta);
-        const rightX   =  Math.cos(theta);
-        const rightY   = -Math.sin(theta);
-
-        this.velX = fwd_in * forwardX + lat_in * rightX;
-        this.velY = fwd_in * forwardY + lat_in * rightY;
+        this.velX = fwd_speed * Math.sin(orientation_rad) + lat_speed * Math.cos(orientation_rad);
+        this.velY = fwd_speed * Math.cos(orientation_rad) - lat_speed * Math.sin(orientation_rad);
     }
 
     public stop() {
@@ -292,6 +283,8 @@ export class Robot {
 
         this.vFL = 0;
         this.vFR = 0;
+        this.vCL = 0;
+        this.vCR = 0;
         this.vRL = 0;
         this.vRR = 0;
     }
