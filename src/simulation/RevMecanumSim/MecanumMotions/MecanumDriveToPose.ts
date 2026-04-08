@@ -63,34 +63,23 @@ export function mecanumDriveToPose(robot: Robot, dt: number, x: number, y: numbe
 
     const heading_error = Math.atan2(y - robot.getY(), x - robot.getX());
 
+    const angle_to_target = reduce_negative_180_to_180(desired_heading - robot.getAngle());
+    const heading_scale_factor = Math.cos(toRad(angle_to_target));
 
-    // const heading_scale_factor = Math.cos(toRad(heading_error));
-    // const center_drive_output = drive_output * heading_scale_factor;
-
-    // const center_heading_error = reduce_negative_180_to_180(desired_heading - robot.getAngle());
-    // const center_heading_output = turnPID.compute(center_heading_error);
-
-    // const left_center_voltage = left_voltage_scaling(center_drive_output, center_heading_output) / kMikLibSpeed;
-    // const right_center_voltage = right_voltage_scaling(center_drive_output, center_heading_output) / kMikLibSpeed;
-
-    let left_center_voltage = clamp(drive_output - heading_error, -drive_p.maxSpeed, drive_p.maxSpeed);
-    let right_center_voltage = clamp(drive_output + heading_error, -drive_p.maxSpeed, drive_p.maxSpeed);
-
+    let left_center_voltage = clamp(drive_output * heading_scale_factor, -Math.abs(heading_scale_factor) * drive_p.maxSpeed, Math.abs(heading_scale_factor) * drive_p.maxSpeed);;
+    let right_center_voltage = clamp(drive_output * heading_scale_factor, -Math.abs(heading_scale_factor) * drive_p.maxSpeed, Math.abs(heading_scale_factor) * drive_p.maxSpeed);;
     
-    if (drive_error < 10) {
-        left_center_voltage = 0;
-        right_center_voltage = 0;
-    }
-
+    // if (drive_error < 10) {
+    //     left_center_voltage = 0;
+    //     right_center_voltage = 0;
+    // }
 
     const left_front_output  = (drive_output * Math.cos(toRad(robot.getAngle()) + heading_error - Math.PI / 4) + turn_output) / kMikLibSpeed;
     const left_back_output   = (drive_output * Math.cos(-toRad(robot.getAngle()) - heading_error + 3 * Math.PI / 4) + turn_output) / kMikLibSpeed;
     const right_back_output  = (drive_output * Math.cos(toRad(robot.getAngle()) + heading_error - Math.PI / 4) - turn_output) / kMikLibSpeed;
     const right_front_output = (drive_output * Math.cos(-toRad(robot.getAngle()) - heading_error + 3 * Math.PI / 4) - turn_output) / kMikLibSpeed;
 
-    // robot.mecanumDrive(right_front_output, left_front_output, right_back_output, left_back_output, dt);
-
     robot.asteriskDrive(right_front_output, left_front_output, left_center_voltage, right_center_voltage, right_back_output, left_back_output, dt)
-    
+
     return false;
 }
