@@ -169,12 +169,12 @@ export class Robot {
 
         const r = (this.height + (this.width - 2)) / 2;
         const targetFwd   = (tFL + tFR + tRL + tRR) / 4;
-        const targetLat   = (-tFL + tFR + tRL - tRR) / 4;
-        const targetOmega = (-tFL + tFR - tRL + tRR) / (4 * r);
+        const targetLat   = (tFL - tFR - tRL + tRR) / 4;
+        const targetOmega = (tFL - tFR + tRL - tRR) / (4 * r);
 
         const curFwd   = (this.vFL + this.vFR + this.vRL + this.vRR) / 4;
-        const curLat   = (-this.vFL + this.vFR + this.vRL - this.vRR) / 4;
-        const curOmega = (-this.vFL + this.vFR - this.vRL + this.vRR) / (4 * r);
+        const curLat   = (this.vFL - this.vFR - this.vRL + this.vRR) / 4;
+        const curOmega = (this.vFL - this.vFR + this.vRL - this.vRR) / (4 * r);
 
         const kLat = 1 - Math.exp(-dt / this.lateralTau);
         const kAng = 1 - Math.exp(-dt / this.angularTau);
@@ -183,10 +183,10 @@ export class Robot {
         const newLat   = curLat   + (targetLat   - curLat)   * kLat;
         const newOmega = curOmega + (targetOmega - curOmega) * kAng;
 
-        this.vFL = newFwd - newLat - newOmega * r;
-        this.vFR = newFwd + newLat + newOmega * r;
-        this.vRL = newFwd + newLat - newOmega * r;
-        this.vRR = newFwd - newLat + newOmega * r;
+        this.vFL = newFwd + newLat + newOmega * r;
+        this.vFR = newFwd - newLat - newOmega * r;
+        this.vRL = newFwd - newLat + newOmega * r;
+        this.vRR = newFwd + newLat - newOmega * r;
 
         const fwd_in = newFwd * 12;
         const lat_in = newLat * 12;
@@ -217,13 +217,13 @@ export class Robot {
         // Forward: average all 6 wheels (lat and omega terms cancel)
         const targetFwd   = (tFL + tFR + tCL + tCR + tRL + tRR) / 6;
         // Lateral: only mecanum corners can strafe
-        const targetLat   = (-tFL + tFR + tRL - tRR) / 4;
+        const targetLat   = (tFL - tFR - tRL + tRR) / 4;
         // Omega: weighted average of corner mecanum estimate (×4) and center omni estimate (×2)
-        const targetOmega = ((-tFL + tFR - tRL + tRR) / r_m + 2 * (tCR - tCL) / b) / 6;
+        const targetOmega = ((tFL - tFR + tRL - tRR) / r_m + 2 * (tCL - tCR) / b) / 6;
 
         const curFwd      = (this.vFL + this.vFR + this.vCL + this.vCR + this.vRL + this.vRR) / 6;
-        const curLat      = (-this.vFL + this.vFR + this.vRL - this.vRR) / 4;
-        const curOmega    = ((-this.vFL + this.vFR - this.vRL + this.vRR) / r_m + 2 * (this.vCR - this.vCL) / b) / 6;
+        const curLat      = (this.vFL - this.vFR - this.vRL + this.vRR) / 4;
+        const curOmega    = ((this.vFL - this.vFR + this.vRL - this.vRR) / r_m + 2 * (this.vCL - this.vCR) / b) / 6;
 
         const kLat = 1 - Math.exp(-dt / this.lateralTau);
         const kAng = 1 - Math.exp(-dt / this.angularTau);
@@ -232,12 +232,12 @@ export class Robot {
         const newLat   = curLat   + (targetLat   - curLat)   * kLat;
         const newOmega = curOmega + (targetOmega - curOmega) * kAng;
 
-        this.vFL = newFwd - newLat - newOmega * r_m;
-        this.vFR = newFwd + newLat + newOmega * r_m;
-        this.vCL = newFwd - newOmega * (b / 2);
-        this.vCR = newFwd + newOmega * (b / 2);
-        this.vRL = newFwd + newLat - newOmega * r_m;
-        this.vRR = newFwd - newLat + newOmega * r_m;
+        this.vFL = newFwd + newLat + newOmega * r_m;
+        this.vFR = newFwd - newLat - newOmega * r_m;
+        this.vCL = newFwd + newOmega * (b / 2);
+        this.vCR = newFwd - newOmega * (b / 2);
+        this.vRL = newFwd - newLat + newOmega * r_m;
+        this.vRR = newFwd + newLat - newOmega * r_m;
 
         const fwd_in   = newFwd   * 12;
         const lat_in   = newLat   * 12;

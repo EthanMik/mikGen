@@ -60,7 +60,7 @@ export function mecanumTurnToPoint(robot: Robot, dt: number, x: number, y: numbe
     output = clamp(output, -p.maxSpeed, p.maxSpeed);
     output = clamp_min_voltage(output, p.min_voltage) / kMikLibSpeed;
 
-    robot.mecanumDrive(-output, output, -output, output, dt);
+    robot.mecanumDrive(output, -output, output, -output, dt);
 
     return false;
 }

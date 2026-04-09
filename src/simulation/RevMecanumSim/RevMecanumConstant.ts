@@ -90,9 +90,9 @@ export const clonekRevMecanum = (c: RevMecanumConstants): RevMecanumConstants =>
 export const kMecanumTurn: RevMecanumConstants = {
     maxSpeed: 12,
     kp: .4,
-    ki: .03,
+    ki: 0,
     kd: 3,
-    starti: 15,
+    starti: 0,
     slew: 0,
 
     settle_error: 1,
