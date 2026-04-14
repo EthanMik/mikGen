@@ -4,7 +4,7 @@ Bugs:
 - make the group dropping css look better
 - control config not updating the path??
 - the robot does not snap to the starting point when pressing R
-- the robot timeline is not getting updated on all events
+- the robot timeline is not getting updated on all events, includes telemetry
 
 
 Todo:
