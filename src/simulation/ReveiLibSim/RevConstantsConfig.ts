@@ -2,11 +2,11 @@
 import type { SetStateAction } from "react";
 import type { Format } from "../../hooks/useFormat";
 import type { Path } from "../../core/Types/Path";
-import type { SegmentKind } from "../../core/Types/Segment";
 import type { ConstantListField } from "../../components/PathMenu/MotionList";
 import type { ConstantField } from "../../components/PathMenu/ConstantRow";
 import type { ReveilLibConstants, revDriveConstants, revTurnConstants } from "./RevConstants";
 import { getDefaultConstants, updateDefaultConstants, updatePathConstants, updatePathConstantsByKind } from "../DefaultConstants";
+import type { SegmentKind } from "../InitialDefaults";
 
 const createDrivePIDGroup = (
   format: Format,

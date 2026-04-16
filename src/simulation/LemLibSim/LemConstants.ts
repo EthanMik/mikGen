@@ -1,4 +1,6 @@
+import { forSegments, type FormatDef, type SegmentDef } from "../FormatDefinition";
 import type { DriveDirection, SwingDirection, TurnDirection } from "../mikLibSim/MikConstants";
+import { moveToPose } from "./DriveMotions/MoveToPose";
 
 export interface LemConstants {
     horizontalDrift: number,
@@ -23,70 +25,6 @@ export interface LemConstants {
     direction: TurnDirection | null,
     lockedSide: SwingDirection,
 }
-
-export type LemMoveConstants = {
-    lateral: LemConstants
-    angular: LemConstants
-}
-
-export type LemAngularConstants = {
-    angular: LemConstants
-}
-
-export const kLemLibSpeed = 127;
-
-export const LemConstantsEqual = (a: LemConstants, b: LemConstants): boolean => {
-    return (
-        a.horizontalDrift === b.horizontalDrift &&
-        a.kp === b.kp &&
-        a.ki === b.ki &&
-        a.kd === b.kd &&
-        a.antiWindup === b.antiWindup &&
-        a.smallError === b.smallError &&
-        a.smallErrorTimeout === b.smallErrorTimeout &&
-        a.largeError === b.largeError &&
-        a.largeErrorTimeout === b.largeErrorTimeout &&
-        a.slew === b.slew &&
-        a.timeout === b.timeout &&
-        a.maxSpeed === b.maxSpeed &&
-        a.minSpeed === b.minSpeed &&
-        a.lead === b.lead &&
-        a.earlyExitRange === b.earlyExitRange &&
-        a.forwards === b.forwards &&
-        a.direction === b.direction &&
-        a.lockedSide === b.lockedSide
-    );
-}
-
-export function getUnequalLemConstants(correct: LemConstants | undefined, different: LemConstants | undefined): Partial<LemConstants> {
-    const out: Partial<LemConstants> = {};
-    const a = correct;
-    const b = different;
-    if (a === undefined || b === undefined) return out;
-
-    if (a.horizontalDrift !== b.horizontalDrift) out.horizontalDrift = b.horizontalDrift;
-    if (a.kp !== b.kp) out.kp = b.kp;
-    if (a.ki !== b.ki) out.ki = b.ki;
-    if (a.kd !== b.kd) out.kd = b.kd;
-    if (a.antiWindup !== b.antiWindup) out.antiWindup = b.antiWindup;
-    if (a.smallError !== b.smallError) out.smallError = b.smallError;
-    if (a.smallErrorTimeout !== b.smallErrorTimeout) out.smallErrorTimeout = b.smallErrorTimeout;
-    if (a.largeError !== b.largeError) out.largeError = b.largeError;
-    if (a.largeErrorTimeout !== b.largeErrorTimeout) out.largeErrorTimeout = b.largeErrorTimeout;
-    if (a.slew !== b.slew) out.slew = b.slew;
-    if (a.timeout !== b.timeout) out.timeout = b.timeout;
-    if (a.maxSpeed !== b.maxSpeed) out.maxSpeed = b.maxSpeed;
-    if (a.minSpeed !== b.minSpeed) out.minSpeed = b.minSpeed;
-    if (a.lead !== b.lead) out.lead = b.lead;
-    if (a.earlyExitRange !== b.earlyExitRange) out.earlyExitRange = b.earlyExitRange;
-    if (a.forwards !== b.forwards) out.forwards = b.forwards;
-    if (a.direction !== b.direction) out.direction = b.direction;
-    if (a.lockedSide !== b.lockedSide) out.lockedSide = b.lockedSide;
-
-    return out;
-}
-
-export const cloneLemConstants = (c: LemConstants): LemConstants => ({ ...c });
 
 export const kLemLinear: LemConstants = {
     maxSpeed: 127,
@@ -131,3 +69,78 @@ export const kLemAngular: LemConstants = {
     largeErrorTimeout: 500,
     slew: 0  
 }
+
+const LemLibDef = {
+    constants: [kLemLinear],
+    kMaxSpeed: 127,
+    formatPathName: "LemLib Path",
+
+    segments: {
+        start: {
+            name: "Start",
+            initialDefaults: [kLemLinear],
+            toStringTemplate: "chassis.moveToPose(${x}, ${y}, ${angle}, ${timeout})",
+            toSim: (x, y, angle, constants) => {
+                return (robot, dt) => [false, "start", 0];
+            },
+        },      
+        poseDrive: {
+            name: "Move to Pose",
+            initialDefaults: [kLemLinear],
+            toStringTemplate: "chassis.moveToPose(${x}, ${y}, ${angle}, ${timeout})",
+            toSim: (x, y, angle, constants) => {
+                return (robot, dt) => [false, "poseDrive", 0];
+            },
+        },
+        ...forSegments(["distanceDrive", "pointDrive"], {
+            name: "Move to Point",
+            initialDefaults: [kLemLinear],
+            toStringTemplate: "chassis.moveToPoint(${x}, ${y}, ${timeout})",
+            toSim: (x, y, angle, constants) => {
+                return (robot, dt) => [false, "pointDrive", 0];
+            },
+        }),
+        pointTurn: {
+            name: "Turn to Point",
+            initialDefaults: [kLemAngular],
+            toStringTemplate: "chassis.turnToPoint(${x}, ${y}, ${timeout})",
+            toSim: (x, y, angle, constants) => {
+                return (robot, dt) => [false, "pointTurn", 0];
+            },
+        },
+        angleTurn: {
+            name: "Turn to Angle",
+            initialDefaults: [kLemAngular],
+            toStringTemplate: "chassis.turnToHeading(${angle}, ${timeout})",
+            toSim: (x, y, angle, constants) => {
+                return (robot, dt) => [false, "angleTurn", 0];
+            },
+        },
+        angleSwing: {
+            name: "Swing to Angle",
+            initialDefaults: [kLemAngular],
+            toStringTemplate: "chassis.swingToHeading(${angle}, ${timeout})",
+            toSim: (x, y, angle, constants) => {
+                return (robot, dt) => [false, "angleSwing", 0];
+            },
+        },
+        pointSwing: {
+            name: "Swing to Point",
+            initialDefaults: [kLemAngular],
+            toStringTemplate: "chassis.swingToPoint(${x}, ${y}, ${timeout})",
+            toSim: (x, y, angle, constants) => {
+                return (robot, dt) => [false, "pointSwing", 0];
+            },
+        },
+    },
+    motionListFields: {
+        slider: {
+            key: "maxSpeed",
+            bounds: [0, 127],
+            roundTo: 1
+        },
+        cycleButtons: [],
+        numberInputs: [],
+        constants: [kLemLinear]
+    }
+} satisfies FormatDef<"LemLib">;

@@ -23,7 +23,6 @@ export default function AddSegmentButton() {
         addAngleSwingSegment,
         addPointSwingSegment,
         addDistanceSegment,
-        addSegmentGroup,
     } = FieldMacros();
 
 
@@ -132,14 +131,14 @@ export default function AddSegmentButton() {
                                     <span className="text-lightgray text-[14px]">Ctrl+Alt+RMB</span>
                                 </button>
                             }                                       
-
+{/* 
                             <div className="mt-1 border-t border-gray-500/40 flex flex-row items-center justify-between h-[4px]"></div>
                             <button 
                                 onClick={() => addSegmentGroup(setPath)}
                                 className="flex pr-1 pl-2 py-0.5 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
                                 <span className="text-[16px]">Segment Group</span>
                                 <span className="text-lightgray text-[14px]"></span>
-                            </button>
+                            </button> */}
 
                         </div>
         

@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { createStore } from "../core/Store";
-import { VALIDATED_APP_STATE, type Format } from "./appStateDefaults";
+import { VALIDATED_APP_STATE } from "./appStateDefaults";
+import type { Format } from "../simulation/FormatDefinition";
 
 export type { Format }
 

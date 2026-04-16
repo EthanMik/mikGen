@@ -2,7 +2,6 @@ import type { SetStateAction } from "react";
 import type { Path } from "../../core/Types/Path";
 import type { ConstantListField } from "../../components/PathMenu/MotionList";
 import type { ConstantField } from "../../components/PathMenu/ConstantRow";
-import type { SegmentKind } from "../../core/Types/Segment";
 import type { Format } from "../../hooks/useFormat";
 import ccw from "../../assets/ccw.svg";
 import cw from "../../assets/cw.svg";
@@ -15,6 +14,7 @@ import rightswing from "../../assets/rightswing.svg"
 import { getDefaultConstants, updateDefaultConstants, updatePathConstants, updatePathConstantsByKind } from "../DefaultConstants";
 import type { CycleImageButtonProps } from "../../components/Util/CycleButton";
 import type { RevMecanumConstants, RevMecanumDriveConstants, RevMecanumSwingConstants, RevMecanumTurnConstants } from "./RevMecanumConstant";
+import type { SegmentKind } from "../InitialDefaults";
 
 const createDrivePIDGroup = (
   format: Format,

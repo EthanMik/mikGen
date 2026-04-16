@@ -194,6 +194,15 @@ export function mergeDeep(base: any, patch: any): any {
 };
 
 // chat gpt equal universal equal checker this code may be broken
+export function getUnequalKeys<T extends object>(correct: T | undefined, different: T | undefined): Partial<T> {
+    const out: Partial<T> = {};
+    if (correct === undefined || different === undefined) return out;
+    for (const key of Object.keys(correct) as (keyof T)[]) {
+        if (!deepEqual(correct[key], different[key])) out[key] = different[key];
+    }
+    return out;
+}
+
 export function deepEqual(a: any, b: any): boolean {
     const seen = new WeakMap<object, WeakSet<object>>();
 

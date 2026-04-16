@@ -1,6 +1,6 @@
+import type { SegmentKind } from "../simulation/InitialDefaults";
 import type { Robot } from "./Robot";
 import { createStore } from "./Store";
-import type { SegmentKind } from "./Types/Segment";
 import { normalizeDeg } from "./Util";
 
 export const SIM_CONSTANTS = {

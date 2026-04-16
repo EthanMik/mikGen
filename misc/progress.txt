@@ -6,23 +6,20 @@ Bugs:
 - the robot does not snap to the starting point when pressing R
 - the robot timeline is not getting updated on all events, includes telemetry
 
-
 Todo:
+- Refactor Formats, start writing formats into mikGen
+- Make the toString JSON be user editable
+- Temporary remove groups from mikGen
 - distance segments
-- add a apply all button with maybe a confirm menu?! will not apply to locked segments
 - instead of commands add a help button that provides path examples
 - Fix group css for distance traveled so it appears
-- add jar template and rw-template drive algorithms
 
 Planned:
 - tooltip when hovering over svg buttons
-- collision
 - make it so double clicking the eye turn off the path lines 
 - square drag to select add to path config
-- Mecum drive motions ☠️ (robot sim is complete)
 - google analytics
 - add example paths
-- Bezier segments
 
 Deciding:
 - radial click animations
@@ -39,12 +36,6 @@ lemlib notes
 rw notes
 - heading correction is separate
 
-
-command notes
-- abiltiy to change colors of the command. The color appears on the robot, then disapears
-- Add built in commands corrosponding to template
-- commands can be double clicked to edit
-- commands have color to them that matches vscode default theme
-- unknown commands will be white and just called as a lambda
-- paramter list to be added when commands are intialized like c++, idk how this will work for custom types
-- should I use typescipt types like number instead of ints bools, etc, hmm
+Refactor Notes:
+- Constants are now arrays
+- 

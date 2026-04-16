@@ -1,9 +1,9 @@
 import { INITIAL_DEFAULTS, type DefaultConstant } from "../simulation/InitialDefaults"
 import { defaultRobotConstants, type RobotConstants } from "../core/Robot"
 import type { Path } from "../core/Types/Path"
+import type { Format } from "../simulation/FormatDefinition"
 
 // Types defined here to avoid circular dependencies
-export type Format = "mikLib" | "ReveilLib" | "JAR-Template" | "LemLib" | "RW-Template" | "RevMecanum"
 export type FieldType = "v5-match" | "v5-skills" | "vexu-match" | "empty" | "separator"
 
 export type FileFormat = {

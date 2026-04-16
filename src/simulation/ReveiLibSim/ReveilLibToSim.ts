@@ -13,7 +13,6 @@ import {
 } from "./DriveMotions/TurnSegment";
 import { cloneKRev, type revDriveConstants, type revTurnConstants } from "./RevConstants";
 import { wrapDeg180 } from "./Util";
-import type { SegmentKind } from "../../core/Types/Segment";
 import type { Robot } from "../../core/Robot";
 import { toDeg } from "../../core/Util";
 import type { Coordinate } from "../../core/Types/Coordinate";
@@ -22,6 +21,7 @@ import {
   getForwardSnapPose,
   type Path,
 } from "../../core/Types/Path";
+import type { SegmentKind } from "../InitialDefaults";
 
 export function reveilLibToSim(path: Path) {
   const auton: ((robot: Robot, dt: number) => [boolean, SegmentKind, number])[] = [];

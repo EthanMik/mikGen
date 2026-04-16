@@ -49,15 +49,15 @@ export default function PathConfig() {
   const speedScale = getFormatSpeed(format);
   const name = getFormatPathName(format);
 
-  const handleGroupDropZoneChange = (groupId: string) => (zone: GroupDropZone) => {
-    if (zone === null) {
-      setActiveGroupDropZone(null);
-    } else {
-      setActiveGroupDropZone({ groupId, zone });
-      // Clear the parent overIndex when we have an active group zone
-      setOverIndex(null);
-    }
-  };
+  // const handleGroupDropZoneChange = (groupId: string) => (zone: GroupDropZone) => {
+  //   if (zone === null) {
+  //     setActiveGroupDropZone(null);
+  //   } else {
+  //     setActiveGroupDropZone({ groupId, zone });
+  //     // Clear the parent overIndex when we have an active group zone
+  //     setOverIndex(null);
+  //   }
+  // };
 
   return (
     <div className="bg-medgray w-[500px] h-[650px] rounded-lg p-[15px] flex flex-col">
@@ -130,7 +130,7 @@ export default function PathConfig() {
               <div className="absolute -top-1 left-2 w-[435px] h-[1px] bg-white rounded-full pointer-events-none z-10" />
             )}
 
-            {idx > 0 && isGroup && (
+            {/* {idx > 0 && isGroup && (
               <GroupList
                 name={c.constants as string}
                 segmentId={c.id}
@@ -145,7 +145,7 @@ export default function PathConfig() {
                 headerDropZone={groupDropZone}
                 onHeaderDropZoneChange={handleGroupDropZoneChange(c.id)}
               />
-            )}
+            )} */}
 
             {idx > 0 && MOTION_KIND_SET.has(c.kind) && c.groupId == undefined && (
               <MotionList

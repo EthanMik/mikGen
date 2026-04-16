@@ -3,7 +3,7 @@ import type React from "react";
 import { clamp, FIELD_IMG_DIMENSIONS, mergeDeep, normalizeDeg, makeId, type Rectangle } from "../core/Util";
 import type { Path } from "../core/Types/Path";
 import type { SetStateAction } from "react";
-import { createAngleSwingSegment, createAngleTurnSegment, createDistanceSegment, createPointDriveSegment, createPointSwingSegment, createPointTurnSegment, createPoseDriveSegment, createSegmentGroup, type Segment } from "../core/Types/Segment";
+import { createAngleSwingSegment, createAngleTurnSegment, createDistanceSegment, createPointDriveSegment, createPointSwingSegment, createPointTurnSegment, createPoseDriveSegment, type Segment } from "../core/Types/Segment";
 import type { Coordinate } from "../core/Types/Coordinate";
 import type { Pose } from "../core/Types/Pose";
 import type { Format } from "../hooks/useFormat";
@@ -350,7 +350,6 @@ export default function FieldMacros() {
                         id: makeId(10),
                         selected: !s.locked,
                         hovered: false,
-                        command: s.command ? { ...s.command, id: makeId(10) } : s.command,
                     };
                 });
                 
@@ -531,12 +530,6 @@ export default function FieldMacros() {
         addSegment(control, setPath);
     }
 
-    const addSegmentGroup = (setPath: React.Dispatch<SetStateAction<Path>>) => {
-        const control = createSegmentGroup();
-        addSegment(control, setPath);
-    }
-
-
     const copySelectedPath = (evt: KeyboardEvent, path: Path, format: Format, trigger: () => void) => {
         if (evt.key.toLowerCase() === "c" && evt.ctrlKey && !evt.shiftKey) {
             trigger();
@@ -579,6 +572,5 @@ export default function FieldMacros() {
         addAngleSwingSegment,
         addPointSwingSegment,
         addDistanceSegment, 
-        addSegmentGroup,
     };
 }
