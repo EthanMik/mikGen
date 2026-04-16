@@ -17,13 +17,13 @@ const keyToRevMecanumConstant = (key: string, value: number | string, constantTy
             case "ki"              : return `.drive_k.i = ${roundOff(value, 5)}`
             case "kd"              : return `.drive_k.d = ${roundOff(value, 3)}`
             case "starti"          : return `.drive_k.starti = ${roundOff(value, 2)}`
-            case "maxSpeed"        : return `.max_speed = ${roundOff(value, 1)}`
-            case "min_voltage"     : return `.min_speed = ${roundOff(value, 1)}`
-            case "center_max_speed": return `.center_max_speed = ${roundOff(value, 1)}`
             case "settle_error"    : return `.drive_settle.settle_error = ${roundOff(value, 2)}_in`
             case "settle_time"     : return `.drive_settle.settle_time = ${roundOff(value, 0)}_ms`
-            case "timeout"         : return `.timeout = ${roundOff(value, 0)}_ms`
+            case "maxSpeed"        : return `.max_speed = ${roundOff(value, 1)}`
+            case "min_voltage"     : return `.min_speed = ${roundOff(value, 1)}`
             case "exit_error"      : return `.exit_error = ${roundOff(value, 2)}_in`
+            case "center_max_speed": return `.center_max_speed = ${roundOff(value, 1)}`
+            case "timeout"         : return `.timeout = ${roundOff(value, 0)}_ms`
         }
     } else if (constantType === "TurnInDrive") {
         switch (key) {
@@ -31,9 +31,9 @@ const keyToRevMecanumConstant = (key: string, value: number | string, constantTy
             case "ki"          : return `.turn_k.i = ${roundOff(value, 5)}`
             case "kd"          : return `.turn_k.d = ${roundOff(value, 3)}`
             case "starti"      : return `.turn_k.starti = ${roundOff(value, 2)}`
-            case "maxSpeed"    : return `.turn_max_speed = ${roundOff(value, 1)}`
             case "settle_error": return `.turn_settle.settle_error = ${roundOff(value, 2)}_deg`
             case "settle_time" : return `.turn_settle.settle_time = ${roundOff(value, 0)}_ms`
+            case "maxSpeed"    : return `.turn_max_speed = ${roundOff(value, 1)}`
         }
     } else if (constantType === "Turn") {
         switch (key) {
@@ -41,26 +41,73 @@ const keyToRevMecanumConstant = (key: string, value: number | string, constantTy
             case "ki"          : return `.turn_k.i = ${roundOff(value, 5)}`
             case "kd"          : return `.turn_k.d = ${roundOff(value, 3)}`
             case "starti"      : return `.turn_k.starti = ${roundOff(value, 2)}`
-            case "maxSpeed"    : return `.max_speed = ${roundOff(value, 1)}`
-            case "min_voltage" : return `.min_speed = ${roundOff(value, 1)}`
             case "settle_error": return `.turn_settle.settle_error = ${roundOff(value, 2)}_deg`
             case "settle_time" : return `.turn_settle.settle_time = ${roundOff(value, 0)}_ms`
-            case "timeout"     : return `.timeout = ${roundOff(value, 0)}_ms`
+            case "min_voltage" : return `.min_speed = ${roundOff(value, 1)}`
+            case "maxSpeed"    : return `.max_speed = ${roundOff(value, 1)}`
             case "exit_error"  : return `.exit_error = ${roundOff(value, 2)}_deg`
+            case "timeout"     : return `.timeout = ${roundOff(value, 0)}_ms`
         }
     }
     return ""
 }
 
-const getConstantList = (constants: Partial<RevMecanumConstants>, constantType: ConstantType): string[] => {
-    const constantsList: string[] = [];
-    for (const k of Object.keys(constants)) {
-        const value = constants[k as keyof RevMecanumConstants];
-        if (value === undefined) continue;
-        const c = keyToRevMecanumConstant(k, value as number | string, constantType);
-        if (c !== "") constantsList.push(c);
+// Turn struct order: turn_k, turn_settle, min_speed, max_speed, exit_error, timeout
+const TURN_KEY_ORDER: (keyof RevMecanumConstants)[] = [
+    "kp", "ki", "kd", "starti",
+    "settle_error", "settle_time",
+    "min_voltage", "maxSpeed",
+    "exit_error", "timeout",
+];
+
+const getTurnConstantList = (constants: Partial<RevMecanumConstants>): string[] => {
+    const list: string[] = [];
+    for (const k of TURN_KEY_ORDER) {
+        const v = constants[k];
+        if (v === undefined) continue;
+        const c = keyToRevMecanumConstant(k, v as number | string, "Turn");
+        if (c !== "") list.push(c);
     }
-    return constantsList;
+    return list;
+}
+
+// Drive struct order: drive_k, turn_k, drive_settle, turn_settle, max_speed, min_speed, exit_error, turn_max_speed, center_max_speed, timeout
+const getDriveConstantList = (
+    driveConstants: Partial<RevMecanumConstants>,
+    turnConstants: Partial<RevMecanumConstants>
+): string[] => {
+    const list: string[] = [];
+
+    const addDrive = (k: keyof RevMecanumConstants) => {
+        const v = driveConstants[k];
+        if (v === undefined) return;
+        const c = keyToRevMecanumConstant(k, v as number | string, "Drive");
+        if (c !== "") list.push(c);
+    };
+
+    const addTurn = (k: keyof RevMecanumConstants) => {
+        const v = turnConstants[k];
+        if (v === undefined) return;
+        const c = keyToRevMecanumConstant(k, v as number | string, "TurnInDrive");
+        if (c !== "") list.push(c);
+    };
+
+    // drive_k
+    addDrive("kp"); addDrive("ki"); addDrive("kd"); addDrive("starti");
+    // turn_k
+    addTurn("kp"); addTurn("ki"); addTurn("kd"); addTurn("starti");
+    // drive_settle
+    addDrive("settle_error"); addDrive("settle_time");
+    // turn_settle
+    addTurn("settle_error"); addTurn("settle_time");
+    // max_speed, min_speed, exit_error
+    addDrive("maxSpeed"); addDrive("min_voltage"); addDrive("exit_error");
+    // turn_max_speed
+    addTurn("maxSpeed");
+    // center_max_speed, timeout
+    addDrive("center_max_speed" as keyof RevMecanumConstants); addDrive("timeout");
+
+    return list;
 }
 
 export function RevMecanumToString(path: Path, selected: boolean = false) {
@@ -86,68 +133,56 @@ export function RevMecanumToString(path: Path, selected: boolean = false) {
         const angle = roundOff(control.pose.angle, 2)
 
         if (idx === 0) {
-            pathString += `    odom->set_position({${x}_in, ${y}_in, ${angle}_deg});`
+            pathString += `  odom->set_position({${x}_in, ${y}_in, ${angle}_deg});`
             continue;
         }
 
         if (kind === "angleTurn") {
             const { turn } = k as RevMecanumTurnConstants;
-            const constantsList = getConstantList(getUnequalRevMecanumConstants(kDefault.angleTurn.turn, turn), "Turn");
-            const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");
+            const constantsList = getTurnConstantList(getUnequalRevMecanumConstants(kDefault.angleTurn.turn, turn));
 
             pathString += constantsList.length === 0
-            ? `\n    turn(${angle}_deg);`
-            : constantsList.length === 1
-            ? `\n    turn(${angle}_deg, { ${constantsList[0]} });`
-            : `\n    turn(${angle}_deg, {\n${formattedConstants}\n    });`
+            ? `\n  turn(${angle}_deg);`
+            : `\n  turn(${angle}_deg, Turn{ ${constantsList.join(", ")} });`
         }
 
         if (kind === "pointTurn") {
             const { turn } = k as RevMecanumTurnConstants;
-            const constantsList = getConstantList(getUnequalRevMecanumConstants(kDefault.pointTurn.turn, turn), "Turn");
+            const constantsList = getTurnConstantList(getUnequalRevMecanumConstants(kDefault.pointTurn.turn, turn));
 
             if (Number(angle) !== 0) constantsList.unshift(`.offset = ${angle}_deg`)
 
             const pos = findPointToFace(path, idx);
             const turnX = roundOff(pos.x, 2);
             const turnY = roundOff(pos.y, 2);
-            const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");
 
             pathString += constantsList.length === 0
-            ? `\n    turn(${turnX}_in, ${turnY}_in);`
-            : constantsList.length === 1
-            ? `\n    turn(${turnX}_in, ${turnY}_in, { ${constantsList[0]} });`
-            : `\n    turn(${turnX}_in, ${turnY}_in, {\n${formattedConstants}\n    });`
+            ? `\n  turn(${turnX}_in, ${turnY}_in);`
+            : `\n  turn(${turnX}_in, ${turnY}_in, Turn{ ${constantsList.join(", ")} });`
         }
 
         if (kind === "pointDrive") {
             const { drive, turn } = k as RevMecanumDriveConstants;
-            const constantsList = [
-                ...getConstantList(getUnequalRevMecanumConstants(kDefault.pointDrive.drive, drive), "Drive"),
-                ...getConstantList(getUnequalRevMecanumConstants(kDefault.pointDrive.turn, turn), "TurnInDrive"),
-            ];
-            const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");
+            const constantsList = getDriveConstantList(
+                getUnequalRevMecanumConstants(kDefault.pointDrive.drive, drive),
+                getUnequalRevMecanumConstants(kDefault.pointDrive.turn, turn)
+            );
 
             pathString += constantsList.length === 0
-            ? `\n    drive(${x}_in, ${y}_in);`
-            : constantsList.length === 1
-            ? `\n    drive(${x}_in, ${y}_in, { ${constantsList[0]} });`
-            : `\n    drive(${x}_in, ${y}_in, {\n${formattedConstants}\n    });`
+            ? `\n  drive(${x}_in, ${y}_in);`
+            : `\n  drive(${x}_in, ${y}_in, Drive{ ${constantsList.join(", ")} });`
         }
 
         if (kind === "poseDrive") {
             const { drive, turn } = k as RevMecanumDriveConstants;
-            const constantsList = [
-                ...getConstantList(getUnequalRevMecanumConstants(kDefault.poseDrive.drive, drive), "Drive"),
-                ...getConstantList(getUnequalRevMecanumConstants(kDefault.poseDrive.turn, turn), "TurnInDrive"),
-            ];
-            const formattedConstants = constantsList.map((c) => `        ${c}`).join(",\n");
+            const constantsList = getDriveConstantList(
+                getUnequalRevMecanumConstants(kDefault.poseDrive.drive, drive),
+                getUnequalRevMecanumConstants(kDefault.poseDrive.turn, turn)
+            );
 
             pathString += constantsList.length === 0
-            ? `\n    drive(${x}_in, ${y}_in, ${angle}_deg);`
-            : constantsList.length === 1
-            ? `\n    drive(${x}_in, ${y}_in, ${angle}_deg, { ${constantsList[0]} });`
-            : `\n    drive(${x}_in, ${y}_in, ${angle}_deg, {\n${formattedConstants}\n    });`
+            ? `\n  drive(${x}_in, ${y}_in, ${angle}_deg);`
+            : `\n  drive(${x}_in, ${y}_in, ${angle}_deg, Drive{ ${constantsList.join(", ")} });`
         }
     }
 
