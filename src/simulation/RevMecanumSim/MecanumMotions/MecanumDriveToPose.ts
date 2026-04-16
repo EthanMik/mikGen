@@ -11,8 +11,11 @@ let prev_line_settled: boolean = false;
 let start_angle: number = 0;
 
 let start = true;
+let telemetry_log: string = "";
 
 function resetMecanumDriveToPose() {
+    console.log(telemetry_log);
+    telemetry_log = "";
     drivePID.reset();
     turnPID.reset();
     prev_line_settled = false;
@@ -50,8 +53,6 @@ export function mecanumDriveToPose(robot: Robot, dt: number, x: number, y: numbe
     }
     const turn_error = reduce_negative_180_to_180(angle - robot.getAngle());
 
-    console.log(drive_p);
-
     let drive_output = drivePID.compute(drive_error);
     let turn_output = turnPID.compute(turn_error);
 
@@ -69,13 +70,23 @@ export function mecanumDriveToPose(robot: Robot, dt: number, x: number, y: numbe
     let left_center_voltage = clamp(drive_output * heading_scale_factor, -Math.abs(heading_scale_factor) * drive_p.maxSpeed, Math.abs(heading_scale_factor) * drive_p.maxSpeed);;
     let right_center_voltage = clamp(drive_output * heading_scale_factor, -Math.abs(heading_scale_factor) * drive_p.maxSpeed, Math.abs(heading_scale_factor) * drive_p.maxSpeed);;
     
-    // left_center_voltage = 0;
-    // right_center_voltage = 0;
+    left_center_voltage = 0;
+    right_center_voltage = 0;
 
     const left_front_output  = (drive_output * Math.cos(toRad(robot.getAngle()) + heading_error - Math.PI / 4) + turn_output) / kMikLibSpeed;
     const left_back_output   = (drive_output * Math.cos(-toRad(robot.getAngle()) - heading_error + 3 * Math.PI / 4) + turn_output) / kMikLibSpeed;
     const right_back_output  = (drive_output * Math.cos(toRad(robot.getAngle()) + heading_error - Math.PI / 4) - turn_output) / kMikLibSpeed;
     const right_front_output = (drive_output * Math.cos(-toRad(robot.getAngle()) - heading_error + 3 * Math.PI / 4) - turn_output) / kMikLibSpeed;
+    telemetry_log +=
+        `current_x: ${robot.getX()} | current_y: ${robot.getY()} | current_heading_deg: ${robot.getAngle()} | ` +
+        `drive_error: ${drive_error} | turn_error_deg: ${turn_error} | ` +
+        `drive_output: ${drive_output} | turn_output: ${turn_output} | ` +
+        `desired_heading_deg: ${desired_heading} | angle_to_target_deg: ${angle_to_target} | heading_scale_factor: ${heading_scale_factor} | ` +
+        `center_output: ${drive_output * heading_scale_factor} | center_max_speed: ${Math.abs(heading_scale_factor) * drive_p.maxSpeed} | ` +
+        `left_front_output: ${left_front_output} | right_front_output: ${right_front_output} | ` +
+        `left_back_output: ${left_back_output} | right_back_output: ${right_back_output} | ` +
+        `left_center_voltage: ${left_center_voltage} | right_center_voltage: ${right_center_voltage}\n`;
+
     // robot.mecanumDrive(right_front_output, left_front_output, right_back_output, left_back_output, dt);
 
     robot.asteriskDrive(left_front_output, right_front_output, left_center_voltage, right_center_voltage, left_back_output, right_back_output, dt)
