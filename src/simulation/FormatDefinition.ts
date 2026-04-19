@@ -3,6 +3,7 @@ import type { mikConstants } from "./mikLibSim/MikConstants";
 import type { ReveilLibConstants } from "./ReveiLibSim/RevConstants";
 import type { RevMecanumConstants } from "./RevMecanumSim/RevMecanumConstant";
 import type { Robot } from "../core/Robot";
+import type { Segment } from "../core/Types/Segment";
 
 export type Format =
     "mikLib"
@@ -37,13 +38,14 @@ export type FormatDef<F extends Format, Segs extends Partial<Record<SegmentKind,
     formatPathName: string;
     segments: Segs;
     motionListFields: MotionListFields<F>;
+    kBuilder?: (kDefault: SegmentConstants<F>, k: SegmentConstants<F>) => string;
 };
 
 export type SegmentDef<F extends Format = Format> = {
-    initialDefaults: SegmentConstants<F>;
+    defaults: SegmentConstants<F>;
     toStringTemplate: string;
     name: string;
-    toSim: SegmentFactory<F>;
+    simFn: SegmentFactory<F>;
 };
 
 export type SimFn = (robot: Robot, dt: number) => [boolean, SegmentKind, number];
@@ -95,8 +97,10 @@ type MotionListFields<F extends Format = Format> = {
 }
 
 type SegmentFactory<F extends Format = Format> = (
+    robot: Robot,
+    dt: number,
     x: number,
     y: number,
     angle: number,
     constants: SegmentConstants<F>
-) => SimFn;
+) => boolean;

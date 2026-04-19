@@ -1,50 +1,52 @@
 import { SIM_CONSTANTS } from "../core/ComputePathSim";
 import type { Robot } from "../core/Robot";
 import type { Path } from "../core/Types/Path";
+import { findPointToFace, roundOff, toDeg } from "../core/Util";
 import type { Format } from "../hooks/useFormat";
 import type { FormatDef, SegmentDef, SegmentKind, SimFn } from "./FormatDefinition";
-import { LemLibToString } from "./LemLibSim/LemLibToString";
-import { driveToPose } from "./mikLibSim/DriveMotions/DriveToPose";
-import { mikLibToString } from "./mikLibSim/mikLibToString";
-import { revToString } from "./ReveiLibSim/ReveilLibToString";
-import { RevMecanumToString } from "./RevMecanumSim/RevMecanumToString";
+import { angle_error } from "./mikLibSim/Util";
 
+export function convertPathToString<F extends Format, Segs extends Partial<Record<SegmentKind, SegmentDef<F>>>>(formatDef: FormatDef<F, Segs>, path: Path, selected = false): string {
+    let pathString = '';
 
-// export function convertPathToSim(path: Path, format: Format): ((robot: Robot, dt: number) => [boolean, SegmentKind, number])[] {
-//     if (format === "mikLib") {
-//         return mikLibToSim(path);
-//     }
-//     if (format === "ReveilLib") {
-//         const out = reveilLibToSim(path);
-//         return out;
-//     }
-//     if (format === "LemLib") {
-//         const out = LemLibToSim(path);
-//         return out;
-//     }
-//     if (format === "RevMecanum") {
-//         const out = RevMecanumToSim(path);
-//         return out;
-//     }
+    for (let idx = 0; idx < path.segments.length; idx++) {
+        const seg = path.segments[idx];
 
-//     const emptyAuton: ((robot: Robot, dt: number) => [boolean, SegmentKind, number])[] = [];
-//     return emptyAuton;
-// }
+        if (selected && !seg.selected) continue;
 
-export function convertPathToString(path: Path, format: Format, selected = false) {
-    if (format === "mikLib") {
-        return mikLibToString(path, selected);
+        const x = roundOff(seg.pose.x, 2);
+        const y = roundOff(seg.pose.y, 2);
+        const angle = roundOff(seg.pose.angle, 2);
+        const k = seg.constants as typeof formatDef.constants;
+        const kind = seg.kind as SegmentKind;
+        const segDef = formatDef.segments[kind];
+
+        if (!segDef) continue;
+
+        const mergedK: Record<string, unknown> = Object.assign({}, ...k);
+        const kBuilderStr = formatDef.kBuilder ? formatDef.kBuilder(segDef.defaults, k) : "";
+
+        let line = segDef.toStringTemplate
+            .replace(/\$\{x\}/g, x)
+            .replace(/\$\{y\}/g, y)
+            .replace(/\$\{angle\}/g, angle);
+
+        for (const key of Object.keys(mergedK)) {
+            line = line.replace(new RegExp(`\\$\\{${key}\\}`, 'g'), String(mergedK[key]));
+        }
+
+        if (kBuilderStr === "") {
+            line = line.replace(/,\s*\$\{kBuilder\}/g, "").replace(/\$\{kBuilder\}/g, "");
+        } else {
+            line = line.replace(/\$\{kBuilder\}/g, kBuilderStr);
+        }
+
+        pathString += line + '\n';
     }
-    if (format === "ReveilLib") {
-        return revToString(path, selected);
-    }
-    if (format === "LemLib") {
-        return LemLibToString(path, selected);
-    }
-    if (format === "RevMecanum") {
-        return RevMecanumToString(path, selected);
-    }
+
+    return pathString;
 }
+
 
 const LOG_SEGMENT_START_AND_END = true;
 const LOG_ROBOT_STATE = true;
@@ -56,6 +58,8 @@ let simComputed = 0;
 
 export function convertPathToSim<F extends Format, Segs extends Record<SegmentKind, SegmentDef<F>>>(formatDef: FormatDef<F, Segs>, path: Path): SimFn[] {
     const auton: SimFn[] = [];
+    currentPathTime = -2 / 60;
+    DEBUG_printSimulationStart();
 
     for (let idx = 0; idx < path.segments.length; idx++) {
         const seg = path.segments[idx];
@@ -65,32 +69,23 @@ export function convertPathToSim<F extends Format, Segs extends Record<SegmentKi
         const k = seg.constants as typeof formatDef.constants;
         const kind = seg.kind as SegmentKind;
 
-        if (idx === 0) {
-            auton.push(
-
-                formatDef.segments[kind].toSim(x, y, angle, k)
-            );
-            continue;
-        }
+        const turn_pos = findPointToFace(path, idx);
 
         let started = false;
         let targetDist = 0;
 
-        switch (seg.kind) {
-            case "poseDrive":
+        switch (kind) {
+            case "start":
                 auton.push(
                     (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
-                        if (!started) {
-                            DEBUG_printSegmentStart(idx, formatDef, kind);
-                            targetDist = Math.hypot(x - robot.getX(), y - robot.getY());
-                            started = true;
-                        }
                         DEBUG_printRobotState(robot, dt);
-                        return [output, "poseDrive", targetDist];
+                        const output = formatDef.segments[kind].simFn(robot, dt, x, y, angle, k);
+                        return [output, kind, 0];
                     }
                 );
                 break;
 
+            case "poseDrive":
             case "pointDrive":
                 auton.push(
                     (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
@@ -100,14 +95,51 @@ export function convertPathToSim<F extends Format, Segs extends Record<SegmentKi
                             started = true;
                         }
                         DEBUG_printRobotState(robot, dt);
-                        const output = driveToPose(robot, dt, x, y, angle, k);
+                        const output = formatDef.segments[kind].simFn(robot, dt, x, y, angle, k);
                         if (output) DEBUG_printSegmentEnd(idx, formatDef, kind);
-                        return [output, "poseDrive", targetDist];
+                        return [output, kind, targetDist];
+                    }
+                );
+                break;
+
+            case "pointTurn":
+            case "pointSwing":
+                auton.push(
+                    (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
+                        if (!started) {
+                            DEBUG_printSegmentStart(idx, formatDef, kind);
+                            const targetAngle = toDeg(Math.atan2(turn_pos.x - robot.getX(), turn_pos.y - robot.getY())) + angle;
+                            targetDist = Math.abs(angle_error(targetAngle - robot.getAngle(), null)!);
+                            started = true;
+                        }
+                        DEBUG_printRobotState(robot, dt);
+                        const output = formatDef.segments[kind].simFn(robot, dt, turn_pos.x, turn_pos.y, angle, k);
+                        if (output) DEBUG_printSegmentEnd(idx, formatDef, kind);
+                        return [output, kind, targetDist];
+                    }
+                );
+                break;
+
+            case "angleTurn":
+            case "angleSwing":
+                auton.push(
+                    (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
+                        if (!started) {
+                            DEBUG_printSegmentStart(idx, formatDef, kind);
+                            targetDist = Math.abs(angle_error(angle - robot.getAngle(), null)!);
+                            started = true;
+                        }
+                        DEBUG_printRobotState(robot, dt);
+                        const output = formatDef.segments[kind].simFn(robot, dt, x, y, angle, k);
+                        if (output) DEBUG_printSegmentEnd(idx, formatDef, kind);
+                        return [output, kind, targetDist];
                     }
                 );
                 break;
         }
     }
+
+    return auton;
 }
 
 function DEBUG_printSegmentStart<F extends Format>(idx: number, formatDef: FormatDef<F>, kind: SegmentKind) {

@@ -1,6 +1,11 @@
-import { forSegments, type FormatDef, type SegmentDef } from "../FormatDefinition";
-import type { DriveDirection, SwingDirection, TurnDirection } from "../mikLibSim/MikConstants";
+import { getUnequalKeys, roundOff } from "../../core/Util";
+import { forSegments, type FormatDef } from "../FormatDefinition";
+import { moveToPoint } from "./DriveMotions/MoveToPoint";
 import { moveToPose } from "./DriveMotions/MoveToPose";
+import { swingToHeading } from "./DriveMotions/SwingToHeading";
+import { swingToPoint } from "./DriveMotions/SwingToPoint";
+import { turnToHeading } from "./DriveMotions/TurnToHeading";
+import { turnToPoint } from "./DriveMotions/TurnToPoint";
 
 export interface LemConstants {
     horizontalDrift: number,
@@ -21,18 +26,18 @@ export interface LemConstants {
     lead: number,
     earlyExitRange: number
 
-    forwards: DriveDirection,
-    direction: TurnDirection | null,
-    lockedSide: SwingDirection,
+    forwards: boolean,
+    direction: "AngularDirection::AUTO" | "AngularDirection::CW_CLOCKWISE" | "AngularDirection::CCW_COUNTERCLOCKWISE",
+    lockedSide: "DriveSide::LEFT" | "DriveSide::RIGHT",
 }
 
 export const kLemLinear: LemConstants = {
     maxSpeed: 127,
     minSpeed: 0,
     lead: 0.6,
-    forwards: "forward",
-    direction: null,
-    lockedSide: "left",
+    forwards: true,
+    direction: "AngularDirection::AUTO",
+    lockedSide: "DriveSide::LEFT",
     earlyExitRange: 0,
     timeout: 5000,
     horizontalDrift: 2,
@@ -52,9 +57,9 @@ export const kLemAngular: LemConstants = {
     maxSpeed: 127,
     minSpeed: 0,
     lead: 0.6,
-    forwards: "forward",
-    direction: null,
-    lockedSide: "left",
+    forwards: true,
+    direction: "AngularDirection::AUTO",
+    lockedSide: "DriveSide::LEFT",
     earlyExitRange: 0,
     timeout: 5000,
     horizontalDrift: 2,
@@ -70,66 +75,67 @@ export const kLemAngular: LemConstants = {
     slew: 0  
 }
 
-const LemLibDef = {
+export const LemLibDef = {
     constants: [kLemLinear],
     kMaxSpeed: 127,
     formatPathName: "LemLib Path",
+    kBuilder: kLemBuilder,
 
     segments: {
         start: {
             name: "Start",
-            initialDefaults: [kLemLinear],
-            toStringTemplate: "chassis.moveToPose(${x}, ${y}, ${angle}, ${timeout})",
-            toSim: (x, y, angle, constants) => {
-                return (robot, dt) => [false, "start", 0];
+            defaults: [kLemLinear],
+            toStringTemplate: "chassis.moveToPose(${x}, ${y}, ${angle}, ${timeout}, ${kBuilder})",
+            simFn: (robot, _dt, x, y, angle) => {
+                return robot.setPose(x, y, angle);
             },
         },      
         poseDrive: {
             name: "Move to Pose",
-            initialDefaults: [kLemLinear],
-            toStringTemplate: "chassis.moveToPose(${x}, ${y}, ${angle}, ${timeout})",
-            toSim: (x, y, angle, constants) => {
-                return (robot, dt) => [false, "poseDrive", 0];
+            defaults: [kLemLinear, kLemAngular],
+            toStringTemplate: "chassis.moveToPose(${x}, ${y}, ${angle}, ${timeout}, ${kBuilder})",
+            simFn: (robot, dt, x, y, angle, constants) => {
+                return moveToPose(robot, dt, x, y, angle, constants);
             },
         },
         ...forSegments(["distanceDrive", "pointDrive"], {
             name: "Move to Point",
-            initialDefaults: [kLemLinear],
-            toStringTemplate: "chassis.moveToPoint(${x}, ${y}, ${timeout})",
-            toSim: (x, y, angle, constants) => {
-                return (robot, dt) => [false, "pointDrive", 0];
+            defaults: [kLemLinear, kLemAngular],
+            toStringTemplate: "chassis.moveToPoint(${x}, ${y}, ${timeout}, ${kBuilder})",
+            simFn: (robot, dt, x, y, _angle, constants) => {
+                return moveToPoint(robot, dt, x, y, constants);
             },
         }),
         pointTurn: {
             name: "Turn to Point",
-            initialDefaults: [kLemAngular],
-            toStringTemplate: "chassis.turnToPoint(${x}, ${y}, ${timeout})",
-            toSim: (x, y, angle, constants) => {
-                return (robot, dt) => [false, "pointTurn", 0];
+            defaults: [kLemAngular],
+            toStringTemplate: "chassis.turnToPoint(${x}, ${y}, ${timeout}, ${kBuilder})",
+            simFn: (robot, dt, x, y, angle, constants) => {
+                return turnToPoint(robot, dt, x, y, angle, constants);
             },
         },
         angleTurn: {
             name: "Turn to Angle",
-            initialDefaults: [kLemAngular],
-            toStringTemplate: "chassis.turnToHeading(${angle}, ${timeout})",
-            toSim: (x, y, angle, constants) => {
-                return (robot, dt) => [false, "angleTurn", 0];
+            defaults: [kLemAngular],
+            toStringTemplate: "chassis.turnToHeading(${angle}, ${timeout}, ${kBuilder})",
+            simFn: (robot, dt, _x, _y, angle, constants) => {
+                return turnToHeading(robot, dt, angle, constants);
             },
         },
         angleSwing: {
             name: "Swing to Angle",
-            initialDefaults: [kLemAngular],
-            toStringTemplate: "chassis.swingToHeading(${angle}, ${timeout})",
-            toSim: (x, y, angle, constants) => {
-                return (robot, dt) => [false, "angleSwing", 0];
+            defaults: [kLemAngular],
+            toStringTemplate: "chassis.swingToHeading(${angle}, ${lockedSide}, ${timeout}, ${kBuilder})",
+            simFn: (robot, dt, _x, _y, angle, constants) => {
+                return swingToHeading(robot, dt, angle, constants);
             },
         },
         pointSwing: {
             name: "Swing to Point",
-            initialDefaults: [kLemAngular],
-            toStringTemplate: "chassis.swingToPoint(${x}, ${y}, ${timeout})",
-            toSim: (x, y, angle, constants) => {
-                return (robot, dt) => [false, "pointSwing", 0];
+            defaults: [kLemAngular],
+            toStringTemplate: "chassis.swingToPoint(${x}, ${y}, ${lockedSide}, ${timeout}, ${kBuilder})",
+            simFn: (robot, dt, x, y, angle, constants) => {
+                return swingToPoint(robot, dt, x, y, angle, constants);
             },
         },
     },
@@ -141,6 +147,33 @@ const LemLibDef = {
         },
         cycleButtons: [],
         numberInputs: [],
-        constants: [kLemLinear]
+        constants: [kLemLinear],
     }
 } satisfies FormatDef<"LemLib">;
+
+function kLemBuilder(kDefault: LemConstants[], constants: LemConstants[]): string {
+    const keyToLemConstant = (key: keyof LemConstants, value: LemConstants[keyof LemConstants]): string => {
+        switch (key) {
+            case "forwards": return `.forwards = ${value}`;
+            case "direction": return `.direction = ${value}`;
+            case "horizontalDrift": return `.horizontalDrift = ${roundOff(value as number, 1)}`; 
+            case "lead": return `.lead = ${roundOff(value as number, 2)}`; 
+            case "maxSpeed": return `.maxSpeed = ${roundOff(value as number, 0)}`; 
+            case "minSpeed": return `.minSpeed = ${roundOff(value as number, 0)}`; 
+            case "earlyExitRange": return `.earlyExitRange = ${roundOff(value as number, 1)}`; 
+        }
+        return ""
+    }
+
+    const kUnequal = getUnequalKeys(kDefault[0], constants[0]);
+    if (kUnequal === undefined) return "";
+
+    const constantsList: string[] = [];
+    for (const k of Object.keys(kUnequal)) {        
+        const value = kUnequal[k as keyof LemConstants];
+        if (value === undefined) continue;
+        const c = keyToLemConstant(k as keyof LemConstants, value);
+        if (c !== "") constantsList.push(c);
+    }
+    return constantsList.map((c) => ` ${c}`).join(", ");
+}
