@@ -60,7 +60,8 @@ export function mecanumDriveToPose(robot: Robot, dt: number, x: number, y: numbe
     turn_output = clamp(turn_output, -heading_p.maxSpeed, heading_p.maxSpeed);
 
     drive_output = clamp_min_voltage(drive_output, drive_p.min_voltage);
-    turn_output = clamp_min_voltage(turn_output, heading_p.min_voltage);
+    turn_output = clamp_min_voltage(turn_output, drive_p.min_voltage);
+    console.log(drive_p.min_voltage);
 
     const heading_error = Math.atan2(y - robot.getY(), x - robot.getX());
 

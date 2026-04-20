@@ -45,7 +45,6 @@ function getLead(m: any): number {
 
   if (lead1) return lead1;
   if (lead2) return lead2;
-  console.log(lead1, lead2);
   return 0;
 }
 
