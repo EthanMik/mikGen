@@ -72,7 +72,7 @@ export const kLemAngular: LemConstants = {
     smallErrorTimeout: 100,
     largeError: 5,
     largeErrorTimeout: 500,
-    slew: 0  
+    slew: 0
 }
 
 export const LemLibDef = {
@@ -89,7 +89,7 @@ export const LemLibDef = {
             simFn: (robot, _dt, x, y, angle) => {
                 return robot.setPose(x, y, angle);
             },
-        },      
+        },
         poseDrive: {
             name: "Move to Pose",
             defaults: [kLemLinear, kLemAngular],
@@ -146,7 +146,17 @@ export const LemLibDef = {
             roundTo: 1
         },
         cycleButtons: [],
-        numberInputs: [],
+        numberInputs: [
+            {
+                headerName: "Motion Settings",
+                fields: [
+                    { key: "maxSpeed", label: "Max Speed", units: "", input: { bounds: [0, 127], stepSize: 10, roundTo: 0 } },
+                    { key: "minSpeed", label: "Min Speed", units: "", input: { bounds: [0, 127], stepSize: 10, roundTo: 0 } },
+                    { key: "timeout", label: "Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+                    { key: "earlyExitRange", label: "Early Exit", units: "in", input: { bounds: [0, 100], stepSize: 1, roundTo: 1 } },
+                ]
+            }
+        ],
         constants: [kLemLinear],
     }
 } satisfies FormatDef<"LemLib">;
@@ -156,11 +166,11 @@ function kLemBuilder(kDefault: LemConstants[], constants: LemConstants[]): strin
         switch (key) {
             case "forwards": return `.forwards = ${value}`;
             case "direction": return `.direction = ${value}`;
-            case "horizontalDrift": return `.horizontalDrift = ${roundOff(value as number, 1)}`; 
-            case "lead": return `.lead = ${roundOff(value as number, 2)}`; 
-            case "maxSpeed": return `.maxSpeed = ${roundOff(value as number, 0)}`; 
-            case "minSpeed": return `.minSpeed = ${roundOff(value as number, 0)}`; 
-            case "earlyExitRange": return `.earlyExitRange = ${roundOff(value as number, 1)}`; 
+            case "horizontalDrift": return `.horizontalDrift = ${roundOff(value as number, 1)}`;
+            case "lead": return `.lead = ${roundOff(value as number, 2)}`;
+            case "maxSpeed": return `.maxSpeed = ${roundOff(value as number, 0)}`;
+            case "minSpeed": return `.minSpeed = ${roundOff(value as number, 0)}`;
+            case "earlyExitRange": return `.earlyExitRange = ${roundOff(value as number, 1)}`;
         }
         return ""
     }
@@ -169,7 +179,7 @@ function kLemBuilder(kDefault: LemConstants[], constants: LemConstants[]): strin
     if (kUnequal === undefined) return "";
 
     const constantsList: string[] = [];
-    for (const k of Object.keys(kUnequal)) {        
+    for (const k of Object.keys(kUnequal)) {
         const value = kUnequal[k as keyof LemConstants];
         if (value === undefined) continue;
         const c = keyToLemConstant(k as keyof LemConstants, value);
