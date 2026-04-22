@@ -9,6 +9,7 @@ Bugs:
 Todo:
 - Refactor Formats, start writing formats into mikGen
 - Make the toString JSON be user editable
+- Make it so when you paste in text that is a format ToString it will convert it to a segment
 - Temporary remove groups from mikGen
 - distance segments
 - instead of commands add a help button that provides path examples
@@ -20,6 +21,7 @@ Planned:
 - square drag to select add to path config
 - google analytics
 - add example paths
+- add an edit menu that lists undo redo, the keybinds
 
 Deciding:
 - radial click animations
