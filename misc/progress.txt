@@ -14,6 +14,7 @@ Todo:
 - distance segments
 - instead of commands add a help button that provides path examples
 - Fix group css for distance traveled so it appears
+- clicking on slider makes it snap to position, make spacebar start and stop slider, add animation for hover and drag
 
 Planned:
 - tooltip when hovering over svg buttons

@@ -1,5 +1,12 @@
 import { getUnequalKeys, roundOff } from "../../core/Util";
-import { forSegments, type FormatDef } from "../FormatDefinition";
+import { type FormatDef, type NumberInputGroup, type CycleButtonField } from "../FormatDefinition";
+import ccw from "../../assets/ccw.svg";
+import cw from "../../assets/cw.svg";
+import cwccw from "../../assets/cwwcw.svg";
+import fwd from "../../assets/fwd.svg";
+import rev from "../../assets/reverse.svg";
+import leftswing from "../../assets/leftswing.svg";
+import rightswing from "../../assets/rightswing.svg";
 import { moveToPoint } from "./DriveMotions/MoveToPoint";
 import { moveToPose } from "./DriveMotions/MoveToPose";
 import { swingToHeading } from "./DriveMotions/SwingToHeading";
@@ -75,90 +82,199 @@ export const kLemAngular: LemConstants = {
     slew: 0
 }
 
+type Fields = NumberInputGroup<"LemLib">["fields"];
+
+const motionSettingsFields: Fields = [
+    { key: "maxSpeed", label: "Max Speed", units: "", input: { bounds: [0, 127], stepSize: 10, roundTo: 0 } },
+    { key: "minSpeed", label: "Min Speed", units: "", input: { bounds: [0, 127], stepSize: 10, roundTo: 0 } },
+    { key: "timeout",  label: "Timeout",   units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+    { key: "earlyExitRange", label: "Early Exit", units: "in", input: { bounds: [0, 100], stepSize: 1, roundTo: 1 } },
+];
+
+const lateralSettingsFields: Fields = [
+    { key: "kp", label: "kP", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
+    { key: "ki", label: "kI", units: "", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
+    { key: "kd", label: "kD", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
+    { key: "antiWindup", label: "Anti Windup", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 2 } },
+    { key: "smallError", label: "Small Error", units: "in", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 2 } },
+    { key: "smallErrorTimeout", label: "Sml Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+    { key: "largeError", label: "Large Error", units: "in", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 2 } },
+    { key: "largeErrorTimeout", label: "Lge Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+    { key: "slew", label: "Slew", units: "", input: { bounds: [0, 127], stepSize: 1, roundTo: 1 } },
+];
+
+const angularSettingsFields: Fields = [
+    { key: "kp", label: "kP", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
+    { key: "ki", label: "kI", units: "", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
+    { key: "kd", label: "kD", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
+    { key: "antiWindup", label: "Anti Windup", units: "deg", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 2 } },
+    { key: "smallError", label: "Small Error", units: "in", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 2 } },
+    { key: "smallErrorTimeout", label: "Sml Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+    { key: "largeError", label: "Large Error", units: "in", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 2 } },
+    { key: "largeErrorTimeout", label: "Lge Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+    { key: "slew", label: "Slew", units: "", input: { bounds: [0, 127], stepSize: 1, roundTo: 1 } },
+];
+
+type CycleButton = Omit<CycleButtonField<"LemLib">, "constantsIdx">;
+
+const forwardsButton: CycleButton = {
+    key: "forwards",
+    keyValues: [
+        { srcImg: fwd, value: true },
+        { srcImg: rev, value: false },
+    ],
+};
+
+const directionButton: CycleButton = {
+    key: "direction",
+    keyValues: [
+        { srcImg: cw,    value: "AngularDirection::CW_CLOCKWISE" },
+        { srcImg: ccw,   value: "AngularDirection::CCW_COUNTERCLOCKWISE" },
+        { srcImg: cwccw, value: "AngularDirection::AUTO" },
+    ],
+};
+
+const lockedSideButton: CycleButton = {
+    key: "lockedSide",
+    keyValues: [
+        { srcImg: rightswing, value: "DriveSide::RIGHT" },
+        { srcImg: leftswing,  value: "DriveSide::LEFT" },
+    ],
+};
+
 export const LemLibDef = {
     constants: [kLemLinear],
     kMaxSpeed: 127,
     formatPathName: "LemLib Path",
     kBuilder: kLemBuilder,
+    slider: { key: "maxSpeed", bounds: [0, 127], roundTo: 1 },
 
     segments: {
         start: {
             name: "Start",
+            exists: true,
             defaults: [kLemLinear],
             toStringTemplate: "chassis.moveToPose(${x}, ${y}, ${angle}, ${timeout}, ${kBuilder})",
-            simFn: (robot, _dt, x, y, angle) => {
-                return robot.setPose(x, y, angle);
-            },
+            simFn: (robot, _dt, x, y, angle) => robot.setPose(x, y, angle),
+            cycleButtons: [],
+            numberInputs: [],
         },
+
         poseDrive: {
             name: "Move to Pose",
+            exists: true,
             defaults: [kLemLinear, kLemAngular],
             toStringTemplate: "chassis.moveToPose(${x}, ${y}, ${angle}, ${timeout}, ${kBuilder})",
-            simFn: (robot, dt, x, y, angle, constants) => {
-                return moveToPose(robot, dt, x, y, angle, constants);
-            },
+            simFn: (robot, dt, x, y, angle, constants) => moveToPose(robot, dt, x, y, angle, constants),
+            cycleButtons: [
+                { constantsIdx: 0, ...forwardsButton },
+            ],
+            numberInputs: [
+                { constantsIdx: 0, headerName: "Motion Settings", fields: [
+                    ...motionSettingsFields,
+                    { key: "horizontalDrift", label: "Drift", units: "", input: { bounds: [0, 30], stepSize: 1, roundTo: 1 } },
+                    { key: "lead", label: "Lead", units: "in", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 1 } },
+                ]},
+                { constantsIdx: 0, headerName: "Lateral Settings", fields: [...lateralSettingsFields] },
+                { constantsIdx: 1, headerName: "Angular Settings", fields: [...angularSettingsFields] },
+            ],
         },
-        ...forSegments(["distanceDrive", "pointDrive"], {
+
+        distanceDrive: {
             name: "Move to Point",
+            exists: false,
             defaults: [kLemLinear, kLemAngular],
             toStringTemplate: "chassis.moveToPoint(${x}, ${y}, ${timeout}, ${kBuilder})",
-            simFn: (robot, dt, x, y, _angle, constants) => {
-                return moveToPoint(robot, dt, x, y, constants);
-            },
-        }),
+            simFn: (robot, dt, x, y, _angle, constants) => moveToPoint(robot, dt, x, y, constants),
+            cycleButtons: [
+                { constantsIdx: 0, ...forwardsButton },
+            ],
+            numberInputs: [
+                { constantsIdx: 0, headerName: "Motion Settings", fields: [...motionSettingsFields] },
+                { constantsIdx: 0, headerName: "Lateral Settings", fields: [...lateralSettingsFields] },
+                { constantsIdx: 1, headerName: "Angular Settings", fields: [...angularSettingsFields] },
+            ],
+        },
+
+        pointDrive: {
+            name: "Move to Point",
+            exists: true,
+            defaults: [kLemLinear, kLemAngular],
+            toStringTemplate: "chassis.moveToPoint(${x}, ${y}, ${timeout}, ${kBuilder})",
+            simFn: (robot, dt, x, y, _angle, constants) => moveToPoint(robot, dt, x, y, constants),
+            cycleButtons: [
+                { constantsIdx: 0, ...forwardsButton },
+            ],
+            numberInputs: [
+                { constantsIdx: 0, headerName: "Motion Settings", fields: [...motionSettingsFields] },
+                { constantsIdx: 0, headerName: "Lateral Settings", fields: [...lateralSettingsFields] },
+                { constantsIdx: 1, headerName: "Angular Settings", fields: [...angularSettingsFields] },
+            ],
+        },
+
         pointTurn: {
             name: "Turn to Point",
+            exists: true,
             defaults: [kLemAngular],
             toStringTemplate: "chassis.turnToPoint(${x}, ${y}, ${timeout}, ${kBuilder})",
-            simFn: (robot, dt, x, y, angle, constants) => {
-                return turnToPoint(robot, dt, x, y, angle, constants);
-            },
+            simFn: (robot, dt, x, y, angle, constants) => turnToPoint(robot, dt, x, y, angle, constants),
+            cycleButtons: [
+                { constantsIdx: 0, ...forwardsButton },
+                { constantsIdx: 0, ...directionButton },
+            ],
+            numberInputs: [
+                { constantsIdx: 0, headerName: "Motion Settings", fields: [...motionSettingsFields] },
+                { constantsIdx: 0, headerName: "Angular Settings", fields: [...angularSettingsFields] },
+            ],
         },
+
         angleTurn: {
             name: "Turn to Angle",
+            exists: true,
             defaults: [kLemAngular],
             toStringTemplate: "chassis.turnToHeading(${angle}, ${timeout}, ${kBuilder})",
-            simFn: (robot, dt, _x, _y, angle, constants) => {
-                return turnToHeading(robot, dt, angle, constants);
-            },
+            simFn: (robot, dt, _x, _y, angle, constants) => turnToHeading(robot, dt, angle, constants),
+            cycleButtons: [
+                { constantsIdx: 0, ...directionButton },
+            ],
+            numberInputs: [
+                { constantsIdx: 0, headerName: "Motion Settings", fields: [...motionSettingsFields] },
+                { constantsIdx: 0, headerName: "Angular Settings", fields: [...angularSettingsFields] },
+            ],
         },
+
         angleSwing: {
             name: "Swing to Angle",
+            exists: true,
             defaults: [kLemAngular],
             toStringTemplate: "chassis.swingToHeading(${angle}, ${lockedSide}, ${timeout}, ${kBuilder})",
-            simFn: (robot, dt, _x, _y, angle, constants) => {
-                return swingToHeading(robot, dt, angle, constants);
-            },
+            simFn: (robot, dt, _x, _y, angle, constants) => swingToHeading(robot, dt, angle, constants),
+            cycleButtons: [
+                { constantsIdx: 0, ...lockedSideButton },
+                { constantsIdx: 0, ...directionButton },
+            ],
+            numberInputs: [
+                { constantsIdx: 0, headerName: "Motion Settings", fields: [...motionSettingsFields] },
+                { constantsIdx: 0, headerName: "Angular Settings", fields: [...angularSettingsFields] },
+            ],
         },
+
         pointSwing: {
             name: "Swing to Point",
+            exists: true,
             defaults: [kLemAngular],
             toStringTemplate: "chassis.swingToPoint(${x}, ${y}, ${lockedSide}, ${timeout}, ${kBuilder})",
-            simFn: (robot, dt, x, y, angle, constants) => {
-                return swingToPoint(robot, dt, x, y, angle, constants);
-            },
+            simFn: (robot, dt, x, y, angle, constants) => swingToPoint(robot, dt, x, y, angle, constants),
+            cycleButtons: [
+                { constantsIdx: 0, ...lockedSideButton },
+                { constantsIdx: 0, ...directionButton },
+            ],
+            numberInputs: [
+                { constantsIdx: 0, headerName: "Motion Settings", fields: [...motionSettingsFields] },
+                { constantsIdx: 0, headerName: "Angular Settings", fields: [...angularSettingsFields] },
+            ],
         },
     },
-    motionListFields: {
-        slider: {
-            key: "maxSpeed",
-            bounds: [0, 127],
-            roundTo: 1
-        },
-        cycleButtons: [],
-        numberInputs: [
-            {
-                headerName: "Motion Settings",
-                fields: [
-                    { key: "maxSpeed", label: "Max Speed", units: "", input: { bounds: [0, 127], stepSize: 10, roundTo: 0 } },
-                    { key: "minSpeed", label: "Min Speed", units: "", input: { bounds: [0, 127], stepSize: 10, roundTo: 0 } },
-                    { key: "timeout", label: "Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
-                    { key: "earlyExitRange", label: "Early Exit", units: "in", input: { bounds: [0, 100], stepSize: 1, roundTo: 1 } },
-                ]
-            }
-        ],
-        constants: [kLemLinear],
-    }
 } satisfies FormatDef<"LemLib">;
 
 function kLemBuilder(kDefault: LemConstants[], constants: LemConstants[]): string {

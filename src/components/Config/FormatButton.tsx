@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useFormat, type Format } from "../../hooks/useFormat";
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 import { usePath } from "../../hooks/usePath";
-import { getDefaultConstants, globalDefaultsStore } from "../../simulation/DefaultConstants";
+import { formatDefStore, getDefaultConstants } from "../../simulation/FormatDefinition";
 
 type PathFormats = {
     name: string,
@@ -19,6 +19,7 @@ const FORMATS: PathFormats[] = [
 export default function FormatButton() {
     const [isOpen, setOpen] = useState(false);
     const [format, setFormat] = useFormat();
+    const formatDef = formatDefStore.useStore();
     const [, setPath] = usePath();
 
     const menuRef = useRef<HTMLDivElement>(null);
@@ -41,7 +42,7 @@ export default function FormatButton() {
             if (prevFormatRef.current !== format) {
                 AddToUndoHistory({
                     format: format,
-                    defaults: structuredClone(globalDefaultsStore.getState()[format]),
+                    formatDef: structuredClone(formatDef),
                     path: newPath,
                 });
             }

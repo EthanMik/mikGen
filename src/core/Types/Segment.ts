@@ -1,4 +1,4 @@
-import { getDefaultConstants, type SegmentKind } from "../../simulation/InitialDefaults";
+import { getDefaultConstants, type SegmentKind } from "../../simulation/FormatDefinition";
 import { deepEqual, makeId } from "../Util";
 import type { Coordinate } from "./Coordinate";
 import { posesEqual, type Pose } from "./Pose";

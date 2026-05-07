@@ -3,13 +3,14 @@ import plus from "../../assets/plus.svg"
 import { usePath } from "../../hooks/usePath";
 import FieldMacros from "../../macros/FieldMacros";
 import { useFormat } from "../../hooks/useFormat";
-import { getSegmentName, segmentAllowed } from "../../simulation/DefaultConstants";
+import { formatDefStore } from "../../simulation/FormatDefinition";
 
 export default function AddSegmentButton() {
     const [ isOpen, setOpen ] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
     const [ , setPath] = usePath();
     const [ format,  ] = useFormat();
+    const formatDef = formatDefStore.useStore();
 
     const handleToggleMenu = () => {
         setOpen((prev) => !prev)
@@ -58,29 +59,29 @@ export default function AddSegmentButton() {
                             {/* Drive Segments */}
 
 
-                            { segmentAllowed(format, "pointDrive") &&
+                            { formatDef.segments["pointDrive"]?.exists &&
                                 <button
                                 onClick={() => addPointDriveSegment(format, { x: 0, y: 0 }, setPath)}
                                 className="flex pr-1 pl-2 py-0.5 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
-                                    <span className="text-[16px]">{getSegmentName(format, "pointDrive")}</span>
+                                    <span className="text-[16px]">{formatDef.segments["pointDrive"].name}</span>
                                     <span className="text-lightgray text-[14px]">LMB</span>
                                 </button>
                             }
 
-                            { segmentAllowed(format, "poseDrive") &&
+                            { formatDef.segments["poseDrive"]?.exists &&
                                 <button
                                 onClick={() => addPoseDriveSegment(format, { x: 0, y: 0, angle: 0 }, setPath)}
                                 className="flex pr-1 pl-2 py-0.5 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
-                                    <span className="text-[16px]">{getSegmentName(format, "poseDrive")}</span>
+                                    <span className="text-[16px]">{formatDef.segments["poseDrive"].name}</span>
                                     <span className="text-lightgray text-[14px]">Ctrl+LMB</span>
                                 </button>
                             }
 
-                            { segmentAllowed(format, "distanceDrive") &&
+                            { formatDef.segments["distanceDrive"]?.exists &&
                                 <button
                                     onClick={() => addDistanceSegment(format, { x: 0, y: 0, angle: 0 }, setPath)}
                                     className="flex pr-1 pl-2 py-0.5 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
-                                    <span className="text-[16px]">{getSegmentName(format, "distanceDrive")}</span>
+                                    <span className="text-[16px]">{formatDef.segments["distanceDrive"].name}</span>
                                     <span className="text-lightgray text-[14px]">Alt+LMB</span>
                                 </button>
                             }
@@ -88,21 +89,21 @@ export default function AddSegmentButton() {
                             {/* Turn Segments */}
                             <div className="mt-1 border-t border-gray-500/40 flex flex-row items-center justify-between h-[4px]"></div>
 
-                            { segmentAllowed(format, "pointTurn") &&
+                            { formatDef.segments["pointTurn"]?.exists &&
                                 <button
                                     onClick={() => addPointTurnSegment(format, setPath)}
                                     className="flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
-                                    <span className="text-[16px]">{getSegmentName(format, "pointTurn")}</span>
+                                    <span className="text-[16px]">{formatDef.segments["pointTurn"].name}</span>
                                     <span className="text-lightgray text-[14px]">RMB</span>
                                 </button>
                             }
 
-                            { segmentAllowed(format, "angleTurn") &&
+                            { formatDef.segments["angleTurn"]?.exists &&
                                 <button
                                     onClick={() => addAngleTurnSegment(format, setPath)}
                                     className="flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
 
-                                    <span className="text-[16px]">{getSegmentName(format, "angleTurn")}</span>
+                                    <span className="text-[16px]">{formatDef.segments["angleTurn"].name}</span>
                                     <span className="text-lightgray text-[14px]">Ctrl+RMB</span>
                                 </button>
                             }
@@ -110,24 +111,24 @@ export default function AddSegmentButton() {
 
 
                             {/* Swing Segments */}
-                            { segmentAllowed(format, "pointSwing") && 
+                            { formatDef.segments["pointSwing"]?.exists &&
                                 <>
                                     <div className="mt-1 border-t border-gray-500/40 flex flex-row items-center justify-between h-[4px]"></div>
-                                    <button 
-                                        onClick={() => addPointSwingSegment(format, setPath)} 
+                                    <button
+                                        onClick={() => addPointSwingSegment(format, setPath)}
                                         className="flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
-                                        <span className="text-[16px]">{getSegmentName(format, "pointSwing")}</span>
+                                        <span className="text-[16px]">{formatDef.segments["pointSwing"].name}</span>
                                         <span className="text-lightgray text-[14px]">Alt+RMB</span>
                                     </button>
                                 </>
                             }
 
-                            { segmentAllowed(format, "angleSwing") &&
+                            { formatDef.segments["angleSwing"]?.exists &&
                                 <button
                                     onClick={() => addAngleSwingSegment(format, setPath)}
                                     className="flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
 
-                                    <span className="text-[16px]">{getSegmentName(format, "angleSwing")}</span>
+                                    <span className="text-[16px]">{formatDef.segments["angleSwing"].name}</span>
                                     <span className="text-lightgray text-[14px]">Ctrl+Alt+RMB</span>
                                 </button>
                             }                                       

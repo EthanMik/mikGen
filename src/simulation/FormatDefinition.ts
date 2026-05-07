@@ -1,9 +1,12 @@
-import type { LemConstants } from "./LemLibSim/LemConstants";
+import { LemLibDef, type LemConstants } from "./LemLibSim/LemConstants";
 import type { mikConstants } from "./mikLibSim/MikConstants";
 import type { ReveilLibConstants } from "./ReveiLibSim/RevConstants";
 import type { RevMecanumConstants } from "./RevMecanumSim/RevMecanumConstant";
 import type { Robot } from "../core/Robot";
-import type { Segment } from "../core/Types/Segment";
+import type { Dispatch, SetStateAction } from "react";
+import type { Path } from "../core/Types/Path";
+import { createStore } from "../core/Store";
+import { VALIDATED_APP_STATE } from "../hooks/appStateDefaults";
 
 export type Format =
     "mikLib"
@@ -36,8 +39,8 @@ export type FormatDef<F extends Format, Segs extends Partial<Record<SegmentKind,
     constants: SegmentConstants<F>;
     kMaxSpeed: number;
     formatPathName: string;
+    slider: SliderField<F>;
     segments: Segs;
-    motionListFields: MotionListFields<F>;
     kBuilder?: (kDefault: SegmentConstants<F>, k: SegmentConstants<F>) => string;
 };
 
@@ -45,7 +48,10 @@ export type SegmentDef<F extends Format = Format> = {
     defaults: SegmentConstants<F>;
     toStringTemplate: string;
     name: string;
+    exists: boolean,
     simFn: SegmentFactory<F>;
+    cycleButtons: CycleButtonField<F>[];
+    numberInputs: NumberInputGroup<F>[];
 };
 
 export type SimFn = (robot: Robot, dt: number) => [boolean, SegmentKind, number];
@@ -65,9 +71,10 @@ type SliderField<F extends Format = Format> = {
     roundTo: number;
 }
 
-type CycleButtonField<F extends Format = Format,
+export type CycleButtonField<F extends Format = Format,
     K extends keyof FormatConstants[F] = keyof FormatConstants[F],
 > = {
+    constantsIdx: number;
     key: K;
     keyValues: {
         srcImg: string;
@@ -75,7 +82,8 @@ type CycleButtonField<F extends Format = Format,
     }[];
 }
 
-type NumberInputField<F extends Format = Format> = {
+export type NumberInputGroup<F extends Format = Format> = {
+    constantsIdx: number;
     headerName: string;
     fields: {
         key: keyof FormatConstants[F];
@@ -89,14 +97,7 @@ type NumberInputField<F extends Format = Format> = {
     }[];
 }
 
-type MotionListFields<F extends Format = Format> = {
-    slider: SliderField<F>;
-    cycleButtons: CycleButtonField<F>[];
-    numberInputs: NumberInputField<F>[];
-    constants: SegmentConstants<F>
-}
-
-type SegmentFactory<F extends Format = Format> = (
+export type SegmentFactory<F extends Format = Format> = (
     robot: Robot,
     dt: number,
     x: number,
@@ -104,3 +105,82 @@ type SegmentFactory<F extends Format = Format> = (
     angle: number,
     constants: SegmentConstants<F>
 ) => boolean;
+
+export const FORMAT_REGISTRY = {
+    LemLib: LemLibDef,
+    mikLib: LemLibDef,
+    ReveilLib: LemLibDef,
+    "JAR-Template": LemLibDef,
+    "RW-Template": LemLibDef,
+    RevMecanum: LemLibDef,
+} as unknown as { [F in Format]: FormatDef<F> };
+
+export const formatDefStore = createStore<FormatDef<Format>>(VALIDATED_APP_STATE.formatDef);
+
+export function getDefaultConstants<F extends Format>(format: F, kind: SegmentKind): SegmentConstants<F> {
+    const def = FORMAT_REGISTRY[format];
+    return (def.segments[kind]?.defaults ?? def.constants) as SegmentConstants<F>;
+}
+
+export function updateDefaultConstants<F extends Format>(
+    kind: SegmentKind,
+    idx: number,
+    patch: Partial<FormatConstants[F]>
+) {
+    formatDefStore.setState((prev) => {
+        const segDef = prev.segments[kind];
+        if (!segDef) return prev;
+        const newDefaults = segDef.defaults.map((c, i) =>
+            i === idx
+                ? { ...(c as object), ...(patch as object) } as unknown as FormatConstants[Format]
+                : c
+        ) as SegmentConstants<Format>;
+        return {
+            ...prev,
+            segments: {
+                ...prev.segments,
+                [kind]: { ...segDef, defaults: newDefaults },
+            },
+        };
+    });
+}
+
+export function updatePathConstants<F extends Format>(
+    setPath: Dispatch<SetStateAction<Path>>,
+    segmentId: string,
+    idx: number,
+    patch: Partial<FormatConstants[F]>
+) {
+    setPath((prev) => ({
+        ...prev,
+        segments: prev.segments.map((s) => {
+            if (s.id !== segmentId) return s;
+            const newConstants = s.constants.map((c, i) =>
+                i === idx
+                    ? { ...(c as object), ...(patch as object) } as unknown as FormatConstants[Format]
+                    : c
+            ) as SegmentConstants<Format>;
+            return { ...s, constants: newConstants };
+        }),
+    }));
+}
+
+export function updatePathConstantsByKind<F extends Format>(
+    setPath: Dispatch<SetStateAction<Path>>,
+    segmentKind: SegmentKind,
+    idx: number,
+    patch: Partial<FormatConstants[F]>
+) {
+    setPath((prev) => ({
+        ...prev,
+        segments: prev.segments.map((s) => {
+            if (s.kind !== segmentKind) return s;
+            const newConstants = s.constants.map((c, i) =>
+                i === idx
+                    ? { ...(c as object), ...(patch as object) } as unknown as FormatConstants[Format]
+                    : c
+            ) as SegmentConstants<Format>;
+            return { ...s, constants: newConstants };
+        }),
+    }));
+}

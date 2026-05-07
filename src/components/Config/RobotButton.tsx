@@ -5,11 +5,12 @@ import { robotConstantsStore } from "../../core/Robot";
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
 import { useFormat, type Format } from "../../hooks/useFormat";
 import { usePath } from "../../hooks/usePath";
-import { getDefaultConstants, globalDefaultsStore } from "../../simulation/InitialDefaults";
+import { formatDefStore, getDefaultConstants } from "../../simulation/FormatDefinition";
 
 export default function RobotButton() {
     const [ , setPath ] = usePath();
     const [ format, setFormat ] = useFormat();
+    const formatDef = formatDefStore.useStore();
     
     const [ isOpen, setOpen ] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -103,7 +104,7 @@ export default function RobotButton() {
             if (prevFormatRef.current !== format) {
                 AddToUndoHistory({
                     format: format,
-                    defaults: structuredClone(globalDefaultsStore.getState()[format]),
+                    formatDef: structuredClone(formatDef),
                     path: newPath,
                 });
             }

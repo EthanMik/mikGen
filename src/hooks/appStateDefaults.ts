@@ -1,15 +1,14 @@
-import { INITIAL_DEFAULTS, type DefaultConstant } from "../simulation/InitialDefaults"
 import { defaultRobotConstants, type RobotConstants } from "../core/Robot"
 import type { Path } from "../core/Types/Path"
-import type { Format } from "../simulation/FormatDefinition"
+import { FORMAT_REGISTRY, type FormatDef } from "../simulation/FormatDefinition"
+import type { Format } from "./useFormat"
 
-// Types defined here to avoid circular dependencies
 export type FieldType = "v5-match" | "v5-skills" | "vexu-match" | "empty" | "separator"
 
 export type FileFormat = {
     format: Format,
     field: FieldType,
-    defaults: DefaultConstant[Format],
+    formatDef: FormatDef<Format>,
     path: Path,
     robot: RobotConstants
 }
@@ -17,7 +16,7 @@ export type FileFormat = {
 export const DEFAULT_FORMAT: FileFormat = {
     format: "mikLib",
     field: "v5-match",
-    defaults: INITIAL_DEFAULTS["mikLib"],
+    formatDef: FORMAT_REGISTRY["mikLib"] as FormatDef<Format>,
     path: { segments: [], name: "" },
     robot: defaultRobotConstants,
 }
@@ -31,7 +30,7 @@ function loadValidatedAppState(): FileFormat {
         return {
             format: parsed.format ?? DEFAULT_FORMAT.format,
             field: parsed.field ?? DEFAULT_FORMAT.field,
-            defaults: parsed.defaults ?? DEFAULT_FORMAT.defaults,
+            formatDef: parsed.defaults ?? DEFAULT_FORMAT.formatDef,
             path: (parsed.path && Array.isArray(parsed.path.segments))
                 ? parsed.path
                 : DEFAULT_FORMAT.path,

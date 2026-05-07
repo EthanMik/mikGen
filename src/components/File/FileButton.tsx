@@ -4,10 +4,10 @@ import FileRenamePopup from "./FileRenamePopup";
 import { useGetFileFormat } from "../../hooks/useGetFileFormat";
 import { useFormat } from "../../hooks/useFormat";
 import { useFileFormat, type FileFormat } from "../../hooks/useFileFormat";
-import { INITIAL_DEFAULTS } from "../../simulation/DefaultConstants";
 import { defaultRobotConstants } from "../../core/Robot";
 import { useField } from "../../hooks/useField";
 import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
+import { FORMAT_REGISTRY, formatDefStore } from "../../simulation/FormatDefinition";
 
 const SAVED_SNAPSHOT_KEY = "savedSnapshot";
 const FILE_VERSION = "mikGen v1.0.0";
@@ -58,6 +58,7 @@ export default function FileButton() {
     const [ path, setPath ] = usePath();
     const [ field, ] = useField();
     const [ format, ] = useFormat();
+    const formatDef = formatDefStore.useStore();
     const [ , setFileFormat ] = useFileFormat();
     const [ isSaved, setIsSaved ] = useState(() => {
         const saved = localStorage.getItem(SAVED_SNAPSHOT_KEY);
@@ -123,10 +124,11 @@ export default function FileButton() {
         const newFileFormat = {
             format: format,
             field: field,
-            defaults: INITIAL_DEFAULTS[format],
+            formatDef: FORMAT_REGISTRY[format],
             path: { segments: [], name: "" },
             robot: defaultRobotConstants,
-        };
+        } as FileFormat;
+
         setFileFormat(newFileFormat);
         AddToUndoHistory(structuredClone(newFileFormat));
         fileHandleRef.current = null;
