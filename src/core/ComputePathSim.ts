@@ -41,6 +41,7 @@ export interface PathSim {
 }
 
 export const activeSimSegmentStore = createStore<number>(-1);
+export const simJumpStore = createStore<number | null>(null);
 
 export const computedPathStore = createStore<PathSim>({
     totalTime: 0,

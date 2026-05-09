@@ -154,7 +154,7 @@ export const LemLibDef = {
             name: "Start",
             exists: true,
             defaults: [kLemLinear],
-            toStringTemplate: "chassis.moveToPose(${x}, ${y}, ${angle}, ${timeout}, ${kBuilder});",
+            toStringTemplate: "chassis.setPose(${x}, ${y}, ${angle});",
             simFn: (robot, _dt, x, y, angle) => robot.setPose(x, y, angle),
             cycleButtons: [],
             numberInputs: [],
@@ -293,13 +293,18 @@ function kLemBuilder(kDefault: LemConstants[], constants: LemConstants[]): strin
 
     const kUnequal = getUnequalKeys(kDefault[0], constants[0]);
     if (kUnequal === undefined) return "";
-
+    let i = 0;
     const constantsList: string[] = [];
     for (const k of Object.keys(kUnequal)) {
         const value = kUnequal[k as keyof LemConstants];
         if (value === undefined) continue;
-        const c = keyToLemConstant(k as keyof LemConstants, value);
-        if (c !== "") constantsList.push(c);
+        let c = keyToLemConstant(k as keyof LemConstants, value);
+        if (c !== "") {
+            if (i === 0) c = "{" + c;
+            constantsList.push(c);
+        }
+        ++i;
     }
-    return constantsList.map((c) => ` ${c}`).join(", ");
+    if (constantsList.length > 0) constantsList[constantsList.length - 1] += "}";
+    return constantsList.map((c) => `${c}`).join(", ");
 }

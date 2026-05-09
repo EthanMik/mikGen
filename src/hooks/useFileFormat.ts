@@ -1,7 +1,7 @@
 import { createStore } from "../core/Store";
 import { DEFAULT_FORMAT, VALIDATED_APP_STATE, type FileFormat, type FieldType } from "./appStateDefaults";
 import type { Path } from "../core/Types/Path";
-import type { Format } from "../simulation/FormatDefinition";
+import type { Format, FormatDef } from "../simulation/FormatDefinition";
 import type { RobotConstants } from "../core/Robot";
 import pushbackVEXUMatchField from "../assets/pushback-match.png";
 import pushbackSkillsField from "../assets/pushback-skills.png";
@@ -64,4 +64,8 @@ export function mergeRobot(patch: Partial<RobotConstants>) {
 
 export function useFormatDef() {
     return fileFormatStore.useSelector(s => s.formatDef);
+}
+
+export function setFormatDef(next: FormatDef<Format>) {
+    fileFormatStore.setState(prev => ({ ...prev, formatDef: next }));
 }

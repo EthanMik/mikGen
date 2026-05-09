@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { convertPathToString } from "../../simulation/Conversion";
 import FieldMacros from "../../macros/FieldMacros";
 import { fileFormatStore } from "../../hooks/useFileFormat";
+import EditJSONPopup from "./EditJSONPopup";
 
 function CopyIcon({ className }: { className?: string }) {
   const href =
@@ -27,6 +28,7 @@ function CopyIcon({ className }: { className?: string }) {
 
 export default function CopyPathButton() {
   const [isOpen, setOpen] = useState(false);
+  const [ popupOpen, setPopupOpen ] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const fileFormat = fileFormatStore.useStore();
 
@@ -113,6 +115,13 @@ export default function CopyPathButton() {
         />
       </button>
 
+      {popupOpen && <EditJSONPopup 
+          label={""}
+          open={popupOpen}
+          setOpen={setPopupOpen}
+          onEnter={() => {}}
+      />}
+
       {isOpen && (
         <div
           className="absolute shadow-xs mt-1 shadow-black right-0 top-full w-50 z-40
@@ -133,6 +142,16 @@ export default function CopyPathButton() {
             >
               <span className="text-[16px]">Copy Selected</span>
               <span className="text-[14px] text-lightgray">Ctrl+C</span>
+            </button>
+
+            <button
+              className="flex justify-between px-2 py-1 hover:bg-blackgrayhover rounded-sm"
+              onClick={() => {
+                setOpen(false);
+                setPopupOpen(true);
+              }}
+            >
+              <span className="text-[16px]">Edit JSON</span>
             </button>
           </div>
         </div>

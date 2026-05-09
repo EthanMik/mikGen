@@ -4,6 +4,41 @@ import { getBackwardsSnapIdx, getBackwardsSnapPose, getForwardSnapPose } from ".
 import { calculateHeading, toPX, toRad, FIELD_REAL_DIMENSIONS, type Rectangle, FIELD_IMG_DIMENSIONS } from "../../core/Util";
 import type { Coordinate } from "../../core/Types/Coordinate";
 import { useSettings } from "../../hooks/useSettings";
+import type { Format } from "../../simulation/FormatDefinition";
+import type { LemConstants } from "../../simulation/LemLibSim/LemConstants";
+import type { mikConstants } from "../../simulation/mikLibSim/MikConstants";
+
+const VISUAL = {
+	node: {
+		hoverRadiusMultiplier: 1.4,
+		snapStrokeWidth: 1.4,
+	},
+	turnIndicator: {
+		poseDriveStartReducedFactor: 0.8,
+		activeHoveredRadiusMultiplier: 1.8,
+		activeRadiusMultiplier: 1.4,
+		hoverRadiusMultiplier: 1.2,
+		activeThickness: 5,
+		hoverThickness: 4,
+		defaultThickness: 2,
+		pointTurnFallbackOffset: 5,
+	},
+	swingIndicator: {
+		activeHoveredRadiusMultiplier: 1.5,
+		activeRadiusMultiplier: 1.3,
+		hoverRadiusMultiplier: 1.2,
+		innerRadiusOffsetFactor: 0.6,
+		activeCurveAmount: 0.45,
+		hoverCurveAmount: 0.35,
+		defaultCurveAmount: 0.25,
+		activeThickness: 5,
+		hoverThickness: 4,
+		defaultThickness: 2,
+	},
+	numberLabel: {
+		fontSizeMultiplier: 0.9,
+	},
+} as const;
 
 type Colors = {
 	node: { fill: string; fillSelected: string; stroke: string };
@@ -15,7 +50,7 @@ type ControlsLayerProps = {
 	path: Path;
 	img: Rectangle;
 	radius: number;
-	format: string;
+	format: Format;
 	colors: Colors;
 	onPointerDown: (e: React.PointerEvent<SVGGElement>, id: string) => void;
 };
@@ -45,17 +80,20 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 					{control.visible && (
 						<>
 							{/* Drive Segment (Circle) */}
-							{control.pose.x !== null && control.pose.y !== null && (
-								<circle
-									style={{ stroke: colors.node.stroke, ...(control.locked ? { cursor: "not-allowed" } : { cursor: "grab" }) }}
-									id={control.id}
-									cx={toPX({ x: control.pose.x, y: control.pose.y }, FIELD_REAL_DIMENSIONS, img).x}
-									cy={toPX({ x: control.pose.x, y: control.pose.y }, FIELD_REAL_DIMENSIONS, img).y}
-									r={control.hovered ? radius * 1.1 : radius}
-									fill={control.selected ? colors.node.fillSelected : colors.node.fill}
-									strokeWidth={idx === snap ? 1.1 * scale : 0}
-								/>
-							)}
+							{control.pose.x !== null && control.pose.y !== null && (() => {
+								const nodePx = toPX({ x: control.pose.x, y: control.pose.y }, FIELD_REAL_DIMENSIONS, img);
+								return (
+									<circle
+										style={{ stroke: colors.node.stroke, ...(control.locked ? { cursor: "not-allowed" } : { cursor: "grab" }) }}
+										id={control.id}
+										cx={nodePx.x}
+										cy={nodePx.y}
+										r={control.hovered ? radius * VISUAL.node.hoverRadiusMultiplier : radius}
+										fill={control.selected ? colors.node.fillSelected : colors.node.fill}
+										strokeWidth={idx === snap ? VISUAL.node.snapStrokeWidth * scale : 0}
+									/>
+								);
+							})()}
 
 							{/* Turn Indicator (Line) */}
 							{["angleTurn", "pointTurn", "poseDrive", "start"].includes(control.kind) && (() => {
@@ -64,10 +102,10 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 
 								const active = control.selected;
 								const hovered = control.hovered;
-								const reduced = control.kind === "poseDrive" || control.kind === "start" ? 0.8 : 1;
-								const r = active ? radius * (1.3 * reduced) : hovered ? radius * (1.2 * reduced) : radius;
+								const reduced = control.kind === "poseDrive" || control.kind === "start" ? VISUAL.turnIndicator.poseDriveStartReducedFactor : 1;
+								const r = (active && hovered) ? radius * (VISUAL.turnIndicator.activeHoveredRadiusMultiplier * reduced) : active ? radius * (VISUAL.turnIndicator.activeRadiusMultiplier * reduced) : hovered ? radius * VISUAL.turnIndicator.hoverRadiusMultiplier : radius;
 
-								const thickness = active ? 5 : hovered ? 4 : 2;
+								const thickness = active ? VISUAL.turnIndicator.activeThickness : hovered ? VISUAL.turnIndicator.hoverThickness : VISUAL.turnIndicator.defaultThickness;
 								const baseStroke = control.pose.x !== null ? colors.indicator.strokeWithPos : active ? colors.indicator.strokeSelected : colors.indicator.stroke;
 
 								const basePx = toPX({ x: snapPose.x, y: snapPose.y }, FIELD_REAL_DIMENSIONS, img);
@@ -81,8 +119,8 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 										turnToPos
 											? { x: turnToPos.x ?? 0, y: turnToPos.y ?? 0 }
 											: previousPos
-												? { x: previousPos.x ?? 0, y: (previousPos.y ?? 0) + 5 }
-												: { x: 0, y: 5 };
+												? { x: previousPos.x ?? 0, y: (previousPos.y ?? 0) + VISUAL.turnIndicator.pointTurnFallbackOffset }
+												: { x: 0, y: VISUAL.turnIndicator.pointTurnFallbackOffset };
 
 									angle = calculateHeading({ x: snapPose.x, y: snapPose.y }, { x: pos.x, y: pos.y }) + (angle);
 								}
@@ -113,8 +151,8 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 
 								const active = control.selected;
 								const hovered = control.hovered;
-								const r = active ? radius * 1.3 : hovered ? radius * 1.2 : radius;
-								const thickness = active ? 5 : hovered ? 4 : 2;
+								const r = (active && hovered) ? radius * VISUAL.swingIndicator.activeHoveredRadiusMultiplier : active ? radius * VISUAL.swingIndicator.activeRadiusMultiplier : hovered ? radius * VISUAL.swingIndicator.hoverRadiusMultiplier : radius;
+								const thickness = active ? VISUAL.swingIndicator.activeThickness : hovered ? VISUAL.swingIndicator.hoverThickness : VISUAL.swingIndicator.defaultThickness;
 								const baseStroke = active ? colors.indicator.strokeSelected : colors.indicator.stroke;
 
 								let angle = control.pose.angle ?? 0;
@@ -125,8 +163,9 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 										angle;
 								}
 
-								const curveLeft = (format === "mikLib" && control.constants.swing.swingDirection == "left");
-								const rInner = Math.max(0, r - (thickness * 0.6));
+								const curveLeft = (format === "mikLib" && (control.constants[0] as mikConstants).swing_direction == "left") || 
+								(format === "LemLib" && (control.constants[0] as LemConstants).lockedSide === "DriveSide::RIGHT")
+								const rInner = Math.max(0, r - (thickness * VISUAL.swingIndicator.innerRadiusOffsetFactor));
 								const basePx = toPX({ x: snapPose.x, y: snapPose.y }, FIELD_REAL_DIMENSIONS, img);
 
 								const tipPx = toPX({
@@ -139,7 +178,7 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 								const len = Math.hypot(dx, dy) || 1;
 								const nx = -dy / len;
 								const ny = dx / len;
-								const curveAmount = (active ? 0.45 : hovered ? 0.35 : 0.25) * len;
+								const curveAmount = (active ? VISUAL.swingIndicator.activeCurveAmount : hovered ? VISUAL.swingIndicator.hoverCurveAmount : VISUAL.swingIndicator.defaultCurveAmount) * len;
 								const mx = (basePx.x + tipPx.x) / 2;
 								const my = (basePx.y + tipPx.y) / 2;
 								const dir = curveLeft ? 1 : -1;
@@ -175,7 +214,7 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 						y={pos.y}
 						textAnchor="middle"
 						dominantBaseline="central"
-						fontSize={radius * .9}
+						fontSize={radius * VISUAL.numberLabel.fontSizeMultiplier}
 						fill={colors.numberLabel}
 					>
 						{num}

@@ -13,7 +13,7 @@ import CycleImageButton, { type CycleImageButtonProps } from "../Util/CycleButto
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import { setupDragTransfer } from "./PathConfigUtils";
 import { fileFormatStore } from "../../hooks/useFileFormat";
-import { activeSimSegmentStore, pathTelemetry } from "../../core/ComputePathSim";
+import { activeSimSegmentStore, computedPathStore, pathTelemetry, simJumpStore } from "../../core/ComputePathSim";
 import { roundNum } from "../../core/Util";
 
 
@@ -96,9 +96,6 @@ export default function MotionList({
                         if (s.id === segmentId) {
                             return { ...s, selected: true };
                         }
-                        // if (s.kind === "group" || s.groupId !== undefined) {
-                        //     return { ...s, selected: false };
-                        // }
                         return s;
                     })
                 };
@@ -122,7 +119,7 @@ export default function MotionList({
 
             let anchorIdx = -1;
             for (let i = segments.length - 1; i >= 0; i--) {
-                if (segments[i].selected && segments[i].kind !== "group") {
+                if (segments[i].selected) {
                     anchorIdx = i;
                     break;
                 }
@@ -138,9 +135,7 @@ export default function MotionList({
                 // Select segments in range, but exclude groups and deselect all groups
                 segments: segments.map((s, i) => ({
                     ...s,
-                    selected: s.kind === "group"
-                        ? false
-                        : (i >= start && i <= end),
+                    selected: (i >= start && i <= end),
                 })),
             };
         });
@@ -222,8 +217,16 @@ export default function MotionList({
     };
 
 
-    const groupsBefore = path.segments.slice(0, index).filter(s => s.kind === "group").length;
-    const telemetrySlice = pathTelemetry.getState()?.[index - groupsBefore];
+    const telemetrySlice = pathTelemetry.getState()?.[index];
+
+    const handleContextMenu = (e: React.MouseEvent) => {
+        e.preventDefault();
+        const computedPath = computedPathStore.getState();
+        const simIndex = index;
+        const startT = computedPath.segmentTrajectorys[simIndex]?.[0]?.t ?? 0;
+        const percent = computedPath.totalTime > 0 ? (startT / computedPath.totalTime) * 100 : 0;
+        simJumpStore.setState(percent);
+    };
 
     return (
         <button
@@ -241,6 +244,7 @@ export default function MotionList({
             onDragEnd={(e) => { if (onDragEnd) onDragEnd(e); }}
             onDragEnter={() => { if (onDragEnter) onDragEnter(); }}
             onClick={handleOnClick}
+            onContextMenu={handleContextMenu}
             onMouseEnter={StartHover}
             onMouseLeave={EndHover}
             style={{ width: `${!shrink ? 450 : 400}px` }}
@@ -276,7 +280,7 @@ export default function MotionList({
             <span className="shrink-0 text-left truncate max-w-[130px]">{name}</span>
 
             {!start && field !== undefined && (
-                <div onClick={(e) => e.stopPropagation()} className="flex-1 min-w-0 flex items-center gap-2">
+                <div onClick={(e) => e.stopPropagation()} className="flex-1 min-w-0 flex items-center gap-3">
                     <Slider
                         sliderHeight={5}
                         knobHeight={16}
@@ -289,8 +293,9 @@ export default function MotionList({
                             saveSnapshot();
                         }}
                     />
-                    <span className="shrink-0 text-left tabular-nums pl-1">
-                        {(field[0]?.values?.["maxSpeed"] ?? 0).toFixed(speedScale > 9.9 ? (speedScale > 99.9 ? 0 : 1) : 2)}
+                    <span className="shrink-0 relative tabular-nums">
+                        <span className="invisible">{speedScale.toFixed(speedScale > 9.9 ? (speedScale > 99.9 ? 0 : 1) : 2)}</span>
+                        <span className="absolute inset-0 text-left">{(field[0]?.values?.["maxSpeed"] ?? 0).toFixed(speedScale > 9.9 ? (speedScale > 99.9 ? 0 : 1) : 2)}</span>
                     </span>
                 </div>
             )}

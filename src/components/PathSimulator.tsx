@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import play from "../assets/play.svg";
 import pause from "../assets/pause.svg";
 import { Robot } from "../core/Robot";
-import { activeSimSegmentStore, computedPathStore, pathTelemetry, precomputePath, SIM_CONSTANTS, type PathSim } from "../core/ComputePathSim";
+import { activeSimSegmentStore, computedPathStore, pathTelemetry, precomputePath, simJumpStore, SIM_CONSTANTS, type PathSim } from "../core/ComputePathSim";
 import { usePose } from "../hooks/usePose";
 import { clamp } from "../core/Util";
 import { useRobotVisibility } from "../hooks/useRobotVisibility";
@@ -55,8 +55,18 @@ export default function PathSimulator() {
     const changes = undoHistory.useStore();
     const computedPath = computedPathStore.useStore();
     const [ simulatedGroups ] = useSimulateGroup();
+    const simJump = simJumpStore.useStore();
 
     const { pauseSimulator, scrubSimulator } = PathSimMacros();
+
+    useEffect(() => {
+        if (simJump === null) return;
+        setPlaying(false);
+        setRobotVisibility(true);
+        skip.current = false;
+        setValue(simJump);
+        simJumpStore.setState(null);
+    }, [simJump, setRobotVisibility]);
 
     // const cullSimulatedPath = (sim: PathSim): PathSim => {
     //     if (!simulatedGroups?.length) return sim;
