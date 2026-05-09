@@ -104,6 +104,9 @@ export type SegmentFactory<F extends Format = Format> = (
     constants: SegmentConstants<F>
 ) => boolean;
 
+export type ConstantValue = number | boolean | string;
+export type ConstantsRecord = Record<string, ConstantValue>;
+
 export const FORMAT_REGISTRY = {
     LemLib: LemLibDef,
     mikLib: LemLibDef,

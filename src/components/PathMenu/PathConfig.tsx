@@ -7,6 +7,9 @@ import {
   updatePathConstants,
   updateDefaultConstants,
   updatePathConstantsByKind,
+  type ConstantsRecord,
+  type FormatConstants,
+  type Format,
 } from "../../simulation/FormatDefinition";
 import { moveMultipleSegments, buildDraggingIds, MOTION_KIND_SET } from "./PathConfigUtils";
 import type { CycleImageButtonProps } from "../Util/CycleButton";
@@ -30,7 +33,6 @@ export default function PathConfig() {
   };
 
   const name = FORMAT_REGISTRY[format].formatPathName;
-  const speedScale = FORMAT_REGISTRY[format].kMaxSpeed;
 
   return (
     <div className="bg-medgray w-[500px] h-[650px] rounded-lg p-[15px] flex flex-col">
@@ -48,9 +50,7 @@ export default function PathConfig() {
           }
         }}
         onDragOver={(e) => {
-          if (overIndex !== null) {
-            e.preventDefault();
-          }
+          if (overIndex !== null) e.preventDefault();
         }}
       >
         {path.segments.map((c, idx) => {
@@ -58,29 +58,24 @@ export default function PathConfig() {
 
           const constantsFields: ConstantListField[] = (segDef?.numberInputs ?? []).map(group => ({
             header: group.headerName,
-            values: c.constants[group.constantsIdx],
-            fields: group.fields.map(f => ({ key: f.key, label: f.label, units: f.units, input: f.input })),
-            defaults: formatDef.segments[c.kind]?.defaults[group.constantsIdx] ?? formatDef.constants[0],
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            onChange: (partial: any) => updatePathConstants(setPath, c.id, group.constantsIdx, partial),
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            setDefault: (partial: any) => fileFormatStore.setState(prev => ({
-                ...prev,
-                formatDef: updateDefaultConstants(prev.formatDef, c.kind, group.constantsIdx, partial),
+            values: c.constants[group.constantsIdx] as unknown as ConstantsRecord,
+            fields: group.fields.map(f => ({ key: String(f.key), label: f.label, units: f.units, input: f.input })),
+            defaults: (formatDef.segments[c.kind]?.defaults[group.constantsIdx] ?? formatDef.constants[0]) as unknown as ConstantsRecord,
+            onChange: (partial) => updatePathConstants(setPath, c.id, group.constantsIdx, partial as Partial<FormatConstants[Format]>),
+            setDefault: (partial) => fileFormatStore.setState(prev => ({
+              ...prev,
+              formatDef: updateDefaultConstants(prev.formatDef, c.kind, group.constantsIdx, partial as Partial<FormatConstants[Format]>),
             })),
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            onApply: (partial: any) => updatePathConstantsByKind(setPath, c.kind, group.constantsIdx, partial),
+            onApply: (partial) => updatePathConstantsByKind(setPath, c.kind, group.constantsIdx, partial as Partial<FormatConstants[Format]>),
           }));
 
           const directionFields: CycleImageButtonProps[] = (segDef?.cycleButtons ?? []).map(btn => ({
             imageKeys: btn.keyValues.map(kv => ({ src: kv.srcImg, key: String(kv.value) })) as CycleImageButtonProps["imageKeys"],
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            value: String((c.constants[btn.constantsIdx] as any)[btn.key]),
+            value: String((c.constants[btn.constantsIdx] as unknown as ConstantsRecord)[String(btn.key)]),
             onKeyChange: (newKey: string | null) => {
               const match = btn.keyValues.find(kv => String(kv.value) === newKey);
               if (match !== undefined) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                updatePathConstants(setPath, c.id, btn.constantsIdx, { [btn.key]: match.value } as any);
+                updatePathConstants(setPath, c.id, btn.constantsIdx, { [String(btn.key)]: match.value } as Partial<FormatConstants[Format]>);
               }
             },
           }));
@@ -115,7 +110,6 @@ export default function PathConfig() {
               {idx > 0 && MOTION_KIND_SET.has(c.kind) && (
                 <MotionList
                   name={segDef?.name ?? ""}
-                  speedScale={speedScale}
                   field={constantsFields}
                   directionField={directionFields}
                   segmentId={c.id}
@@ -133,7 +127,6 @@ export default function PathConfig() {
               {idx === 0 && (
                 <MotionList
                   name="Start"
-                  speedScale={speedScale}
                   field={[]}
                   directionField={[]}
                   segmentId={c.id}

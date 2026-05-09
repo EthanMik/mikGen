@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import NumberInput from "../Util/NumberInput";
+import type { ConstantValue } from "../../simulation/FormatDefinition";
 
 export type NumberInputSettings = {
   bounds?: [number, number];
@@ -9,7 +9,7 @@ export type NumberInputSettings = {
 };
 
 export type ConstantField = {
-  key: any;
+  key: string;
   label: string;
   units?: string;
   input?: NumberInputSettings;
@@ -19,7 +19,7 @@ type ConstantRowProps = {
   label: string;
   labelColor?: string;
   units?: string;
-  value: number | null;
+  value: ConstantValue | undefined;
   onChange: (v: number | null) => void;
   input?: NumberInputSettings;
   selected?: boolean;
@@ -55,7 +55,7 @@ export default function ConstantRow({
                 width={55}
                 height={30}
                 fontSize={16}
-                value={value}
+                value={typeof value === 'number' ? value : null}
                 setValue={onChange}
                 units={units}
                 bounds={input?.bounds ?? [0, 100]}

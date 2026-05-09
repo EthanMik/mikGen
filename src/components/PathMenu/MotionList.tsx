@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef, useState } from "react";
 import eyeOpen from "../../assets/eye-open.svg";
 import eyeClosed from "../../assets/eye-closed.svg";
@@ -6,48 +5,46 @@ import clockClose from "../../assets/clock-close.svg";
 import clockOpen from "../../assets/clock-open.svg";
 import downArrow from "../../assets/down-arrow.svg";
 import Slider from "../Util/Slider";
-import { usePath } from "../../hooks/useFileFormat";
+import { usePath, useFormatDef } from "../../hooks/useFileFormat";
 import type { ConstantField } from "./ConstantRow";
 import ConstantsList from "./ConstantsList";
 import CycleImageButton, { type CycleImageButtonProps } from "../Util/CycleButton";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import { setupDragTransfer } from "./PathConfigUtils";
-import { fileFormatStore } from "../../hooks/useFileFormat";
 import { activeSimSegmentStore, computedPathStore, pathTelemetry, simJumpStore } from "../../core/ComputePathSim";
 import { roundNum } from "../../core/Util";
-
+import type { ConstantsRecord } from "../../simulation/FormatDefinition";
+import type { Segment } from "../../core/Types/Segment";
 
 export type ConstantListField = {
-    header: string,
-    values: any,
-    fields: ConstantField[]
-    defaults: Partial<any>;
-    onChange: (partial: Partial<any>) => void;
-    setDefault: (partial: Partial<any>) => void;
-    onApply: (partial: Partial<any>) => void;
+    header: string;
+    values: ConstantsRecord;
+    fields: ConstantField[];
+    defaults: ConstantsRecord;
+    onChange: (partial: Partial<ConstantsRecord>) => void;
+    setDefault: (partial: Partial<ConstantsRecord>) => void;
+    onApply: (partial: Partial<ConstantsRecord>) => void;
 }
 
 type MotionListProps = {
-    name: string,
-    speedScale: number,
-    field: ConstantListField[] | undefined,
-    directionField: CycleImageButtonProps[] | undefined,
-    segmentId: string,
-    index: number,
-    isOpenGlobal: boolean,
-    isTelemetryOpenGlobal?: boolean,
-    start?: boolean,
-    draggable?: boolean,
-    onDragStart?: (e: React.DragEvent<HTMLButtonElement>) => void,
-    onDragEnd?: (e: React.DragEvent<HTMLButtonElement>) => void,
-    onDragEnter?: () => void,
-    draggingIds?: string[],
-    shrink?: boolean,
+    name: string;
+    field: ConstantListField[] | undefined;
+    directionField: CycleImageButtonProps[] | undefined;
+    segmentId: string;
+    index: number;
+    isOpenGlobal: boolean;
+    isTelemetryOpenGlobal?: boolean;
+    start?: boolean;
+    draggable?: boolean;
+    onDragStart?: (e: React.DragEvent<HTMLButtonElement>) => void;
+    onDragEnd?: (e: React.DragEvent<HTMLButtonElement>) => void;
+    onDragEnter?: () => void;
+    draggingIds?: string[];
+    shrink?: boolean;
 }
 
 export default function MotionList({
     name,
-    speedScale,
     field,
     directionField,
     segmentId,
@@ -62,133 +59,91 @@ export default function MotionList({
     draggingIds = [],
     shrink = false,
 }: MotionListProps) {
-    const [ path, setPath ] = usePath(); 
+    const [path, setPath] = usePath();
+    const formatDef = useFormatDef();
+
+    const sliderKey = String(formatDef.slider.key);
+    const speedScale = formatDef.kMaxSpeed;
 
     const segment = path.segments.find(s => s.id === segmentId)!;
-    const selected = path.segments.find((c) => c.id === segmentId)?.selected;
+    const selected = segment?.selected;
     const activeSimSegment = activeSimSegmentStore.useStore();
 
-    const [ isEyeOpen, setEyeOpen ] = useState(true);
-    const [ isTelemetryOpen, setTelemetryOpen ] = useState(false);
-    const [ isOpen, setOpen ] = useState(false);
+    const [isEyeOpen, setEyeOpen] = useState(true);
+    const [isTelemetryOpen, setTelemetryOpen] = useState(false);
+    const [isOpen, setOpen] = useState(false);
     const pathRef = useRef(path);
-    pathRef.current = path
+    pathRef.current = path;
 
     const normalSelect = () => {
         setPath(prev => ({
             ...prev,
-            segments: prev.segments.map(
-                segment => segment.id === segmentId
-                ? {...segment, selected: true }
-                : {...segment, selected: false}
-            )
+            segments: prev.segments.map(s =>
+                s.id === segmentId ? { ...s, selected: true } : { ...s, selected: false }
+            ),
         }));
-    }
+    };
 
-    const crtlSelect = () => {
+    const ctrlSelect = () => {
         setPath(prev => {
             const willSelect = !prev.segments.find(s => s.id === segmentId)?.selected;
-
-            if (willSelect) {
-                return {
-                    ...prev,
-                    segments: prev.segments.map(s => {
-                        if (s.id === segmentId) {
-                            return { ...s, selected: true };
-                        }
-                        return s;
-                    })
-                };
-            }
-
             return {
                 ...prev,
                 segments: prev.segments.map(s =>
-                    s.id === segmentId ? { ...s, selected: false } : s
-                )
+                    s.id === segmentId ? { ...s, selected: willSelect } : s
+                ),
             };
         });
-    }
+    };
 
     const shiftSelect = () => {
         setPath(prev => {
             const segments = prev.segments;
-
             const clickedIdx = segments.findIndex(s => s.id === segmentId);
             if (clickedIdx === -1) return prev;
 
             let anchorIdx = -1;
             for (let i = segments.length - 1; i >= 0; i--) {
-                if (segments[i].selected) {
-                    anchorIdx = i;
-                    break;
-                }
+                if (segments[i].selected) { anchorIdx = i; break; }
             }
-
             if (anchorIdx === -1) anchorIdx = clickedIdx;
 
-            const start = Math.min(anchorIdx, clickedIdx);
-            const end = Math.max(anchorIdx, clickedIdx);
+            const rangeStart = Math.min(anchorIdx, clickedIdx);
+            const rangeEnd = Math.max(anchorIdx, clickedIdx);
 
             return {
                 ...prev,
-                // Select segments in range, but exclude groups and deselect all groups
-                segments: segments.map((s, i) => ({
-                    ...s,
-                    selected: (i >= start && i <= end),
-                })),
+                segments: segments.map((s, i) => ({ ...s, selected: i >= rangeStart && i <= rangeEnd })),
             };
         });
     };
 
     const handleOnClick = (evt: React.PointerEvent<HTMLButtonElement>) => {
-        if (evt.button === 0 && evt.ctrlKey) {
-            crtlSelect();
-            return;
-        }
+        if (evt.button === 0 && evt.ctrlKey) { ctrlSelect(); return; }
+        if (evt.button === 0 && evt.shiftKey) { shiftSelect(); return; }
+        if (evt.button === 0) { normalSelect(); return; }
+    };
 
-        if (evt.button === 0 && evt.shiftKey) {
-            shiftSelect();
-            return;
-        }
-
-        if (evt.button === 0) {
-            normalSelect();
-            return;
-        }
-    }
-
-    const StartHover = () => {
+    const startHover = () => {
         setPath(prev => ({
-            ...prev, 
-            segments: prev.segments.map(
-                segment => segment.id === segmentId
-                ? {...segment, hovered: true } 
-                : {...segment, hovered: false }
-            )
-        }));        
-    }
-    
-    const EndHover = () => {
+            ...prev,
+            segments: prev.segments.map(s =>
+                s.id === segmentId ? { ...s, hovered: true } : { ...s, hovered: false }
+            ),
+        }));
+    };
+
+    const endHover = () => {
         setPath(prev => ({
-            ...prev, 
-            segments: prev.segments.map(
-                segment => segment.id === segmentId
-                ? {...segment, hovered: false } 
-                : {...segment, hovered: false }
-            )
-        }));        
-    }
+            ...prev,
+            segments: prev.segments.map(s => ({ ...s, hovered: false })),
+        }));
+    };
 
-    useEffect(() => {
-        setOpen(isOpenGlobal)
-    }, [isOpenGlobal])
+    useEffect(() => { setOpen(isOpenGlobal); }, [isOpenGlobal]);
+    useEffect(() => { if (isTelemetryOpenGlobal !== undefined) setTelemetryOpen(isTelemetryOpenGlobal); }, [isTelemetryOpenGlobal]);
 
-    useEffect(() => {
-        if (isTelemetryOpenGlobal !== undefined) setTelemetryOpen(isTelemetryOpenGlobal);
-    }, [isTelemetryOpenGlobal])
-
-    const toggleSegment = (patch: (s: any) => any) => {
+    const toggleSegment = (patch: (s: Segment) => Segment) => {
         setPath(prev => ({
             ...prev,
             segments: prev.segments.map(s => (s.id === segmentId ? patch(s) : s)),
@@ -200,130 +155,119 @@ export default function MotionList({
         toggleSegment(s => ({ ...s, visible: !s.visible }));
     };
 
-    useEffect(() => {
-        setEyeOpen(segment.visible);
-    }, [segment.visible])
+    useEffect(() => { setEyeOpen(segment.visible); }, [segment.visible]);
 
-    const getValuesFromKeys = (
-        keys: Array<string>,
-        obj: Partial<any>
-    ): Partial<any> => {
-        return keys.reduce<Partial<any>>((acc, key) => {
-            if (key in (obj ?? {})) {
-                acc[key as any] = (obj as any)[key];
-            }
-            return acc;
-        }, {});
+    const getValuesFromKeys = (keys: string[], obj: ConstantsRecord): ConstantsRecord => {
+        const result: ConstantsRecord = {};
+        for (const key of keys) {
+            if (key in obj) result[key] = obj[key];
+        }
+        return result;
     };
-
 
     const telemetrySlice = pathTelemetry.getState()?.[index];
 
     const handleContextMenu = (e: React.MouseEvent) => {
         e.preventDefault();
         const computedPath = computedPathStore.getState();
-        const simIndex = index;
-        const startT = computedPath.segmentTrajectorys[simIndex]?.[0]?.t ?? 0;
+        const startT = computedPath.segmentTrajectorys[index]?.[0]?.t ?? 0;
         const percent = computedPath.totalTime > 0 ? (startT / computedPath.totalTime) * 100 : 0;
         simJumpStore.setState(percent);
     };
 
+    const sliderValue = field?.[0]?.values?.[sliderKey];
+    const sliderNum = typeof sliderValue === 'number' ? sliderValue : 0;
+    const speedDecimals = speedScale > 99.9 ? 0 : speedScale > 9.9 ? 1 : 2;
+
     return (
         <button
             className={`flex flex-col gap-2 mt-[1px] ${segment.locked ? "opacity-50 pointer-events-none" : ""}`}
-            onClick={() => {
-                if (selected) setOpen(!isOpen)
-            }}
+            onClick={() => { if (selected) setOpen(!isOpen); }}
         >
             <button
-            draggable={draggable && !segment.locked}
-            onDragStart={(e) => {
-                setupDragTransfer(e, segmentId);
-                if (onDragStart) onDragStart(e);
-            }}
-            onDragEnd={(e) => { if (onDragEnd) onDragEnd(e); }}
-            onDragEnter={() => { if (onDragEnter) onDragEnter(); }}
-            onClick={handleOnClick}
-            onContextMenu={handleContextMenu}
-            onMouseEnter={StartHover}
-            onMouseLeave={EndHover}
-            style={{ width: `${!shrink ? 450 : 400}px` }}
-            className={`${selected ? "bg-medlightgray" : ""}
-                relative flex flex-row justify-start items-center
-                h-[35px] gap-[12px]
-                bg-medgray
-                hover:brightness-92
-                rounded-lg pl-4 pr-4
-                transition-all duration-100
-                active:scale-[0.995]
-                ${isOpen && !selected ? "border-2 border-medlightgray" : "border-2 border-transparent"}
-                ${draggingIds.includes(segmentId) ? "opacity-10" : ""}
-            `}
+                draggable={draggable && !segment.locked}
+                onDragStart={(e) => {
+                    setupDragTransfer(e, segmentId);
+                    if (onDragStart) onDragStart(e);
+                }}
+                onDragEnd={(e) => { if (onDragEnd) onDragEnd(e); }}
+                onDragEnter={() => { if (onDragEnter) onDragEnter(); }}
+                onClick={handleOnClick}
+                onContextMenu={handleContextMenu}
+                onMouseEnter={startHover}
+                onMouseLeave={endHover}
+                style={{ width: `${!shrink ? 450 : 400}px` }}
+                className={`${selected ? "bg-medlightgray" : ""}
+                    relative flex flex-row justify-start items-center
+                    h-[35px] gap-[12px]
+                    bg-medgray
+                    hover:brightness-92
+                    rounded-lg pl-4 pr-4
+                    transition-all duration-100
+                    active:scale-[0.995]
+                    ${isOpen && !selected ? "border-2 border-medlightgray" : "border-2 border-transparent"}
+                    ${draggingIds.includes(segmentId) ? "opacity-10" : ""}
+                `}
             >
-            <div className={`absolute left-0 top-[20%] h-[60%] w-[3px] rounded-full bg-lightgray transition-opacity duration-150 ${activeSimSegment === index - groupsBefore ? "opacity-100" : "opacity-0"}`} />
-            <button
-                className="cursor-pointer shrink-0"
-                onClick={(e) => { e.stopPropagation(); setOpen(!isOpen); }}
+                <div className={`absolute left-0 top-[20%] h-[60%] w-[3px] rounded-full bg-lightgray transition-opacity duration-150 ${activeSimSegment === index ? "opacity-100" : "opacity-0"}`} />
 
-            >
-                <img className={`w-[15px] h-[15px] transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} src={downArrow} />
+                <button
+                    className="cursor-pointer shrink-0"
+                    onClick={(e) => { e.stopPropagation(); setOpen(!isOpen); }}
+                >
+                    <img className={`w-[15px] h-[15px] transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} src={downArrow} />
+                </button>
+
+                <button className="cursor-pointer shrink-0" onClick={(e) => { e.stopPropagation(); handleEyeOnClick(); }}>
+                    <img className="w-[20px] h-[20px]" src={isEyeOpen ? eyeOpen : eyeClosed} />
+                </button>
+
+                <button className="cursor-pointer shrink-0" onClick={(e) => { e.stopPropagation(); setTelemetryOpen(!isTelemetryOpen); }}>
+                    <img className="w-[20px] h-[20px]" src={isTelemetryOpen ? clockClose : clockOpen} />
+                </button>
+
+                <span className="shrink-0 text-left truncate max-w-[130px]">{name}</span>
+
+                {!start && field !== undefined && (
+                    <div onClick={(e) => e.stopPropagation()} className="flex-1 min-w-0 flex items-center gap-3">
+                        <Slider
+                            sliderHeight={5}
+                            knobHeight={16}
+                            knobWidth={16}
+                            value={sliderNum / speedScale * 100}
+                            setValue={(v: number) => field[0]?.onChange({ [sliderKey]: (v / 100) * speedScale })}
+                            OnChangeEnd={() => { saveSnapshot(); }}
+                        />
+                        <span className="shrink-0 relative tabular-nums">
+                            <span className="invisible">{speedScale.toFixed(speedDecimals)}</span>
+                            <span className="absolute inset-0 text-left">{sliderNum.toFixed(speedDecimals)}</span>
+                        </span>
+                    </div>
+                )}
+
+                {directionField !== undefined && directionField.length !== 0 && (
+                    <div onClick={(e) => e.stopPropagation()} className="ml-auto flex flex-row items-center gap-2.5">
+                        {directionField.map((f, i) => (
+                            <CycleImageButton
+                                key={i}
+                                imageKeys={f.imageKeys}
+                                onKeyChange={(key: string | null) => {
+                                    f.onKeyChange(key);
+                                    saveSnapshot();
+                                }}
+                                value={f.value}
+                            />
+                        ))}
+                    </div>
+                )}
             </button>
 
-            <button className="cursor-pointer shrink-0" onClick={(e) => { e.stopPropagation(); handleEyeOnClick(); }}>
-                <img className="w-[20px] h-[20px]" src={isEyeOpen ? eyeOpen : eyeClosed} />
-            </button>
-
-            <button className="cursor-pointer shrink-0" onClick={(e) => { e.stopPropagation(); setTelemetryOpen(!isTelemetryOpen); }}>
-                <img className="w-[20px] h-[20px]" src={isTelemetryOpen ? clockClose : clockOpen} />
-            </button>
-
-            <span className="shrink-0 text-left truncate max-w-[130px]">{name}</span>
-
-            {!start && field !== undefined && (
-                <div onClick={(e) => e.stopPropagation()} className="flex-1 min-w-0 flex items-center gap-3">
-                    <Slider
-                        sliderHeight={5}
-                        knobHeight={16}
-                        knobWidth={16}
-                        value={(field[0]?.values?.["maxSpeed"] ?? 0) / speedScale * 100}
-
-                        setValue={(v: number) => field[0]?.onChange({ maxSpeed: (v / 100) * speedScale })}
-
-                        OnChangeEnd={() => {
-                            saveSnapshot();
-                        }}
-                    />
-                    <span className="shrink-0 relative tabular-nums">
-                        <span className="invisible">{speedScale.toFixed(speedScale > 9.9 ? (speedScale > 99.9 ? 0 : 1) : 2)}</span>
-                        <span className="absolute inset-0 text-left">{(field[0]?.values?.["maxSpeed"] ?? 0).toFixed(speedScale > 9.9 ? (speedScale > 99.9 ? 0 : 1) : 2)}</span>
-                    </span>
-                </div>
-            )}
-
-            {directionField !== undefined && directionField.length !== 0 && <div onClick={(e) => e.stopPropagation()} className="ml-auto flex flex-row items-center gap-2.5">
-                {directionField.map((f, i) => (
-                    <CycleImageButton
-                        key={i}
-                        imageKeys={f.imageKeys}
-                        onKeyChange={(key: string | null) => {
-                            f.onKeyChange(key);
-                            saveSnapshot();
-                        }}
-                        value={f.value}
-                    />
-                ))}
-
-            </div>}
-            </button>
-
-                <div
+            <div
                 onClick={(e) => e.stopPropagation()}
                 className={`relative flex flex-col ml-9 gap-2 ${
                     (!isTelemetryOpen || telemetrySlice === undefined) && !isOpen ? "hidden" : ""
                 }`}
-                >
-
-                { /* Vertical Line */ }
+            >
                 <div className="absolute left-[-16px] top-0 h-full w-[4px] rounded-full bg-medlightgray" />
 
                 {isTelemetryOpen && telemetrySlice !== undefined && (
@@ -335,32 +279,32 @@ export default function MotionList({
                 )}
 
                 {isOpen && field !== undefined && field.map((f) => {
-                    const fieldKeys = f.fields.map((m) => m.key);
+                    const fieldKeys = f.fields.map(m => m.key);
                     const relevantValues = getValuesFromKeys(fieldKeys, f.values);
                     const relevantDefaults = getValuesFromKeys(fieldKeys, f.defaults);
 
                     return (
-                    <ConstantsList
-                        key={f.header}
-                        header={f.header}
-                        fields={f.fields}
-                        values={relevantValues}
-                        isOpenGlobal={false}
-                        onChange={f.onChange}
-                        onReset={() => {
-                            f.onChange(relevantDefaults);
-                            saveSnapshot();
-                        }}
-                        onSetDefault={(constants: Partial<any>) => {
-                            f.setDefault(constants);
-                            saveSnapshot();
-                        }}
-                        onApply={f.onApply}
-                        defaults={relevantDefaults}
-                    />
+                        <ConstantsList
+                            key={f.header}
+                            header={f.header}
+                            fields={f.fields}
+                            values={relevantValues}
+                            isOpenGlobal={false}
+                            onChange={f.onChange}
+                            onReset={() => {
+                                f.onChange(relevantDefaults);
+                                saveSnapshot();
+                            }}
+                            onSetDefault={(constants) => {
+                                f.setDefault(constants);
+                                saveSnapshot();
+                            }}
+                            onApply={f.onApply}
+                            defaults={relevantDefaults}
+                        />
                     );
                 })}
-                </div>
+            </div>
         </button>
     );
 }
