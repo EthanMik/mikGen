@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-import { fieldMap, useField, type FieldType } from "../../hooks/useField";
-import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
+import { fieldMap, useField, type FieldType } from "../../hooks/useFileFormat";
+import { saveSnapshot } from "../../core/Undo/UndoHistory";
 
 const imageCache: { [key: string]: HTMLImageElement } = {};
 
@@ -52,7 +52,7 @@ export default function FieldButton() {
 
   const handleCloseMenu = useCallback(() => {
     if (isOpen && fieldKey !== fieldWhenMenuOpened.current) {
-      AddToUndoHistory({ field: fieldKey });
+      saveSnapshot();
     }
     setOpen(false);
   }, [isOpen, fieldKey]);

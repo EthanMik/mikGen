@@ -1,17 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import play from "../assets/play.svg";
 import pause from "../assets/pause.svg";
-import { Robot, robotConstantsStore } from "../core/Robot";
+import { Robot } from "../core/Robot";
 import { activeSimSegmentStore, computedPathStore, pathTelemetry, precomputePath, SIM_CONSTANTS, type PathSim } from "../core/ComputePathSim";
 import { usePose } from "../hooks/usePose";
 import { clamp } from "../core/Util";
 import { useRobotVisibility } from "../hooks/useRobotVisibility";
 import Checkbox from "./Util/Checkbox";
 import Slider from "./Util/Slider";
-import { usePath } from "../hooks/usePath";
+import { usePath, fileFormatStore } from "../hooks/useFileFormat";
 import { PathSimMacros } from "../macros/PathSimMacros";
 import { convertPathToSim } from "../simulation/Conversion";
-import { useFormat } from "../hooks/useFormat";
 import { useRobotPose } from "../hooks/useRobotPose";
 import { useSettings } from "../hooks/useSettings";
 import { undoHistory } from "../core/Undo/UndoHistory";
@@ -20,7 +19,7 @@ import { useSimulateGroup } from "../hooks/useSimulateGroup";
 // This fucking file is the biggest piece of shit i find a new bug every day
 
 function createRobot(): Robot {
-    const { width, height, speed, lateralTau, angularTau, isOmni, cogOffsetX, cogOffsetY, expansionFront, expansionLeft, expansionRight, expansionRear } = robotConstantsStore.getState();
+    const { width, height, speed, lateralTau, angularTau, isOmni, cogOffsetX, cogOffsetY, expansionFront, expansionLeft, expansionRight, expansionRear } = fileFormatStore.getState().robot;
 
     return new Robot(
         0, // Start x
@@ -46,11 +45,11 @@ export default function PathSimulator() {
     const [time, setTime] = useState<number>(0);
     const [ pose, setPose] = usePose()
     const [ , setRobotPose ] = useRobotPose();
-    const robotk = robotConstantsStore.useStore();
+    const robot = fileFormatStore.useSelector(s => s.robot);
     const [playing, setPlaying] = useState<boolean>(false);
     const [robotVisible, setRobotVisibility] = useRobotVisibility();
     const [ path,  ] = usePath();
-    const [ format,  ] = useFormat();
+    const formatDef = fileFormatStore.useSelector(s => s.formatDef);
     const skip = useRef(false);
     const [ settings ] = useSettings(); 
     const changes = undoHistory.useStore();
@@ -59,44 +58,44 @@ export default function PathSimulator() {
 
     const { pauseSimulator, scrubSimulator } = PathSimMacros();
 
-    const cullSimulatedPath = (sim: PathSim): PathSim => {
-        if (!simulatedGroups?.length) return sim;
+    // const cullSimulatedPath = (sim: PathSim): PathSim => {
+    //     if (!simulatedGroups?.length) return sim;
 
-        const indices: number[] = [];
-        path.segments.filter(prev => prev.kind !== "group")?.forEach((seg, i) => {
-            if (seg.groupId && simulatedGroups.includes(seg.groupId)) indices.push(i);
-        });
+    //     const indices: number[] = [];
+    //     path.segments.filter(prev => prev.kind !== "group")?.forEach((seg, i) => {
+    //         if (seg.groupId && simulatedGroups.includes(seg.groupId)) indices.push(i);
+    //     });
 
-        if (indices.length === 0) return sim;
+    //     if (indices.length === 0) return sim;
 
-        const culledSegments = indices.map(i => sim.segmentTrajectorys[i]).filter(Boolean);
-        const culledEnds = indices.map(i => sim.endTrajectory[i]).filter(Boolean);
-        const culledTrajectory = culledSegments.flat();
+    //     const culledSegments = indices.map(i => sim.segmentTrajectorys[i]).filter(Boolean);
+    //     const culledEnds = indices.map(i => sim.endTrajectory[i]).filter(Boolean);
+    //     const culledTrajectory = culledSegments.flat();
 
-        const timeOffset = culledTrajectory.length > 0 ? culledTrajectory[0].t : 0;
-        const rebasedTrajectory = culledTrajectory.map(snap => ({
-            ...snap,
-            t: snap.t - timeOffset,
-        }));
+    //     const timeOffset = culledTrajectory.length > 0 ? culledTrajectory[0].t : 0;
+    //     const rebasedTrajectory = culledTrajectory.map(snap => ({
+    //         ...snap,
+    //         t: snap.t - timeOffset,
+    //     }));
 
-        const totalTime = rebasedTrajectory.length > 0
-            ? rebasedTrajectory[rebasedTrajectory.length - 1].t
-            : 0;
+    //     const totalTime = rebasedTrajectory.length > 0
+    //         ? rebasedTrajectory[rebasedTrajectory.length - 1].t
+    //         : 0;
 
-        return {
-            totalTime,
-            trajectory: rebasedTrajectory,
-            endTrajectory: culledEnds,
-            segmentTrajectorys: sim.segmentTrajectorys,
-            segmentCumulativeDists: sim.segmentCumulativeDists,
-            timeOffset,
-        };
-    }
+    //     return {
+    //         totalTime,
+    //         trajectory: rebasedTrajectory,
+    //         endTrajectory: culledEnds,
+    //         segmentTrajectorys: sim.segmentTrajectorys,
+    //         segmentCumulativeDists: sim.segmentCumulativeDists,
+    //         timeOffset,
+    //     };
+    // }
 
     useEffect(() => {
         if (path.segments.length === 0) {
-            computedPathStore.setState(precomputePath(createRobot(), convertPathToSim(path, format)));
-
+            computedPathStore.setState(precomputePath(createRobot(), convertPathToSim(formatDef, path)));
+            
             setRobotPose(computedPath.endTrajectory);
             setPlaying(false);
             setTime(0);
@@ -105,9 +104,9 @@ export default function PathSimulator() {
             setPose({ x: 0, y: 0, angle: 0 });
             return;
         }
-
-        const fullSim = precomputePath(createRobot(), convertPathToSim(path, format));
-        const pathSim = cullSimulatedPath(fullSim);
+        
+        const pathSim = precomputePath(createRobot(), convertPathToSim(formatDef, path));
+        // const pathSim = cullSimulatedPath(fullSim);
         computedPathStore.setState(pathSim);
 
         setRobotPose(pathSim.endTrajectory);
@@ -127,7 +126,7 @@ export default function PathSimulator() {
         skip.current = true;
         setValue((clampedTime / pathSim.totalTime) * 100);
         
-    }, [changes.length, robotk, robotVisible, simulatedGroups]);
+    }, [changes.length, robot, robotVisible, simulatedGroups]);
 
     
     useEffect(() => {

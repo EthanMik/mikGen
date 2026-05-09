@@ -1,7 +1,7 @@
 import { Robot } from "../../../core/Robot";
 import { clamp, toDeg, toRad } from "../../../core/Util";
 import { LemExitCondition } from "../ExitCondition";
-import { kLemLibSpeed, type LemMoveConstants } from "../LemConstants";
+import type { LemConstants } from "../LemConstants";
 import { LemPID } from "../Pid";
 import { LemPose } from "../Pose";
 import { LemTimer } from "../Timer";
@@ -27,17 +27,19 @@ export function resetMoveToPose() {
     start = true;
 }
 
-export function moveToPose(robot: Robot, dt: number, x: number, y: number, angle: number, k: LemMoveConstants): boolean {
+export function moveToPose(robot: Robot, dt: number, x: number, y: number, angle: number, k: LemConstants[]): boolean {
+    const kLateral = k[0];
+    const kAngular = k[1];
 
     if (start) {
-        lateralPID = new LemPID(k.lateral);
-        angularPID = new LemPID(k.angular);
-        lateralLargeExit = new LemExitCondition(k.lateral.largeError, k.lateral.largeErrorTimeout);
-        lateralSmallExit = new LemExitCondition(k.lateral.smallError, k.lateral.smallErrorTimeout);
-        angularLargeExit = new LemExitCondition(k.angular.largeError, k.angular.largeErrorTimeout);
-        angularSmallExit = new LemExitCondition(k.angular.smallError, k.angular.smallErrorTimeout);
+        lateralPID = new LemPID(kLateral);
+        angularPID = new LemPID(kAngular);
+        lateralLargeExit = new LemExitCondition(kLateral.largeError, kLateral.largeErrorTimeout);
+        lateralSmallExit = new LemExitCondition(kLateral.smallError, kLateral.smallErrorTimeout);
+        angularLargeExit = new LemExitCondition(kAngular.largeError, kAngular.largeErrorTimeout);
+        angularSmallExit = new LemExitCondition(kAngular.smallError, kAngular.smallErrorTimeout);
 
-        timer = new LemTimer(k.lateral.timeout);
+        timer = new LemTimer(kLateral.timeout);
         close = false;
         lateralSettled = false;
         prevLateralOut = 0;
@@ -45,7 +47,7 @@ export function moveToPose(robot: Robot, dt: number, x: number, y: number, angle
 
         // convert target angle to standard position form
         target = new LemPose(x, y, Math.PI / 2 - toRad(angle));
-        if (k.lateral.forwards !== "forward") target.theta = (target.theta + Math.PI) % (2 * Math.PI);
+        if (!kLateral.forwards) target.theta = (target.theta + Math.PI) % (2 * Math.PI);
 
         start = false;
     }
@@ -57,7 +59,7 @@ export function moveToPose(robot: Robot, dt: number, x: number, y: number, angle
         return true;
     }
 
-    const params = k.lateral;
+    const params = kLateral;
     const pose: LemPose = toLemPose(robot.getPose(), true, true);
 
     const distTarget = pose.distance(target);
@@ -86,7 +88,7 @@ export function moveToPose(robot: Robot, dt: number, x: number, y: number, angle
     prevSameSide = sameSide;
 
     // calculate error
-    const adjustedRobotTheta = params.forwards === "forward" ? pose.theta : pose.theta + Math.PI;
+    const adjustedRobotTheta = params.forwards ? pose.theta : pose.theta + Math.PI;
     const angularError = close
         ? angleError(adjustedRobotTheta, target.theta)
         : angleError(adjustedRobotTheta, pose.angle(carrot));
@@ -123,12 +125,12 @@ export function moveToPose(robot: Robot, dt: number, x: number, y: number, angle
     if (overturn > 0) lateralOut -= lateralOut > 0 ? overturn : -overturn;
 
     // prevent moving in the wrong direction
-    if (params.forwards === "forward" && !close) lateralOut = Math.max(lateralOut, 0);
-    else if (params.forwards === "reverse" && !close) lateralOut = Math.min(lateralOut, 0);
+    if (params.forwards && !close) lateralOut = Math.max(lateralOut, 0);
+    else if (!params.forwards && !close) lateralOut = Math.min(lateralOut, 0);
 
     // constrain lateral output by the minimum speed
-    if (params.forwards === "forward" && lateralOut < Math.abs(params.minSpeed) && lateralOut > 0) lateralOut = Math.abs(params.minSpeed);
-    if (params.forwards === "reverse" && -lateralOut < Math.abs(params.minSpeed) && lateralOut < 0) lateralOut = -Math.abs(params.minSpeed);
+    if (params.forwards && lateralOut < Math.abs(params.minSpeed) && lateralOut > 0) lateralOut = Math.abs(params.minSpeed);
+    if (!params.forwards && -lateralOut < Math.abs(params.minSpeed) && lateralOut < 0) lateralOut = -Math.abs(params.minSpeed);
 
     prevLateralOut = lateralOut;
 
@@ -141,7 +143,7 @@ export function moveToPose(robot: Robot, dt: number, x: number, y: number, angle
         rightPower /= ratio;
     }
 
-    robot.tankDrive(leftPower / kLemLibSpeed, rightPower / kLemLibSpeed, dt);
+    robot.tankDrive(leftPower / 127, rightPower / 127, dt);
 
     return false;
 }

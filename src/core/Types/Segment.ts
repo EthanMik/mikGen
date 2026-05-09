@@ -18,6 +18,21 @@ export type Segment<F extends Format = Format> = {
   constants: SegmentConstants<F>
 };
 
+export function createStartSegment<F extends Format>(format: F, pose: Pose): Segment<F> {
+  return {
+    id: makeId(10),
+    selected: false,
+    hovered: false,
+    disabled: false,
+    locked: false,
+    visible: true,
+    pose,
+    format,
+    kind: "start",
+    constants: getDefaultConstants(format, "start"),
+  };
+}
+
 export function createPointDriveSegment<F extends Format>(format: F, position: Coordinate): Segment<F> {
   return {
     id: makeId(10),

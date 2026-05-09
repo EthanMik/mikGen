@@ -1,10 +1,10 @@
 import type { Robot } from "../../../core/Robot";
+import { toDeg } from "../../../core/Util";
 import { LemExitCondition } from "../ExitCondition";
-import { kLemLibSpeed, type LemAngularConstants } from "../LemConstants";
+import type { LemConstants } from "../LemConstants";
 import { LemPID } from "../Pid";
 import { LemTimer } from "../Timer";
 import { angleError, slew, toLemPose } from "../Util";
-import { toDeg } from "../../../core/Util";
 
 let angularPID: LemPID;
 let angularLargeExit: LemExitCondition;
@@ -21,8 +21,8 @@ export function resetSwingToPoint() {
     start = true;
 }
 
-export function swingToPoint(robot: Robot, dt: number, x: number, y: number, angle: number, k: LemAngularConstants): boolean {
-    const params = k.angular;
+export function swingToPoint(robot: Robot, dt: number, x: number, y: number, angle: number, k: LemConstants[]): boolean {
+    const params = k[0];
 
     if (start) {
         angularPID = new LemPID(params);
@@ -47,7 +47,7 @@ export function swingToPoint(robot: Robot, dt: number, x: number, y: number, ang
     const pose = toLemPose(robot.getPose(), false, false);
 
     // adjust effective heading for reverse driving
-    const effectiveTheta = params.forwards === "forward" ? pose.theta : pose.theta - 180;
+    const effectiveTheta = params.forwards ? pose.theta : pose.theta - 180;
 
     // compute target heading from the point each loop, plus any heading offset
     const targetTheta = toDeg(Math.atan2(x - pose.x, y - pose.y)) + angle;
@@ -94,10 +94,10 @@ export function swingToPoint(robot: Robot, dt: number, x: number, y: number, ang
     prevMotorPower = motorPower;
 
     // drive: locked side stays at 0, active side drives
-    if (params.lockedSide === "left") {
-        robot.tankDrive(0, -motorPower / kLemLibSpeed, dt);
+    if (params.lockedSide === "DriveSide::LEFT") {
+        robot.tankDrive(0, -motorPower / 127, dt);
     } else {
-        robot.tankDrive(motorPower / kLemLibSpeed, 0, dt);
+        robot.tankDrive(motorPower / 127, 0, dt);
     }
 
     return false;

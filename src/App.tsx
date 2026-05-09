@@ -4,16 +4,11 @@ import PathConfig from "./components/PathMenu/PathConfig";
 import PathSimulator from "./components/PathSimulator";
 import ControlConfig from "./components/ControlConfig";
 import Config from "./components/Config/Config";
-import useLocalStorageSync from "./hooks/useLocalStorageSync";
 import { clamp } from "./core/Util";
 import Field from "./components/Field/Field";
-import { useFileOpenSync } from "./hooks/useFileOpenSync";
 import { ScaleContext } from "./contexts/ScaleContext";
 
 export default function App() {
-  useLocalStorageSync();
-  useFileOpenSync();
-
   const viewportRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);

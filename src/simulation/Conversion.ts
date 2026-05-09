@@ -2,7 +2,7 @@ import { SIM_CONSTANTS } from "../core/ComputePathSim";
 import type { Robot } from "../core/Robot";
 import type { Path } from "../core/Types/Path";
 import { findPointToFace, roundOff, toDeg } from "../core/Util";
-import type { Format } from "../hooks/useFormat";
+import type { Format } from "./FormatDefinition";
 import type { FormatDef, SegmentDef, SegmentKind, SimFn } from "./FormatDefinition";
 import { angle_error } from "./mikLibSim/Util";
 
@@ -48,15 +48,15 @@ export function convertPathToString<F extends Format, Segs extends Partial<Recor
 }
 
 
-const LOG_SEGMENT_START_AND_END = true;
-const LOG_ROBOT_STATE = true;
-const LOG_SIMULATION_NUMBER = true;
+const LOG_SEGMENT_START_AND_END = false;
+const LOG_ROBOT_STATE = false;
+const LOG_SIMULATION_NUMBER = false;
 
 SIM_CONSTANTS.seconds = 99;
 let currentPathTime = -2 / 60;
 let simComputed = 0;
 
-export function convertPathToSim<F extends Format, Segs extends Record<SegmentKind, SegmentDef<F>>>(formatDef: FormatDef<F, Segs>, path: Path): SimFn[] {
+export function convertPathToSim<F extends Format, Segs extends Partial<Record<SegmentKind, SegmentDef<F>>>>(formatDef: FormatDef<F, Segs>, path: Path): SimFn[] {
     const auton: SimFn[] = [];
     currentPathTime = -2 / 60;
     DEBUG_printSimulationStart();
@@ -71,6 +71,9 @@ export function convertPathToSim<F extends Format, Segs extends Record<SegmentKi
 
         const turn_pos = findPointToFace(path, idx);
 
+        const segDef = formatDef.segments[kind];
+        if (!segDef) continue;
+
         let started = false;
         let targetDist = 0;
 
@@ -79,7 +82,7 @@ export function convertPathToSim<F extends Format, Segs extends Record<SegmentKi
                 auton.push(
                     (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
                         DEBUG_printRobotState(robot, dt);
-                        const output = formatDef.segments[kind].simFn(robot, dt, x, y, angle, k);
+                        const output = segDef.simFn(robot, dt, x, y, angle, k);
                         return [output, kind, 0];
                     }
                 );
@@ -95,7 +98,7 @@ export function convertPathToSim<F extends Format, Segs extends Record<SegmentKi
                             started = true;
                         }
                         DEBUG_printRobotState(robot, dt);
-                        const output = formatDef.segments[kind].simFn(robot, dt, x, y, angle, k);
+                        const output = segDef.simFn(robot, dt, x, y, angle, k);
                         if (output) DEBUG_printSegmentEnd(idx, formatDef, kind);
                         return [output, kind, targetDist];
                     }
@@ -113,7 +116,7 @@ export function convertPathToSim<F extends Format, Segs extends Record<SegmentKi
                             started = true;
                         }
                         DEBUG_printRobotState(robot, dt);
-                        const output = formatDef.segments[kind].simFn(robot, dt, turn_pos.x, turn_pos.y, angle, k);
+                        const output = segDef.simFn(robot, dt, turn_pos.x, turn_pos.y, angle, k);
                         if (output) DEBUG_printSegmentEnd(idx, formatDef, kind);
                         return [output, kind, targetDist];
                     }
@@ -130,7 +133,7 @@ export function convertPathToSim<F extends Format, Segs extends Record<SegmentKi
                             started = true;
                         }
                         DEBUG_printRobotState(robot, dt);
-                        const output = formatDef.segments[kind].simFn(robot, dt, x, y, angle, k);
+                        const output = segDef.simFn(robot, dt, x, y, angle, k);
                         if (output) DEBUG_printSegmentEnd(idx, formatDef, kind);
                         return [output, kind, targetDist];
                     }

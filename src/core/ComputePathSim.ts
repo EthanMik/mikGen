@@ -1,4 +1,4 @@
-import type { SegmentKind } from "../simulation/InitialDefaults";
+import type { SegmentKind } from "../simulation/FormatDefinition";
 import type { Robot } from "./Robot";
 import { createStore } from "./Store";
 import { normalizeDeg } from "./Util";

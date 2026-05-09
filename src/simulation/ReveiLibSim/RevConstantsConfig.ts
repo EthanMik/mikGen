@@ -1,6 +1,6 @@
 
 import type { SetStateAction } from "react";
-import type { Format } from "../../hooks/useFormat";
+import type { Format } from "../FormatDefinition";
 import type { Path } from "../../core/Types/Path";
 import type { ConstantListField } from "../../components/PathMenu/MotionList";
 import type { ConstantField } from "../../components/PathMenu/ConstantRow";

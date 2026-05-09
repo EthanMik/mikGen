@@ -1,6 +1,6 @@
 import type { Robot } from "../../../core/Robot";
 import { LemExitCondition } from "../ExitCondition";
-import { kLemLibSpeed, type LemAngularConstants } from "../LemConstants";
+import type { LemConstants } from "../LemConstants";
 import { LemPID } from "../Pid";
 import { LemTimer } from "../Timer";
 import { angleError, slew, toLemPose } from "../Util";
@@ -20,8 +20,8 @@ export function resetSwingToHeading() {
     start = true;
 }
 
-export function swingToHeading(robot: Robot, dt: number, angle: number, k: LemAngularConstants): boolean {
-    const params = k.angular;
+export function swingToHeading(robot: Robot, dt: number, angle: number, k: LemConstants[]): boolean {
+    const params = k[0];
 
     if (start) {
         angularPID = new LemPID(params);
@@ -87,10 +87,10 @@ export function swingToHeading(robot: Robot, dt: number, angle: number, k: LemAn
     prevMotorPower = motorPower;
 
     // drive: locked side stays at 0, active side drives
-    if (params.lockedSide === "left") {
-        robot.tankDrive(0, -motorPower / kLemLibSpeed, dt);
+    if (params.lockedSide === "DriveSide::LEFT") {
+        robot.tankDrive(0, -motorPower / 127, dt);
     } else {
-        robot.tankDrive(motorPower / kLemLibSpeed, 0, dt);
+        robot.tankDrive(motorPower / 127, 0, dt);
     }
 
     return false;

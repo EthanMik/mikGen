@@ -40,12 +40,9 @@ export const getPreciseSegmentLines = (idx: number, img: Rectangle): string | nu
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getLead(m: any): number {
-  const lead1 = m?.constants?.drive?.lead;
-  const lead2 = m?.constants?.lateral?.lead
+  const lead1 = m.constants?.[0].lead;
 
   if (lead1) return lead1;
-  if (lead2) return lead2;
-  console.log(lead1, lead2);
   return 0;
 }
 

@@ -6,13 +6,13 @@ import clockClose from "../../assets/clock-close.svg";
 import clockOpen from "../../assets/clock-open.svg";
 import downArrow from "../../assets/down-arrow.svg";
 import Slider from "../Util/Slider";
-import { usePath } from "../../hooks/usePath";
+import { usePath } from "../../hooks/useFileFormat";
 import type { ConstantField } from "./ConstantRow";
 import ConstantsList from "./ConstantsList";
 import CycleImageButton, { type CycleImageButtonProps } from "../Util/CycleButton";
-import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
+import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import { setupDragTransfer } from "./PathConfigUtils";
-import { useFormat } from "../../hooks/useFormat";
+import { fileFormatStore } from "../../hooks/useFileFormat";
 import { activeSimSegmentStore, pathTelemetry } from "../../core/ComputePathSim";
 import { roundNum } from "../../core/Util";
 
@@ -71,8 +71,6 @@ export default function MotionList({
     const [ isEyeOpen, setEyeOpen ] = useState(true);
     const [ isTelemetryOpen, setTelemetryOpen ] = useState(false);
     const [ isOpen, setOpen ] = useState(false);
-    const [ format ] = useFormat();
-
     const pathRef = useRef(path);
     pathRef.current = path
 
@@ -91,7 +89,6 @@ export default function MotionList({
         setPath(prev => {
             const willSelect = !prev.segments.find(s => s.id === segmentId)?.selected;
 
-            // When selecting a segment, deselect all groups and their children
             if (willSelect) {
                 return {
                     ...prev,
@@ -99,16 +96,14 @@ export default function MotionList({
                         if (s.id === segmentId) {
                             return { ...s, selected: true };
                         }
-                        // Deselect groups and group children when selecting a regular segment
-                        if (s.kind === "group" || s.groupId !== undefined) {
-                            return { ...s, selected: false };
-                        }
+                        // if (s.kind === "group" || s.groupId !== undefined) {
+                        //     return { ...s, selected: false };
+                        // }
                         return s;
                     })
                 };
             }
 
-            // When deselecting, just toggle off
             return {
                 ...prev,
                 segments: prev.segments.map(s =>
@@ -125,7 +120,6 @@ export default function MotionList({
             const clickedIdx = segments.findIndex(s => s.id === segmentId);
             if (clickedIdx === -1) return prev;
 
-            // Find anchor among non-group segments only
             let anchorIdx = -1;
             for (let i = segments.length - 1; i >= 0; i--) {
                 if (segments[i].selected && segments[i].kind !== "group") {
@@ -200,16 +194,11 @@ export default function MotionList({
     }, [isTelemetryOpenGlobal])
 
     const toggleSegment = (patch: (s: any) => any) => {
-        setPath(prev => {
-            
-            const next = {
-                ...prev,
-                segments: prev.segments.map(s => (s.id === segmentId ? patch(s) : s)),
-            };
-            
-            AddToUndoHistory({ path: next });
-            return next;
-        });
+        setPath(prev => ({
+            ...prev,
+            segments: prev.segments.map(s => (s.id === segmentId ? patch(s) : s)),
+        }));
+        saveSnapshot();
     };
 
     const handleEyeOnClick = () => {
@@ -232,14 +221,6 @@ export default function MotionList({
         }, {});
     };
 
-    const updateUndoRef = useRef(false);
-
-    useEffect(() => {
-        if (updateUndoRef.current) {
-            AddToUndoHistory({ path: path });
-            updateUndoRef.current = false;
-        }
-    }, [path])
 
     const groupsBefore = path.segments.slice(0, index).filter(s => s.kind === "group").length;
     const telemetrySlice = pathTelemetry.getState()?.[index - groupsBefore];
@@ -304,20 +285,8 @@ export default function MotionList({
 
                         setValue={(v: number) => field[0]?.onChange({ maxSpeed: (v / 100) * speedScale })}
 
-                        OnChangeEnd={(sliderValue: number) => {
-                            const currentPath = pathRef.current;
-                            const realValue = (sliderValue / 100) * speedScale;
-
-                            AddToUndoHistory({
-                                path: {
-                                ...currentPath,
-                                segments: currentPath.segments.map((s) =>
-                                    s.id === segmentId
-                                    ? { ...s, constants: { ...s.constants, maxSpeed: realValue } }
-                                    : s
-                                ),
-                                }
-                            });
+                        OnChangeEnd={() => {
+                            saveSnapshot();
                         }}
                     />
                     <span className="shrink-0 text-left tabular-nums pl-1">
@@ -332,8 +301,8 @@ export default function MotionList({
                         key={i}
                         imageKeys={f.imageKeys}
                         onKeyChange={(key: string | null) => {
-                            updateUndoRef.current = true;
                             f.onKeyChange(key);
+                            saveSnapshot();
                         }}
                         value={f.value}
                     />
@@ -374,14 +343,12 @@ export default function MotionList({
                         isOpenGlobal={false}
                         onChange={f.onChange}
                         onReset={() => {
-                            AddToUndoHistory({path: path})
-                            f.onChange(relevantDefaults)
+                            f.onChange(relevantDefaults);
+                            saveSnapshot();
                         }}
                         onSetDefault={(constants: Partial<any>) => {
                             f.setDefault(constants);
-                            AddToUndoHistory({
-                                defaults: structuredClone(globalDefaultsStore.getState()[format]) as any,
-                            });
+                            saveSnapshot();
                         }}
                         onApply={f.onApply}
                         defaults={relevantDefaults}

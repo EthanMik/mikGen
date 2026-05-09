@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type React from "react";
-import { clamp, FIELD_IMG_DIMENSIONS, mergeDeep, normalizeDeg, makeId, type Rectangle } from "../core/Util";
+import { clamp, FIELD_IMG_DIMENSIONS, normalizeDeg, makeId, type Rectangle } from "../core/Util";
 import type { Path } from "../core/Types/Path";
 import type { SetStateAction } from "react";
-import { createAngleSwingSegment, createAngleTurnSegment, createDistanceSegment, createPointDriveSegment, createPointSwingSegment, createPointTurnSegment, createPoseDriveSegment, type Segment } from "../core/Types/Segment";
+import { createAngleSwingSegment, createAngleTurnSegment, createDistanceSegment, createPointDriveSegment, createPointSwingSegment, createPointTurnSegment, createPoseDriveSegment, createStartSegment, type Segment } from "../core/Types/Segment";
 import type { Coordinate } from "../core/Types/Coordinate";
 import type { Pose } from "../core/Types/Pose";
-import type { Format } from "../hooks/useFormat";
+import type { Format } from "../hooks/useFileFormat";
 import { convertPathToString } from "../simulation/Conversion";
 import { pointerToSvg } from "../components/Field/FieldUtils";
-import type { FileFormat } from "../hooks/useFileFormat";
-import { AddToUndoHistory, redoHistory, undoHistory } from "../core/Undo/UndoHistory";
+import { fileFormatStore } from "../hooks/useFileFormat";
+import { saveSnapshot, redoHistory, undoHistory } from "../core/Undo/UndoHistory";
 
 export default function FieldMacros() {
     const MIN_FIELD_X = -999;
@@ -231,7 +231,7 @@ export default function FieldMacros() {
                 });
 
                 if (newSegments.length !== prev.segments.length) {
-                    AddToUndoHistory({ path: { ...prev, segments: newSegments } });
+                    saveSnapshot();
                 }
 
                 return {
@@ -242,54 +242,34 @@ export default function FieldMacros() {
         }
     }
 
-    function performUndo(setFileFormat: React.Dispatch<React.SetStateAction<FileFormat>>) {
+    function performUndo() {
         const undoState = undoHistory.getState();
         if (undoState.length <= 1) return;
-
-        setFileFormat((current) => {
-            const popped = undoState[undoState.length - 1];
-            undoHistory.setState(undoState.slice(0, -1));
-            redoHistory.setState([...redoHistory.getState(), popped]);
-
-            const previousSnapshot = undoState[undoState.length - 2];
-            const merged = mergeDeep(current, previousSnapshot as any);
-            if (previousSnapshot.defaults !== undefined) {
-                merged.defaults = previousSnapshot.defaults;
-            }
-            return merged;
-        });
+        const popped = undoState[undoState.length - 1];
+        const previousSnapshot = undoState[undoState.length - 2];
+        undoHistory.setState(undoState.slice(0, -1));
+        redoHistory.setState([...redoHistory.getState(), popped]);
+        fileFormatStore.setState(previousSnapshot);
     }
 
-    function performRedo(setFileFormat: React.Dispatch<React.SetStateAction<FileFormat>>) {
+    function performRedo() {
         const redoState = redoHistory.getState();
         if (redoState.length === 0) return;
-
-        setFileFormat((current) => {
-            const nextSnapshot = redoState[redoState.length - 1];
-            redoHistory.setState(redoState.slice(0, -1));
-            undoHistory.setState([...undoHistory.getState(), nextSnapshot]);
-
-            const merged = mergeDeep(current, nextSnapshot as any);
-            if (nextSnapshot.defaults !== undefined) {
-                merged.defaults = nextSnapshot.defaults;
-            }
-            return merged;
-        });
+        const nextSnapshot = redoState[redoState.length - 1];
+        redoHistory.setState(redoState.slice(0, -1));
+        undoHistory.setState([...undoHistory.getState(), nextSnapshot]);
+        fileFormatStore.setState(nextSnapshot);
     }
 
-    function undo(
-        evt: KeyboardEvent,
-        setFileFormat: React.Dispatch<React.SetStateAction<FileFormat>>,
-    ) {
+    function undo(evt: KeyboardEvent) {
         if (evt.ctrlKey) {
             const key = evt.key.toLowerCase();
             if (key === "z" && !evt.shiftKey) {
                 evt.preventDefault();
-                performUndo(setFileFormat);
-            }
-            else if ((key === "z" && evt.shiftKey) || key === "y") {
+                performUndo();
+            } else if ((key === "z" && evt.shiftKey) || key === "y") {
                 evt.preventDefault();
-                performRedo(setFileFormat);
+                performRedo();
             }
         }
     }
@@ -352,25 +332,25 @@ export default function FieldMacros() {
                         hovered: false,
                     };
                 });
-                
+
                 const inserted: Segment[] = [
                     ...oldSegments.slice(0, selectedIndex),
                     ...newSegments,
                     ...oldSegments.slice(selectedIndex)
                 ]
-    
+
                 const pastedSet = new Set(newSegments);
                 const controls = inserted.map(s =>
                     pastedSet.has(s) ? s : { ...s, selected: false }
                 );
-                
-                AddToUndoHistory({ path: { ...prev, segments: inserted } });
-            
+
+                saveSnapshot();
+
                 return {
                     ...prev,
                     segments: controls,
                 };
-            });        
+            });
         }
 
     }
@@ -379,16 +359,16 @@ export default function FieldMacros() {
         setPath(prev => {
             let selectedIndex = prev.segments.findIndex(c => c.selected);
             selectedIndex = selectedIndex === -1 ? selectedIndex = prev.segments.length : selectedIndex + 1;
-            
+
             const selectedSegment = prev.segments.find(c => c.selected);
             if (selectedSegment !== undefined && selectedSegment.groupId !== undefined) {
                 segment.groupId = selectedSegment.groupId;
             }
 
             const oldControls = prev.segments;
-        
+
             const newControl = { ...segment, selected: !segment.locked };
-        
+
             const inserted =
                 selectedIndex >= 0
                 ? [
@@ -397,18 +377,15 @@ export default function FieldMacros() {
                     ...oldControls.slice(selectedIndex)
                     ]
                 : [...oldControls, newControl];
-        
-            const controls = inserted.map(c =>
-                c === newControl ? c : { ...c, selected: false }
-            );
-            
-            AddToUndoHistory({ path: { ...prev, segments: controls } });
-        
+
             return {
                 ...prev,
-                segments: controls,
+                segments: inserted.map(c =>
+                    c === newControl ? c : { ...c, selected: false }
+                ),
             };
         });
+        saveSnapshot();
     }
 
     const fieldZoomKeyboard = (evt: KeyboardEvent, setImg: React.Dispatch<SetStateAction<Rectangle>>) => {
@@ -495,6 +472,11 @@ export default function FieldMacros() {
         }));
     }
 
+    const addStartSegment = (format: Format, position: Pose, setPath: React.Dispatch<SetStateAction<Path>>) => {
+        const control = createStartSegment(format, position);
+        addSegment(control, setPath);
+    }
+
     const addAngleTurnSegment = (format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
         const control = createAngleTurnSegment(format, 0);
         addSegment(control, setPath);
@@ -530,20 +512,22 @@ export default function FieldMacros() {
         addSegment(control, setPath);
     }
 
-    const copySelectedPath = (evt: KeyboardEvent, path: Path, format: Format, trigger: () => void) => {
+    const copySelectedPath = (evt: KeyboardEvent, path: Path, trigger: () => void) => {
         if (evt.key.toLowerCase() === "c" && evt.ctrlKey && !evt.shiftKey) {
             trigger();
             evt.preventDefault();
-            const out = convertPathToString(path, format, true);
+            const formatDef = fileFormatStore.getState().formatDef;
+            const out = convertPathToString(formatDef, path, true);
             navigator.clipboard.writeText(out ?? "");
         }
     }
-    
-    const copyAllPath = (evt: KeyboardEvent, path: Path, format: Format, trigger: () => void) => {
+
+    const copyAllPath = (evt: KeyboardEvent, path: Path, trigger: () => void) => {
         if (evt.key.toLowerCase() === "c" && evt.shiftKey && evt.ctrlKey) {
             trigger();
             evt.preventDefault();
-            const out = convertPathToString(path, format, false);
+            const formatDef = fileFormatStore.getState().formatDef;
+            const out = convertPathToString(formatDef, path, false);
             navigator.clipboard.writeText(out ?? "");
         }
 
@@ -572,5 +556,6 @@ export default function FieldMacros() {
         addAngleSwingSegment,
         addPointSwingSegment,
         addDistanceSegment, 
+        addStartSegment,
     };
 }

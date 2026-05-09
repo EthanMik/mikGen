@@ -1,65 +1,62 @@
 import { useEffect, useRef, useState } from "react";
 import Checkbox from "../Util/Checkbox";
 import NumberInput from "../Util/NumberInput";
-import { robotConstantsStore } from "../../core/Robot";
-import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
-import { useFormat, type Format } from "../../hooks/useFormat";
-import { usePath } from "../../hooks/usePath";
-import { formatDefStore, getDefaultConstants } from "../../simulation/FormatDefinition";
+import { useFormat, usePath, mergeRobot, fileFormatStore, type Format } from "../../hooks/useFileFormat";
+import { saveSnapshot } from "../../core/Undo/UndoHistory";
+import { getDefaultConstants } from "../../simulation/FormatDefinition";
 
 export default function RobotButton() {
     const [ , setPath ] = usePath();
     const [ format, setFormat ] = useFormat();
-    const formatDef = formatDefStore.useStore();
-    
+
     const [ isOpen, setOpen ] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
     const prevFormatRef = useRef<Format>(format);
-    
-    const robot =  robotConstantsStore.useStore();
-    
+
+    const robot = fileFormatStore.useSelector(s => s.robot);
+
     const updateOmnis = (omni: boolean) => {
-        robotConstantsStore.merge({ isOmni: omni });
+        mergeRobot({ isOmni: omni });
     }
 
     const updateWidth = (width: number | null) => {
         if (width !== null) {
-            robotConstantsStore.merge({ width: width });   
+            mergeRobot({ width: width });
         }
     }
-    
+
     const updateHeight = (height: number | null) => {
         if (height !== null) {
-            robotConstantsStore.merge({ height: height });
+            mergeRobot({ height: height });
         }
     }
-    
+
     const updateSpeed = (speed: number | null) => {
         if (speed !== null) {
-            robotConstantsStore.merge({ speed: speed });
+            mergeRobot({ speed: speed });
         }
     }
-    
+
     const updateLateralTau = (v: number | null) => {
-        if (v !== null) robotConstantsStore.merge({ lateralTau: v });
+        if (v !== null) mergeRobot({ lateralTau: v });
     }
 
     const updateAngularTau = (v: number | null) => {
-        if (v !== null) robotConstantsStore.merge({ angularTau: v });
+        if (v !== null) mergeRobot({ angularTau: v });
     }
 
     const updateCogOffsetX = (v: number | null) => {
-        if (v !== null) robotConstantsStore.merge({ cogOffsetX: v });
+        if (v !== null) mergeRobot({ cogOffsetX: v });
     }
 
     const updateCogOffsetY = (v: number | null) => {
-        if (v !== null) robotConstantsStore.merge({ cogOffsetY: v });
+        if (v !== null) mergeRobot({ cogOffsetY: v });
     }
 
-    const updateExpansionFront  = (v: number | null) => { if (v !== null) robotConstantsStore.merge({ expansionFront: v }); }
-    const updateExpansionLeft   = (v: number | null) => { if (v !== null) robotConstantsStore.merge({ expansionLeft: v }); }
-    const updateExpansionRight  = (v: number | null) => { if (v !== null) robotConstantsStore.merge({ expansionRight: v }); }
-    const updateExpansionRear   = (v: number | null) => { if (v !== null) robotConstantsStore.merge({ expansionRear: v }); }
+    const updateExpansionFront  = (v: number | null) => { if (v !== null) mergeRobot({ expansionFront: v }); }
+    const updateExpansionLeft   = (v: number | null) => { if (v !== null) mergeRobot({ expansionLeft: v }); }
+    const updateExpansionRight  = (v: number | null) => { if (v !== null) mergeRobot({ expansionRight: v }); }
+    const updateExpansionRear   = (v: number | null) => { if (v !== null) mergeRobot({ expansionRear: v }); }
 
     const handleToggleMenu = () => {
         setOpen((prev) => !prev)
@@ -89,32 +86,19 @@ export default function RobotButton() {
     }, []);
 
 
-    const changeFormat = (format: Format) => {
-        setFormat(format);
-        setPath(prev => {
-            const newPath = {
-                ...prev,
-                segments: prev.segments.map((s) => ({
-                    ...s,
-                    format: format,
-                    constants: getDefaultConstants(format, s.kind),
-                }))
-            }
-
-            if (prevFormatRef.current !== format) {
-                AddToUndoHistory({
-                    format: format,
-                    formatDef: structuredClone(formatDef),
-                    path: newPath,
-                });
-            }
-
-            return {
-                ...newPath
-            };
-        });
-
-        prevFormatRef.current = format;
+    const changeFormat = (newFormat: Format) => {
+        const changed = prevFormatRef.current !== newFormat;
+        setFormat(newFormat);
+        setPath(prev => ({
+            ...prev,
+            segments: prev.segments.map((s) => ({
+                ...s,
+                format: newFormat,
+                constants: getDefaultConstants(newFormat, s.kind),
+            })),
+        }));
+        if (changed) saveSnapshot();
+        prevFormatRef.current = newFormat;
     };
 
     return (
@@ -142,7 +126,7 @@ export default function RobotButton() {
                                         units="in"
                                         value={robot.width} 
                                         setValue={updateWidth} 
-                                        addToHistory={(width: number) => AddToUndoHistory({robot: {...robot, width: width}})}
+                                        addToHistory={() => saveSnapshot()}
                                     />
                             </div>
 
@@ -158,7 +142,7 @@ export default function RobotButton() {
                                         units="in"
                                         value={robot.height} 
                                         setValue={updateHeight} 
-                                        addToHistory={(height: number) => AddToUndoHistory({robot: {...robot, height: height}})}
+                                        addToHistory={() => saveSnapshot()}
                                     />
                             </div>
 
@@ -174,7 +158,7 @@ export default function RobotButton() {
                                         units="ft/s"
                                         value={robot.speed} 
                                         setValue={updateSpeed} 
-                                        addToHistory={(speed: number) => AddToUndoHistory( { robot: { ...robot, speed: speed}} )}
+                                        addToHistory={() => saveSnapshot()}
                                     />
                             </div>
 
@@ -195,7 +179,7 @@ export default function RobotButton() {
                                         units="s"
                                         value={robot.lateralTau}
                                         setValue={updateLateralTau}
-                                        addToHistory={(v: number) => AddToUndoHistory({ robot: { ...robot, lateralTau: v } })}
+                                        addToHistory={() => saveSnapshot()}
                                     />
                                 </div>
                                 <div className="flex flex-row items-center justify-between">
@@ -210,7 +194,7 @@ export default function RobotButton() {
                                         units="s"
                                         value={robot.angularTau}
                                         setValue={updateAngularTau}
-                                        addToHistory={(v: number) => AddToUndoHistory({ robot: { ...robot, angularTau: v } })}
+                                        addToHistory={() => saveSnapshot()}
                                     />
                                 </div>
                             </div>
@@ -232,7 +216,7 @@ export default function RobotButton() {
                                         units="in"
                                         value={robot.cogOffsetX}
                                         setValue={updateCogOffsetX}
-                                        addToHistory={(v: number) => AddToUndoHistory({ robot: { ...robot, cogOffsetX: v } })}
+                                        addToHistory={() => saveSnapshot()}
                                     />
                                 </div>
                                 <div className="flex flex-row items-center justify-between">
@@ -247,7 +231,7 @@ export default function RobotButton() {
                                         units="in"
                                         value={robot.cogOffsetY}
                                         setValue={updateCogOffsetY}
-                                        addToHistory={(v: number) => AddToUndoHistory({ robot: { ...robot, cogOffsetY: v } })}
+                                        addToHistory={() => saveSnapshot()}
                                     />
                                 </div>
                             </div>
@@ -273,7 +257,7 @@ export default function RobotButton() {
                                                 units="in"
                                                 value={robot[key]}
                                                 setValue={updater}
-                                                addToHistory={(v: number) => AddToUndoHistory({ robot: { ...robot, [key]: v } })}
+                                                addToHistory={() => saveSnapshot()}
                                             />
                                         </div>
                                     );
@@ -290,7 +274,7 @@ export default function RobotButton() {
                                     <label className="flex items-center gap-2 cursor-pointer select-none">
                                         <Checkbox checked={robot.isOmni} setChecked={(checked: boolean) => {
                                             updateOmnis(checked);
-                                            AddToUndoHistory({robot: {...robot, isOmni: checked}});
+                                            saveSnapshot();
                                         }} />
                                     </label>
                                 </div>

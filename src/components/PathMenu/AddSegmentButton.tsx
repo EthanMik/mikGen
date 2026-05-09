@@ -1,16 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import plus from "../../assets/plus.svg"
-import { usePath } from "../../hooks/usePath";
 import FieldMacros from "../../macros/FieldMacros";
-import { useFormat } from "../../hooks/useFormat";
-import { formatDefStore } from "../../simulation/FormatDefinition";
+import { usePath, useFormat, fileFormatStore } from "../../hooks/useFileFormat";
 
 export default function AddSegmentButton() {
     const [ isOpen, setOpen ] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
     const [ , setPath] = usePath();
     const [ format,  ] = useFormat();
-    const formatDef = formatDefStore.useStore();
+    const formatDef = fileFormatStore.useSelector(s => s.formatDef);
 
     const handleToggleMenu = () => {
         setOpen((prev) => !prev)

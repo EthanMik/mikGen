@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { usePath } from "../../hooks/usePath";
 import { convertPathToString } from "../../simulation/Conversion";
-import { useFormat } from "../../hooks/useFormat";
 import FieldMacros from "../../macros/FieldMacros";
+import { fileFormatStore } from "../../hooks/useFileFormat";
 
 function CopyIcon({ className }: { className?: string }) {
   const href =
@@ -29,17 +28,14 @@ function CopyIcon({ className }: { className?: string }) {
 export default function CopyPathButton() {
   const [isOpen, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const [ pathFormat,  ] = useFormat();
-  const [path] = usePath();
+  const fileFormat = fileFormatStore.useStore();
 
   const [flash, setFlash] = useState(false);
   const flashTimeoutRef = useRef<number | null>(null);
 
-  const pathRef = useRef(path);
-  const formatRef = useRef(pathFormat);
+  const pathRef = useRef(fileFormat.path);
 
-  useEffect(() => { pathRef.current = path; }, [path]);
-  useEffect(() => { formatRef.current = pathFormat; }, [pathFormat]);
+  useEffect(() => { pathRef.current = fileFormat.path; }, [fileFormat.path]);
 
   const triggerFlash = () => {
     setFlash(true);
@@ -58,8 +54,8 @@ export default function CopyPathButton() {
       const handleKeyDown = (evt: KeyboardEvent) => {
           const target = evt.target as HTMLElement | null;
           if (target?.isContentEditable || target?.tagName === "INPUT") return;
-          copyAllPath(evt, pathRef.current, formatRef.current, triggerFlash);
-          copySelectedPath(evt, pathRef.current, formatRef.current, triggerFlash);
+          copyAllPath(evt, pathRef.current, triggerFlash);
+          copySelectedPath(evt, pathRef.current, triggerFlash);
       }
 
       document.addEventListener('keydown', handleKeyDown)
@@ -71,14 +67,14 @@ export default function CopyPathButton() {
 
   const copyAllOnClick = () => {
     triggerFlash();
-    const out = convertPathToString(path, pathFormat);
+    const out = convertPathToString(fileFormat.formatDef, fileFormat.path);
     setOpen(false);
     navigator.clipboard.writeText(out ?? "");
   };
   
   const copySelectedOnClick = () => {
     triggerFlash();
-    const out = convertPathToString(path, pathFormat, true);
+    const out = convertPathToString(fileFormat.formatDef, fileFormat.path, true);
     setOpen(false);
     navigator.clipboard.writeText(out ?? "");
   };

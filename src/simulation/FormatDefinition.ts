@@ -5,8 +5,6 @@ import type { RevMecanumConstants } from "./RevMecanumSim/RevMecanumConstant";
 import type { Robot } from "../core/Robot";
 import type { Dispatch, SetStateAction } from "react";
 import type { Path } from "../core/Types/Path";
-import { createStore } from "../core/Store";
-import { VALIDATED_APP_STATE } from "../hooks/appStateDefaults";
 
 export type Format =
     "mikLib"
@@ -115,7 +113,16 @@ export const FORMAT_REGISTRY = {
     RevMecanum: LemLibDef,
 } as unknown as { [F in Format]: FormatDef<F> };
 
-export const formatDefStore = createStore<FormatDef<Format>>(VALIDATED_APP_STATE.formatDef);
+export function mergeFormatDef(registry: FormatDef<Format>, saved: unknown): FormatDef<Format> {
+    if (!saved || typeof saved !== 'object') return registry;
+    const s = saved as Record<string, unknown>;
+    const segs = { ...registry.segments } as Record<SegmentKind, SegmentDef<Format>>;
+    for (const [k, v] of Object.entries((s.segments ?? {}) as object)) {
+        const reg = segs[k as SegmentKind];
+        if (reg) segs[k as SegmentKind] = { ...reg, ...(v as object), simFn: reg.simFn };
+    }
+    return { ...registry, ...s, kBuilder: registry.kBuilder, segments: segs } as FormatDef<Format>;
+}
 
 export function getDefaultConstants<F extends Format>(format: F, kind: SegmentKind): SegmentConstants<F> {
     const def = FORMAT_REGISTRY[format];
@@ -123,26 +130,25 @@ export function getDefaultConstants<F extends Format>(format: F, kind: SegmentKi
 }
 
 export function updateDefaultConstants<F extends Format>(
+    formatDef: FormatDef<Format>,
     kind: SegmentKind,
     idx: number,
     patch: Partial<FormatConstants[F]>
-) {
-    formatDefStore.setState((prev) => {
-        const segDef = prev.segments[kind];
-        if (!segDef) return prev;
-        const newDefaults = segDef.defaults.map((c, i) =>
-            i === idx
-                ? { ...(c as object), ...(patch as object) } as unknown as FormatConstants[Format]
-                : c
-        ) as SegmentConstants<Format>;
-        return {
-            ...prev,
-            segments: {
-                ...prev.segments,
-                [kind]: { ...segDef, defaults: newDefaults },
-            },
-        };
-    });
+): FormatDef<Format> {
+    const segDef = formatDef.segments[kind];
+    if (!segDef) return formatDef;
+    const newDefaults = segDef.defaults.map((c, i) =>
+        i === idx
+            ? { ...(c as object), ...(patch as object) } as unknown as FormatConstants[Format]
+            : c
+    ) as SegmentConstants<Format>;
+    return {
+        ...formatDef,
+        segments: {
+            ...formatDef.segments,
+            [kind]: { ...segDef, defaults: newDefaults },
+        },
+    };
 }
 
 export function updatePathConstants<F extends Format>(

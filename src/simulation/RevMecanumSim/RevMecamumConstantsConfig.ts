@@ -2,7 +2,7 @@ import type { SetStateAction } from "react";
 import type { Path } from "../../core/Types/Path";
 import type { ConstantListField } from "../../components/PathMenu/MotionList";
 import type { ConstantField } from "../../components/PathMenu/ConstantRow";
-import type { Format } from "../../hooks/useFormat";
+import type { Format } from "../FormatDefinition";
 import ccw from "../../assets/ccw.svg";
 import cw from "../../assets/cw.svg";
 import cwccw from "../../assets/cwwcw.svg";

@@ -1,10 +1,8 @@
-import { useEffect, useRef } from "react";
 import flipHorizontal from "../assets/flip-horizontal.svg";
 import flipVertical from "../assets/flip-vertical.svg";
-import { AddToUndoHistory, undoHistory } from "../core/Undo/UndoHistory";
+import { saveSnapshot } from "../core/Undo/UndoHistory";
 import { normalizeDeg } from "../core/Util";
-import { useFormat } from "../hooks/useFormat";
-import { usePath } from "../hooks/usePath";
+import { useFormat, usePath } from "../hooks/useFileFormat";
 import NumberInput from "./Util/NumberInput";
 
 type MirrorDirection = "x" | "y";
@@ -20,16 +18,8 @@ function MirrorControl({
 }: MirrorControlProps) {
     const [ path, setPath ] = usePath();
 
-    const undoRef = useRef(false); 
-
-    useEffect(() => {
-        if (undoRef.current) {
-            AddToUndoHistory( { path: path});
-            undoRef.current = false;
-        }
-    }, [path])
-
     const mirrorX = () => {
+        const hasSelected = path.segments.some(m => m.selected);
         setPath(prev => ({
             ...prev,
             segments: prev.segments.map(c =>
@@ -41,13 +31,11 @@ function MirrorControl({
                 } : c
             )
         }));
-        if (path.segments.filter((m) => m.selected).length > 0) {
-            undoRef.current = true;
-        }
-
+        if (hasSelected) saveSnapshot();
     }
 
     const mirrorY = () => {
+        const hasSelected = path.segments.some(m => m.selected);
         setPath(prev => ({
             ...prev,
             segments: prev.segments.map(c =>
@@ -58,10 +46,8 @@ function MirrorControl({
                     }
                 } : c
             )
-        }));        
-        if (path.segments.filter((m) => m.selected).length > 0) {
-            undoRef.current = true;
-        }   
+        }));
+        if (hasSelected) saveSnapshot();
     }
 
     const handleOnClick = () => {
@@ -73,20 +59,20 @@ function MirrorControl({
     }
 
     return (
-        <button 
-            className="flex items-center justify-center w-[40px] h-[40px] cursor-pointer 
+        <button
+            className="flex items-center justify-center w-[40px] h-[40px] cursor-pointer
             rounded-lg bg-transparent hover:bg-medgray_hover border-none outline-none fill-white"
             onClick={handleOnClick}>
-            <img 
-                className="fill-white w-[30px] h-[30px]" 
-                src={src}   
+            <img
+                className="fill-white w-[30px] h-[30px]"
+                src={src}
             />
         </button>
     );
 }
 
 export default function ControlConfig() {
-    const [ path, setPath ] = usePath(); 
+    const [ path, setPath ] = usePath();
     const [ format ] = useFormat();
 
     const getXValue = (): number | null => {
@@ -120,9 +106,9 @@ export default function ControlConfig() {
         const selectedSegment = path.segments.find(c => c.selected);
         if (selectedSegment === undefined) return;
 
-        if (selectedSegment.kind === "angleSwing" || 
-            selectedSegment.kind === "pointSwing" || 
-            selectedSegment.kind === "angleTurn" || 
+        if (selectedSegment.kind === "angleSwing" ||
+            selectedSegment.kind === "pointSwing" ||
+            selectedSegment.kind === "angleTurn" ||
             selectedSegment.kind === "pointTurn"
         ) return;
 
@@ -143,9 +129,9 @@ export default function ControlConfig() {
         const selectedSegment = path.segments.find(c => c.selected);
         if (selectedSegment === undefined) return;
 
-        if (selectedSegment.kind === "angleSwing" || 
-            selectedSegment.kind === "pointSwing" || 
-            selectedSegment.kind === "angleTurn" || 
+        if (selectedSegment.kind === "angleSwing" ||
+            selectedSegment.kind === "pointSwing" ||
+            selectedSegment.kind === "angleTurn" ||
             selectedSegment.kind === "pointTurn"
         ) return;
 
@@ -181,8 +167,8 @@ export default function ControlConfig() {
                     ...prev,
                     segments: prev.segments.map(control =>
                         control.selected
-                        ? { ...control, 
-                            pose: { ...control.pose, angle: newHeading, }, 
+                        ? { ...control,
+                            pose: { ...control.pose, angle: newHeading, },
                             kind: kind
                         }
                         : control
@@ -190,17 +176,8 @@ export default function ControlConfig() {
                 }
             });
     }
-    
+
     const selectedSegment = path.segments.find((s) => s.selected)?.kind;
-
-    const undoRef = useRef(false); 
-
-    useEffect(() => {
-        if (undoRef.current) {
-            AddToUndoHistory( { path: path});
-            undoRef.current = false;
-        }
-    }, [path])
 
     return (
         <div className="flex flex-row items-center justify-center gap-4 bg-medgray w-[500px] h-[65px] rounded-lg">
@@ -208,7 +185,7 @@ export default function ControlConfig() {
                 <>
                     <div className="flex items-center gap-2">
                         <span style={{ fontSize: 20 }}>X</span>
-                        <NumberInput 
+                        <NumberInput
                             width={80}
                             height={40}
                             fontSize={18}
@@ -218,22 +195,22 @@ export default function ControlConfig() {
                             roundTo={2}
                             bounds={[-999, 999]}
                             units="in"
-                            addToHistory={() => {undoRef.current = true}}
+                            addToHistory={() => { saveSnapshot(); }}
                         />
                     </div>
                     <div className="flex items-center gap-2">
                         <span style={{ fontSize: 20 }}>Y</span>
-                        <NumberInput 
+                        <NumberInput
                             width={80}
                             height={40}
                             fontSize={18}
                             stepSize={1}
                             roundTo={2}
-                            setValue={format === "ReveilLib" || format === "RevMecanum" ? updateXValue : updateYValue } 
-                            value={format === "ReveilLib" || format === "RevMecanum" ? getXValue() : getYValue() } 
+                            setValue={format === "ReveilLib" || format === "RevMecanum" ? updateXValue : updateYValue }
+                            value={format === "ReveilLib" || format === "RevMecanum" ? getXValue() : getYValue() }
                             bounds={[-999, 999]}
                             units="in"
-                            addToHistory={() => {undoRef.current = true}}
+                            addToHistory={() => { saveSnapshot(); }}
                         />
                     </div>
                 </>
@@ -244,40 +221,38 @@ export default function ControlConfig() {
                     <div className="w-[100px]"></div>
                     <div className="flex items-center gap-2">
                         <span style={{ fontSize: 20 }}>Δ</span>
-                        <NumberInput 
+                        <NumberInput
                             width={80}
                             height={40}
                             fontSize={18}
-                            setValue={format === "ReveilLib" ? updateYValue : updateXValue } 
-                            value={format === "ReveilLib" ? getYValue() : getXValue() } 
+                            setValue={format === "ReveilLib" ? updateYValue : updateXValue }
+                            value={format === "ReveilLib" ? getYValue() : getXValue() }
                             stepSize={1}
                             roundTo={2}
                             bounds={[-999, 999]}
                             units="in"
-                            addToHistory={() => {undoRef.current = true}}
+                            addToHistory={() => { saveSnapshot(); }}
                         />
                     </div>
                 </>
             }
 
-
-
             <div className="flex items-center gap-2">
                 <span style={{ fontSize: 20 }}>θ</span>
-                <NumberInput 
+                <NumberInput
                     width={80}
                     height={40}
                     fontSize={18}
                     stepSize={5}
                     roundTo={2}
-                    setValue={updateHeadingValue} 
-                    value={getHeadingValue()} 
+                    setValue={updateHeadingValue}
+                    value={getHeadingValue()}
                     bounds={[-Infinity, Infinity]}
                     units="deg"
-                    addToHistory={() => {undoRef.current = true}}
+                    addToHistory={() => { saveSnapshot(); }}
                 />
             </div>
-            
+
             <div className="flex items-center flex-row gap-[15px]">
                 <MirrorControl mirrorDirection="x" src={flipHorizontal}/>
                 <MirrorControl mirrorDirection="y" src={flipVertical}/>

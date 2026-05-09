@@ -1,29 +1,18 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { VALIDATED_APP_STATE, type FileFormat } from "../../hooks/appStateDefaults";
 import { createStore } from "../Store";
-import { mergeDeep } from "../Util";
+import { fileFormatStore } from "../../hooks/useFileFormat";
+import type { FileFormat } from "../../hooks/useFileFormat";
 
 const MAX_UNDO_HISTORY = 100;
 
-export const undoHistory = createStore<Partial<FileFormat>[]>([VALIDATED_APP_STATE]);
-export const redoHistory = createStore<Partial<FileFormat>[]>([]);
+export const undoHistory = createStore<FileFormat[]>([fileFormatStore.getState()]);
+export const redoHistory = createStore<FileFormat[]>([]);
 
-export function AddToUndoHistory(snapshot: Partial<FileFormat>) {
-    console.log(snapshot);
+export function saveSnapshot() {
+    const snapshot = fileFormatStore.getState();
+    // console.log(snapshot);
     const current = undoHistory.getState();
-    const previousState = current[current.length - 1] || {};
-    const fullState = mergeDeep(previousState, snapshot);
-
-    if (snapshot.defaults !== undefined) {
-        fullState.defaults = snapshot.defaults;
-    }
-
-    let newHistory = [...current, fullState];
-    
-    while (newHistory.length > MAX_UNDO_HISTORY) {
-        newHistory = newHistory.slice(1);
-    }
-    
-    undoHistory.setState(newHistory);
+    undoHistory.setState([...current, snapshot].slice(-MAX_UNDO_HISTORY));
     redoHistory.setState([]);
+    console.log(snapshot);
+    localStorage.setItem("appState", JSON.stringify(snapshot));
 }

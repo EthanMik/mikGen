@@ -1,7 +1,7 @@
 import { defaultRobotConstants, type RobotConstants } from "../core/Robot"
 import type { Path } from "../core/Types/Path"
-import { FORMAT_REGISTRY, type FormatDef } from "../simulation/FormatDefinition"
-import type { Format } from "./useFormat"
+import { FORMAT_REGISTRY, mergeFormatDef, type FormatDef } from "../simulation/FormatDefinition"
+import type { Format } from "../simulation/FormatDefinition"
 
 export type FieldType = "v5-match" | "v5-skills" | "vexu-match" | "empty" | "separator"
 
@@ -14,9 +14,9 @@ export type FileFormat = {
 }
 
 export const DEFAULT_FORMAT: FileFormat = {
-    format: "mikLib",
+    format: "LemLib",
     field: "v5-match",
-    formatDef: FORMAT_REGISTRY["mikLib"] as FormatDef<Format>,
+    formatDef: FORMAT_REGISTRY["LemLib"] as FormatDef<Format>,
     path: { segments: [], name: "" },
     robot: defaultRobotConstants,
 }
@@ -27,10 +27,12 @@ function loadValidatedAppState(): FileFormat {
 
     try {
         const parsed = JSON.parse(saved);
+        console.log(parsed);
+        const format: Format = parsed.format ?? DEFAULT_FORMAT.format;
         return {
-            format: parsed.format ?? DEFAULT_FORMAT.format,
+            format,
             field: parsed.field ?? DEFAULT_FORMAT.field,
-            formatDef: parsed.defaults ?? DEFAULT_FORMAT.formatDef,
+            formatDef: mergeFormatDef(FORMAT_REGISTRY[format] as FormatDef<Format>, parsed.formatDef ?? parsed.defaults),
             path: (parsed.path && Array.isArray(parsed.path.segments))
                 ? parsed.path
                 : DEFAULT_FORMAT.path,

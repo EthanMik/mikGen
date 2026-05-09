@@ -4,8 +4,7 @@ import downArrow from "../../assets/down-arrow.svg";
 import type { ConstantField } from "./ConstantRow";
 import ConstantRow from "./ConstantRow";
 import { deepEqual } from "../../core/Util";
-import { AddToUndoHistory, undoHistory } from "../../core/Undo/UndoHistory";
-import { usePath } from "../../hooks/usePath";
+import { saveSnapshot, undoHistory } from "../../core/Undo/UndoHistory";
 
 type ConstantsListProps = {
     header: string;
@@ -33,8 +32,6 @@ export default function ConstantsList({
     const [open, setOpen] = useState(false);
     const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
     const [applied, setApplied] = useState(false);
-    const [path] = usePath();
-    const undoRef = useRef(false);
     const skipNextHistoryChange = useRef(false);
     const historyLength = undoHistory.useSelector((h) => h.length);
 
@@ -45,13 +42,6 @@ export default function ConstantsList({
         }
         setApplied(false);
     }, [historyLength]);
-
-    useEffect(() => {
-        if (undoRef.current) {
-            AddToUndoHistory({ path });
-            undoRef.current = false;
-        }
-    }, [path]);
 
     useEffect(() => {
         setOpen(isOpenGlobal)
@@ -143,8 +133,8 @@ export default function ConstantsList({
                             e.stopPropagation();
                             if (!isDirty) return;
                             if (hasSelection) {
-                                undoRef.current = true;
                                 onChange(buildSelectedPartial(defaults));
+                                saveSnapshot();
                             } else {
                                 onReset();
                             }
@@ -164,9 +154,9 @@ export default function ConstantsList({
                             if (applied) return;
                             skipNextHistoryChange.current = true;
                             setApplied(true);
-                            undoRef.current = true;
                             const vals = hasSelection ? buildSelectedPartial(values) : values;
                             onApply(vals);
+                            saveSnapshot();
                         }}
                     >
                         <span className="text-verylightgray">Apply</span>
