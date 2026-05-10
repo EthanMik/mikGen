@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import Checkbox from "../Util/Checkbox";
 import NumberInput from "../Util/NumberInput";
-import { useFormat, usePath, mergeRobot, fileFormatStore, type Format } from "../../hooks/useFileFormat";
+import { useFormat, usePath, mergeRobot, fileFormatStore, type Format, useFormatDef } from "../../hooks/useFileFormat";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import { getDefaultConstants } from "../../simulation/FormatDefinition";
 
 export default function RobotButton() {
     const [ , setPath ] = usePath();
     const [ format, setFormat ] = useFormat();
+    const formatDef = useFormatDef();
 
     const [ isOpen, setOpen ] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -94,7 +95,7 @@ export default function RobotButton() {
             segments: prev.segments.map((s) => ({
                 ...s,
                 format: newFormat,
-                constants: getDefaultConstants(newFormat, s.kind),
+                constants: getDefaultConstants(formatDef, newFormat, s.kind),
             })),
         }));
         if (changed) saveSnapshot();

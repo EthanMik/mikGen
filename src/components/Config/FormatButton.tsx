@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useFormat, fileFormatStore, type Format } from "../../hooks/useFileFormat";
+import { useFormat, fileFormatStore, type Format, useFormatDef } from "../../hooks/useFileFormat";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import { FORMAT_REGISTRY, getDefaultConstants, type FormatDef } from "../../simulation/FormatDefinition";
 
@@ -35,7 +35,7 @@ export default function FormatButton() {
                 segments: prev.path.segments.map(s => ({
                     ...s,
                     format: newFormat,
-                    constants: getDefaultConstants(newFormat, s.kind),
+                    constants: getDefaultConstants(undefined, newFormat, s.kind),
                 })),
             },
         }));

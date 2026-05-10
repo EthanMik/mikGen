@@ -225,7 +225,7 @@ export const mikLibDef = {
 
         distanceDrive: {
             name: "Drive to Distance",
-            exists: false,
+            exists: true,
             defaults: [kMikDrive, kMikHeading],
             toStringTemplate: "chassis.drive_distance(${angle}, ${kBuilder});",
             simFn: (robot, dt, x, y, _angle, constants) => drive_distance(robot, dt, x, y, constants),

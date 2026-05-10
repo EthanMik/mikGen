@@ -5,8 +5,8 @@ Bugs:
 - control config not updating the path??
 - the robot does not snap to the starting point when pressing R
 - the robot timeline is not getting updated on all events, includes telemetry
-- when adding a new segment the default values do not apply
-- when swapping formats the tostring does not fire correctly
+- copying a start segment makes it do funny things
+
 
 Todo:
 - Make it so when you paste in text that is a format ToString it will convert it to a segment
@@ -32,7 +32,7 @@ Docs:
 
 
 lemlib notes
-- 
+- issues with either PID / mtp and boomerang
 
 rw notes
 - heading correction is separate

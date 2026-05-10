@@ -301,6 +301,16 @@ export default function FieldMacros() {
         }
     }
 
+    const pastePathSTring = (
+        evt: KeyboardEvent,
+        setPath: React.Dispatch<SetStateAction<Path>>,
+        clipboard: string,
+    ) => {
+        if (evt.key.toLowerCase() === "v" && evt.ctrlKey && evt.shiftKey) {
+            
+        }
+    }
+
     const paste = (
         evt: KeyboardEvent,
         setPath: React.Dispatch<SetStateAction<Path>>,
@@ -473,42 +483,50 @@ export default function FieldMacros() {
     }
 
     const addStartSegment = (format: Format, position: Pose, setPath: React.Dispatch<SetStateAction<Path>>) => {
-        const control = createStartSegment(format, position);
+        const formatDef = fileFormatStore.getState().formatDef;
+        const control = createStartSegment(formatDef, format, position);
         addSegment(control, setPath);
     }
 
     const addAngleTurnSegment = (format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
-        const control = createAngleTurnSegment(format, 0);
+        const formatDef = fileFormatStore.getState().formatDef;
+        const control = createAngleTurnSegment(formatDef, format, 0);
         addSegment(control, setPath);
     }
-    
+
     const addPointTurnSegment = (format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
-        const control = createPointTurnSegment(format, {x: null, y: null, angle: 0})
+        const formatDef = fileFormatStore.getState().formatDef;
+        const control = createPointTurnSegment(formatDef, format, {x: null, y: null, angle: 0})
         addSegment(control, setPath);
     }
 
     const addPoseDriveSegment = (format: Format, position: Pose, setPath: React.Dispatch<SetStateAction<Path>>) => {
-        const control = createPoseDriveSegment(format, position)
+        const formatDef = fileFormatStore.getState().formatDef;
+        const control = createPoseDriveSegment(formatDef, format, position)
         addSegment(control, setPath);
     }
 
     const addPointDriveSegment = (format: Format, position: Coordinate, setPath: React.Dispatch<SetStateAction<Path>>) => {
-        const control = createPointDriveSegment(format, position)
+        const formatDef = fileFormatStore.getState().formatDef;
+        const control = createPointDriveSegment(formatDef, format, position)
         addSegment(control, setPath);
     }
-    
+
     const addPointSwingSegment = (format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
-        const control = createPointSwingSegment(format, {x: null, y: null, angle: 0})
+        const formatDef = fileFormatStore.getState().formatDef;
+        const control = createPointSwingSegment(formatDef, format, {x: null, y: null, angle: 0})
         addSegment(control, setPath);
     }
-    
+
     const addAngleSwingSegment = (format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
-        const control = createAngleSwingSegment(format, 0)
+        const formatDef = fileFormatStore.getState().formatDef;
+        const control = createAngleSwingSegment(formatDef, format, 0)
         addSegment(control, setPath);
     }
 
     const addDistanceSegment = (format: Format, position: Pose, setPath: React.Dispatch<SetStateAction<Path>>) => {
-        const control = createDistanceSegment(format, position);
+        const formatDef = fileFormatStore.getState().formatDef;
+        const control = createDistanceSegment(formatDef, format, position);
         addSegment(control, setPath);
     }
 

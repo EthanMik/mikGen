@@ -127,9 +127,10 @@ export function mergeFormatDef(registry: FormatDef<Format>, saved: unknown): For
     return { ...registry, ...s, kBuilder: registry.kBuilder, segments: segs } as FormatDef<Format>;
 }
 
-export function getDefaultConstants<F extends Format>(format: F, kind: SegmentKind): SegmentConstants<F> {
-    const def = FORMAT_REGISTRY[format];
-    return (def.segments[kind]?.defaults ?? def.constants) as SegmentConstants<F>;
+export function getDefaultConstants<F extends Format>(formatDef: FormatDef<Format> | undefined, format: F, kind: SegmentKind): SegmentConstants<F> {
+    const currentDefaults = formatDef?.segments[kind]?.defaults;
+    if (currentDefaults === undefined) return FORMAT_REGISTRY[format].segments[kind]?.defaults as SegmentConstants<F>;
+    return currentDefaults as SegmentConstants<F>;
 }
 
 export function updateDefaultConstants<F extends Format>(
