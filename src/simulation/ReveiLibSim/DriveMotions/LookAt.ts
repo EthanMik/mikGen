@@ -10,7 +10,9 @@ export function cleanUplookAt() {
     lookAtAngle = null;
 }
 
-export function lookAt(robot: Robot, dt: number, x: number, y: number, offset: number, constants: ReveilLibConstants) {
+export function lookAt(robot: Robot, dt: number, x: number, y: number, offset: number, k: ReveilLibConstants[]) {
+    const constants = k[0];
+
     if (lookAtAngle === null) {
         const computedAngle = wrapDeg180(toDeg(Math.atan2(x - robot.getX(), y - robot.getY())) + offset);
         const angle1 = wrapDeg180(computedAngle - (constants.dropEarly ?? 0));
@@ -22,7 +24,7 @@ export function lookAt(robot: Robot, dt: number, x: number, y: number, offset: n
         lookAtAngle = (Math.abs(offset1) < Math.abs(offset2)) ? angle1 : angle2;
     }
 
-    const state = turnSegment(robot, dt, lookAtAngle, constants); 
+    const state = turnSegment(robot, dt, lookAtAngle, k); 
 
     if (state) {
         cleanUplookAt();

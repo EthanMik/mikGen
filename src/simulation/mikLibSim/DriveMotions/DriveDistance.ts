@@ -13,7 +13,7 @@ let headingPID: PID;
 
 let start = true;
 
-export function resetDriveDistance() {
+export function restart_drive_distance() {
     driveDistanceStartX = 0;
     driveDistanceStartY = 0;
     prev_drive_output = 0;
@@ -23,7 +23,10 @@ export function resetDriveDistance() {
     start = true;
 }
 
-export function driveDistance(robot: Robot, dt: number, distance: number, heading: number, drive_p: mikConstants, heading_p: mikConstants) {
+export function drive_distance(robot: Robot, dt: number, distance: number, heading: number, p: mikConstants[]) {
+    const drive_p = p[0];
+    const heading_p = p[1];
+
     if (start) {
         driveDistanceStartX = robot.getX();
         driveDistanceStartY = robot.getY();
@@ -44,8 +47,8 @@ export function driveDistance(robot: Robot, dt: number, distance: number, headin
     let drive_output = drivePID.compute(drive_error);
     let heading_output = headingPID.compute(heading_error);
 
-    drive_output = clamp(drive_output, -drive_p.maxSpeed, drive_p.maxSpeed);
-    heading_output = clamp(heading_output, -heading_p.maxSpeed, heading_p.maxSpeed);
+    drive_output = clamp(drive_output, -drive_p.max_voltage, drive_p.max_voltage);
+    heading_output = clamp(heading_output, -heading_p.max_voltage, heading_p.max_voltage);
 
     drive_output = slew_scaling(drive_output, prev_drive_output ?? 0, drive_p.slew * (dt / 0.01), Math.abs(drive_error) > drive_p.settle_error);
     heading_output = slew_scaling(heading_output, prev_heading_output ?? 0, heading_p.slew * (dt / 0.01));
@@ -53,7 +56,7 @@ export function driveDistance(robot: Robot, dt: number, distance: number, headin
     drive_output = clamp_min_voltage(drive_output, drive_p.min_voltage);
 
     if (drivePID.isSettled()) {
-        resetDriveDistance();
+        restart_drive_distance();
         return true;
     }
 

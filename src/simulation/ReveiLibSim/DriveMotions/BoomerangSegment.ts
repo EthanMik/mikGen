@@ -37,8 +37,10 @@ export function boomerangSegment(
     x: number,
     y: number,
     angle: number,
-    constants: ReveilLibConstants,
+    k: ReveilLibConstants[],
 ): boolean {
+    const constants = k[0];
+    
     const dropEarly = constants.dropEarly ?? 0;
     const speed = constants.maxSpeed ?? 0;
     const lead = constants.lead ?? 0;

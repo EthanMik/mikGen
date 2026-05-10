@@ -1,6 +1,6 @@
 import type { Robot } from "../../../core/Robot";
 import { clamp } from "../../../core/Util";
-import { kMikLibSpeed, type mikConstants } from "../MikConstants";
+import { type mikConstants } from "../MikConstants";
 import { PID } from "../PID";
 import { angle_error, clamp_min_voltage, slew_scaling } from "../Util";
 
@@ -12,7 +12,7 @@ let turnPID: PID;
 
 let start = true;
 
-function resetTurnToAngle() {
+function reset_turn_to_angle() {
     crossed = false;
     prev_error = 0;
     prev_raw_error = 0;
@@ -21,14 +21,16 @@ function resetTurnToAngle() {
     start = true;
 }
 
-export function turnToAngle(robot: Robot, dt: number, angle: number, p: mikConstants) {
-    const raw_error = angle_error(angle - robot.getAngle(), null);
-    let error = angle_error(angle - robot.getAngle(), p.turn_direction);
+export function turn_to_angle(robot: Robot, dt: number, angle: number, p: mikConstants[]) {
+    const turn_p = p[0];
+
+    const raw_error = angle_error(angle - robot.getAngle(), "FASTEST");
+    let error = angle_error(angle - robot.getAngle(), turn_p.turn_direction);
 
     if (start) {
         prev_error = error;
         prev_raw_error = raw_error;
-        turnPID = new PID(p.kp, p.ki, p.kd, p.starti, p.settle_time, p.settle_error, p.timeout, p.min_voltage > 0 ? p.exit_error : 0);
+        turnPID = new PID(turn_p.kp, turn_p.ki, turn_p.kd, turn_p.starti, turn_p.settle_time, turn_p.settle_error, turn_p.timeout, turn_p.min_voltage > 0 ? turn_p.exit_error : 0);
         start = false;
     }
 
@@ -40,11 +42,11 @@ export function turnToAngle(robot: Robot, dt: number, angle: number, p: mikConst
     if (crossed) {
         error = raw_error;
     } else {
-        error = angle_error(angle - robot.getAngle(), p.turn_direction);
+        error = angle_error(angle - robot.getAngle(), turn_p.turn_direction);
     }
 
-    if (p.min_voltage != 0 && crossed && Math.sign(error) != Math.sign(prev_error)) {
-        resetTurnToAngle();
+    if (turn_p.min_voltage != 0 && crossed && Math.sign(error) != Math.sign(prev_error)) {
+        reset_turn_to_angle();
         return true;
     }
     prev_error = error;
@@ -52,16 +54,16 @@ export function turnToAngle(robot: Robot, dt: number, angle: number, p: mikConst
     let output = turnPID.compute(error);
 
     if (turnPID.isSettled()) {
-        resetTurnToAngle();
+        reset_turn_to_angle();
         return true;
     }
 
-    output = clamp(output, -p.maxSpeed, p.maxSpeed);
-    output = slew_scaling(output, prev_output ?? 0, p.slew * (dt / 0.01), Math.abs(error) > p.starti);
-    output = clamp_min_voltage(output, p.min_voltage);
+    output = clamp(output, -turn_p.max_voltage, turn_p.max_voltage);
+    output = slew_scaling(output, prev_output ?? 0, turn_p.slew * (dt / 0.01), Math.abs(error) > turn_p.starti);
+    output = clamp_min_voltage(output, turn_p.min_voltage);
     prev_output = output;
 
-    robot.tankDrive(output / kMikLibSpeed, -output / kMikLibSpeed, dt);
+    robot.tankDrive(output / 12, -output / 12, dt);
 
     return false;
 }

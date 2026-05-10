@@ -1,6 +1,6 @@
 import { LemLibDef, type LemConstants } from "./LemLibSim/LemConstants";
-import type { mikConstants } from "./mikLibSim/MikConstants";
-import type { ReveilLibConstants } from "./ReveiLibSim/RevConstants";
+import { mikLibDef, type mikConstants } from "./mikLibSim/MikConstants";
+import { reveilLibDef, type ReveilLibConstants } from "./ReveiLibSim/RevConstants";
 import type { RevMecanumConstants } from "./RevMecanumSim/RevMecanumConstant";
 import type { Robot } from "../core/Robot";
 import type { Dispatch, SetStateAction } from "react";
@@ -109,8 +109,8 @@ export type ConstantsRecord = Record<string, ConstantValue>;
 
 export const FORMAT_REGISTRY = {
     LemLib: LemLibDef,
-    mikLib: LemLibDef,
-    ReveilLib: LemLibDef,
+    mikLib: mikLibDef,
+    ReveilLib: reveilLibDef,
     "JAR-Template": LemLibDef,
     "RW-Template": LemLibDef,
     RevMecanum: LemLibDef,

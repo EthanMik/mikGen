@@ -21,7 +21,9 @@ export function cleanupPilonsSegment() {
     stop = null;
 }
 
-export function pilonsSegment(robot: Robot, dt: number, x: number, y: number, constants: ReveilLibConstants) : boolean {             
+export function pilonsSegment(robot: Robot, dt: number, x: number, y: number, k: ReveilLibConstants[]) : boolean {             
+    const constants = k[0];
+    
     // Convert to rev coords
     const revCoords = toRevCoordinate(x, y);
     x = revCoords.x;

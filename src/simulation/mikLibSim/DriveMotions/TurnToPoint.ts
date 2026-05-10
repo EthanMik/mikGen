@@ -1,6 +1,6 @@
 import type { Robot } from "../../../core/Robot";
 import { clamp, toDeg } from "../../../core/Util";
-import { kMikLibSpeed, type mikConstants } from "../MikConstants";
+import { type mikConstants } from "../MikConstants";
 import { PID } from "../PID";
 import { angle_error, clamp_min_voltage, slew_scaling } from "../Util";
 
@@ -12,7 +12,7 @@ let turnPID: PID;
 
 let start = true;
 
-function resetTurnToPoint() {
+function reset_turn_to_point() {
     crossed = false;
     prev_error = 0;
     prev_output = 0;
@@ -21,16 +21,18 @@ function resetTurnToPoint() {
     start = true;
 }
 
-export function turnToPoint(robot: Robot, dt: number, x: number, y: number, offset: number, p: mikConstants) {
+export function turn_to_point(robot: Robot, dt: number, x: number, y: number, offset: number, p: mikConstants[]) {
+    const turn_p = p[0];
+
     const angle = toDeg(Math.atan2(x - robot.getX(), y - robot.getY())) + offset;
 
-    const raw_error = angle_error(angle - robot.getAngle(), null);
-    let error = angle_error(angle - robot.getAngle(), p.turn_direction);
+    const raw_error = angle_error(angle - robot.getAngle(), "FASTEST");
+    let error = angle_error(angle - robot.getAngle(), turn_p.turn_direction);
 
     if (start) {
         prev_error = error;
         prev_raw_error = raw_error;
-        turnPID = new PID(p.kp, p.ki, p.kd, p.starti, p.settle_time, p.settle_error, p.timeout, p.min_voltage > 0 ? p.exit_error : 0);
+        turnPID = new PID(turn_p.kp, turn_p.ki, turn_p.kd, turn_p.starti, turn_p.settle_time, turn_p.settle_error, turn_p.timeout, turn_p.min_voltage > 0 ? turn_p.exit_error : 0);
         start = false;
     }
 
@@ -42,11 +44,11 @@ export function turnToPoint(robot: Robot, dt: number, x: number, y: number, offs
     if (crossed) {
         error = raw_error;
     } else {
-        error = angle_error(angle - robot.getAngle(), p.turn_direction);
+        error = angle_error(angle - robot.getAngle(), turn_p.turn_direction);
     }
 
-    if (p.min_voltage != 0 && crossed && Math.sign(error) != Math.sign(prev_error)) {
-        resetTurnToPoint();
+    if (turn_p.min_voltage != 0 && crossed && Math.sign(error) != Math.sign(prev_error)) {
+        reset_turn_to_point();
         return true;
     }
     prev_error = error;
@@ -54,16 +56,16 @@ export function turnToPoint(robot: Robot, dt: number, x: number, y: number, offs
     let output = turnPID.compute(error);
 
     if (turnPID.isSettled()) {
-        resetTurnToPoint();
+        reset_turn_to_point();
         return true;
     }
 
-    output = clamp(output, -p.maxSpeed, p.maxSpeed);
-    output = slew_scaling(output, prev_output ?? 0, p.slew * (dt / 0.01), Math.abs(error) > 15);
-    output = clamp_min_voltage(output, p.min_voltage);
+    output = clamp(output, -turn_p.max_voltage, turn_p.max_voltage);
+    output = slew_scaling(output, prev_output ?? 0, turn_p.slew * (dt / 0.01), Math.abs(error) > 15);
+    output = clamp_min_voltage(output, turn_p.min_voltage);
     prev_output = output;
 
-    robot.tankDrive(output / kMikLibSpeed, -output / kMikLibSpeed, dt);
+    robot.tankDrive(output / 12, -output / 12, dt);
 
     return false;
 }

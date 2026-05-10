@@ -229,7 +229,7 @@ export const LemLibDef = {
         },
 
         angleTurn: {
-            name: "Turn to Angle",
+            name: "Turn to Heading",
             exists: true,
             defaults: [kLemAngular],
             toStringTemplate: "chassis.turnToHeading(${angle}, ${timeout}, ${kBuilder});",

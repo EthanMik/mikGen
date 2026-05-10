@@ -151,7 +151,7 @@ export default function CopyPathButton() {
                 setPopupOpen(true);
               }}
             >
-              <span className="text-[16px]">Edit JSON</span>
+              <span className="text-[16px]">Edit Templates</span>
             </button>
           </div>
         </div>

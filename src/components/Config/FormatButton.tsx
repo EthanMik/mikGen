@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useFormat, fileFormatStore, type Format } from "../../hooks/useFileFormat";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
-import { getDefaultConstants } from "../../simulation/FormatDefinition";
+import { FORMAT_REGISTRY, getDefaultConstants, type FormatDef } from "../../simulation/FormatDefinition";
 
 type PathFormats = {
     name: string,
@@ -29,6 +29,7 @@ export default function FormatButton() {
         fileFormatStore.setState(prev => ({
             ...prev,
             format: newFormat,
+            formatDef: FORMAT_REGISTRY[newFormat] as FormatDef<Format>,
             path: {
                 ...prev.path,
                 segments: prev.path.segments.map(s => ({

@@ -1,85 +1,226 @@
- export interface ReveilLibConstants {
-    maxSpeed: number | null;
+import { getUnequalKeys, roundOff } from "../../core/Util";
+import { type FormatDef, type NumberInputGroup } from "../FormatDefinition";
+import { boomerangSegment } from "./DriveMotions/BoomerangSegment";
+import { pilonsSegment } from "./DriveMotions/PilonsSegment";
+import { turnSegment } from "./DriveMotions/TurnSegment";
+import { lookAt } from "./DriveMotions/LookAt";
 
-    kCorrection: number | null;
-    maxError: number | null;
-    
-    stopHarshThreshold: number | null;
-    stopCoastThreshold: number | null;
-    stopCoastPower: number | null;
-    stopTimeout: number | null;
-    brakeTime: number | null;
+export interface ReveilLibConstants {
+    maxSpeed: number;
 
-    dropEarly: number | null;
+    kCorrection: number;
+    maxError: number;
 
-    lead: number | null;
+    stopHarshThreshold: number;
+    stopCoastThreshold: number;
+    stopCoastPower: number;
+    stopTimeout: number;
+    brakeTime: number;
+
+    dropEarly: number;
+
+    lead: number;
 }
 
-export type revDriveConstants = {
-    drive: ReveilLibConstants;
-};
-
-export type revTurnConstants = {
-    turn: ReveilLibConstants;
-};
-
-export const cloneKRev = (c: ReveilLibConstants): ReveilLibConstants => ({ ...c });
-
-function createRevConstants(values: Partial<ReveilLibConstants> = {}): ReveilLibConstants {
-    return {
-        maxSpeed: values.maxSpeed ?? null,
-
-        kCorrection: values.kCorrection ?? null,
-        maxError: values.maxError ?? null,
-
-        stopHarshThreshold: values.stopHarshThreshold ?? null,
-        stopCoastThreshold: values.stopCoastThreshold ?? null,
-        stopCoastPower: values.stopCoastPower ?? null,
-        stopTimeout: values.stopTimeout ?? null,
-        brakeTime: values.brakeTime ?? null,
-
-        dropEarly: values.dropEarly ?? null,
-        lead: values.lead ?? null
-    };
-}
-
-export const kPilon: ReveilLibConstants = createRevConstants({ 
+export const kRevDrive: ReveilLibConstants = {
     maxSpeed: 1,
+
     kCorrection: 2,
     maxError: 0.5,
+
     stopHarshThreshold: 60,
     stopCoastThreshold: 200,
     stopCoastPower: 0.25,
+    stopTimeout: 5000,
     brakeTime: 250,
-    dropEarly: 0, 
-});
 
-export const kTurn: ReveilLibConstants = createRevConstants({ 
-    maxSpeed: 0.75,
-    stopHarshThreshold: 60,
-    stopCoastThreshold: 200,
-    stopCoastPower: 0.25,
-    brakeTime: 100,
     dropEarly: 0,
-});
 
-export const kLootAt: ReveilLibConstants = createRevConstants({ 
-    maxSpeed: 0.75,
-    stopHarshThreshold: 60,
-    stopCoastThreshold: 200,
-    stopCoastPower: 0.25,
-    brakeTime: 100,
-    dropEarly: 0,
-})
+    lead: 0.5,
+};
 
-export const kBoomerang: ReveilLibConstants = createRevConstants({
+export const kRevTurn: ReveilLibConstants = {
     maxSpeed: 0.75,
+
     kCorrection: 2,
     maxError: 0.5,
+
     stopHarshThreshold: 60,
     stopCoastThreshold: 200,
     stopCoastPower: 0.25,
-    brakeTime: 250,
-    dropEarly: 0, 
-    lead: 0.4,
-});
+    stopTimeout: 5000,
+    brakeTime: 100,
+
+    dropEarly: 0,
+
+    lead: 0.5,
+};
+
+type Fields = NumberInputGroup<"ReveilLib">["fields"];
+
+const driveSettingsFields: Fields = [
+    { key: "maxSpeed",            label: "Max Speed",       units: "",   input: { bounds: [0, 1],    stepSize: 0.05, roundTo: 2 } },
+    { key: "stopCoastPower",      label: "Coast Power",     units: "",   input: { bounds: [0, 1],    stepSize: 0.05, roundTo: 2 } },
+    { key: "stopCoastThreshold",  label: "Coast Threshold", units: "ms", input: { bounds: [0, 9999], stepSize: 10,   roundTo: 0 } },
+    { key: "stopHarshThreshold",  label: "Harsh Threshold", units: "ms", input: { bounds: [0, 9999], stepSize: 10,   roundTo: 0 } },
+    { key: "brakeTime",           label: "Brake Time",      units: "ms", input: { bounds: [0, 9999], stepSize: 10,   roundTo: 0 } },
+    { key: "dropEarly",           label: "Drop Early",      units: "in", input: { bounds: [0, 100],  stepSize: 0.5,  roundTo: 2 } },
+];
+
+const correctionFields: Fields = [
+    { key: "kCorrection", label: "kCorrection", units: "",   input: { bounds: [0, 10],  stepSize: 0.1, roundTo: 2 } },
+    { key: "maxError",    label: "Max Error",   units: "in", input: { bounds: [0, 10],  stepSize: 0.1, roundTo: 2 } },
+];
+
+const turnSettingsFields: Fields = [
+    { key: "maxSpeed",           label: "Max Speed",       units: "",   input: { bounds: [0, 1],    stepSize: 0.05, roundTo: 2 } },
+    { key: "stopCoastPower",     label: "Coast Power",     units: "",   input: { bounds: [0, 1],    stepSize: 0.05, roundTo: 2 } },
+    { key: "stopCoastThreshold", label: "Coast Threshold", units: "ms", input: { bounds: [0, 9999], stepSize: 10,   roundTo: 0 } },
+    { key: "stopHarshThreshold", label: "Harsh Threshold", units: "ms", input: { bounds: [0, 9999], stepSize: 10,   roundTo: 0 } },
+    { key: "brakeTime",          label: "Brake Time",      units: "ms", input: { bounds: [0, 9999], stepSize: 10,   roundTo: 0 } },
+];
+
+export const reveilLibDef = {
+    constants: [kRevDrive],
+    kMaxSpeed: 1,
+    formatPathName: "ReveilLib Path",
+    kBuilder: kRevBuilder,
+    slider: { key: "maxSpeed", bounds: [0, 1], roundTo: 0.01 },
+
+    segments: {
+        start: {
+            name: "Start",
+            exists: true,
+            defaults: [kRevDrive],
+            toStringTemplate: "set_pose(${x}, ${y}, ${angle});",
+            simFn: (robot, _dt, x, y, angle) => robot.setPose(x, y, angle),
+            cycleButtons: [],
+            numberInputs: [],
+        },
+
+        poseDrive: {
+            name: "Pose Drive",
+            exists: true,
+            defaults: [kRevDrive],
+            toStringTemplate: "pose(${x}, ${y}, ${angle}, ${kBuilder});",
+            simFn: (robot, dt, x, y, angle, constants) => boomerangSegment(robot, dt, x, y, angle, constants),
+            cycleButtons: [],
+            numberInputs: [
+                { constantsIdx: 0, headerName: "Motion Settings", fields: [
+                    ...driveSettingsFields,
+                    { key: "lead", label: "Lead", units: "", input: { bounds: [0, 1], stepSize: 0.05, roundTo: 2 } },
+                ]},
+                { constantsIdx: 0, headerName: "Correction", fields: [...correctionFields] },
+            ],
+        },
+
+        distanceDrive: {
+            name: "Drive Distance",
+            exists: false,
+            defaults: [kRevDrive],
+            toStringTemplate: "move(${x}, ${y}, ${kBuilder});",
+            simFn: (robot, dt, x, y, _angle, constants) => pilonsSegment(robot, dt, x, y, constants),
+            cycleButtons: [],
+            numberInputs: [
+                { constantsIdx: 0, headerName: "Motion Settings", fields: [...driveSettingsFields] },
+                { constantsIdx: 0, headerName: "Correction", fields: [...correctionFields] },
+            ],
+        },
+
+        pointDrive: {
+            name: "Move to Point",
+            exists: true,
+            defaults: [kRevDrive],
+            toStringTemplate: "move(${x}, ${y}, ${kBuilder});",
+            simFn: (robot, dt, x, y, _angle, constants) => pilonsSegment(robot, dt, x, y, constants),
+            cycleButtons: [],
+            numberInputs: [
+                { constantsIdx: 0, headerName: "Motion Settings", fields: [...driveSettingsFields] },
+                { constantsIdx: 0, headerName: "Correction", fields: [...correctionFields] },
+            ],
+        },
+
+        pointTurn: {
+            name: "Look At",
+            exists: true,
+            defaults: [kRevTurn],
+            toStringTemplate: "look(${x}, ${y}, ${angle}, ${kBuilder});",
+            simFn: (robot, dt, x, y, angle, constants) => lookAt(robot, dt, x, y, angle, constants),
+            cycleButtons: [],
+            numberInputs: [
+                { constantsIdx: 0, headerName: "Turn Settings", fields: [
+                    ...turnSettingsFields,
+                    { key: "dropEarly", label: "Drop Early", units: "deg", input: { bounds: [0, 90], stepSize: 0.5, roundTo: 2 } },
+                ]},
+            ],
+        },
+
+        angleTurn: {
+            name: "Turn to Angle",
+            exists: true,
+            defaults: [kRevTurn],
+            toStringTemplate: "turn(${angle}, ${kBuilder});",
+            simFn: (robot, dt, _x, _y, angle, constants) => turnSegment(robot, dt, angle, constants),
+            cycleButtons: [],
+            numberInputs: [
+                { constantsIdx: 0, headerName: "Turn Settings", fields: [...turnSettingsFields] },
+            ],
+        },
+
+        angleSwing: {
+            name: "Swing to Angle",
+            exists: false,
+            defaults: [kRevTurn],
+            toStringTemplate: "swing(${angle}, ${kBuilder});",
+            simFn: (robot, dt, _x, _y, angle, constants) => turnSegment(robot, dt, angle, constants),
+            cycleButtons: [],
+            numberInputs: [
+                { constantsIdx: 0, headerName: "Turn Settings", fields: [...turnSettingsFields] },
+            ],
+        },
+
+        pointSwing: {
+            name: "Swing to Point",
+            exists: false,
+            defaults: [kRevTurn],
+            toStringTemplate: "swing_look(${x}, ${y}, ${angle}, ${kBuilder});",
+            simFn: (robot, dt, x, y, angle, constants) => lookAt(robot, dt, x, y, angle, constants),
+            cycleButtons: [],
+            numberInputs: [
+                { constantsIdx: 0, headerName: "Turn Settings", fields: [...turnSettingsFields] },
+            ],
+        },
+    },
+} satisfies FormatDef<"ReveilLib">;
+
+function kRevBuilder(kDefault: ReveilLibConstants[], constants: ReveilLibConstants[]): string {
+    const keyToRevConstant = (key: keyof ReveilLibConstants, value: ReveilLibConstants[keyof ReveilLibConstants]): string => {
+        switch (key) {
+            case "maxSpeed":           return `.speed = ${roundOff(value as number, 2)}`;
+            case "stopCoastPower":     return `.min = ${roundOff(value as number, 2)}`;
+            case "kCorrection":        return `.correction = ${roundOff(value as number, 1)}`;
+            case "maxError":           return `.error = ${roundOff(value as number, 2)}`;
+            case "stopCoastThreshold": return `.coast = ${roundOff(value as number, 0)}`;
+            case "stopHarshThreshold": return `.harsh = ${roundOff(value as number, 0)}`;
+            case "brakeTime":          return `.time = ${roundOff(value as number, 0)}`;
+            case "lead":               return `.lead = ${roundOff(value as number, 2)}`;
+            case "dropEarly":          return `.drop_early = ${roundOff(value as number, 2)}`;
+            case "stopTimeout":        return "";
+        }
+    };
+
+    const unequal = getUnequalKeys(kDefault[0], constants[0]);
+    const constantsList: string[] = [];
+    for (const key of Object.keys(unequal)) {
+        const value = unequal[key as keyof ReveilLibConstants];
+        if (value === undefined) continue;
+        const c = keyToRevConstant(key as keyof ReveilLibConstants, value);
+        if (c !== "") constantsList.push(c);
+    }
+
+    if (constantsList.length === 0) return "";
+
+    constantsList[0] = "{" + constantsList[0];
+    constantsList[constantsList.length - 1] += "}";
+    return constantsList.join(", ");
+}

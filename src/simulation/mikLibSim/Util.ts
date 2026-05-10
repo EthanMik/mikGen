@@ -1,13 +1,13 @@
 import { clamp, toRad } from "../../core/Util";
-import type { TurnDirection } from "./MikConstants";
+import type { mikConstants } from "./MikConstants";
 
-export function angle_error(error: number, direction: TurnDirection | null) {
-    if (direction === null) return reduce_negative_180_to_180(error);
+export function angle_error(error: number, direction: mikConstants["turn_direction"]) {
+    if (direction === "FASTEST") return reduce_negative_180_to_180(error);
 
     switch (direction) {
-        case "clockwise":
+        case "CW":
             return error < 0 ? error + 360 : error;
-        case "counterclockwise":
+        case "CCW":
             return error > 0 ? error - 360 : error;
     }
 }
