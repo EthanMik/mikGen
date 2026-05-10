@@ -5,9 +5,10 @@ Bugs:
 - control config not updating the path??
 - the robot does not snap to the starting point when pressing R
 - the robot timeline is not getting updated on all events, includes telemetry
+- when adding a new segment the default values do not apply
+- when swapping formats the tostring does not fire correctly
 
 Todo:
-- Refactor Formats, start writing formats into mikGen
 - Make it so when you paste in text that is a format ToString it will convert it to a segment
 - distance segments
 - instead of commands add a help button that provides path examples
@@ -38,4 +39,7 @@ rw notes
 
 Refactor Notes:
 - Constants are now arrays
-- 
+
+
+
+

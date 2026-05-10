@@ -151,8 +151,8 @@ const PIDConstantsSettings: Fields = [
     { key: "kp", label: "kP", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
     { key: "ki", label: "kI", units: "", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
     { key: "kd", label: "kD", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
-    { key: "starti", units: "in",  label: "Starti", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
-    { key: "slew", units: "volt/10ms",  label: "Slew", input: { bounds: [0, 100], stepSize: .1, roundTo: 2 } },
+    { key: "starti", units: "in", label: "Starti", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
+    { key: "slew", units: "volt/10ms", label: "Slew", input: { bounds: [0, 100], stepSize: .1, roundTo: 2 } },
 ];
 
 type CycleButton = Omit<CycleButtonField<"mikLib">, "constantsIdx">;
@@ -211,11 +211,13 @@ export const mikLibDef = {
                 { constantsIdx: 0, ...driveDirectionButton },
             ],
             numberInputs: [
-                { constantsIdx: 0, headerName: "Exit Conditions", fields: [
-                    ...exitConditionsSettings,
-                    { key: "drift", label: "Drift", units: "", input: { bounds: [0, 100], stepSize: 1, roundTo: 1 } },
-                    { key: "lead", label: "Lead", units: "in", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 1 } },
-                ]},
+                {
+                    constantsIdx: 0, headerName: "Exit Conditions", fields: [
+                        ...exitConditionsSettings,
+                        { key: "drift", label: "Drift", units: "", input: { bounds: [0, 100], stepSize: 1, roundTo: 1 } },
+                        { key: "lead", label: "Lead", units: "in", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 1 } },
+                    ]
+                },
                 { constantsIdx: 0, headerName: "Drive Constants", fields: [...PIDConstantsSettings] },
                 { constantsIdx: 1, headerName: "Heading Constants", fields: [...PIDConstantsSettings] },
             ],
@@ -231,7 +233,7 @@ export const mikLibDef = {
                 { constantsIdx: 0, ...driveDirectionButton },
             ],
             numberInputs: [
-                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...exitConditionsSettings]},
+                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...exitConditionsSettings] },
                 { constantsIdx: 0, headerName: "Drive Constants", fields: [...PIDConstantsSettings] },
                 { constantsIdx: 1, headerName: "Heading Constants", fields: [...PIDConstantsSettings] },
             ],
@@ -245,7 +247,7 @@ export const mikLibDef = {
             simFn: (robot, dt, x, y, _angle, constants) => drive_to_point(robot, dt, x, y, constants),
             cycleButtons: [],
             numberInputs: [
-                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...exitConditionsSettings]},
+                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...exitConditionsSettings] },
                 { constantsIdx: 0, headerName: "Drive Constants", fields: [...PIDConstantsSettings] },
                 { constantsIdx: 1, headerName: "Heading Constants", fields: [...PIDConstantsSettings] },
             ],
@@ -318,19 +320,19 @@ export const mikLibDef = {
 function kMikBuilder(kDefault: mikConstants[], constants: mikConstants[]): string {
     const keyToDriveConstant = (key: keyof mikConstants, value: mikConstants[keyof mikConstants]): string => {
         switch (key) {
-            case "kp":             return `.drive_k.p = ${roundOff(value as number, 3)}`;
-            case "ki":             return `.drive_k.i = ${roundOff(value as number, 5)}`;
-            case "kd":             return `.drive_k.d = ${roundOff(value as number, 3)}`;
-            case "starti":         return `.drive_k.starti = ${roundOff(value as number, 2)}`;
-            case "max_voltage":    return `.max_voltage = ${roundOff(value as number, 1)}`;
-            case "min_voltage":    return `.min_voltage = ${roundOff(value as number, 1)}`;
-            case "drift":          return `.drift = ${roundOff(value as number, 2)}`;
-            case "lead":           return `.lead = ${roundOff(value as number, 2)}`;
-            case "settle_error":   return `.settle_error = ${roundOff(value as number, 2)}`;
-            case "settle_time":    return `.settle_time = ${roundOff(value as number, 0)}`;
-            case "timeout":        return `.timeout = ${roundOff(value as number, 0)}`;
-            case "slew":           return `.slew = ${roundOff(value as number, 2)}`;
-            case "exit_error":     return `.exit_error = ${roundOff(value as number, 2)}`;
+            case "kp": return `.drive_k.p = ${roundOff(value as number, 3)}`;
+            case "ki": return `.drive_k.i = ${roundOff(value as number, 5)}`;
+            case "kd": return `.drive_k.d = ${roundOff(value as number, 3)}`;
+            case "starti": return `.drive_k.starti = ${roundOff(value as number, 2)}`;
+            case "max_voltage": return `.max_voltage = ${roundOff(value as number, 1)}`;
+            case "min_voltage": return `.min_voltage = ${roundOff(value as number, 1)}`;
+            case "drift": return `.drift = ${roundOff(value as number, 2)}`;
+            case "lead": return `.lead = ${roundOff(value as number, 2)}`;
+            case "settle_error": return `.settle_error = ${roundOff(value as number, 2)}`;
+            case "settle_time": return `.settle_time = ${roundOff(value as number, 0)}`;
+            case "timeout": return `.timeout = ${roundOff(value as number, 0)}`;
+            case "slew": return `.slew = ${roundOff(value as number, 2)}`;
+            case "exit_error": return `.exit_error = ${roundOff(value as number, 2)}`;
             case "drive_direction":
                 if (value === "FASTEST") return "";
                 return `.drive_direction = mik::${value}`;
@@ -340,10 +342,10 @@ function kMikBuilder(kDefault: mikConstants[], constants: mikConstants[]): strin
 
     const keyToHeadingConstant = (key: keyof mikConstants, value: mikConstants[keyof mikConstants]): string => {
         switch (key) {
-            case "kp":          return `.heading_k.p = ${roundOff(value as number, 3)}`;
-            case "ki":          return `.heading_k.i = ${roundOff(value as number, 5)}`;
-            case "kd":          return `.heading_k.d = ${roundOff(value as number, 3)}`;
-            case "starti":      return `.heading_k.starti = ${roundOff(value as number, 2)}`;
+            case "kp": return `.heading_k.p = ${roundOff(value as number, 3)}`;
+            case "ki": return `.heading_k.i = ${roundOff(value as number, 5)}`;
+            case "kd": return `.heading_k.d = ${roundOff(value as number, 3)}`;
+            case "starti": return `.heading_k.starti = ${roundOff(value as number, 2)}`;
             case "max_voltage": return `.heading_max_voltage = ${roundOff(value as number, 1)}`;
         }
         return "";
@@ -351,16 +353,16 @@ function kMikBuilder(kDefault: mikConstants[], constants: mikConstants[]): strin
 
     const keyToTurnConstant = (key: keyof mikConstants, value: mikConstants[keyof mikConstants]): string => {
         switch (key) {
-            case "kp":               return `.k.p = ${roundOff(value as number, 3)}`;
-            case "ki":               return `.k.i = ${roundOff(value as number, 5)}`;
-            case "kd":               return `.k.d = ${roundOff(value as number, 3)}`;
-            case "starti":           return `.k.starti = ${roundOff(value as number, 2)}`;
-            case "max_voltage":      return `.max_voltage = ${roundOff(value as number, 1)}`;
-            case "min_voltage":      return `.min_voltage = ${roundOff(value as number, 1)}`;
-            case "settle_error":     return `.settle_error = ${roundOff(value as number, 2)}`;
-            case "settle_time":      return `.settle_time = ${roundOff(value as number, 0)}`;
-            case "timeout":          return `.timeout = ${roundOff(value as number, 0)}`;
-            case "lead":             return `.lead = ${roundOff(value as number, 2)}`;
+            case "kp": return `.k.p = ${roundOff(value as number, 3)}`;
+            case "ki": return `.k.i = ${roundOff(value as number, 5)}`;
+            case "kd": return `.k.d = ${roundOff(value as number, 3)}`;
+            case "starti": return `.k.starti = ${roundOff(value as number, 2)}`;
+            case "max_voltage": return `.max_voltage = ${roundOff(value as number, 1)}`;
+            case "min_voltage": return `.min_voltage = ${roundOff(value as number, 1)}`;
+            case "settle_error": return `.settle_error = ${roundOff(value as number, 2)}`;
+            case "settle_time": return `.settle_time = ${roundOff(value as number, 0)}`;
+            case "timeout": return `.timeout = ${roundOff(value as number, 0)}`;
+            case "lead": return `.lead = ${roundOff(value as number, 2)}`;
             case "opposite_voltage": return `.opposite_voltage = ${roundOff(value as number, 1)}`;
             case "turn_direction":
                 if (value === "FASTEST") return "";
@@ -390,7 +392,7 @@ function kMikBuilder(kDefault: mikConstants[], constants: mikConstants[]): strin
         ? [
             ...buildList(kDefault[0], constants[0], keyToDriveConstant),
             ...buildList(kDefault[1], constants[1], keyToHeadingConstant),
-          ]
+        ]
         : buildList(kDefault[0], constants[0], keyToTurnConstant);
 
     if (constantsList.length === 0) return "";

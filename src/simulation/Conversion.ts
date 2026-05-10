@@ -14,12 +14,18 @@ export function convertPathToString<F extends Format, Segs extends Partial<Recor
 
         if (selected && !seg.selected) continue;
 
-        const x = roundOff(seg.pose.x, 2);
-        const y = roundOff(seg.pose.y, 2);
+        let x = roundOff(seg.pose.x, 2);
+        let y = roundOff(seg.pose.y, 2);
         const angle = roundOff(seg.pose.angle, 2);
         const k = seg.constants as typeof formatDef.constants;
         const kind = seg.kind as SegmentKind;
         const segDef = formatDef.segments[kind];
+
+        if (kind === "angleSwing" || kind === "pointSwing" || kind === "angleTurn" || kind === "pointTurn") {
+            const turn_pos = findPointToFace(path, idx);
+            x = roundOff(turn_pos.x, 2);
+            y = roundOff(turn_pos.y, 2);
+        }
 
         if (!segDef) continue;
 
@@ -112,7 +118,7 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
                         if (!started) {
                             DEBUG_printSegmentStart(idx, formatDef, kind);
                             const targetAngle = toDeg(Math.atan2(turn_pos.x - robot.getX(), turn_pos.y - robot.getY())) + angle;
-                            targetDist = Math.abs(angle_error(targetAngle - robot.getAngle(), null)!);
+                            targetDist = Math.abs(angle_error(targetAngle - robot.getAngle(), "FASTEST")!);
                             started = true;
                         }
                         DEBUG_printRobotState(robot, dt);
@@ -129,7 +135,7 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
                     (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
                         if (!started) {
                             DEBUG_printSegmentStart(idx, formatDef, kind);
-                            targetDist = Math.abs(angle_error(angle - robot.getAngle(), null)!);
+                            targetDist = Math.abs(angle_error(angle - robot.getAngle(), "FASTEST")!);
                             started = true;
                         }
                         DEBUG_printRobotState(robot, dt);
