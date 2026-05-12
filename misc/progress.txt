@@ -1,15 +1,14 @@
 Live Progress Txt
 
 Bugs:
-- make the group dropping css look better
 - control config not updating the path??
 - the robot does not snap to the starting point when pressing R
 - the robot timeline is not getting updated on all events, includes telemetry
 - copying a start segment makes it do funny things
-
+- you can add segments that are not start segments
+- lemlib turn segments do not flip the angle
 
 Todo:
-- Make it so when you paste in text that is a format ToString it will convert it to a segment
 - distance segments
 - instead of commands add a help button that provides path examples
 - Fix group css for distance traveled so it appears
@@ -23,8 +22,6 @@ Planned:
 
 Deciding:
 - make it so double clicking the eye turn off the path lines 
-- radial click animations
-- mode in settings to enable driver control so that way you can use drive curves, draws a path on screen
 
 Docs:
 - A better way to plan VEX Autonoumous - EthanMik Channel
@@ -37,9 +34,9 @@ lemlib notes
 rw notes
 - heading correction is separate
 
-Refactor Notes:
-- Constants are now arrays
-
-
+Formats Left: 
+- Jar
+- rw
+- EZ bruh
 
 

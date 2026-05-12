@@ -24,7 +24,7 @@ function reset_swing_to_angle() {
 export function swing_to_angle(robot: Robot, dt: number, angle: number, p: mikConstants[]) {
     const turn_p = p[0];
 
-    const raw_error = angle_error(angle - robot.getAngle(), "FASTEST");
+    const raw_error = angle_error(angle - robot.getAngle(), "fastest");
     let error = angle_error(angle - robot.getAngle(), turn_p.turn_direction);
 
     if (start) {
@@ -65,7 +65,7 @@ export function swing_to_angle(robot: Robot, dt: number, angle: number, p: mikCo
 
     const scale = output / turn_p.max_voltage;
 
-    if (turn_p.swing_direction === "LEFT") {
+    if (turn_p.swing_direction === "left") {
         robot.tankDrive(output / 12, (turn_p.opposite_voltage * scale) / 12, dt);
     } else {
         robot.tankDrive((-turn_p.opposite_voltage * scale) / 12, -output / 12, dt);

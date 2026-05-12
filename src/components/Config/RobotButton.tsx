@@ -202,6 +202,34 @@ export default function RobotButton() {
 
                             <div className="mt-0.5 flex flex-col gap-2">
                                 <div className="flex items-center gap-2">
+                                    <span className="text-[13px] text-gray-400 whitespace-nowrap">Expansion</span>
+                                    <div className="flex-1 border-t border-gray-500/40"></div>
+                                </div>
+                                {(["Front", "Left", "Right", "Rear"] as const).map((side) => {
+                                    const key = `expansion${side}` as "expansionFront" | "expansionLeft" | "expansionRight" | "expansionRear";
+                                    const updater = { Front: updateExpansionFront, Left: updateExpansionLeft, Right: updateExpansionRight, Rear: updateExpansionRear }[side];
+                                    return (
+                                        <div key={side} className="flex flex-row items-center justify-between">
+                                            <span className="text-[16px]">{side}</span>
+                                            <NumberInput
+                                                width={60}
+                                                height={35}
+                                                fontSize={16}
+                                                bounds={[0, 30]}
+                                                stepSize={0.5}
+                                                roundTo={2}
+                                                units="in"
+                                                value={robot[key]}
+                                                setValue={updater}
+                                                addToHistory={() => saveSnapshot()}
+                                            />
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            
+                            <div className="mt-0.5 flex flex-col gap-2">
+                                <div className="flex items-center gap-2">
                                     <span className="text-[13px] text-gray-400 whitespace-nowrap">CoG Offset</span>
                                     <div className="flex-1 border-t border-gray-500/40"></div>
                                 </div>
@@ -235,34 +263,6 @@ export default function RobotButton() {
                                         addToHistory={() => saveSnapshot()}
                                     />
                                 </div>
-                            </div>
-
-                            <div className="mt-0.5 flex flex-col gap-2">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[13px] text-gray-400 whitespace-nowrap">Expansion</span>
-                                    <div className="flex-1 border-t border-gray-500/40"></div>
-                                </div>
-                                {(["Front", "Left", "Right", "Rear"] as const).map((side) => {
-                                    const key = `expansion${side}` as "expansionFront" | "expansionLeft" | "expansionRight" | "expansionRear";
-                                    const updater = { Front: updateExpansionFront, Left: updateExpansionLeft, Right: updateExpansionRight, Rear: updateExpansionRear }[side];
-                                    return (
-                                        <div key={side} className="flex flex-row items-center justify-between">
-                                            <span className="text-[16px]">{side}</span>
-                                            <NumberInput
-                                                width={60}
-                                                height={35}
-                                                fontSize={16}
-                                                bounds={[0, 30]}
-                                                stepSize={0.5}
-                                                roundTo={2}
-                                                units="in"
-                                                value={robot[key]}
-                                                setValue={updater}
-                                                addToHistory={() => saveSnapshot()}
-                                            />
-                                        </div>
-                                    );
-                                })}
                             </div>
 
                             <div className="mt-0.5 flex flex-col gap-2">

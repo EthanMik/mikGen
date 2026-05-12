@@ -38,8 +38,8 @@ export function drive_to_pose(robot: Robot, dt: number, x: number, y: number, an
         headingPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, heading_p.timeout, 0);
         drive_max_speed = drive_p.max_voltage;
         const rawHeadingError = reduce_negative_180_to_180(toDeg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle());
-        reverse = drive_p.drive_direction === "REV";
-        if (drive_p.drive_direction === "FASTEST") reverse = Math.abs(rawHeadingError) > 100
+        reverse = drive_p.drive_direction === "reversed";
+        if (drive_p.drive_direction === "fastest") reverse = Math.abs(rawHeadingError) > 100
         start = false;
         prev_crossed_line = is_line_settled(x, y, angle, robot.getX(), robot.getY(), drive_p.exit_error);
     }

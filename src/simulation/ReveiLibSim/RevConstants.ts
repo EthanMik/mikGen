@@ -85,6 +85,7 @@ export const reveilLibDef = {
     kMaxSpeed: 1,
     formatPathName: "ReveilLib Path",
     kBuilder: kRevBuilder,
+    kParser: kRevParser,
     slider: { key: "maxSpeed", bounds: [0, 1], roundTo: 0.01 },
 
     segments: {
@@ -223,4 +224,31 @@ function kRevBuilder(kDefault: ReveilLibConstants[], constants: ReveilLibConstan
     constantsList[0] = "{" + constantsList[0];
     constantsList[constantsList.length - 1] += "}";
     return constantsList.join(", ");
+}
+
+function kRevParser(kDefault: ReveilLibConstants[], kBuilderStr: string): [ReveilLibConstants, ...ReveilLibConstants[]] {
+    const constants = kDefault.map(k => ({ ...k })) as [ReveilLibConstants, ...ReveilLibConstants[]];
+    if (!kBuilderStr.trim()) return constants;
+
+    const inner = kBuilderStr.trim().slice(1, -1);
+    const entries = inner.split(/,\s*(?=\.)/);
+
+    for (const entry of entries) {
+        const match = entry.trim().match(/^\.(.+?)\s*=\s*(.+)$/);
+        if (!match) continue;
+        const [, rawKey, rawValue] = match;
+        const num = parseFloat(rawValue);
+
+        if      (rawKey === "speed")      constants[0].maxSpeed = num;
+        else if (rawKey === "min")        constants[0].stopCoastPower = num;
+        else if (rawKey === "correction") constants[0].kCorrection = num;
+        else if (rawKey === "error")      constants[0].maxError = num;
+        else if (rawKey === "coast")      constants[0].stopCoastThreshold = num;
+        else if (rawKey === "harsh")      constants[0].stopHarshThreshold = num;
+        else if (rawKey === "time")       constants[0].brakeTime = num;
+        else if (rawKey === "lead")       constants[0].lead = num;
+        else if (rawKey === "drop_early") constants[0].dropEarly = num;
+    }
+
+    return constants;
 }

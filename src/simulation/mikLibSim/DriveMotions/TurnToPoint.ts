@@ -26,7 +26,7 @@ export function turn_to_point(robot: Robot, dt: number, x: number, y: number, of
 
     const angle = toDeg(Math.atan2(x - robot.getX(), y - robot.getY())) + offset;
 
-    const raw_error = angle_error(angle - robot.getAngle(), "FASTEST");
+    const raw_error = angle_error(angle - robot.getAngle(), "fastest");
     let error = angle_error(angle - robot.getAngle(), turn_p.turn_direction);
 
     if (start) {

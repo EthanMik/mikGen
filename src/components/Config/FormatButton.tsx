@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useFormat, fileFormatStore, type Format, useFormatDef } from "../../hooks/useFileFormat";
+import { useFormat, fileFormatStore, type Format } from "../../hooks/useFileFormat";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import { FORMAT_REGISTRY, getDefaultConstants, type FormatDef } from "../../simulation/FormatDefinition";
 

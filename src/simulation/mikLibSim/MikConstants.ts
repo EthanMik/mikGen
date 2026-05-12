@@ -34,9 +34,9 @@ export interface mikConstants {
     slew: number,
     lead: number,
 
-    turn_direction: "FASTEST" | "CW" | "CCW",
-    drive_direction: "FASTEST" | "FWD" | "REV",
-    swing_direction: "LEFT" | "RIGHT",
+    turn_direction: "fastest" | "cw" | "ccw",
+    drive_direction: "fastest" | "forwards" | "reversed",
+    swing_direction: "left" | "right",
     opposite_voltage: number,
 }
 
@@ -58,9 +58,9 @@ export const kMikDrive: mikConstants = {
     drift: 2,
     lead: 0.5,
 
-    turn_direction: "FASTEST",
-    drive_direction: "FASTEST",
-    swing_direction: "LEFT",
+    turn_direction: "fastest",
+    drive_direction: "fastest",
+    swing_direction: "left",
     opposite_voltage: 0,
 }
 
@@ -82,9 +82,9 @@ export const kMikHeading: mikConstants = {
     slew: 0,
     lead: 0,
 
-    turn_direction: "FASTEST",
-    drive_direction: "FASTEST",
-    swing_direction: "LEFT",
+    turn_direction: "fastest",
+    drive_direction: "fastest",
+    swing_direction: "left",
     opposite_voltage: 0,
 }
 
@@ -106,9 +106,9 @@ export const kMikTurn: mikConstants = {
     drift: 0,
     lead: 0,
 
-    turn_direction: "FASTEST",
-    drive_direction: "FASTEST",
-    swing_direction: "LEFT",
+    turn_direction: "fastest",
+    drive_direction: "fastest",
+    swing_direction: "left",
     opposite_voltage: 0,
 }
 
@@ -130,9 +130,9 @@ export const kMikSwing: mikConstants = {
     slew: 0,
     lead: 0,
 
-    turn_direction: "FASTEST",
-    drive_direction: "FASTEST",
-    swing_direction: "LEFT",
+    turn_direction: "fastest",
+    drive_direction: "fastest",
+    swing_direction: "left",
     opposite_voltage: 0,
 }
 
@@ -160,26 +160,26 @@ type CycleButton = Omit<CycleButtonField<"mikLib">, "constantsIdx">;
 const driveDirectionButton: CycleButton = {
     key: "drive_direction",
     keyValues: [
-        { srcImg: fastest, value: "FASTEST" },
-        { srcImg: fwd, value: "FWD" },
-        { srcImg: rev, value: "REV" },
+        { srcImg: fastest, value: "fastest" },
+        { srcImg: fwd, value: "forwards" },
+        { srcImg: rev, value: "reversed" },
     ],
 };
 
 const turnDirectionButton: CycleButton = {
     key: "turn_direction",
     keyValues: [
-        { srcImg: cw, value: "CW" },
-        { srcImg: ccw, value: "CCW" },
-        { srcImg: cwccw, value: "FASTEST" },
+        { srcImg: cw, value: "cw" },
+        { srcImg: ccw, value: "ccw" },
+        { srcImg: cwccw, value: "fastest" },
     ],
 };
 
 const swingDirectionButton: CycleButton = {
     key: "swing_direction",
     keyValues: [
-        { srcImg: rightswing, value: "RIGHT" },
-        { srcImg: leftswing, value: "LEFT" },
+        { srcImg: rightswing, value: "right" },
+        { srcImg: leftswing, value: "left" },
     ],
 };
 
@@ -188,6 +188,7 @@ export const mikLibDef = {
     kMaxSpeed: 12,
     formatPathName: "mikLib Path",
     kBuilder: kMikBuilder,
+    kParser: kMikParser,
     slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1 },
 
     segments: {
@@ -195,7 +196,7 @@ export const mikLibDef = {
             name: "Start",
             exists: true,
             defaults: [kMikDrive],
-            toStringTemplate: "chassis.set_position(${x}, ${y}, ${angle});",
+            toStringTemplate: "chassis.set_coordinates(${x}, ${y}, ${angle});",
             simFn: (robot, _dt, x, y, angle) => robot.setPose(x, y, angle),
             cycleButtons: [],
             numberInputs: [],
@@ -287,7 +288,7 @@ export const mikLibDef = {
             name: "Swing to Angle",
             exists: true,
             defaults: [kMikSwing],
-            toStringTemplate: "chassis.swing_to_angle(${angle}, ${kBuilder});",
+            toStringTemplate: "chassis.${swing_direction}_swing_to_angle(${angle}, ${kBuilder});",
             simFn: (robot, dt, _x, _y, angle, constants) => swing_to_angle(robot, dt, angle, constants),
             cycleButtons: [
                 { constantsIdx: 0, ...swingDirectionButton },
@@ -303,7 +304,7 @@ export const mikLibDef = {
             name: "Swing to Point",
             exists: true,
             defaults: [kMikSwing],
-            toStringTemplate: "chassis.swing_to_point(${x}, ${y}, ${kBuilder});",
+            toStringTemplate: "chassis.${swing_direction}_swing_to_point(${x}, ${y}, ${kBuilder});",
             simFn: (robot, dt, x, y, angle, constants) => swing_to_point(robot, dt, x, y, angle, constants),
             cycleButtons: [
                 { constantsIdx: 0, ...swingDirectionButton },
@@ -334,7 +335,7 @@ function kMikBuilder(kDefault: mikConstants[], constants: mikConstants[]): strin
             case "slew": return `.slew = ${roundOff(value as number, 2)}`;
             case "exit_error": return `.exit_error = ${roundOff(value as number, 2)}`;
             case "drive_direction":
-                if (value === "FASTEST") return "";
+                if (value === "fastest") return "";
                 return `.drive_direction = mik::${value}`;
         }
         return "";
@@ -365,7 +366,7 @@ function kMikBuilder(kDefault: mikConstants[], constants: mikConstants[]): strin
             case "lead": return `.lead = ${roundOff(value as number, 2)}`;
             case "opposite_voltage": return `.opposite_voltage = ${roundOff(value as number, 1)}`;
             case "turn_direction":
-                if (value === "FASTEST") return "";
+                if (value === "fastest") return "";
                 return `.turn_direction = mik::${value}`;
         }
         return "";
@@ -400,4 +401,59 @@ function kMikBuilder(kDefault: mikConstants[], constants: mikConstants[]): strin
     constantsList[0] = "{" + constantsList[0];
     constantsList[constantsList.length - 1] += "}";
     return constantsList.join(", ");
+}
+
+function kMikParser(kDefault: mikConstants[], kBuilderStr: string): [mikConstants, ...mikConstants[]] {
+    const constants = kDefault.map(k => ({ ...k })) as [mikConstants, ...mikConstants[]];
+    if (!kBuilderStr.trim()) return constants;
+
+    const inner = kBuilderStr.trim().slice(1, -1); // strip { }
+    const entries = inner.split(/,\s*(?=\.)/);      // split only before "." keys
+
+    const isDrive = kDefault.length >= 2;
+
+    for (const entry of entries) {
+        const match = entry.trim().match(/^\.(.+?)\s*=\s*(.+)$/);
+        if (!match) continue;
+        const [, rawKey, rawValue] = match;
+        const num = parseFloat(rawValue);
+
+        if (isDrive) {
+            if      (rawKey === "drive_k.p")          constants[0].kp = num;
+            else if (rawKey === "drive_k.i")          constants[0].ki = num;
+            else if (rawKey === "drive_k.d")          constants[0].kd = num;
+            else if (rawKey === "drive_k.starti")     constants[0].starti = num;
+            else if (rawKey === "max_voltage")        constants[0].max_voltage = num;
+            else if (rawKey === "min_voltage")        constants[0].min_voltage = num;
+            else if (rawKey === "drift")              constants[0].drift = num;
+            else if (rawKey === "lead")               constants[0].lead = num;
+            else if (rawKey === "settle_error")       constants[0].settle_error = num;
+            else if (rawKey === "settle_time")        constants[0].settle_time = num;
+            else if (rawKey === "timeout")            constants[0].timeout = num;
+            else if (rawKey === "slew")               constants[0].slew = num;
+            else if (rawKey === "exit_error")         constants[0].exit_error = num;
+            else if (rawKey === "drive_direction")    constants[0].drive_direction = rawValue.replace("mik::", "") as mikConstants["drive_direction"];
+            else if (rawKey === "heading_k.p")        constants[1].kp = num;
+            else if (rawKey === "heading_k.i")        constants[1].ki = num;
+            else if (rawKey === "heading_k.d")        constants[1].kd = num;
+            else if (rawKey === "heading_k.starti")   constants[1].starti = num;
+            else if (rawKey === "heading_max_voltage") constants[1].max_voltage = num;
+        } else {
+            if      (rawKey === "k.p")              constants[0].kp = num;
+            else if (rawKey === "k.i")              constants[0].ki = num;
+            else if (rawKey === "k.d")              constants[0].kd = num;
+            else if (rawKey === "k.starti")         constants[0].starti = num;
+            else if (rawKey === "max_voltage")      constants[0].max_voltage = num;
+            else if (rawKey === "min_voltage")      constants[0].min_voltage = num;
+            else if (rawKey === "settle_error")     constants[0].settle_error = num;
+            else if (rawKey === "settle_time")      constants[0].settle_time = num;
+            else if (rawKey === "timeout")          constants[0].timeout = num;
+            else if (rawKey === "lead")             constants[0].lead = num;
+            else if (rawKey === "opposite_voltage") constants[0].opposite_voltage = num;
+            else if (rawKey === "turn_direction")   constants[0].turn_direction = rawValue.replace("mik::", "") as mikConstants["turn_direction"];
+            else if (rawKey === "swing_direction")  constants[0].swing_direction = rawValue.replace("mik::", "") as mikConstants["swing_direction"];
+        }
+    }
+
+    return constants;
 }

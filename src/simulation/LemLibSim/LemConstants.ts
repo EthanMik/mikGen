@@ -147,6 +147,7 @@ export const LemLibDef = {
     kMaxSpeed: 127,
     formatPathName: "LemLib Path",
     kBuilder: kLemBuilder,
+    kParser: kLemParser,
     slider: { key: "maxSpeed", bounds: [0, 127], roundTo: 1 },
 
     segments: {
@@ -307,4 +308,29 @@ function kLemBuilder(kDefault: LemConstants[], constants: LemConstants[]): strin
     }
     if (constantsList.length > 0) constantsList[constantsList.length - 1] += "}";
     return constantsList.map((c) => `${c}`).join(", ");
+}
+
+function kLemParser(kDefault: LemConstants[], kBuilderStr: string): [LemConstants, ...LemConstants[]] {
+    const constants = kDefault.map(k => ({ ...k })) as [LemConstants, ...LemConstants[]];
+    if (!kBuilderStr.trim()) return constants;
+
+    const inner = kBuilderStr.trim().slice(1, -1);
+    const entries = inner.split(/,\s*(?=\.)/);
+
+    for (const entry of entries) {
+        const match = entry.trim().match(/^\.(.+?)\s*=\s*(.+)$/);
+        if (!match) continue;
+        const [, rawKey, rawValue] = match;
+        const num = parseFloat(rawValue);
+
+        if      (rawKey === "forwards")        constants[0].forwards = rawValue.trim() === "true";
+        else if (rawKey === "direction")       constants[0].direction = rawValue.trim() as LemConstants["direction"];
+        else if (rawKey === "horizontalDrift") constants[0].horizontalDrift = num;
+        else if (rawKey === "lead")            constants[0].lead = num;
+        else if (rawKey === "maxSpeed")        constants[0].maxSpeed = num;
+        else if (rawKey === "minSpeed")        constants[0].minSpeed = num;
+        else if (rawKey === "earlyExitRange")  constants[0].earlyExitRange = num;
+    }
+
+    return constants;
 }

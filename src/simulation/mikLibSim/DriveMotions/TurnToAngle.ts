@@ -24,7 +24,7 @@ function reset_turn_to_angle() {
 export function turn_to_angle(robot: Robot, dt: number, angle: number, p: mikConstants[]) {
     const turn_p = p[0];
 
-    const raw_error = angle_error(angle - robot.getAngle(), "FASTEST");
+    const raw_error = angle_error(angle - robot.getAngle(), "fastest");
     let error = angle_error(angle - robot.getAngle(), turn_p.turn_direction);
 
     if (start) {

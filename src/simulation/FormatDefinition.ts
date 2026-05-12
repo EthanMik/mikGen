@@ -40,6 +40,7 @@ export type FormatDef<F extends Format, Segs extends Partial<Record<SegmentKind,
     slider: SliderField<F>;
     segments: Segs;
     kBuilder?: (kDefault: SegmentConstants<F>, k: SegmentConstants<F>) => string;
+    kParser?: (kDefault: SegmentConstants<F>, kBuilderStr: string) => SegmentConstants<F>;
 };
 
 export type SegmentDef<F extends Format = Format> = {
@@ -124,7 +125,7 @@ export function mergeFormatDef(registry: FormatDef<Format>, saved: unknown): For
         const reg = segs[k as SegmentKind];
         if (reg) segs[k as SegmentKind] = { ...reg, ...(v as object), simFn: reg.simFn };
     }
-    return { ...registry, ...s, kBuilder: registry.kBuilder, segments: segs } as FormatDef<Format>;
+    return { ...registry, ...s, kBuilder: registry.kBuilder, kParser: registry.kParser, segments: segs } as FormatDef<Format>;
 }
 
 export function getDefaultConstants<F extends Format>(formatDef: FormatDef<Format> | undefined, format: F, kind: SegmentKind): SegmentConstants<F> {
