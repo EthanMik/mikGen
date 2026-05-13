@@ -10,6 +10,7 @@ type TextInputProps = {
   setValue: (value: string) => void;
   units?: string;
   focus?: boolean;
+  position?: string;
   setText?: (text: string) => void;
 };
 
@@ -22,6 +23,7 @@ export default function TextInput({
   focus,
   setValue,
   setText,
+  position = "center",
   units = "",
 }: TextInputProps) {
   const [edit, setEdit] = useState<string>(value);
@@ -119,7 +121,7 @@ export default function TextInput({
     <div className="relative inline-block group">
       <input
         ref={inputRef}
-        className="bg-blackgray rounded-lg text-center text-white outline-none"
+        className={`bg-blackgray rounded-lg text-${position} text-white outline-none pl-4 pr-4`}
         style={{ fontSize: `${fontSize}px`, width: `${width}px`, height: `${height}px` }}
         type="text"
         value={displayRef.current}

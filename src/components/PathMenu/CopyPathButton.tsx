@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { usePath } from "../../hooks/usePath";
 import { convertPathToString } from "../../simulation/Conversion";
-import { useFormat } from "../../hooks/useFormat";
 import FieldMacros from "../../macros/FieldMacros";
+import { fileFormatStore, usePath } from "../../hooks/useFileFormat";
+import EditJSONPopup from "./EditJSONPopup";
 
 function CopyIcon({ className }: { className?: string }) {
   const href =
@@ -28,18 +28,16 @@ function CopyIcon({ className }: { className?: string }) {
 
 export default function CopyPathButton() {
   const [isOpen, setOpen] = useState(false);
+  const [ popupOpen, setPopupOpen ] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const [ pathFormat,  ] = useFormat();
-  const [path] = usePath();
+  const fileFormat = fileFormatStore.useStore();
 
   const [flash, setFlash] = useState(false);
   const flashTimeoutRef = useRef<number | null>(null);
 
-  const pathRef = useRef(path);
-  const formatRef = useRef(pathFormat);
+  const pathRef = useRef(fileFormat.path);
 
-  useEffect(() => { pathRef.current = path; }, [path]);
-  useEffect(() => { formatRef.current = pathFormat; }, [pathFormat]);
+  useEffect(() => { pathRef.current = fileFormat.path; }, [fileFormat.path]);
 
   const triggerFlash = () => {
     setFlash(true);
@@ -49,17 +47,22 @@ export default function CopyPathButton() {
 
   const handleToggleMenu = () => setOpen((prev) => !prev);
 
+  const [, setPath] = usePath();
+
   const {
     copyAllPath,
-    copySelectedPath
+    copySelectedPath,
+    cut,
+    cutSelectedSegments,
   } = FieldMacros();
 
   useEffect(() => {
       const handleKeyDown = (evt: KeyboardEvent) => {
           const target = evt.target as HTMLElement | null;
           if (target?.isContentEditable || target?.tagName === "INPUT") return;
-          copyAllPath(evt, pathRef.current, formatRef.current, triggerFlash);
-          copySelectedPath(evt, pathRef.current, formatRef.current, triggerFlash);
+          copyAllPath(evt, pathRef.current, triggerFlash);
+          copySelectedPath(evt, pathRef.current, triggerFlash);
+          cut(evt, pathRef.current, setPath);
       }
 
       document.addEventListener('keydown', handleKeyDown)
@@ -71,16 +74,22 @@ export default function CopyPathButton() {
 
   const copyAllOnClick = () => {
     triggerFlash();
-    const out = convertPathToString(path, pathFormat);
+    const out = convertPathToString(fileFormat.formatDef, fileFormat.path);
     setOpen(false);
     navigator.clipboard.writeText(out ?? "");
   };
-  
+
   const copySelectedOnClick = () => {
     triggerFlash();
-    const out = convertPathToString(path, pathFormat, true);
+    const out = convertPathToString(fileFormat.formatDef, fileFormat.path, true);
     setOpen(false);
     navigator.clipboard.writeText(out ?? "");
+  };
+
+  const cutSelectedOnClick = () => {
+    triggerFlash();
+    setOpen(false);
+    cutSelectedSegments(pathRef.current, setPath);
   };
 
   useEffect(() => {
@@ -117,6 +126,13 @@ export default function CopyPathButton() {
         />
       </button>
 
+      {popupOpen && <EditJSONPopup 
+          label={""}
+          open={popupOpen}
+          setOpen={setPopupOpen}
+          onEnter={() => {}}
+      />}
+
       {isOpen && (
         <div
           className="absolute shadow-xs mt-1 shadow-black right-0 top-full w-50 z-40
@@ -137,6 +153,24 @@ export default function CopyPathButton() {
             >
               <span className="text-[16px]">Copy Selected</span>
               <span className="text-[14px] text-lightgray">Ctrl+C</span>
+            </button>
+
+            <button
+              className="flex justify-between px-2 py-1 hover:bg-blackgrayhover rounded-sm"
+              onClick={cutSelectedOnClick}
+            >
+              <span className="text-[16px]">Cut Selected</span>
+              <span className="text-[14px] text-lightgray">Ctrl+X</span>
+            </button>
+
+            <button
+              className="flex justify-between px-2 py-1 hover:bg-blackgrayhover rounded-sm"
+              onClick={() => {
+                setOpen(false);
+                setPopupOpen(true);
+              }}
+            >
+              <span className="text-[16px]">Edit Templates</span>
             </button>
           </div>
         </div>

@@ -1,64 +1,63 @@
 import { useEffect, useRef, useState } from "react";
 import Checkbox from "../Util/Checkbox";
 import NumberInput from "../Util/NumberInput";
-import { robotConstantsStore } from "../../core/Robot";
-import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
-import { useFormat, type Format } from "../../hooks/useFormat";
-import { usePath } from "../../hooks/usePath";
-import { getDefaultConstants, globalDefaultsStore } from "../../simulation/InitialDefaults";
+import { useFormat, usePath, mergeRobot, fileFormatStore, type Format, useFormatDef } from "../../hooks/useFileFormat";
+import { saveSnapshot } from "../../core/Undo/UndoHistory";
+import { FORMAT_REGISTRY, getDefaultConstants, type FormatDef } from "../../simulation/FormatDefinition";
 
 export default function RobotButton() {
     const [ , setPath ] = usePath();
     const [ format, setFormat ] = useFormat();
-    
+    const formatDef = useFormatDef();
+
     const [ isOpen, setOpen ] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
     const prevFormatRef = useRef<Format>(format);
-    
-    const robot =  robotConstantsStore.useStore();
-    
-    const updateOmnis = (omni: boolean) => {
-        robotConstantsStore.merge({ isOmni: omni });
-    }
+
+    const robot = fileFormatStore.useSelector(s => s.robot);
+
+    // const updateOmnis = (omni: boolean) => {
+    //     mergeRobot({ isOmni: omni });
+    // }
 
     const updateWidth = (width: number | null) => {
         if (width !== null) {
-            robotConstantsStore.merge({ width: width });   
+            mergeRobot({ width: width });
         }
     }
-    
+
     const updateHeight = (height: number | null) => {
         if (height !== null) {
-            robotConstantsStore.merge({ height: height });
+            mergeRobot({ height: height });
         }
     }
-    
+
     const updateSpeed = (speed: number | null) => {
         if (speed !== null) {
-            robotConstantsStore.merge({ speed: speed });
+            mergeRobot({ speed: speed });
         }
     }
-    
+
     const updateLateralTau = (v: number | null) => {
-        if (v !== null) robotConstantsStore.merge({ lateralTau: v });
+        if (v !== null) mergeRobot({ lateralTau: v });
     }
 
     const updateAngularTau = (v: number | null) => {
-        if (v !== null) robotConstantsStore.merge({ angularTau: v });
+        if (v !== null) mergeRobot({ angularTau: v });
     }
 
     const updateCogOffsetX = (v: number | null) => {
-        if (v !== null) robotConstantsStore.merge({ cogOffsetX: v });
+        if (v !== null) mergeRobot({ cogOffsetX: v });
     }
 
     const updateCogOffsetY = (v: number | null) => {
-        if (v !== null) robotConstantsStore.merge({ cogOffsetY: v });
+        if (v !== null) mergeRobot({ cogOffsetY: v });
     }
 
-    const updateExpansionFront  = (v: number | null) => { if (v !== null) robotConstantsStore.merge({ expansionFront: v }); }
-    const updateExpansionLeft   = (v: number | null) => { if (v !== null) robotConstantsStore.merge({ expansionLeft: v }); }
-    const updateExpansionRight  = (v: number | null) => { if (v !== null) robotConstantsStore.merge({ expansionRight: v }); }
-    const updateExpansionRear   = (v: number | null) => { if (v !== null) robotConstantsStore.merge({ expansionRear: v }); }
+    const updateExpansionFront  = (v: number | null) => { if (v !== null) mergeRobot({ expansionFront: v }); }
+    const updateExpansionLeft   = (v: number | null) => { if (v !== null) mergeRobot({ expansionLeft: v }); }
+    const updateExpansionRight  = (v: number | null) => { if (v !== null) mergeRobot({ expansionRight: v }); }
+    const updateExpansionRear   = (v: number | null) => { if (v !== null) mergeRobot({ expansionRear: v }); }
 
     const handleToggleMenu = () => {
         setOpen((prev) => !prev)
@@ -88,32 +87,23 @@ export default function RobotButton() {
     }, []);
 
 
-    const changeFormat = (format: Format) => {
-        setFormat(format);
-        setPath(prev => {
-            const newPath = {
-                ...prev,
-                segments: prev.segments.map((s) => ({
+    const changeFormat = (newFormat: Format) => {
+        const changed = prevFormatRef.current !== newFormat;
+        fileFormatStore.setState(prev => ({
+            ...prev,
+            format: newFormat,
+            formatDef: FORMAT_REGISTRY[newFormat] as FormatDef<Format>,
+            path: {
+                ...prev.path,
+                segments: prev.path.segments.map(s => ({
                     ...s,
-                    format: format,
-                    constants: getDefaultConstants(format, s.kind),
-                }))
-            }
-
-            if (prevFormatRef.current !== format) {
-                AddToUndoHistory({
-                    format: format,
-                    defaults: structuredClone(globalDefaultsStore.getState()[format]),
-                    path: newPath,
-                });
-            }
-
-            return {
-                ...newPath
-            };
-        });
-
-        prevFormatRef.current = format;
+                    format: newFormat,
+                    constants: getDefaultConstants(undefined, newFormat, s.kind),
+                })),
+            },
+        }));
+        if (changed) saveSnapshot();
+        prevFormatRef.current = newFormat;
     };
 
     return (
@@ -141,7 +131,7 @@ export default function RobotButton() {
                                         units="in"
                                         value={robot.width} 
                                         setValue={updateWidth} 
-                                        addToHistory={(width: number) => AddToUndoHistory({robot: {...robot, width: width}})}
+                                        addToHistory={() => saveSnapshot()}
                                     />
                             </div>
 
@@ -157,7 +147,7 @@ export default function RobotButton() {
                                         units="in"
                                         value={robot.height} 
                                         setValue={updateHeight} 
-                                        addToHistory={(height: number) => AddToUndoHistory({robot: {...robot, height: height}})}
+                                        addToHistory={() => saveSnapshot()}
                                     />
                             </div>
 
@@ -173,7 +163,7 @@ export default function RobotButton() {
                                         units="ft/s"
                                         value={robot.speed} 
                                         setValue={updateSpeed} 
-                                        addToHistory={(speed: number) => AddToUndoHistory( { robot: { ...robot, speed: speed}} )}
+                                        addToHistory={() => saveSnapshot()}
                                     />
                             </div>
 
@@ -194,7 +184,7 @@ export default function RobotButton() {
                                         units="s"
                                         value={robot.lateralTau}
                                         setValue={updateLateralTau}
-                                        addToHistory={(v: number) => AddToUndoHistory({ robot: { ...robot, lateralTau: v } })}
+                                        addToHistory={() => saveSnapshot()}
                                     />
                                 </div>
                                 <div className="flex flex-row items-center justify-between">
@@ -209,44 +199,7 @@ export default function RobotButton() {
                                         units="s"
                                         value={robot.angularTau}
                                         setValue={updateAngularTau}
-                                        addToHistory={(v: number) => AddToUndoHistory({ robot: { ...robot, angularTau: v } })}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="mt-0.5 flex flex-col gap-2">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[13px] text-gray-400 whitespace-nowrap">CoG Offset</span>
-                                    <div className="flex-1 border-t border-gray-500/40"></div>
-                                </div>
-                                <div className="flex flex-row items-center justify-between">
-                                    <span className="text-[16px]">Lateral</span>
-                                    <NumberInput
-                                        width={60}
-                                        height={35}
-                                        fontSize={16}
-                                        bounds={[-15, 15]}
-                                        stepSize={0.5}
-                                        roundTo={2}
-                                        units="in"
-                                        value={robot.cogOffsetX}
-                                        setValue={updateCogOffsetX}
-                                        addToHistory={(v: number) => AddToUndoHistory({ robot: { ...robot, cogOffsetX: v } })}
-                                    />
-                                </div>
-                                <div className="flex flex-row items-center justify-between">
-                                    <span className="text-[16px]">Forward</span>
-                                    <NumberInput
-                                        width={60}
-                                        height={35}
-                                        fontSize={16}
-                                        bounds={[-15, 15]}
-                                        stepSize={0.5}
-                                        roundTo={2}
-                                        units="in"
-                                        value={robot.cogOffsetY}
-                                        setValue={updateCogOffsetY}
-                                        addToHistory={(v: number) => AddToUndoHistory({ robot: { ...robot, cogOffsetY: v } })}
+                                        addToHistory={() => saveSnapshot()}
                                     />
                                 </div>
                             </div>
@@ -272,14 +225,51 @@ export default function RobotButton() {
                                                 units="in"
                                                 value={robot[key]}
                                                 setValue={updater}
-                                                addToHistory={(v: number) => AddToUndoHistory({ robot: { ...robot, [key]: v } })}
+                                                addToHistory={() => saveSnapshot()}
                                             />
                                         </div>
                                     );
                                 })}
                             </div>
-
+                            
                             <div className="mt-0.5 flex flex-col gap-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[13px] text-gray-400 whitespace-nowrap">CoG Offset</span>
+                                    <div className="flex-1 border-t border-gray-500/40"></div>
+                                </div>
+                                <div className="flex flex-row items-center justify-between">
+                                    <span className="text-[16px]">Lateral</span>
+                                    <NumberInput
+                                        width={60}
+                                        height={35}
+                                        fontSize={16}
+                                        bounds={[-15, 15]}
+                                        stepSize={0.5}
+                                        roundTo={2}
+                                        units="in"
+                                        value={robot.cogOffsetX}
+                                        setValue={updateCogOffsetX}
+                                        addToHistory={() => saveSnapshot()}
+                                    />
+                                </div>
+                                <div className="flex flex-row items-center justify-between">
+                                    <span className="text-[16px]">Forward</span>
+                                    <NumberInput
+                                        width={60}
+                                        height={35}
+                                        fontSize={16}
+                                        bounds={[-15, 15]}
+                                        stepSize={0.5}
+                                        roundTo={2}
+                                        units="in"
+                                        value={robot.cogOffsetY}
+                                        setValue={updateCogOffsetY}
+                                        addToHistory={() => saveSnapshot()}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* <div className="mt-0.5 flex flex-col gap-2">
                                 <div className="flex items-center gap-2">
                                     <span className="text-[13px] text-gray-400 whitespace-nowrap">Lateral Friction</span>
                                     <div className="flex-1 border-t border-gray-500/40"></div>
@@ -289,22 +279,22 @@ export default function RobotButton() {
                                     <label className="flex items-center gap-2 cursor-pointer select-none">
                                         <Checkbox checked={robot.isOmni} setChecked={(checked: boolean) => {
                                             updateOmnis(checked);
-                                            AddToUndoHistory({robot: {...robot, isOmni: checked}});
+                                            saveSnapshot();
                                         }} />
                                     </label>
                                 </div>
-                            </div>
+                            </div> */}
 
-                            {(format === "ReveilLib" || format === "RevMecanum") &&  <div className="mt-0.5 flex flex-col gap-2">
+                            {(format === "mikLib" || format === "Holonomic") &&  <div className="mt-0.5 flex flex-col gap-2">
                                 <div className="flex items-center gap-2">
                                     <span className="text-[13px] text-gray-400 whitespace-nowrap">Robot Type</span>
                                     <div className="flex-1 border-t border-gray-500/40"></div>
                                 </div>
                                 <div className="flex flex-row items-center justify-between h-[35px]">
-                                    <span className="text-[16px]">Mecanum</span>
+                                    <span className="text-[16px]">Holonomic</span>
                                     <label className="flex items-center gap-2 cursor-pointer select-none">
-                                        <Checkbox checked={format === "RevMecanum"} setChecked={(checked: boolean) => {
-                                            changeFormat(checked ? "RevMecanum" : "ReveilLib");
+                                        <Checkbox checked={format === "Holonomic"} setChecked={(checked: boolean) => {
+                                            changeFormat(checked ? "Holonomic" : "mikLib");
                                         }} />
                                     </label>
                                 </div>

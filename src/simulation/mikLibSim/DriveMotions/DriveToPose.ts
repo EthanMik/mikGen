@@ -1,6 +1,6 @@
 import type { Robot } from "../../../core/Robot";
 import { clamp, normalizeDeg, toDeg, toRad } from "../../../core/Util";
-import { kMikLibSpeed, type mikConstants } from "../MikConstants";
+import { type mikConstants } from "../MikConstants";
 import { PID } from "../PID";
 import { clamp_max_slip, clamp_min_voltage, is_line_settled, left_voltage_scaling, overturn_scaling, reduce_negative_180_to_180, right_voltage_scaling, slew_scaling } from "../Util";
 
@@ -18,7 +18,7 @@ let headingPID: PID;
 
 let start = true;
 
-function resetDriveToPose() {
+function reset_drive_to_pose() {
     drivePID.reset();
     headingPID.reset();
     crossed_line = false;
@@ -29,19 +29,23 @@ function resetDriveToPose() {
     start = true;
 }
 
-export function driveToPose(robot: Robot, dt: number, x: number, y: number, angle: number, drive_p: mikConstants, heading_p: mikConstants): boolean {
+export function drive_to_pose(robot: Robot, dt: number, x: number, y: number, angle: number, p: mikConstants[]): boolean {
+    const drive_p = p[0];
+    const heading_p = p[1];
+    
     if (start) {
         drivePID = new PID(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
         headingPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, heading_p.timeout, 0);
-        drive_max_speed = drive_p.maxSpeed;
+        drive_max_speed = drive_p.max_voltage;
         const rawHeadingError = reduce_negative_180_to_180(toDeg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle());
-        reverse = Math.abs(rawHeadingError) > 100;
+        reverse = drive_p.drive_direction === "reversed";
+        if (drive_p.drive_direction === "fastest") reverse = Math.abs(rawHeadingError) > 100
         start = false;
         prev_crossed_line = is_line_settled(x, y, angle, robot.getX(), robot.getY(), drive_p.exit_error);
     }
 
     if (drivePID.isSettled()) {
-        resetDriveToPose();
+        reset_drive_to_pose();
         return true;
     }
 
@@ -60,10 +64,9 @@ export function driveToPose(robot: Robot, dt: number, x: number, y: number, angl
     const line_settled = is_line_settled(x, y, angle, robot.getX(), robot.getY(), drive_p.exit_error);
     const carrot_settled = is_line_settled(x, y, angle, carrot_X, carrot_Y, drive_p.exit_error);
     crossed_line = line_settled === carrot_settled;
-    console.log(line_settled, carrot_settled, crossed_line, prev_crossed_line, settling);
 
     if (!crossed_line && prev_crossed_line && settling && drive_p.min_voltage > 0) {
-        resetDriveToPose();
+        reset_drive_to_pose();
         return true;
     }
     prev_crossed_line = crossed_line;
@@ -87,7 +90,7 @@ export function driveToPose(robot: Robot, dt: number, x: number, y: number, angl
     let drive_output = drivePID.compute(drive_error);
     let heading_output = headingPID.compute(heading_error);
 
-    heading_output = clamp(heading_output, -heading_p.maxSpeed, heading_p.maxSpeed);
+    heading_output = clamp(heading_output, -heading_p.max_voltage, heading_p.max_voltage);
 
     drive_output = clamp(drive_output, -drive_max_speed, drive_max_speed);
     drive_output = slew_scaling(drive_output, prev_drive_output, drive_p.slew * (dt / 0.01), !settling);
@@ -102,8 +105,8 @@ export function driveToPose(robot: Robot, dt: number, x: number, y: number, angl
     prev_drive_output = drive_output;
 
     robot.tankDrive(
-        left_voltage_scaling(drive_output, heading_output) / kMikLibSpeed,
-        right_voltage_scaling(drive_output, heading_output) / kMikLibSpeed,
+        left_voltage_scaling(drive_output, heading_output) / 12,
+        right_voltage_scaling(drive_output, heading_output) / 12,
         dt
     );
 

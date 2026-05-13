@@ -1,201 +1,200 @@
-// import { roundOff } from "../core/Util";
-// import type { Format } from "../hooks/useFormat";
-// import { type SegmentKind } from "./InitialDefaults";
-// import type { LemConstants, LemAngularConstants, LemMoveConstants } from "./LemLibSim/LemConstants";
-// import { moveToPoint, resetMoveToPoint } from "./LemLibSim/DriveMotions/MoveToPoint";
-// import { moveToPose, resetMoveToPose } from "./LemLibSim/DriveMotions/MoveToPose";
-// import { turnToPoint, resetTurnToPoint } from "./LemLibSim/DriveMotions/TurnToPoint";
-// import { turnToHeading, resetTurnToHeading } from "./LemLibSim/DriveMotions/TurnToHeading";
-// import { swingToPoint, resetSwingToPoint } from "./LemLibSim/DriveMotions/SwingToPoint";
-// import { swingToHeading, resetSwingToHeading } from "./LemLibSim/DriveMotions/SwingToHeading";
-// import type { mikConstants } from "./mikLibSim/MikConstants";
-// import type { ReveilLibConstants } from "./ReveiLibSim/RevConstants";
-// import type { RevMecanumConstants, TurnDirection } from "./RevMecanumSim/RevMecanumConstant";
-// import type { Robot } from "../core/Robot";
-// import { toDeg } from "../core/Util";
-// import { angle_error } from "./mikLibSim/Util";
-// import { getBackwardsSnapPose, getForwardSnapPose, type Path } from "../core/Types/Path";
+import { LemLibDef, type LemConstants } from "./LemLibSim/LemConstants";
+import { mikLibDef, type mikConstants } from "./mikLibSim/MikConstants";
+import { reveilLibDef, type ReveilLibConstants } from "./ReveiLibSim/RevConstants";
+import type { RevMecanumConstants } from "./HolonomicSim/RevMecanumConstant";
+import type { Robot } from "../core/Robot";
+import type { Dispatch, SetStateAction } from "react";
+import type { Path } from "../core/Types/Path";
+import type { Pose } from "../core/Types/Pose";
+import { holonomicDef } from "./HolonomicSim/HolonomicConstants";
 
-// type FormatSpecificConstants = {
-//     mikLib: mikConstants;
-//     ReveilLib: ReveilLibConstants;
-//     "JAR-Template": mikConstants;
-//     LemLib: LemConstants;
-//     RevMecanum: RevMecanumConstants;
-//     "RW-Template": mikConstants;
-// }
+export type Format =
+    "mikLib"
+    | "ReveilLib"
+    | "JAR-Template"
+    | "LemLib"
+    | "RW-Template"
+    | "Holonomic"
 
-// export type SimFn = (robot: Robot, dt: number) => [boolean, SegmentKind, number];
+export type SegmentKind =
+    | "pointDrive"
+    | "poseDrive"
+    | "pointTurn"
+    | "angleTurn"
+    | "angleSwing"
+    | "pointSwing"
+    | "distanceDrive"
+    | "start"
 
-// export type SimFactory<C> = (
-//     x: number,
-//     y: number,
-//     angle: number,
-//     constants: C,
-//     path: Path,
-//     idx: number,
-// ) => SimFn;
+export type FormatConstants = {
+    mikLib: mikConstants;
+    ReveilLib: ReveilLibConstants;
+    "JAR-Template": mikConstants;
+    LemLib: LemConstants;
+    "Holonomic": mikConstants;
+    "RW-Template": mikConstants;
+};
 
-// interface FormatKeyToString<F extends Format = Format> {
-//     kind: SegmentKind;
-//     toStringTemplate: string;
-//     toSimFactory: SimFactory<FormatSpecificConstants[F]>;
-//     kBuilder: (constants: Partial<FormatSpecificConstants[F]>) => string;
-// }
+export type FormatDef<F extends Format, Segs extends Partial<Record<SegmentKind, SegmentDef<F>>> = Partial<Record<SegmentKind, SegmentDef<F>>>> = {
+    constants: SegmentConstants<F>;
+    kMaxSpeed: number;
+    formatPathName: string;
+    slider: SliderField<F>;
+    segments: Segs;
+    kBuilder?: (kDefault: SegmentConstants<F>, k: SegmentConstants<F>, pose?: Pose) => string;
+    kParser?: (kDefault: SegmentConstants<F>, kBuilderStr: string, kind: SegmentKind) => [SegmentConstants<F>, Partial<Pose>?];
+};
 
-// const LemLibStringFromKeyBuilder = (constants: Partial<LemConstants>): string => {
-//     const LemLibKeyMap = (key: string, value: LemConstants[keyof LemConstants]) => {
-//         switch (key) {
-//             case "forwards": return value === "forward" ? ".forwards = true" : ".forwards = false";
-//             case "direction": {
-//                 switch (value as TurnDirection) {
-//                     case "clockwise": return ".direction = AngularDirection::CW_CLOCKWISE";
-//                     case "counterclockwise": return ".direction = AngularDirection::CCW_COUNTERCLOCKWISE";
-//                 }
-//                 return "";
-//             }
-//             case "horizontalDrift": return `.horizontalDrift = ${roundOff(value, 1)}`;
-//             case "lead": return `.lead = ${roundOff(value, 2)}`;
-//             case "maxSpeed": return `.maxSpeed = ${roundOff(value, 0)}`;
-//             case "minSpeed": return `.minSpeed = ${roundOff(value, 0)}`;
-//             case "earlyExitRange": return `.earlyExitRange = ${roundOff(value, 1)}`;
-//         }
-//         return "";
-//     }
+export type SegmentDef<F extends Format = Format> = {
+    defaults: SegmentConstants<F>;
+    toStringTemplate: string;
+    name: string;
+    exists: boolean,
+    simFn: SegmentFactory<F>;
+    cycleButtons: CycleButtonField<F>[];
+    numberInputs: NumberInputGroup<F>[];
+};
 
-//     const constantsList: string[] = [];
-//     for (const k of Object.keys(constants)) {
-//         const value = constants[k as keyof LemConstants];
-//         if (value === undefined) continue;
-//         const c = LemLibKeyMap(k, value);
-//         if (c !== "") constantsList.push(c);
-//     }
-//     return constantsList.map((c) => ` ${c}`).join(", ");
-// }
+export type SimFn = (robot: Robot, dt: number) => [boolean, SegmentKind, number];
 
-// export const LemLibFormatDef: FormatKeyToString<"LemLib">[] = [
-//     {
-//         kind: "pointDrive",
-//         toStringTemplate: "chassis.moveToPoint(${x}, ${y}, ${timeout}${kBuilder?})",
-//         toSimFactory: (x, y, _angle, constants, _path, _idx) => {
-//             let started = false;
-//             let targetDist = 0;
-//             resetMoveToPoint();
-//             return (robot, dt) => {
-//                 if (!started) {
-//                     targetDist = Math.hypot(x - robot.getX(), y - robot.getY());
-//                     started = true;
-//                 }
-//                 const output = moveToPoint(robot, dt, x, y, constants as LemMoveConstants);
-//                 return [output, "pointDrive", targetDist];
-//             };
-//         },
-//         kBuilder: (k) => LemLibStringFromKeyBuilder(k as Partial<LemConstants>),
-//     },
-//     {
-//         kind: "poseDrive",
-//         toStringTemplate: "chassis.moveToPose(${x}, ${y}, ${angle}, ${timeout}${kBuilder?})",
-//         toSimFactory: (x, y, angle, constants, _path, _idx) => {
-//             let started = false;
-//             let targetDist = 0;
-//             resetMoveToPose();
-//             return (robot, dt) => {
-//                 if (!started) {
-//                     targetDist = Math.hypot(x - robot.getX(), y - robot.getY());
-//                     started = true;
-//                 }
-//                 const output = moveToPose(robot, dt, x, y, angle, constants as LemMoveConstants);
-//                 return [output, "poseDrive", targetDist];
-//             };
-//         },
-//         kBuilder: (k) => LemLibStringFromKeyBuilder(k as Partial<LemConstants>),
-//     },
-//     {
-//         kind: "pointTurn",
-//         toStringTemplate: "chassis.turnToPoint(${x}, ${y}, ${timeout}${kBuilder?})",
-//         toSimFactory: (x, y, angle, constants, path, idx) => {
-//             const previousPos = getBackwardsSnapPose(path, idx - 1);
-//             const turnToPos = getForwardSnapPose(path, idx);
-//             const pos = turnToPos
-//                 ? { x: turnToPos.x ?? 0, y: turnToPos.y ?? 0 }
-//                 : previousPos
-//                 ? { x: previousPos.x ?? 0, y: (previousPos.y ?? 0) + 5 }
-//                 : { x: 0, y: 5 };
-//             let started = false;
-//             let targetDist = 0;
-//             resetTurnToPoint();
-//             return (robot, dt) => {
-//                 if (!started) {
-//                     const targetAngle = toDeg(Math.atan2(pos.x - robot.getX(), pos.y - robot.getY())) + angle;
-//                     targetDist = Math.abs(angle_error(targetAngle - robot.getAngle(), null)!);
-//                     started = true;
-//                 }
-//                 const output = turnToPoint(robot, dt, pos.x, pos.y, angle, constants as LemAngularConstants);
-//                 return [output, "pointTurn", targetDist];
-//             };
-//         },
-//         kBuilder: (k) => LemLibStringFromKeyBuilder(k as Partial<LemConstants>),
-//     },
-//     {
-//         kind: "angleTurn",
-//         toStringTemplate: "chassis.turnToHeading(${angle}, ${timeout}${kBuilder?})",
-//         toSimFactory: (_x, _y, angle, constants, _path, _idx) => {
-//             let started = false;
-//             let targetDist = 0;
-//             resetTurnToHeading();
-//             return (robot, dt) => {
-//                 if (!started) {
-//                     targetDist = Math.abs(angle_error(angle - robot.getAngle(), null)!);
-//                     started = true;
-//                 }
-//                 const output = turnToHeading(robot, dt, angle, constants as LemAngularConstants);
-//                 return [output, "angleTurn", targetDist];
-//             };
-//         },
-//         kBuilder: (k) => LemLibStringFromKeyBuilder(k as Partial<LemConstants>),
-//     },
-//     {
-//         kind: "pointSwing",
-//         toStringTemplate: "chassis.swingToPoint(${x}, ${y}, ${side}, ${timeout}${kBuilder?})",
-//         toSimFactory: (x, y, angle, constants, path, idx) => {
-//             const previousPos = getBackwardsSnapPose(path, idx - 1);
-//             const turnToPos = getForwardSnapPose(path, idx);
-//             const pos = turnToPos
-//                 ? { x: turnToPos.x ?? 0, y: turnToPos.y ?? 0 }
-//                 : previousPos
-//                 ? { x: previousPos.x ?? 0, y: (previousPos.y ?? 0) + 5 }
-//                 : { x: 0, y: 5 };
-//             let started = false;
-//             let targetDist = 0;
-//             resetSwingToPoint();
-//             return (robot, dt) => {
-//                 if (!started) {
-//                     const targetAngle = toDeg(Math.atan2(pos.x - robot.getX(), pos.y - robot.getY())) + angle;
-//                     targetDist = Math.abs(angle_error(targetAngle - robot.getAngle(), null)!);
-//                     started = true;
-//                 }
-//                 const output = swingToPoint(robot, dt, pos.x, pos.y, angle, constants as LemAngularConstants);
-//                 return [output, "pointSwing", targetDist];
-//             };
-//         },
-//         kBuilder: (k) => LemLibStringFromKeyBuilder(k as Partial<LemConstants>),
-//     },
-//     {
-//         kind: "angleSwing",
-//         toStringTemplate: "chassis.swingToHeading(${angle}, ${side}, ${timeout}${kBuilder?})",
-//         toSimFactory: (_x, _y, angle, constants, _path, _idx) => {
-//             let started = false;
-//             let targetDist = 0;
-//             resetSwingToHeading();
-//             return (robot, dt) => {
-//                 if (!started) {
-//                     targetDist = Math.abs(angle_error(angle - robot.getAngle(), null)!);
-//                     started = true;
-//                 }
-//                 const output = swingToHeading(robot, dt, angle, constants as LemAngularConstants);
-//                 return [output, "angleSwing", targetDist];
-//             };
-//         },
-//         kBuilder: (k) => LemLibStringFromKeyBuilder(k as Partial<LemConstants>),
-//     },
-// ];
+export function forSegments<F extends Format, K extends SegmentKind>(
+    keys: K[],
+    def: SegmentDef<F>
+): Record<K, SegmentDef<F>> {
+    return Object.fromEntries(keys.map(k => [k, def])) as Record<K, SegmentDef<F>>;
+}
+
+export type SegmentConstants<F extends Format> = [FormatConstants[F], ...FormatConstants[F][]];
+
+type SliderField<F extends Format = Format> = {
+    key: keyof FormatConstants[F];
+    bounds: [number, number];
+    roundTo: number;
+}
+
+export type CycleButtonField<F extends Format = Format,
+    K extends keyof FormatConstants[F] = keyof FormatConstants[F],
+> = {
+    constantsIdx: number;
+    key: K;
+    keyValues: {
+        srcImg: string;
+        value: FormatConstants[F][K];
+    }[];
+    poseEffect?: (newValue: FormatConstants[F][K]) => Partial<Pose> | undefined;
+}
+
+export type NumberInputGroup<F extends Format = Format> = {
+    constantsIdx: number;
+    headerName: string;
+    fields: {
+        key: keyof FormatConstants[F];
+        units: string;
+        label: string;
+        input: {
+            bounds: [number, number];
+            stepSize: number;
+            roundTo: number;
+        }
+    }[];
+}
+
+export type SegmentFactory<F extends Format = Format> = (
+    robot: Robot,
+    dt: number,
+    x: number,
+    y: number,
+    angle: number,
+    constants: SegmentConstants<F>
+) => boolean;
+
+export type ConstantValue = number | boolean | string;
+export type ConstantsRecord = Record<string, ConstantValue>;
+
+export const FORMAT_REGISTRY = {
+    LemLib: LemLibDef,
+    mikLib: mikLibDef,
+    ReveilLib: reveilLibDef,
+    "JAR-Template": LemLibDef,
+    "RW-Template": LemLibDef,
+    Holonomic: holonomicDef,
+} as unknown as { [F in Format]: FormatDef<F> };
+
+export function mergeFormatDef(registry: FormatDef<Format>, saved: unknown): FormatDef<Format> {
+    if (!saved || typeof saved !== 'object') return registry;
+    const s = saved as Record<string, unknown>;
+    const segs = { ...registry.segments } as Record<SegmentKind, SegmentDef<Format>>;
+    for (const [k, v] of Object.entries((s.segments ?? {}) as object)) {
+        const reg = segs[k as SegmentKind];
+        if (reg) segs[k as SegmentKind] = { ...reg, ...(v as object), simFn: reg.simFn };
+    }
+    return { ...registry, ...s, kBuilder: registry.kBuilder, kParser: registry.kParser, segments: segs } as FormatDef<Format>;
+}
+
+export function getDefaultConstants<F extends Format>(formatDef: FormatDef<Format> | undefined, format: F, kind: SegmentKind): SegmentConstants<F> {
+    const currentDefaults = formatDef?.segments[kind]?.defaults;
+    if (currentDefaults === undefined) return FORMAT_REGISTRY[format].segments[kind]?.defaults as SegmentConstants<F>;
+    return currentDefaults as SegmentConstants<F>;
+}
+
+export function updateDefaultConstants<F extends Format>(
+    formatDef: FormatDef<Format>,
+    kind: SegmentKind,
+    idx: number,
+    patch: Partial<FormatConstants[F]>
+): FormatDef<Format> {
+    const segDef = formatDef.segments[kind];
+    if (!segDef) return formatDef;
+    const newDefaults = segDef.defaults.map((c, i) =>
+        i === idx
+            ? { ...(c as object), ...(patch as object) } as unknown as FormatConstants[Format]
+            : c
+    ) as SegmentConstants<Format>;
+    return {
+        ...formatDef,
+        segments: {
+            ...formatDef.segments,
+            [kind]: { ...segDef, defaults: newDefaults },
+        },
+    };
+}
+
+export function updatePathConstants<F extends Format>(
+    setPath: Dispatch<SetStateAction<Path>>,
+    segmentId: string,
+    idx: number,
+    patch: Partial<FormatConstants[F]>
+) {
+    setPath((prev) => ({
+        ...prev,
+        segments: prev.segments.map((s) => {
+            if (s.id !== segmentId) return s;
+            const newConstants = s.constants.map((c, i) =>
+                i === idx
+                    ? { ...(c as object), ...(patch as object) } as unknown as FormatConstants[Format]
+                    : c
+            ) as SegmentConstants<Format>;
+            return { ...s, constants: newConstants };
+        }),
+    }));
+}
+
+export function updatePathConstantsByKind<F extends Format>(
+    setPath: Dispatch<SetStateAction<Path>>,
+    segmentKind: SegmentKind,
+    idx: number,
+    patch: Partial<FormatConstants[F]>
+) {
+    setPath((prev) => ({
+        ...prev,
+        segments: prev.segments.map((s) => {
+            if (s.kind !== segmentKind) return s;
+            const newConstants = s.constants.map((c, i) =>
+                i === idx
+                    ? { ...(c as object), ...(patch as object) } as unknown as FormatConstants[Format]
+                    : c
+            ) as SegmentConstants<Format>;
+            return { ...s, constants: newConstants };
+        }),
+    }));
+}

@@ -1,7 +1,7 @@
 import type { Pose } from "../../core/Types/Pose";
 import { toDeg, toRad } from "../../core/Util";
+import type { LemConstants } from "./LemConstants";
 
-import type { TurnDirection } from "../mikLibSim/MikConstants";
 import { LemPose } from "./Pose";
 
 export function slew(target: number, current: number, maxChange: number): number {
@@ -30,17 +30,17 @@ export function sanitizeAngle(angle: number, radians: boolean): number {
     else return ((angle % 360) + 360) % 360;
 }
 
-export function angleError(target: number, position: number, radians: boolean = true, direction: TurnDirection | null = null): number {
+export function angleError(target: number, position: number, radians: boolean = true, direction: LemConstants["direction"] = "AngularDirection::AUTO"): number {
     target = sanitizeAngle(target, radians);
     position = sanitizeAngle(position, radians);
     const max = radians ? 2 * Math.PI : 360;
     const rawError = target - position;
     switch (direction) {
-        case "clockwise":
+        case "AngularDirection::CW_CLOCKWISE":
             return rawError < 0 ? rawError + max : rawError;
-        case "counterclockwise":
+        case "AngularDirection::CCW_COUNTERCLOCKWISE":
             return rawError > 0 ? rawError - max : rawError;
-        default: {
+        case "AngularDirection::AUTO": {
             const half = max / 2;
             return ((rawError + half) % max + max) % max - half;
         }

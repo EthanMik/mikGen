@@ -1,5 +1,4 @@
 import type { Robot } from "../../../core/Robot";
-import { kMikLibSpeed } from "../MikConstants";
 import { PID } from "../PID";
 
 let drivePID: PID;
@@ -15,12 +14,12 @@ let prev_angle = 0;
 let output: string = "";
 let outputd: string = "";
 
-export function resetDriveDistance() {
+export function reset_drive_with_voltage() {
     drivePID.reset();
     start = true;
 }
 
-export function driveWithVoltage(robot: Robot, dt: number, left_voltage: number, right_voltage: number, timeout: number) {
+export function drive_with_voltage(robot: Robot, dt: number, left_voltage: number, right_voltage: number, timeout: number) {
     if (start) {
         drivePID = new PID(0, 0, 0, 0, 0, 0, timeout, 0);
         start = false;
@@ -59,11 +58,11 @@ export function driveWithVoltage(robot: Robot, dt: number, left_voltage: number,
         console.log("outputd");
         console.log(outputd);
         console.log("\n");
-        resetDriveDistance();
+        reset_drive_with_voltage();
         return true;
     }
 
-    robot.tankDrive(left_voltage / kMikLibSpeed, right_voltage / kMikLibSpeed, dt);
+    robot.tankDrive(left_voltage / 12, right_voltage / 12, dt);
 
     return false;
 }

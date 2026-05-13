@@ -1,26 +1,21 @@
-import React, { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { robotConstantsStore } from "../../core/Robot";
+import React, { useEffect, useRef, useState } from "react";
 import type { Coordinate } from "../../core/Types/Coordinate";
 import homeButton from "../../assets/home.svg";
 import { type Segment } from "../../core/Types/Segment";
 import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, toInch, toRGBA, type Rectangle } from "../../core/Util";
-import { usePath } from "../../hooks/usePath";
+import { usePath, useFormat, useField, getFieldSrcFromKey, fileFormatStore } from "../../hooks/useFileFormat";
 import { usePathVisibility } from "../../hooks/usePathVisibility";
 import { usePose } from "../../hooks/usePose";
 import { useRobotVisibility } from "../../hooks/useRobotVisibility";
 import { PathSimMacros } from "../../macros/PathSimMacros";
 import FieldMacros from "../../macros/FieldMacros";
-import { useFormat } from "../../hooks/useFormat";
 import { useRobotPose } from "../../hooks/useRobotPose";
 import { getPressedPositionInch, pointerToSvg } from "./FieldUtils";
 import RobotLayer from "./RobotLayer";
 import PathLayer from "./PathLayer";
 import ControlsLayer from "./ControlsLayer";
-import { getFieldSrcFromKey, useField } from "../../hooks/useField";
-import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
-import { useFileFormat } from "../../hooks/useFileFormat";
+import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import type { Path } from "../../core/Types/Path";
-import { useClipboard } from "../../hooks/useClipboard";
 import { useSettings } from "../../hooks/useSettings";
 
 export default function Field() {
@@ -57,12 +52,10 @@ export default function Field() {
   pathRef.current = path;
   const [pose] = usePose();
   const [robotPose] = useRobotPose();
-  const robot = useSyncExternalStore(robotConstantsStore.subscribe, robotConstantsStore.getState);
+  const robot = fileFormatStore.useSelector(s => s.robot);
   const [robotVisible, setRobotVisibility] = useRobotVisibility();
   const [pathVisible] = usePathVisibility();
   const [format] = useFormat();
-  const [ , setFileFormat ] = useFileFormat();
-  const [ clipboard, setClipboard ] = useClipboard();
   const [ settings, ] = useSettings();
 
   const startDrag = useRef(false);
@@ -85,34 +78,52 @@ export default function Field() {
 
   const {
     moveControl, moveHeading, deleteControl, unselectPath, selectPath,
-    selectInversePath, undo, addPointDriveSegment,
+    selectInversePath, undo, addPointDriveSegment, addStartSegment,
     addPointTurnSegment, addPoseDriveSegment, addAngleTurnSegment,
-    addAngleSwingSegment, addPointSwingSegment, fieldZoomKeyboard, fieldZoomWheel, 
-    fieldPanWheel, cut, copy, paste
+    addAngleSwingSegment, addPointSwingSegment, fieldZoomKeyboard, fieldZoomWheel,
+    fieldPanWheel, cut, pastePathString, copySelectedPath, copyAllPath,
   } = FieldMacros();
 
   const { toggleRobotVisibility } = PathSimMacros();
+
+  const hiddenInputRef = useRef<HTMLInputElement | null>(null);
+
+  const pasteRef = useRef<(evt: ClipboardEvent) => void>(() => {});
+  pasteRef.current = (evt: ClipboardEvent) => {
+    pastePathString(evt, setPath);
+    hiddenInputRef.current?.blur();
+  };
+
+  useEffect(() => {
+    const handlePaste = (evt: ClipboardEvent) => pasteRef.current(evt);
+    document.addEventListener("paste", handlePaste);
+    return () => document.removeEventListener("paste", handlePaste);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (evt: KeyboardEvent) => {
       const target = evt.target as HTMLElement | null;
       if (target?.isContentEditable || target?.tagName === "INPUT") return;
       if (evt.ctrlKey && evt.key.toLowerCase() === "r") return;
+      if (evt.ctrlKey && evt.key.toLowerCase() === "v") {
+        hiddenInputRef.current?.focus();
+        return;
+      }
       unselectPath(evt, setPath);
       moveControl(evt, setPath);
       if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(evt.key)) {
         if (moveHistoryTimerRef.current) clearTimeout(moveHistoryTimerRef.current);
         moveHistoryTimerRef.current = setTimeout(() => {
-          if (pathRef.current) AddToUndoHistory({ path: pathRef.current });
+          if (pathRef.current) saveSnapshot();
         }, 400);
       }
-      cut(evt, path, setClipboard, setPath);
-      copy(evt, path, setClipboard);
-      paste(evt, setPath, clipboard);
+      copySelectedPath(evt, path, () => {});
+      copyAllPath(evt, path, () => {});
+      cut(evt, path, setPath);
       deleteControl(evt, setPath);
       selectPath(evt, setPath);
       selectInversePath(evt, setPath);
-      undo(evt, setFileFormat);
+      undo(evt);
 
       fieldZoomKeyboard(evt, setImg);
       toggleRobotVisibility(evt, setRobotVisibility);
@@ -124,7 +135,7 @@ export default function Field() {
       if (moveHeading(evt, path, setPath)) {
         if (headingHistoryTimerRef.current) clearTimeout(headingHistoryTimerRef.current);
         headingHistoryTimerRef.current = setTimeout(() => {
-          if (pathRef.current) AddToUndoHistory({ path: pathRef.current });
+          if (pathRef.current) saveSnapshot();
         }, 400);
       }
     };
@@ -138,10 +149,7 @@ export default function Field() {
     };
   }, [
     path,
-    clipboard,
-    setClipboard,
     setPath,
-    setFileFormat,
     moveControl,
     moveHeading,
     deleteControl,
@@ -151,6 +159,10 @@ export default function Field() {
     undo,
     fieldZoomKeyboard,
     toggleRobotVisibility,
+    cut,
+    copySelectedPath,
+    copyAllPath,
+    setRobotVisibility,
   ]);
   
   useEffect(() => {
@@ -245,7 +257,7 @@ export default function Field() {
     dragHistoryActive.current = false;
 
     if (dragDidMove.current) {
-      AddToUndoHistory({ path: structuredClone(path) });
+      saveSnapshot();
       lastReleasedSnapshot.current = structuredClone(path);
     }
 
@@ -331,7 +343,7 @@ export default function Field() {
     const pos = getPressedPositionInch(evt, svgRef.current, img);
 
     if (path.segments.length <= 0) {
-      addPoseDriveSegment(format, { x: pos.x, y: pos.y, angle: 0 }, setPath);
+      addStartSegment(format, { x: pos.x, y: pos.y, angle: 0 }, setPath);
       return;
     }
 
@@ -345,6 +357,12 @@ export default function Field() {
 
   return (
     <div tabIndex={0} onMouseLeave={endDrag}>
+      <input
+        ref={hiddenInputRef}
+        data-paste-proxy=""
+        tabIndex={-1}
+        style={{ position: "fixed", opacity: 0, pointerEvents: "none", width: 0, height: 0 }}
+      />
       <svg
         ref={svgRef}
         viewBox={`${0} ${0} ${FIELD_IMG_DIMENSIONS.w} ${FIELD_IMG_DIMENSIONS.h}`}

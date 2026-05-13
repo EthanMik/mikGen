@@ -1,6 +1,6 @@
 import type { Robot } from "../../../core/Robot";
 import { LemExitCondition } from "../ExitCondition";
-import { kLemLibSpeed, type LemAngularConstants } from "../LemConstants";
+import type { LemConstants } from "../LemConstants";
 import { LemPID } from "../Pid";
 import { LemTimer } from "../Timer";
 import { angleError, slew, toLemPose } from "../Util";
@@ -20,8 +20,8 @@ export function resetTurnToHeading() {
     start = true;
 }
 
-export function turnToHeading(robot: Robot, dt: number, angle: number, k: LemAngularConstants): boolean {
-    const params = k.angular;
+export function turnToHeading(robot: Robot, dt: number, angle: number, k: LemConstants[]): boolean {
+    const params = k[0];
 
     if (start) {
         angularPID = new LemPID(params);
@@ -87,7 +87,7 @@ export function turnToHeading(robot: Robot, dt: number, angle: number, k: LemAng
     prevMotorPower = motorPower;
 
     // both sides drive, opposite directions
-    robot.tankDrive(motorPower / kLemLibSpeed, -motorPower / kLemLibSpeed, dt);
+    robot.tankDrive(motorPower / 127, -motorPower / 127, dt);
 
     return false;
 }

@@ -1,4 +1,3 @@
-import { createObjectStore } from "./Store";
 import type { Pose } from "./Types/Pose";
 import { clamp, normalizeDeg, toDeg, toRad } from "./Util";
 
@@ -31,8 +30,6 @@ export const defaultRobotConstants: RobotConstants = {
     expansionRear: 0,
     isOmni: false,
 }
-
-export const robotConstantsStore = createObjectStore<RobotConstants>(defaultRobotConstants);
 
 export class Robot {
     // Tank drive robot

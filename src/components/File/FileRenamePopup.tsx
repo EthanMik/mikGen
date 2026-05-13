@@ -1,5 +1,4 @@
-import { useFormat } from "../../hooks/useFormat";
-import { usePath } from "../../hooks/usePath";
+import { useFormat, usePath } from "../../hooks/useFileFormat";
 import TextInput from "../Util/TextInput";
 import enter from "../../assets/enter.svg";
 import cross from "../../assets/cross.svg"

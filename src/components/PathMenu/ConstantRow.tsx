@@ -1,8 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useRef } from "react";
-import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
-import { usePath } from "../../hooks/usePath";
+import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import NumberInput from "../Util/NumberInput";
+import type { ConstantValue } from "../../simulation/FormatDefinition";
 
 export type NumberInputSettings = {
   bounds?: [number, number];
@@ -11,7 +9,7 @@ export type NumberInputSettings = {
 };
 
 export type ConstantField = {
-  key: any;
+  key: string;
   label: string;
   units?: string;
   input?: NumberInputSettings;
@@ -21,7 +19,7 @@ type ConstantRowProps = {
   label: string;
   labelColor?: string;
   units?: string;
-  value: number | null;
+  value: ConstantValue | undefined;
   onChange: (v: number | null) => void;
   input?: NumberInputSettings;
   selected?: boolean;
@@ -38,21 +36,10 @@ export default function ConstantRow({
     selected = false,
     onToggleSelect,
 } : ConstantRowProps) {
-    const [ path, ] = usePath();
-
-    const undoRef = useRef(false);
-
-    useEffect(() => {
-      if (undoRef.current) {
-        AddToUndoHistory( { path: path});
-        undoRef.current = false;
-      }
-    }, [path])
-
     return (
         <div className={`flex flex-row items-center
             justify-between h-[35px] pr-2 pl-2 gap-1 rounded-lg
-            
+
             hover:brightness-90
             transition-all duration-100
             active:scale-[0.995]
@@ -68,13 +55,13 @@ export default function ConstantRow({
                 width={55}
                 height={30}
                 fontSize={16}
-                value={value}
+                value={typeof value === 'number' ? value : null}
                 setValue={onChange}
                 units={units}
                 bounds={input?.bounds ?? [0, 100]}
                 stepSize={input?.stepSize ?? 1}
                 roundTo={input?.roundTo ?? 5}
-                addToHistory={ () => { undoRef.current = true; } }
+                addToHistory={() => { saveSnapshot(); }}
             />
         </div>
     );

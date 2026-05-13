@@ -1,8 +1,8 @@
-import { clamp, toRad } from "../../../core/Util";
 import type { Robot } from "../../../core/Robot";
-import { type mikConstants } from "../MikConstants";
-import { PID } from "../PID";
-import { clamp_min_voltage, reduce_negative_180_to_180, slew_scaling } from "../Util";
+import { clamp, toRad } from "../../../core/Util";
+import { type mikConstants } from "../../mikLibSim/MikConstants";
+import { PID } from "../../mikLibSim/PID";
+import { clamp_min_voltage, reduce_negative_180_to_180, slew_scaling } from "../../mikLibSim/Util";
 
 let driveDistanceStartX: number = 0;
 let driveDistanceStartY: number = 0;
@@ -13,7 +13,7 @@ let headingPID: PID;
 
 let start = true;
 
-export function restart_drive_distance() {
+function reset_strafe_distance() {
     driveDistanceStartX = 0;
     driveDistanceStartY = 0;
     prev_drive_output = 0;
@@ -23,10 +23,11 @@ export function restart_drive_distance() {
     start = true;
 }
 
-export function drive_distance(robot: Robot, dt: number, distance: number, heading: number, p: mikConstants[]) {
+export function strafe_distance(robot: Robot, dt: number, distance: number, heading: number, p: mikConstants[]) {
     const drive_p = p[0];
     const heading_p = p[1];
-
+    
+    console.log(heading_p);
     if (start) {
         driveDistanceStartX = robot.getX();
         driveDistanceStartY = robot.getY();
@@ -34,11 +35,10 @@ export function drive_distance(robot: Robot, dt: number, distance: number, headi
         headingPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, heading_p.timeout, 0);
         start = false;
     }
-
     const dx = robot.getX() - driveDistanceStartX;
     const dy = robot.getY() - driveDistanceStartY;
 
-    const traveled = dx * Math.sin(toRad(heading)) + dy * Math.cos(toRad(heading));
+    const traveled = dx * Math.cos(toRad(heading)) - dy * Math.sin(toRad(heading));
 
     const drive_error = distance - traveled;
 
@@ -56,11 +56,17 @@ export function drive_distance(robot: Robot, dt: number, distance: number, headi
     drive_output = clamp_min_voltage(drive_output, drive_p.min_voltage);
 
     if (drivePID.isSettled()) {
-        restart_drive_distance();
+        reset_strafe_distance();
         return true;
     }
 
-    robot.tankDrive((drive_output + heading_output) / 12, (drive_output - heading_output) / 12, dt);
+    robot.mecanumDrive(
+        ( drive_output + heading_output) / 12,
+        (-drive_output - heading_output) / 12,
+        (-drive_output + heading_output) / 12,
+        ( drive_output - heading_output) / 12,
+        dt
+    );
 
     prev_drive_output = drive_output;
     prev_heading_output = heading_output;

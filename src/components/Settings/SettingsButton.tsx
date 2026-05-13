@@ -8,6 +8,13 @@ export default function SettingsButton() {
     
     const [ settings, setSettings ] = useSettings();
 
+    useEffect(() => {
+        localStorage.setItem("ghostRobots", settings.ghostRobots ? "true" : "false");
+        localStorage.setItem("robotPosition", settings.robotPosition ? "true" : "false");
+        localStorage.setItem("precisePath", settings.precisePath ? "true" : "false");
+        localStorage.setItem("numberedPath", settings.numberedPath ? "true" : "false");
+    }, [settings.ghostRobots, settings.robotPosition, settings.precisePath, settings.numberedPath]);
+
     const ghostRobots = settings.ghostRobots;
     const setGhostRobots = (state: boolean) => {
         setSettings(prev => ({

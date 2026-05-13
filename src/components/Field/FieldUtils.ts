@@ -40,11 +40,9 @@ export const getPreciseSegmentLines = (idx: number, img: Rectangle): string | nu
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getLead(m: any): number {
-  const lead1 = m?.constants?.drive?.lead;
-  const lead2 = m?.constants?.lateral?.lead
+  const lead1 = m.constants?.[0].lead;
 
   if (lead1) return lead1;
-  if (lead2) return lead2;
   return 0;
 }
 
@@ -64,7 +62,7 @@ export const getSegmentLines = (idx: number, path: Path, img: Rectangle, precise
   const pStart = toPX({ x: startPose.x, y: startPose.y }, FIELD_REAL_DIMENSIONS, img);
   const pEnd = toPX({ x: m.pose.x, y: m.pose.y }, FIELD_REAL_DIMENSIONS, img);
 
-  if (m.kind === "pointDrive" || m.kind === "distanceDrive") {
+  if ((m.kind === "poseDrive" && m.format === "Holonomic") || m.kind === "pointDrive" || m.kind === "distanceDrive") {
     return `${pStart.x},${pStart.y} ${pEnd.x},${pEnd.y}`;
   }
 

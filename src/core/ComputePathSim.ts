@@ -1,6 +1,6 @@
+import type { SegmentKind } from "../simulation/FormatDefinition";
 import type { Robot } from "./Robot";
 import { createStore } from "./Store";
-import type { SegmentKind } from "./Types/Segment";
 import { normalizeDeg } from "./Util";
 
 export const SIM_CONSTANTS = {
@@ -41,6 +41,7 @@ export interface PathSim {
 }
 
 export const activeSimSegmentStore = createStore<number>(-1);
+export const simJumpStore = createStore<number | null>(null);
 
 export const computedPathStore = createStore<PathSim>({
     totalTime: 0,

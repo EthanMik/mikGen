@@ -17,7 +17,8 @@ export function PathSimMacros() {
         setPlaying: React.Dispatch<React.SetStateAction<boolean>>,
         setVisibility: React.Dispatch<SetStateAction<boolean>>,
     ) => {
-        if (evt.key.toLowerCase() === "k") {
+        if (evt.key.toLowerCase() === "k" || evt.key === " ") {
+            evt.preventDefault();
             setPlaying((v) => {
                 const newState = !v;
                 if (newState) {

@@ -1,6 +1,6 @@
 import type { Robot } from "../../../core/Robot";
 import { clamp, toDeg, toRad } from "../../../core/Util";
-import { kMikLibSpeed, type mikConstants } from "../MikConstants";
+import { type mikConstants } from "../MikConstants";
 import { PID } from "../PID";
 import { clamp_min_voltage, is_line_settled, left_voltage_scaling, reduce_negative_180_to_180, reduce_negative_90_to_90, right_voltage_scaling, slew_scaling } from "../Util";
 
@@ -17,7 +17,7 @@ let headingPID: PID;
 
 let start = true;
 
-function resetDriveToPoint() {
+function reset_drive_to_point() {
     drivePID.reset();
     headingPID.reset();
     desired_heading = 0;
@@ -29,7 +29,10 @@ function resetDriveToPoint() {
     start = true;
 }
 
-export function driveToPoint(robot: Robot, dt: number, x: number, y: number, drive_p: mikConstants, heading_p: mikConstants) {
+export function drive_to_point(robot: Robot, dt: number, x: number, y: number, p: mikConstants[]) {
+    const drive_p = p[0];
+    const heading_p = p[1];
+    
     if (start) {
         drivePID = new PID(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
         headingPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, heading_p.timeout, 0);
@@ -38,15 +41,14 @@ export function driveToPoint(robot: Robot, dt: number, x: number, y: number, dri
     }
 
     if (drivePID.isSettled()) {
-        resetDriveToPoint();
+        reset_drive_to_point();
         return true;
     
     }
 
-    console.log(drive_p.exit_error)
     const line_settled = is_line_settled(x, y, desired_heading, robot.getX(), robot.getY(), drive_p.exit_error);
     if (!(line_settled === prev_line_settled) && drive_p.min_voltage > 0) {
-        resetDriveToPoint();
+        reset_drive_to_point();
         return true;
     }
     prev_line_settled = line_settled;
@@ -75,8 +77,8 @@ export function driveToPoint(robot: Robot, dt: number, x: number, y: number, dri
 
     let heading_output = headingPID.compute(heading_error);
 
-    drive_output = clamp(drive_output, -Math.abs(heading_scale_factor) * drive_p.maxSpeed, Math.abs(heading_scale_factor) * drive_p.maxSpeed);
-    heading_output = clamp(heading_output, -heading_p.maxSpeed, heading_p.maxSpeed);
+    drive_output = clamp(drive_output, -Math.abs(heading_scale_factor) * drive_p.max_voltage, Math.abs(heading_scale_factor) * drive_p.max_voltage);
+    heading_output = clamp(heading_output, -heading_p.max_voltage, heading_p.max_voltage);
 
     drive_output = slew_scaling(drive_output, prev_drive_output, drive_p.slew * (dt / 0.01), !heading_locked);
     heading_output = slew_scaling(heading_output, prev_heading_output, heading_p.slew * (dt / 0.01));
@@ -86,8 +88,8 @@ export function driveToPoint(robot: Robot, dt: number, x: number, y: number, dri
     prev_drive_output = drive_output;
     prev_heading_output = heading_output;
 
-    const leftVoltage = left_voltage_scaling(drive_output, heading_output) / kMikLibSpeed;
-    const rightVoltage = right_voltage_scaling(drive_output, heading_output) / kMikLibSpeed;
+    const leftVoltage = left_voltage_scaling(drive_output, heading_output) / 12;
+    const rightVoltage = right_voltage_scaling(drive_output, heading_output) / 12;
 
     robot.tankDrive(leftVoltage, rightVoltage, dt);
 

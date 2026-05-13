@@ -41,7 +41,9 @@ const initTurnSegment = (startAngle: number, angleGoal: number): TurnSegmentValu
 
 let turnSegmentValues: TurnSegmentValues | undefined;
 
-export function turnSegment(robot: Robot, dt: number, angle: number, constants: ReveilLibConstants) {
+export function turnSegment(robot: Robot, dt: number, angle: number, k: ReveilLibConstants[]) {
+  const constants = k[0];
+
   if (!turnSegmentValues) turnSegmentValues = initTurnSegment(robot.getAngle(), angle);
   const t = turnSegmentValues;
 

@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { useFormat, type Format } from "../../hooks/useFormat";
-import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
-import { usePath } from "../../hooks/usePath";
-import { getDefaultConstants, globalDefaultsStore } from "../../simulation/DefaultConstants";
+import { useFormat, fileFormatStore, type Format } from "../../hooks/useFileFormat";
+import { saveSnapshot } from "../../core/Undo/UndoHistory";
+import { FORMAT_REGISTRY, getDefaultConstants, type FormatDef } from "../../simulation/FormatDefinition";
 
 type PathFormats = {
     name: string,
@@ -18,40 +17,30 @@ const FORMATS: PathFormats[] = [
 
 export default function FormatButton() {
     const [isOpen, setOpen] = useState(false);
-    const [format, setFormat] = useFormat();
-    const [, setPath] = usePath();
+    const [format] = useFormat();
 
     const menuRef = useRef<HTMLDivElement>(null);
     const prevFormatRef = useRef<Format>(format);
 
     const handleToggleMenu = () => setOpen((prev) => !prev);
 
-    const handleClickItem = (format: Format) => {
-        setFormat(format);
-        setPath(prev => {
-            const newPath = {
-                ...prev,
-                segments: prev.segments.map((s) => ({
+    const handleClickItem = (newFormat: Format) => {
+        const changed = prevFormatRef.current !== newFormat;
+        fileFormatStore.setState(prev => ({
+            ...prev,
+            format: newFormat,
+            formatDef: FORMAT_REGISTRY[newFormat] as FormatDef<Format>,
+            path: {
+                ...prev.path,
+                segments: prev.path.segments.map(s => ({
                     ...s,
-                    format: format,
-                    constants: getDefaultConstants(format, s.kind),
-                }))
-            }
-
-            if (prevFormatRef.current !== format) {
-                AddToUndoHistory({
-                    format: format,
-                    defaults: structuredClone(globalDefaultsStore.getState()[format]),
-                    path: newPath,
-                });
-            }
-
-            return {
-                ...newPath
-            };
-        });
-
-        prevFormatRef.current = format;
+                    format: newFormat,
+                    constants: getDefaultConstants(undefined, newFormat, s.kind),
+                })),
+            },
+        }));
+        if (changed) saveSnapshot();
+        prevFormatRef.current = newFormat;
     };
 
     useEffect(() => {

@@ -1,94 +1,10 @@
-import type { Format } from "../../hooks/appStateDefaults";
-import { getDefaultConstants } from "../../simulation/InitialDefaults";
+import { getDefaultConstants, type SegmentKind } from "../../simulation/FormatDefinition";
 import { deepEqual, makeId } from "../Util";
-import type { mikDriveConstants, mikSwingConstants, mikTurnConstants } from "../../simulation/mikLibSim/MikConstants";
-import type { revDriveConstants, revTurnConstants } from "../../simulation/ReveiLibSim/RevConstants";
-import type { LemAngularConstants, LemMoveConstants } from "../../simulation/LemLibSim/LemConstants";
 import type { Coordinate } from "./Coordinate";
 import { posesEqual, type Pose } from "./Pose";
-import type { RevMecanumDriveConstants, RevMecanumSwingConstants, RevMecanumTurnConstants } from "../../simulation/RevMecanumSim/RevMecanumConstant";
+import type { Format, FormatDef, SegmentConstants } from "../../simulation/FormatDefinition";
 
-export type SegmentKind =
-  | "pointDrive"
-  | "poseDrive"
-  | "pointTurn" 
-  | "angleTurn"
-  | "angleSwing"
-  | "pointSwing"
-  | "distanceDrive"
-  | "start"
-  | "group";
-
-export type ConstantsByFormat = {
-  mikLib: {
-    distanceDrive: mikDriveConstants;
-    pointDrive: mikDriveConstants;
-    poseDrive: mikDriveConstants;
-    pointTurn: mikTurnConstants;
-    angleTurn: mikTurnConstants;
-    angleSwing: mikSwingConstants;
-    pointSwing: mikSwingConstants;
-    start: undefined;
-    group: string;
-  };
-  ReveilLib: {
-    distanceDrive: revDriveConstants;
-    pointDrive: revDriveConstants;
-    poseDrive: revDriveConstants;
-    pointTurn: revTurnConstants;
-    angleTurn: revTurnConstants;
-    angleSwing: revTurnConstants;
-    pointSwing: revTurnConstants;
-    start: undefined;
-    group: string;
-  };
-  RevMecanum: {
-    distanceDrive: RevMecanumDriveConstants;
-    pointDrive: RevMecanumDriveConstants;
-    poseDrive: RevMecanumDriveConstants;
-    pointTurn: RevMecanumTurnConstants;
-    angleTurn: RevMecanumTurnConstants;
-    angleSwing: RevMecanumSwingConstants;
-    pointSwing: RevMecanumSwingConstants;
-    start: undefined;
-    group: string;
-  };
-  "JAR-Template": {
-    distanceDrive: mikDriveConstants;
-    pointDrive: mikDriveConstants;
-    poseDrive: mikDriveConstants;
-    pointTurn: mikTurnConstants;
-    angleTurn: mikTurnConstants;
-    angleSwing: mikSwingConstants;
-    pointSwing: mikSwingConstants;
-    start: undefined;
-    group: string;
-  };
-  LemLib: {
-    distanceDrive: LemMoveConstants;
-    pointDrive: LemMoveConstants;
-    poseDrive: LemMoveConstants;
-    pointTurn: LemAngularConstants;
-    angleTurn: LemAngularConstants;
-    angleSwing: LemAngularConstants;
-    pointSwing: LemAngularConstants;
-    start: undefined;
-    group: string;
-  };
-  "RW-Template": {
-    distanceDrive: mikDriveConstants;
-    pointDrive: mikDriveConstants;
-    poseDrive: mikDriveConstants;
-    pointTurn: mikTurnConstants;
-    angleTurn: mikTurnConstants;
-    angleSwing: mikSwingConstants;
-    pointSwing: mikSwingConstants;
-    start: undefined;
-    group: string;
-  };
-};
-
-export type Segment<F extends Format = Format, K extends SegmentKind = SegmentKind> = {
+export type Segment<F extends Format = Format> = {
   id: string;
   groupId?: string;
   disabled: boolean;
@@ -98,26 +14,26 @@ export type Segment<F extends Format = Format, K extends SegmentKind = SegmentKi
   visible: boolean;
   pose: Pose;
   format: F;
-  kind: K;
-  constants: ConstantsByFormat[F][K];
+  kind: SegmentKind;
+  constants: SegmentConstants<F>
 };
 
-export function createSegmentGroup(): Partial<Segment> {
+export function createStartSegment<F extends Format>(formatDef: FormatDef<Format>, format: F, pose: Pose): Segment<F> {
   return {
     id: makeId(10),
-    groupId: makeId(10),
-    disabled: false,
     selected: false,
     hovered: false,
+    disabled: false,
     locked: false,
     visible: true,
-    constants: "Group",
-    pose: { x: null, y: null, angle: null },
-    kind: "group",
-  }
+    pose,
+    format,
+    kind: "start",
+    constants: getDefaultConstants(formatDef, format, "start"),
+  };
 }
 
-export function createPointDriveSegment<F extends Format>(format: F, position: Coordinate): Segment<F, "pointDrive"> {
+export function createPointDriveSegment<F extends Format>(formatDef: FormatDef<Format>, format: F, position: Coordinate): Segment<F> {
   return {
     id: makeId(10),
     selected: false,
@@ -128,11 +44,11 @@ export function createPointDriveSegment<F extends Format>(format: F, position: C
     pose: { x: position.x, y: position.y, angle: null },
     format,
     kind: "pointDrive",
-    constants: getDefaultConstants(format, "pointDrive"),
+    constants: getDefaultConstants(formatDef, format, "pointDrive"),
   };
 }
 
-export function createPoseDriveSegment<F extends Format>(format: F, pose: Pose): Segment<F, "poseDrive"> {
+export function createPoseDriveSegment<F extends Format>(formatDef: FormatDef<Format>, format: F, pose: Pose): Segment<F> {
   return {
     id: makeId(10),
     selected: false,
@@ -143,11 +59,11 @@ export function createPoseDriveSegment<F extends Format>(format: F, pose: Pose):
     pose,
     format,
     kind: "poseDrive",
-    constants: getDefaultConstants(format, "poseDrive"),
+    constants: getDefaultConstants(formatDef, format, "poseDrive"),
   };
 }
 
-export function createPointTurnSegment<F extends Format>(format: F, pose: Pose): Segment<F, "pointTurn"> {
+export function createPointTurnSegment<F extends Format>(formatDef: FormatDef<Format>, format: F, pose: Pose): Segment<F> {
   return {
     id: makeId(10),
     selected: false,
@@ -158,11 +74,11 @@ export function createPointTurnSegment<F extends Format>(format: F, pose: Pose):
     pose,
     format,
     kind: "pointTurn",
-    constants: getDefaultConstants(format, "pointTurn"),
+    constants: getDefaultConstants(formatDef, format, "pointTurn"),
   };
 }
 
-export function createAngleTurnSegment<F extends Format>(format: F, heading: number): Segment<F, "angleTurn"> {
+export function createAngleTurnSegment<F extends Format>(formatDef: FormatDef<Format>, format: F, heading: number): Segment<F> {
   return {
     id: makeId(10),
     selected: false,
@@ -173,11 +89,11 @@ export function createAngleTurnSegment<F extends Format>(format: F, heading: num
     pose: { x: null, y: null, angle: heading },
     format,
     kind: "angleTurn",
-    constants: getDefaultConstants(format, "angleTurn"),
+    constants: getDefaultConstants(formatDef, format, "angleTurn"),
   };
 }
 
-export function createAngleSwingSegment<F extends Format>(format: F, heading: number): Segment<F, "angleSwing"> {
+export function createAngleSwingSegment<F extends Format>(formatDef: FormatDef<Format>, format: F, heading: number): Segment<F> {
   return {
     id: makeId(10),
     selected: false,
@@ -188,11 +104,11 @@ export function createAngleSwingSegment<F extends Format>(format: F, heading: nu
     pose: { x: null, y: null, angle: heading },
     format,
     kind: "angleSwing",
-    constants: getDefaultConstants(format, "angleSwing"),
+    constants: getDefaultConstants(formatDef, format, "angleSwing"),
   };
 }
 
-export function createPointSwingSegment<F extends Format>(format: F, pose: Pose): Segment<F, "pointSwing"> {
+export function createPointSwingSegment<F extends Format>(formatDef: FormatDef<Format>, format: F, pose: Pose): Segment<F> {
   return {
     id: makeId(10),
     selected: false,
@@ -203,11 +119,11 @@ export function createPointSwingSegment<F extends Format>(format: F, pose: Pose)
     pose,
     format,
     kind: "pointSwing",
-    constants: getDefaultConstants(format, "pointSwing"),
+    constants: getDefaultConstants(formatDef, format, "pointSwing"),
   };
 }
 
-export function createDistanceSegment<F extends Format>(format: F, pose: Pose): Segment<F, "distanceDrive"> {
+export function createDistanceSegment<F extends Format>(formatDef: FormatDef<Format>, format: F, pose: Pose): Segment<F> {
   return {
     id: makeId(10),
     selected: false,
@@ -218,7 +134,7 @@ export function createDistanceSegment<F extends Format>(format: F, pose: Pose): 
     pose,
     format,
     kind: "distanceDrive",
-    constants: getDefaultConstants(format, "distanceDrive"),
+    constants: getDefaultConstants(formatDef, format, "distanceDrive"),
   };
 }
 

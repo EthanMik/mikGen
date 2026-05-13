@@ -1,13 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { usePath } from "../../hooks/usePath";
 import FileRenamePopup from "./FileRenamePopup";
-import { useGetFileFormat } from "../../hooks/useGetFileFormat";
-import { useFormat } from "../../hooks/useFormat";
-import { useFileFormat, type FileFormat } from "../../hooks/useFileFormat";
-import { INITIAL_DEFAULTS } from "../../simulation/DefaultConstants";
+import { usePath, useFileFormat, fileFormatStore, type FileFormat } from "../../hooks/useFileFormat";
 import { defaultRobotConstants } from "../../core/Robot";
-import { useField } from "../../hooks/useField";
-import { AddToUndoHistory } from "../../core/Undo/UndoHistory";
+import { saveSnapshot } from "../../core/Undo/UndoHistory";
+import { FORMAT_REGISTRY } from "../../simulation/FormatDefinition";
 
 const SAVED_SNAPSHOT_KEY = "savedSnapshot";
 const FILE_VERSION = "mikGen v1.0.0";
@@ -56,16 +52,15 @@ export default function FileButton() {
     const [ isOpen, setOpen ] = useState(false);
     const [ popupOpen, setPopupOpen ] = useState(false);
     const [ path, setPath ] = usePath();
-    const [ field, ] = useField();
-    const [ format, ] = useFormat();
-    const [ , setFileFormat ] = useFileFormat();
+    const [ fileFormat ] = useFileFormat();
+    const { format, field } = fileFormat;
     const [ isSaved, setIsSaved ] = useState(() => {
         const saved = localStorage.getItem(SAVED_SNAPSHOT_KEY);
         return saved !== null;
     });
     const savedSnapshotRef = useRef<string | null>(localStorage.getItem(SAVED_SNAPSHOT_KEY));
 
-    const fileText = useGetFileFormat();
+    const fileText = fileFormat;
 
     const [ label, setLabel ] = useState("");
 
@@ -123,12 +118,13 @@ export default function FileButton() {
         const newFileFormat = {
             format: format,
             field: field,
-            defaults: INITIAL_DEFAULTS[format],
+            formatDef: FORMAT_REGISTRY[format as keyof typeof FORMAT_REGISTRY],
             path: { segments: [], name: "" },
             robot: defaultRobotConstants,
-        };
-        setFileFormat(newFileFormat);
-        AddToUndoHistory(structuredClone(newFileFormat));
+        } as FileFormat;
+
+        fileFormatStore.setState(newFileFormat);
+        saveSnapshot();
         fileHandleRef.current = null;
         setOpen(false);
         savedSnapshotRef.current = null;
@@ -184,8 +180,8 @@ export default function FileButton() {
                     name: fileName
                 }
             };
-            setFileFormat(newFileFormat);
-            AddToUndoHistory(structuredClone(newFileFormat));
+            fileFormatStore.setState(newFileFormat);
+            saveSnapshot();
             savedSnapshotRef.current = null;
             localStorage.removeItem(SAVED_SNAPSHOT_KEY);
 
@@ -213,8 +209,8 @@ export default function FileButton() {
                         name: fileName
                     }
                 };
-                setFileFormat(newFileFormat);
-                AddToUndoHistory(structuredClone(newFileFormat));
+                fileFormatStore.setState(newFileFormat);
+                saveSnapshot();
             };
             reader.readAsText(file);
 

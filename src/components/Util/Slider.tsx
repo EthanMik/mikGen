@@ -1,4 +1,4 @@
-  import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { clamp } from "../../core/Util";
 
 type SliderProps = {
@@ -9,7 +9,7 @@ type SliderProps = {
   knobHeight: number,
   knobColor?: string,
   value: number,
-  setValue: (value: number) => void; 
+  setValue: (value: number) => void;
   onChangeStart?: () => void;
   OnChangeEnd?: (value: number) => void;
 }
@@ -22,7 +22,7 @@ export default function Slider({
   knobWidth,
   knobHeight,
   knobColor = "--color-verylightgray",
-  value, 
+  value,
   setValue,
   onChangeStart,
   OnChangeEnd
@@ -32,10 +32,10 @@ export default function Slider({
   const handleMove = (clientX: number) => {
     const track = trackRef.current;
     if (!track) return;
-  
+
     const rect = track.getBoundingClientRect();
     let newValue = ((clientX - rect.left) / rect.width) * 100;
-  
+
     newValue = clamp(newValue, 0, 100);
     setValue?.(newValue);
   }
@@ -44,8 +44,8 @@ export default function Slider({
     onChangeStart?.();
     evt.preventDefault();
     evt.stopPropagation();
+    handleMove(evt.clientX);
 
-    
     const move = (evt: MouseEvent) => {
       handleMove(evt.clientX)
     }
@@ -61,23 +61,29 @@ export default function Slider({
   }
 
   return (
-    <div className="rounded-sm relative w-full"
+    <div className="relative flex items-center w-full cursor-pointer"
       style={{
-        backgroundColor: `var(${sliderColor})`,
         ...(sliderWidth > 0 ? { width: `${sliderWidth}px` } : {}),
-        height: `${sliderHeight}px`,
+        height: `${Math.max(knobHeight, sliderHeight) * 2}px`,
       }}
       ref={trackRef}
       onMouseDown={startDrag}
-      
-      >
-      <div className="absolute top-[50%] rounded-full cursor-grab"
+    >
+      <div className="rounded-sm w-full pointer-events-none"
+        style={{
+          backgroundColor: `var(${sliderColor})`,
+          height: `${sliderHeight}px`,
+        }}
+      />
+      <div className="absolute rounded-full cursor-grab pointer-events-none"
         style={{
           backgroundColor: `var(${knobColor})`,
           width: `${knobWidth}px`,
           height: `${knobHeight}px`,
           left: `${value}%`,
-          transform: "translate(-50%, -50%)",
+          top: "50%",
+          transform: `translate(-50%, -50%) scale(${1})`,
+          transition: "transform 0.05s ease",
         }}
       />
     </div>

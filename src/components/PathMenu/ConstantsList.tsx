@@ -1,22 +1,21 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Fragment, useEffect, useRef, useState } from "react";
 import downArrow from "../../assets/down-arrow.svg";
 import type { ConstantField } from "./ConstantRow";
 import ConstantRow from "./ConstantRow";
 import { deepEqual } from "../../core/Util";
-import { AddToUndoHistory, undoHistory } from "../../core/Undo/UndoHistory";
-import { usePath } from "../../hooks/usePath";
+import { saveSnapshot, undoHistory } from "../../core/Undo/UndoHistory";
+import type { ConstantsRecord } from "../../simulation/FormatDefinition";
 
 type ConstantsListProps = {
     header: string;
-    values: any;
+    values: ConstantsRecord;
     fields: ConstantField[];
-    onChange: (constants: Partial<any>) => void,
-    onSetDefault: (constants: Partial<any>) => void,
+    onChange: (constants: Partial<ConstantsRecord>) => void;
+    onSetDefault: (constants: Partial<ConstantsRecord>) => void;
     onReset: () => void;
-    onApply: (constants: Partial<any>) => void;
+    onApply: (constants: Partial<ConstantsRecord>) => void;
     isOpenGlobal: boolean;
-    defaults: Partial<any>;
+    defaults: ConstantsRecord;
 }
 
 export default function ConstantsList({
@@ -33,8 +32,6 @@ export default function ConstantsList({
     const [open, setOpen] = useState(false);
     const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
     const [applied, setApplied] = useState(false);
-    const [path] = usePath();
-    const undoRef = useRef(false);
     const skipNextHistoryChange = useRef(false);
     const historyLength = undoHistory.useSelector((h) => h.length);
 
@@ -45,13 +42,6 @@ export default function ConstantsList({
         }
         setApplied(false);
     }, [historyLength]);
-
-    useEffect(() => {
-        if (undoRef.current) {
-            AddToUndoHistory({ path });
-            undoRef.current = false;
-        }
-    }, [path]);
 
     useEffect(() => {
         setOpen(isOpenGlobal)
@@ -75,12 +65,12 @@ export default function ConstantsList({
         return false;
     })();
 
-    const buildSelectedPartial = (source: any): Partial<any> => {
-        const partial: Partial<any> = {};
+    const buildSelectedPartial = (source: ConstantsRecord): ConstantsRecord => {
+        const result: ConstantsRecord = {};
         for (const key of selectedKeys) {
-            partial[key] = source[key];
+            if (key in source) result[key] = source[key];
         }
-        return partial;
+        return result;
     };
 
     const toggleKey = (key: string) => {
@@ -143,8 +133,8 @@ export default function ConstantsList({
                             e.stopPropagation();
                             if (!isDirty) return;
                             if (hasSelection) {
-                                undoRef.current = true;
                                 onChange(buildSelectedPartial(defaults));
+                                saveSnapshot();
                             } else {
                                 onReset();
                             }
@@ -164,9 +154,9 @@ export default function ConstantsList({
                             if (applied) return;
                             skipNextHistoryChange.current = true;
                             setApplied(true);
-                            undoRef.current = true;
                             const vals = hasSelection ? buildSelectedPartial(values) : values;
                             onApply(vals);
+                            saveSnapshot();
                         }}
                     >
                         <span className="text-verylightgray">Apply</span>
@@ -181,15 +171,15 @@ export default function ConstantsList({
                     <div className="relative grid grid-cols-2 min-w-0 pl-5 gap-1.5 mt-2 w-[400px]">
                         {fields.map((f) => (
                             <ConstantRow
-                                key={String(f.key)}
+                                key={f.key}
                                 label={f.label}
                                 value={values[f.key]}
                                 input={f.input}
                                 units={f.units}
-                                onChange={(v: number | null) => onChange({ [f.key]: v } as Partial<any>)}
+                                onChange={(v) => { if (v !== null) onChange({ [f.key]: v }); }}
                                 labelColor={deepEqual(values[f.key], defaults[f.key]) ? "text-white" : "text-white/50"}
-                                selected={selectedKeys.has(String(f.key))}
-                                onToggleSelect={() => toggleKey(String(f.key))}
+                                selected={selectedKeys.has(f.key)}
+                                onToggleSelect={() => toggleKey(f.key)}
                             />
                         ))}
                     </div>
