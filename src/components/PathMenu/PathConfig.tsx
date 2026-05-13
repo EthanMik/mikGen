@@ -76,6 +76,15 @@ export default function PathConfig() {
               const match = btn.keyValues.find(kv => String(kv.value) === newKey);
               if (match !== undefined) {
                 updatePathConstants(setPath, c.id, btn.constantsIdx, { [String(btn.key)]: match.value } as Partial<FormatConstants[Format]>);
+                const posePartial = btn.poseEffect?.(match.value as never);
+                if (posePartial) {
+                  setPath(prev => ({
+                    ...prev,
+                    segments: prev.segments.map(s =>
+                      s.id === c.id ? { ...s, pose: { ...s.pose, ...posePartial } } : s
+                    ),
+                  }));
+                }
               }
             },
           }));

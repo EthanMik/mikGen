@@ -1,9 +1,10 @@
 import { SIM_CONSTANTS } from "../core/ComputePathSim";
 import type { Robot } from "../core/Robot";
 import type { Path } from "../core/Types/Path";
-import { findPointToFace, roundOff, toDeg } from "../core/Util";
+import { findPointToFace, makeId, roundOff, toDeg } from "../core/Util";
+import type { Segment } from "../core/Types/Segment";
 import type { Format } from "./FormatDefinition";
-import type { FormatDef, SegmentDef, SegmentKind, SimFn } from "./FormatDefinition";
+import type { FormatDef, SegmentConstants, SegmentDef, SegmentKind, SimFn } from "./FormatDefinition";
 import { angle_error } from "./mikLibSim/Util";
 
 export function convertPathToString<F extends Format, Segs extends Partial<Record<SegmentKind, SegmentDef<F>>>>(formatDef: FormatDef<F, Segs>, path: Path, selected = false): string {
@@ -30,7 +31,7 @@ export function convertPathToString<F extends Format, Segs extends Partial<Recor
         if (!segDef) continue;
 
         const mergedK: Record<string, unknown> = Object.assign({}, ...k);
-        const kBuilderStr = formatDef.kBuilder ? formatDef.kBuilder(segDef.defaults, k) : "";
+        const kBuilderStr = formatDef.kBuilder ? formatDef.kBuilder(segDef.defaults, k, seg.pose) : "";
 
         let line = segDef.toStringTemplate
             .replace(/\$\{x\}/g, x)
@@ -51,6 +52,97 @@ export function convertPathToString<F extends Format, Segs extends Partial<Recor
     }
 
     return pathString;
+}
+
+export function convertStringToPath<F extends Format>(
+    formatDef: FormatDef<F>,
+    format: F,
+    pathString: string
+): Segment[] {
+    const segments: Segment[] = [];
+
+    for (const rawLine of pathString.split('\n')) {
+        const line = rawLine.trim().replace(/\(\s+/g, '(').replace(/\s+\)/g, ')');
+        if (!line) continue;
+
+        for (const [kind, segDef] of Object.entries(formatDef.segments) as [SegmentKind, SegmentDef<F>][]) {
+            if (!segDef || !segDef.exists) continue;
+            const seg = parseSegmentLine(line, kind, segDef, formatDef, format);
+            if (seg) { segments.push(seg); break; }
+        }
+    }
+
+    return segments;
+}
+
+function templateToRegex(template: string): { regex: RegExp; groups: string[] } {
+    const groups: string[] = [];
+    const hasOptKBuilder = template.includes(', ${kBuilder}');
+    let t = template.replace(', ${kBuilder}', '__KBUILDER_OPT__');
+
+    t = t.replace(/\$\{([^}]+)\}/g, (_, name: string) => {
+        groups.push(name);
+        return name === 'x' || name === 'y' || name === 'angle' ? '__COORD__' : '__FIELD__';
+    });
+
+    t = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    if (hasOptKBuilder) {
+        groups.push('kBuilder');
+        t = t.replace('__KBUILDER_OPT__', '(?:, (.+))?');
+    }
+    t = t.replace(/__COORD__/g, '(-?[\\d.]+)');
+    t = t.replace(/__FIELD__/g, '([^,)]+?)');
+
+    return { regex: new RegExp(`^\\s*${t}\\s*$`), groups };
+}
+
+function parseSegmentLine<F extends Format>(
+    line: string,
+    kind: SegmentKind,
+    segDef: SegmentDef<F>,
+    formatDef: FormatDef<F>,
+    format: F
+): Segment | null {
+    const { regex, groups } = templateToRegex(segDef.toStringTemplate);
+    const match = line.match(regex);
+    if (!match) return null;
+
+    const captured: Record<string, string> = {};
+    groups.forEach((name, i) => { captured[name] = match[i + 1] ?? ''; });
+
+    const pointBased = kind === "pointTurn" || kind === "pointSwing";
+    const x = (!pointBased && 'x' in captured) ? parseFloat(captured.x) : null;
+    const y = (!pointBased && 'y' in captured) ? parseFloat(captured.y) : null;
+    let angle: number | null = 'angle' in captured ? parseFloat(captured.angle) : (pointBased ? 0 : null);
+
+    const defaults = segDef.defaults as SegmentConstants<F>;
+    let constants: SegmentConstants<F>;
+    if (formatDef.kParser) {
+        const [parsedConstants, poseOverride] = formatDef.kParser(defaults, captured.kBuilder ?? '', kind);
+        constants = parsedConstants;
+        if (poseOverride?.angle !== undefined) angle = poseOverride.angle;
+    } else {
+        constants = defaults.map(k => ({ ...k })) as SegmentConstants<F>;
+    }
+
+    for (const [name, value] of Object.entries(captured)) {
+        if (name === 'x' || name === 'y' || name === 'angle' || name === 'kBuilder' || !value) continue;
+        const num = parseFloat(value);
+        const parsed: unknown = isNaN(num) ? value.trim() : num;
+        for (const k of constants) {
+            if (name in k) (k as unknown as Record<string, unknown>)[name] = parsed;
+        }
+    }
+
+    return {
+        id: makeId(10),
+        selected: false, hovered: false, disabled: false, locked: false, visible: true,
+        format,
+        kind,
+        pose: { x, y, angle },
+        constants,
+    };
 }
 
 
@@ -118,7 +210,7 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
                         if (!started) {
                             DEBUG_printSegmentStart(idx, formatDef, kind);
                             const targetAngle = toDeg(Math.atan2(turn_pos.x - robot.getX(), turn_pos.y - robot.getY())) + angle;
-                            targetDist = Math.abs(angle_error(targetAngle - robot.getAngle(), "FASTEST")!);
+                            targetDist = Math.abs(angle_error(targetAngle - robot.getAngle(), "fastest")!);
                             started = true;
                         }
                         DEBUG_printRobotState(robot, dt);
@@ -135,7 +227,23 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
                     (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
                         if (!started) {
                             DEBUG_printSegmentStart(idx, formatDef, kind);
-                            targetDist = Math.abs(angle_error(angle - robot.getAngle(), "FASTEST")!);
+                            targetDist = Math.abs(angle_error(angle - robot.getAngle(), "fastest")!);
+                            started = true;
+                        }
+                        DEBUG_printRobotState(robot, dt);
+                        const output = segDef.simFn(robot, dt, x, y, angle, k);
+                        if (output) DEBUG_printSegmentEnd(idx, formatDef, kind);
+                        return [output, kind, targetDist];
+                    }
+                );
+                break;
+
+            case "distanceDrive":
+                auton.push(
+                    (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
+                        if (!started) {
+                            DEBUG_printSegmentStart(idx, formatDef, kind);
+                            targetDist = Math.abs(x);
                             started = true;
                         }
                         DEBUG_printRobotState(robot, dt);

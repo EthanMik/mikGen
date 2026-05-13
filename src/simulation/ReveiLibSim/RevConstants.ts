@@ -1,9 +1,10 @@
 import { getUnequalKeys, roundOff } from "../../core/Util";
-import { type FormatDef, type NumberInputGroup } from "../FormatDefinition";
+import { type FormatDef, type NumberInputGroup, type SegmentKind } from "../FormatDefinition";
 import { boomerangSegment } from "./DriveMotions/BoomerangSegment";
 import { pilonsSegment } from "./DriveMotions/PilonsSegment";
 import { turnSegment } from "./DriveMotions/TurnSegment";
 import { lookAt } from "./DriveMotions/LookAt";
+import type { Pose } from "../../core/Types/Pose";
 
 export interface ReveilLibConstants {
     maxSpeed: number;
@@ -194,7 +195,7 @@ export const reveilLibDef = {
     },
 } satisfies FormatDef<"ReveilLib">;
 
-function kRevBuilder(kDefault: ReveilLibConstants[], constants: ReveilLibConstants[]): string {
+function kRevBuilder(kDefault: ReveilLibConstants[], constants: ReveilLibConstants[], _pose?: Pose): string {
     const keyToRevConstant = (key: keyof ReveilLibConstants, value: ReveilLibConstants[keyof ReveilLibConstants]): string => {
         switch (key) {
             case "maxSpeed":           return `.speed = ${roundOff(value as number, 2)}`;
@@ -226,9 +227,9 @@ function kRevBuilder(kDefault: ReveilLibConstants[], constants: ReveilLibConstan
     return constantsList.join(", ");
 }
 
-function kRevParser(kDefault: ReveilLibConstants[], kBuilderStr: string): [ReveilLibConstants, ...ReveilLibConstants[]] {
+function kRevParser(kDefault: ReveilLibConstants[], kBuilderStr: string, _kind: SegmentKind): [[ReveilLibConstants, ...ReveilLibConstants[]], Partial<Pose>?] {
     const constants = kDefault.map(k => ({ ...k })) as [ReveilLibConstants, ...ReveilLibConstants[]];
-    if (!kBuilderStr.trim()) return constants;
+    if (!kBuilderStr.trim()) return [constants];
 
     const inner = kBuilderStr.trim().slice(1, -1);
     const entries = inner.split(/,\s*(?=\.)/);
@@ -250,5 +251,6 @@ function kRevParser(kDefault: ReveilLibConstants[], kBuilderStr: string): [Revei
         else if (rawKey === "drop_early") constants[0].dropEarly = num;
     }
 
-    return constants;
+    return [constants];
 }
+

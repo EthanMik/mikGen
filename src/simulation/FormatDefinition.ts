@@ -1,10 +1,12 @@
 import { LemLibDef, type LemConstants } from "./LemLibSim/LemConstants";
 import { mikLibDef, type mikConstants } from "./mikLibSim/MikConstants";
 import { reveilLibDef, type ReveilLibConstants } from "./ReveiLibSim/RevConstants";
-import type { RevMecanumConstants } from "./RevMecanumSim/RevMecanumConstant";
+import type { RevMecanumConstants } from "./HolonomicSim/RevMecanumConstant";
 import type { Robot } from "../core/Robot";
 import type { Dispatch, SetStateAction } from "react";
 import type { Path } from "../core/Types/Path";
+import type { Pose } from "../core/Types/Pose";
+import { holonomicDef } from "./HolonomicSim/HolonomicConstants";
 
 export type Format =
     "mikLib"
@@ -12,7 +14,7 @@ export type Format =
     | "JAR-Template"
     | "LemLib"
     | "RW-Template"
-    | "RevMecanum"
+    | "Holonomic"
 
 export type SegmentKind =
     | "pointDrive"
@@ -29,7 +31,7 @@ export type FormatConstants = {
     ReveilLib: ReveilLibConstants;
     "JAR-Template": mikConstants;
     LemLib: LemConstants;
-    RevMecanum: RevMecanumConstants;
+    "Holonomic": mikConstants;
     "RW-Template": mikConstants;
 };
 
@@ -39,8 +41,8 @@ export type FormatDef<F extends Format, Segs extends Partial<Record<SegmentKind,
     formatPathName: string;
     slider: SliderField<F>;
     segments: Segs;
-    kBuilder?: (kDefault: SegmentConstants<F>, k: SegmentConstants<F>) => string;
-    kParser?: (kDefault: SegmentConstants<F>, kBuilderStr: string) => SegmentConstants<F>;
+    kBuilder?: (kDefault: SegmentConstants<F>, k: SegmentConstants<F>, pose?: Pose) => string;
+    kParser?: (kDefault: SegmentConstants<F>, kBuilderStr: string, kind: SegmentKind) => [SegmentConstants<F>, Partial<Pose>?];
 };
 
 export type SegmentDef<F extends Format = Format> = {
@@ -79,6 +81,7 @@ export type CycleButtonField<F extends Format = Format,
         srcImg: string;
         value: FormatConstants[F][K];
     }[];
+    poseEffect?: (newValue: FormatConstants[F][K]) => Partial<Pose> | undefined;
 }
 
 export type NumberInputGroup<F extends Format = Format> = {
@@ -114,7 +117,7 @@ export const FORMAT_REGISTRY = {
     ReveilLib: reveilLibDef,
     "JAR-Template": LemLibDef,
     "RW-Template": LemLibDef,
-    RevMecanum: LemLibDef,
+    Holonomic: holonomicDef,
 } as unknown as { [F in Format]: FormatDef<F> };
 
 export function mergeFormatDef(registry: FormatDef<Format>, saved: unknown): FormatDef<Format> {

@@ -147,6 +147,7 @@ export default function EditJSONPopup({
                                     />
                                 </div>
                             ))}
+                            <span className="pt-2 text-[12px]">Editing these templates can affect pasting behavior and create bugs; variables are placed inside $&#123;&#125;</span>
                         </div>
                     </div>
                 </div>

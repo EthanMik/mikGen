@@ -16,7 +16,6 @@ import PathLayer from "./PathLayer";
 import ControlsLayer from "./ControlsLayer";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import type { Path } from "../../core/Types/Path";
-import { useClipboard } from "../../hooks/useClipboard";
 import { useSettings } from "../../hooks/useSettings";
 
 export default function Field() {
@@ -57,7 +56,6 @@ export default function Field() {
   const [robotVisible, setRobotVisibility] = useRobotVisibility();
   const [pathVisible] = usePathVisibility();
   const [format] = useFormat();
-  const [ clipboard, setClipboard ] = useClipboard();
   const [ settings, ] = useSettings();
 
   const startDrag = useRef(false);
@@ -82,17 +80,35 @@ export default function Field() {
     moveControl, moveHeading, deleteControl, unselectPath, selectPath,
     selectInversePath, undo, addPointDriveSegment, addStartSegment,
     addPointTurnSegment, addPoseDriveSegment, addAngleTurnSegment,
-    addAngleSwingSegment, addPointSwingSegment, fieldZoomKeyboard, fieldZoomWheel, 
-    fieldPanWheel, cut, copy, paste
+    addAngleSwingSegment, addPointSwingSegment, fieldZoomKeyboard, fieldZoomWheel,
+    fieldPanWheel, cut, pastePathString, copySelectedPath, copyAllPath,
   } = FieldMacros();
 
   const { toggleRobotVisibility } = PathSimMacros();
+
+  const hiddenInputRef = useRef<HTMLInputElement | null>(null);
+
+  const pasteRef = useRef<(evt: ClipboardEvent) => void>(() => {});
+  pasteRef.current = (evt: ClipboardEvent) => {
+    pastePathString(evt, setPath);
+    hiddenInputRef.current?.blur();
+  };
+
+  useEffect(() => {
+    const handlePaste = (evt: ClipboardEvent) => pasteRef.current(evt);
+    document.addEventListener("paste", handlePaste);
+    return () => document.removeEventListener("paste", handlePaste);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (evt: KeyboardEvent) => {
       const target = evt.target as HTMLElement | null;
       if (target?.isContentEditable || target?.tagName === "INPUT") return;
       if (evt.ctrlKey && evt.key.toLowerCase() === "r") return;
+      if (evt.ctrlKey && evt.key.toLowerCase() === "v") {
+        hiddenInputRef.current?.focus();
+        return;
+      }
       unselectPath(evt, setPath);
       moveControl(evt, setPath);
       if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(evt.key)) {
@@ -101,9 +117,9 @@ export default function Field() {
           if (pathRef.current) saveSnapshot();
         }, 400);
       }
-      cut(evt, path, setClipboard, setPath);
-      copy(evt, path, setClipboard);
-      paste(evt, setPath, clipboard);
+      copySelectedPath(evt, path, () => {});
+      copyAllPath(evt, path, () => {});
+      cut(evt, path, setPath);
       deleteControl(evt, setPath);
       selectPath(evt, setPath);
       selectInversePath(evt, setPath);
@@ -133,8 +149,6 @@ export default function Field() {
     };
   }, [
     path,
-    clipboard,
-    setClipboard,
     setPath,
     moveControl,
     moveHeading,
@@ -145,6 +159,10 @@ export default function Field() {
     undo,
     fieldZoomKeyboard,
     toggleRobotVisibility,
+    cut,
+    copySelectedPath,
+    copyAllPath,
+    setRobotVisibility,
   ]);
   
   useEffect(() => {
@@ -339,6 +357,12 @@ export default function Field() {
 
   return (
     <div tabIndex={0} onMouseLeave={endDrag}>
+      <input
+        ref={hiddenInputRef}
+        data-paste-proxy=""
+        tabIndex={-1}
+        style={{ position: "fixed", opacity: 0, pointerEvents: "none", width: 0, height: 0 }}
+      />
       <svg
         ref={svgRef}
         viewBox={`${0} ${0} ${FIELD_IMG_DIMENSIONS.w} ${FIELD_IMG_DIMENSIONS.h}`}

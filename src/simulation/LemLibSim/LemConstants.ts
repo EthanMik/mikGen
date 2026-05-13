@@ -1,5 +1,6 @@
 import { getUnequalKeys, roundOff } from "../../core/Util";
-import { type FormatDef, type NumberInputGroup, type CycleButtonField } from "../FormatDefinition";
+import { type FormatDef, type NumberInputGroup, type CycleButtonField, type SegmentKind } from "../FormatDefinition";
+import type { Pose } from "../../core/Types/Pose";
 import ccw from "../../assets/ccw.svg";
 import cw from "../../assets/cw.svg";
 import cwccw from "../../assets/cwwcw.svg";
@@ -220,7 +221,7 @@ export const LemLibDef = {
             toStringTemplate: "chassis.turnToPoint(${x}, ${y}, ${timeout}, ${kBuilder});",
             simFn: (robot, dt, x, y, angle, constants) => turnToPoint(robot, dt, x, y, angle, constants),
             cycleButtons: [
-                { constantsIdx: 0, ...forwardsButton },
+                { constantsIdx: 0, ...forwardsButton, poseEffect: (val) => ({ angle: (val as boolean) ? 0 : 180 }) },
                 { constantsIdx: 0, ...directionButton },
             ],
             numberInputs: [
@@ -269,6 +270,7 @@ export const LemLibDef = {
             cycleButtons: [
                 { constantsIdx: 0, ...lockedSideButton },
                 { constantsIdx: 0, ...directionButton },
+                { constantsIdx: 0, ...forwardsButton, poseEffect: (val) => ({ angle: (val as boolean) ? 0 : 180 }) },
             ],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Motion Settings", fields: [...motionSettingsFields] },
@@ -278,7 +280,8 @@ export const LemLibDef = {
     },
 } satisfies FormatDef<"LemLib">;
 
-function kLemBuilder(kDefault: LemConstants[], constants: LemConstants[]): string {
+function kLemBuilder(kDefault: LemConstants[], constants: LemConstants[], pose?: Pose): string {
+    void pose;
     const keyToLemConstant = (key: keyof LemConstants, value: LemConstants[keyof LemConstants]): string => {
         switch (key) {
             case "forwards": return `.forwards = ${value}`;
@@ -310,9 +313,9 @@ function kLemBuilder(kDefault: LemConstants[], constants: LemConstants[]): strin
     return constantsList.map((c) => `${c}`).join(", ");
 }
 
-function kLemParser(kDefault: LemConstants[], kBuilderStr: string): [LemConstants, ...LemConstants[]] {
+function kLemParser(kDefault: LemConstants[], kBuilderStr: string, kind: SegmentKind): [[LemConstants, ...LemConstants[]], Partial<Pose>?] {
     const constants = kDefault.map(k => ({ ...k })) as [LemConstants, ...LemConstants[]];
-    if (!kBuilderStr.trim()) return constants;
+    if (!kBuilderStr.trim()) return [constants];
 
     const inner = kBuilderStr.trim().slice(1, -1);
     const entries = inner.split(/,\s*(?=\.)/);
@@ -332,5 +335,10 @@ function kLemParser(kDefault: LemConstants[], kBuilderStr: string): [LemConstant
         else if (rawKey === "earlyExitRange")  constants[0].earlyExitRange = num;
     }
 
-    return constants;
+    const isTurn = kind === "pointTurn" || kind === "pointSwing";
+    const poseOverride: Partial<Pose> | undefined = isTurn
+        ? { angle: constants[0].forwards ? 0 : 180 }
+        : undefined;
+
+    return [constants, poseOverride];
 }

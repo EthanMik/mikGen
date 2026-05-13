@@ -1,5 +1,6 @@
 import { getUnequalKeys, roundOff } from "../../core/Util";
-import { type FormatDef, type NumberInputGroup, type CycleButtonField } from "../FormatDefinition";
+import { type FormatDef, type NumberInputGroup, type CycleButtonField, type SegmentKind } from "../FormatDefinition";
+import type { Pose } from "../../core/Types/Pose";
 import ccw from "../../assets/ccw.svg";
 import cw from "../../assets/cw.svg";
 import cwccw from "../../assets/cwwcw.svg";
@@ -74,9 +75,9 @@ export const kMikHeading: mikConstants = {
     starti: 0,
 
     exit_error: 0,
-    settle_error: 0,
-    settle_time: 0,
-    timeout: 0,
+    settle_error: 1,
+    settle_time: 200,
+    timeout: 3000,
 
     drift: 0,
     slew: 0,
@@ -318,7 +319,7 @@ export const mikLibDef = {
     },
 } satisfies FormatDef<"mikLib">;
 
-function kMikBuilder(kDefault: mikConstants[], constants: mikConstants[]): string {
+function kMikBuilder(kDefault: mikConstants[], constants: mikConstants[], pose?: Pose): string {
     const keyToDriveConstant = (key: keyof mikConstants, value: mikConstants[keyof mikConstants]): string => {
         switch (key) {
             case "kp": return `.drive_k.p = ${roundOff(value as number, 3)}`;
@@ -336,7 +337,7 @@ function kMikBuilder(kDefault: mikConstants[], constants: mikConstants[]): strin
             case "exit_error": return `.exit_error = ${roundOff(value as number, 2)}`;
             case "drive_direction":
                 if (value === "fastest") return "";
-                return `.drive_direction = mik::${value}`;
+                return `.drive_direction = ${value}`;
         }
         return "";
     };
@@ -347,6 +348,8 @@ function kMikBuilder(kDefault: mikConstants[], constants: mikConstants[]): strin
             case "ki": return `.heading_k.i = ${roundOff(value as number, 5)}`;
             case "kd": return `.heading_k.d = ${roundOff(value as number, 3)}`;
             case "starti": return `.heading_k.starti = ${roundOff(value as number, 2)}`;
+            case "settle_error": return `.turn_settle_error = ${roundOff(value as number, 2)}`;
+            case "settle_time": return `.turn_settle_time ${roundOff(value as number, 0)}`;
             case "max_voltage": return `.heading_max_voltage = ${roundOff(value as number, 1)}`;
         }
         return "";
@@ -367,7 +370,7 @@ function kMikBuilder(kDefault: mikConstants[], constants: mikConstants[]): strin
             case "opposite_voltage": return `.opposite_voltage = ${roundOff(value as number, 1)}`;
             case "turn_direction":
                 if (value === "fastest") return "";
-                return `.turn_direction = mik::${value}`;
+                return `.turn_direction = ${value}`;
         }
         return "";
     };
@@ -396,6 +399,10 @@ function kMikBuilder(kDefault: mikConstants[], constants: mikConstants[]): strin
         ]
         : buildList(kDefault[0], constants[0], keyToTurnConstant);
 
+    if (!isDrive && pose?.angle) {
+        constantsList.push(`.angle_offset = ${roundOff(pose.angle, 2)}`);
+    }
+
     if (constantsList.length === 0) return "";
 
     constantsList[0] = "{" + constantsList[0];
@@ -403,14 +410,16 @@ function kMikBuilder(kDefault: mikConstants[], constants: mikConstants[]): strin
     return constantsList.join(", ");
 }
 
-function kMikParser(kDefault: mikConstants[], kBuilderStr: string): [mikConstants, ...mikConstants[]] {
+function kMikParser(kDefault: mikConstants[], kBuilderStr: string, kind: SegmentKind): [[mikConstants, ...mikConstants[]], Partial<Pose>?] {
     const constants = kDefault.map(k => ({ ...k })) as [mikConstants, ...mikConstants[]];
-    if (!kBuilderStr.trim()) return constants;
+    if (!kBuilderStr.trim()) return [constants];
+    void kind;
 
     const inner = kBuilderStr.trim().slice(1, -1); // strip { }
     const entries = inner.split(/,\s*(?=\.)/);      // split only before "." keys
 
     const isDrive = kDefault.length >= 2;
+    let angleOffset: number | undefined;
 
     for (const entry of entries) {
         const match = entry.trim().match(/^\.(.+?)\s*=\s*(.+)$/);
@@ -432,12 +441,14 @@ function kMikParser(kDefault: mikConstants[], kBuilderStr: string): [mikConstant
             else if (rawKey === "timeout")            constants[0].timeout = num;
             else if (rawKey === "slew")               constants[0].slew = num;
             else if (rawKey === "exit_error")         constants[0].exit_error = num;
-            else if (rawKey === "drive_direction")    constants[0].drive_direction = rawValue.replace("mik::", "") as mikConstants["drive_direction"];
+            else if (rawKey === "drive_direction")    constants[0].drive_direction = rawValue as mikConstants["drive_direction"];
             else if (rawKey === "heading_k.p")        constants[1].kp = num;
             else if (rawKey === "heading_k.i")        constants[1].ki = num;
             else if (rawKey === "heading_k.d")        constants[1].kd = num;
             else if (rawKey === "heading_k.starti")   constants[1].starti = num;
             else if (rawKey === "heading_max_voltage") constants[1].max_voltage = num;
+            else if (rawKey === "turn_settle_error")  constants[1].settle_error = num;
+            else if (rawKey === "turn_settle_time")  constants[1].settle_time = num;
         } else {
             if      (rawKey === "k.p")              constants[0].kp = num;
             else if (rawKey === "k.i")              constants[0].ki = num;
@@ -450,10 +461,11 @@ function kMikParser(kDefault: mikConstants[], kBuilderStr: string): [mikConstant
             else if (rawKey === "timeout")          constants[0].timeout = num;
             else if (rawKey === "lead")             constants[0].lead = num;
             else if (rawKey === "opposite_voltage") constants[0].opposite_voltage = num;
-            else if (rawKey === "turn_direction")   constants[0].turn_direction = rawValue.replace("mik::", "") as mikConstants["turn_direction"];
-            else if (rawKey === "swing_direction")  constants[0].swing_direction = rawValue.replace("mik::", "") as mikConstants["swing_direction"];
+            else if (rawKey === "turn_direction")   constants[0].turn_direction = rawValue as mikConstants["turn_direction"];
+            else if (rawKey === "swing_direction")  constants[0].swing_direction = rawValue as mikConstants["swing_direction"];
+            else if (rawKey === "angle_offset")     angleOffset = num;
         }
     }
 
-    return constants;
+    return angleOffset !== undefined ? [constants, { angle: angleOffset }] : [constants];
 }

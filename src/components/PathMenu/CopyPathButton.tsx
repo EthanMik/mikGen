@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { convertPathToString } from "../../simulation/Conversion";
 import FieldMacros from "../../macros/FieldMacros";
-import { fileFormatStore } from "../../hooks/useFileFormat";
+import { fileFormatStore, usePath } from "../../hooks/useFileFormat";
 import EditJSONPopup from "./EditJSONPopup";
 
 function CopyIcon({ className }: { className?: string }) {
@@ -47,9 +47,13 @@ export default function CopyPathButton() {
 
   const handleToggleMenu = () => setOpen((prev) => !prev);
 
+  const [, setPath] = usePath();
+
   const {
     copyAllPath,
-    copySelectedPath
+    copySelectedPath,
+    cut,
+    cutSelectedSegments,
   } = FieldMacros();
 
   useEffect(() => {
@@ -58,6 +62,7 @@ export default function CopyPathButton() {
           if (target?.isContentEditable || target?.tagName === "INPUT") return;
           copyAllPath(evt, pathRef.current, triggerFlash);
           copySelectedPath(evt, pathRef.current, triggerFlash);
+          cut(evt, pathRef.current, setPath);
       }
 
       document.addEventListener('keydown', handleKeyDown)
@@ -73,12 +78,18 @@ export default function CopyPathButton() {
     setOpen(false);
     navigator.clipboard.writeText(out ?? "");
   };
-  
+
   const copySelectedOnClick = () => {
     triggerFlash();
     const out = convertPathToString(fileFormat.formatDef, fileFormat.path, true);
     setOpen(false);
     navigator.clipboard.writeText(out ?? "");
+  };
+
+  const cutSelectedOnClick = () => {
+    triggerFlash();
+    setOpen(false);
+    cutSelectedSegments(pathRef.current, setPath);
   };
 
   useEffect(() => {
@@ -142,6 +153,14 @@ export default function CopyPathButton() {
             >
               <span className="text-[16px]">Copy Selected</span>
               <span className="text-[14px] text-lightgray">Ctrl+C</span>
+            </button>
+
+            <button
+              className="flex justify-between px-2 py-1 hover:bg-blackgrayhover rounded-sm"
+              onClick={cutSelectedOnClick}
+            >
+              <span className="text-[16px]">Cut Selected</span>
+              <span className="text-[14px] text-lightgray">Ctrl+X</span>
             </button>
 
             <button

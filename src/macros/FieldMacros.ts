@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type React from "react";
-import { clamp, FIELD_IMG_DIMENSIONS, normalizeDeg, makeId, type Rectangle } from "../core/Util";
+import { clamp, FIELD_IMG_DIMENSIONS, normalizeDeg, type Rectangle } from "../core/Util";
 import type { Path } from "../core/Types/Path";
 import type { SetStateAction } from "react";
 import { createAngleSwingSegment, createAngleTurnSegment, createDistanceSegment, createPointDriveSegment, createPointSwingSegment, createPointTurnSegment, createPoseDriveSegment, createStartSegment, type Segment } from "../core/Types/Segment";
 import type { Coordinate } from "../core/Types/Coordinate";
 import type { Pose } from "../core/Types/Pose";
 import type { Format } from "../hooks/useFileFormat";
-import { convertPathToString } from "../simulation/Conversion";
+import { convertPathToString, convertStringToPath } from "../simulation/Conversion";
 import { pointerToSvg } from "../components/Field/FieldUtils";
 import { fileFormatStore } from "../hooks/useFileFormat";
 import { saveSnapshot, redoHistory, undoHistory } from "../core/Undo/UndoHistory";
@@ -274,97 +274,117 @@ export default function FieldMacros() {
         }
     }
 
-    const copy = (
-        evt: KeyboardEvent,
-        path: Path,
-        setClipboard: React.Dispatch<SetStateAction<Segment[]>>
-    ) => {
-        if (evt.key.toLowerCase() === "c" && evt.ctrlKey) {
-            const segments = path.segments.filter(s => s.selected);
-            if (segments === undefined) return; 
-            setClipboard(structuredClone(segments));
-        }
-    }
+    // const copy = (
+    //     evt: KeyboardEvent,
+    //     path: Path,
+    //     setClipboard: React.Dispatch<SetStateAction<Segment[]>>
+    // ) => {
+    //     if (evt.key.toLowerCase() === "c" && evt.ctrlKey) {
+    //         const segments = path.segments.filter(s => s.selected);
+    //         if (segments === undefined) return; 
+    //         setClipboard(structuredClone(segments));
+    //     }
+    // }
+
+    const writeToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text).catch(() => {
+            const ta = document.createElement("textarea");
+            ta.value = text;
+            ta.style.position = "fixed";
+            ta.style.opacity = "0";
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            document.execCommand("copy");
+            document.body.removeChild(ta);
+        });
+    };
 
     const cut = (
         evt: KeyboardEvent,
         path: Path,
-        setClipboard: React.Dispatch<SetStateAction<Segment[]>>,
-        setPath:React.Dispatch<SetStateAction<Path>>
+        setPath: React.Dispatch<SetStateAction<Path>>
     ) => {
         if (evt.key.toLowerCase() === "x" && evt.ctrlKey) {
-            const segments = path.segments.filter(s => s.selected);
-            if (segments === undefined) return; 
-            setClipboard(structuredClone(segments));
-            const del = new KeyboardEvent("keydown", { key: "Delete"});
+            const formatDef = fileFormatStore.getState().formatDef;
+            const out = convertPathToString(formatDef, path, true);
+            writeToClipboard(out ?? "");
+            const del = new KeyboardEvent("keydown", { key: "Delete" });
             deleteControl(del, setPath);
         }
     }
 
-    const pastePathSTring = (
-        evt: KeyboardEvent,
-        setPath: React.Dispatch<SetStateAction<Path>>,
-        clipboard: string,
-    ) => {
-        if (evt.key.toLowerCase() === "v" && evt.ctrlKey && evt.shiftKey) {
-            
+    const copySelectedPath = (evt: KeyboardEvent, path: Path, trigger: () => void) => {
+        if (evt.key.toLowerCase() === "c" && evt.ctrlKey && !evt.shiftKey) {
+            trigger();
+            evt.preventDefault();
+            const formatDef = fileFormatStore.getState().formatDef;
+            const out = convertPathToString(formatDef, path, true);
+            writeToClipboard(out ?? "");
         }
     }
 
-    const paste = (
-        evt: KeyboardEvent,
-        setPath: React.Dispatch<SetStateAction<Path>>,
-        clipboard: Segment[]
-    ) => {
-        if (evt.key.toLowerCase() === "v" && evt.ctrlKey) {
-            setPath(prev => {
-                let selectedIndex = prev.segments.findIndex(c => c.selected);
-                selectedIndex = selectedIndex === -1 ? selectedIndex = prev.segments.length : selectedIndex + 1;
-
-                const oldSegments = prev.segments;
-
-                const groupIdMap = new Map<string, string>();
-                clipboard.forEach((s) => {
-                    if (s.groupId && !groupIdMap.has(s.groupId)) {
-                        groupIdMap.set(s.groupId, makeId(10));
-                    }
-                });
-
-                const newSegments = clipboard.map((s) => {
-                    const cloned = structuredClone(s);
-                    if (cloned.groupId) {
-                        cloned.groupId = groupIdMap.get(cloned.groupId);
-                    }
-                    return {
-                        ...cloned,
-                        id: makeId(10),
-                        selected: !s.locked,
-                        hovered: false,
-                    };
-                });
-
-                const inserted: Segment[] = [
-                    ...oldSegments.slice(0, selectedIndex),
-                    ...newSegments,
-                    ...oldSegments.slice(selectedIndex)
-                ]
-
-                const pastedSet = new Set(newSegments);
-                const controls = inserted.map(s =>
-                    pastedSet.has(s) ? s : { ...s, selected: false }
-                );
-
-                saveSnapshot();
-
-                return {
-                    ...prev,
-                    segments: controls,
-                };
-            });
+    const copyAllPath = (evt: KeyboardEvent, path: Path, trigger: () => void) => {
+        if (evt.key.toLowerCase() === "c" && evt.shiftKey && evt.ctrlKey) {
+            trigger();
+            evt.preventDefault();
+            const formatDef = fileFormatStore.getState().formatDef;
+            const out = convertPathToString(formatDef, path, false);
+            writeToClipboard(out ?? "");
         }
 
     }
 
+    const applyPastedText = (
+        text: string,
+        setPath: React.Dispatch<SetStateAction<Path>>,
+    ) => {
+        const { formatDef, format } = fileFormatStore.getState();
+        const parsed = convertStringToPath(formatDef, format, text);
+        if (parsed.length === 0) return;
+
+        setPath(prev => {
+            let selectedIndex = prev.segments.findIndex(c => c.selected);
+            selectedIndex = selectedIndex === -1 ? prev.segments.length : selectedIndex + 1;
+
+            const parsedSet = new Set(parsed);
+            const inserted: Segment[] = [
+                ...prev.segments.slice(0, selectedIndex).map(s => ({ ...s, selected: false })),
+                ...parsed,
+                ...prev.segments.slice(selectedIndex).map(s => ({ ...s, selected: false })),
+            ];
+
+            saveSnapshot();
+
+            return {
+                ...prev,
+                segments: inserted.map(s => parsedSet.has(s) ? { ...s, selected: true } : s),
+            };
+        });
+    }
+
+    const pastePathString = (
+        evt: ClipboardEvent,
+        setPath: React.Dispatch<SetStateAction<Path>>,
+    ) => {
+        const target = evt.target as HTMLElement | null;
+        const isPasteProxy = target?.hasAttribute('data-paste-proxy');
+        if (!isPasteProxy && (target?.isContentEditable || target?.tagName === "INPUT")) return;
+        evt.preventDefault();
+        applyPastedText(evt.clipboardData?.getData('text/plain') ?? '', setPath);
+    }
+
+    const cutSelectedSegments = (
+        path: Path,
+        setPath: React.Dispatch<SetStateAction<Path>>,
+    ) => {
+        const formatDef = fileFormatStore.getState().formatDef;
+        const out = convertPathToString(formatDef, path, true);
+        writeToClipboard(out ?? "");
+        const del = new KeyboardEvent("keydown", { key: "Delete" });
+        deleteControl(del, setPath);
+    }
+    
     const addSegment = (segment: Segment, setPath: React.Dispatch<SetStateAction<Path>>) => {
         setPath(prev => {
             let selectedIndex = prev.segments.findIndex(c => c.selected);
@@ -530,27 +550,6 @@ export default function FieldMacros() {
         addSegment(control, setPath);
     }
 
-    const copySelectedPath = (evt: KeyboardEvent, path: Path, trigger: () => void) => {
-        if (evt.key.toLowerCase() === "c" && evt.ctrlKey && !evt.shiftKey) {
-            trigger();
-            evt.preventDefault();
-            const formatDef = fileFormatStore.getState().formatDef;
-            const out = convertPathToString(formatDef, path, true);
-            navigator.clipboard.writeText(out ?? "");
-        }
-    }
-
-    const copyAllPath = (evt: KeyboardEvent, path: Path, trigger: () => void) => {
-        if (evt.key.toLowerCase() === "c" && evt.shiftKey && evt.ctrlKey) {
-            trigger();
-            evt.preventDefault();
-            const formatDef = fileFormatStore.getState().formatDef;
-            const out = convertPathToString(formatDef, path, false);
-            navigator.clipboard.writeText(out ?? "");
-        }
-
-    }
-
     return {
         moveControl,
         unselectPath,
@@ -560,9 +559,9 @@ export default function FieldMacros() {
         moveHeading,
         undo,
         cut,
-        copy,
-        paste,
+        cutSelectedSegments,
         copyAllPath,
+        pastePathString,
         fieldZoomKeyboard,
         fieldZoomWheel,
         fieldPanWheel,

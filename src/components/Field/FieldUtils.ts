@@ -62,7 +62,7 @@ export const getSegmentLines = (idx: number, path: Path, img: Rectangle, precise
   const pStart = toPX({ x: startPose.x, y: startPose.y }, FIELD_REAL_DIMENSIONS, img);
   const pEnd = toPX({ x: m.pose.x, y: m.pose.y }, FIELD_REAL_DIMENSIONS, img);
 
-  if (m.kind === "pointDrive" || m.kind === "distanceDrive") {
+  if ((m.kind === "poseDrive" && m.format === "Holonomic") || m.kind === "pointDrive" || m.kind === "distanceDrive") {
     return `${pStart.x},${pStart.y} ${pEnd.x},${pEnd.y}`;
   }
 

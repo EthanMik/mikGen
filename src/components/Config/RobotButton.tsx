@@ -3,7 +3,7 @@ import Checkbox from "../Util/Checkbox";
 import NumberInput from "../Util/NumberInput";
 import { useFormat, usePath, mergeRobot, fileFormatStore, type Format, useFormatDef } from "../../hooks/useFileFormat";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
-import { getDefaultConstants } from "../../simulation/FormatDefinition";
+import { FORMAT_REGISTRY, getDefaultConstants, type FormatDef } from "../../simulation/FormatDefinition";
 
 export default function RobotButton() {
     const [ , setPath ] = usePath();
@@ -16,9 +16,9 @@ export default function RobotButton() {
 
     const robot = fileFormatStore.useSelector(s => s.robot);
 
-    const updateOmnis = (omni: boolean) => {
-        mergeRobot({ isOmni: omni });
-    }
+    // const updateOmnis = (omni: boolean) => {
+    //     mergeRobot({ isOmni: omni });
+    // }
 
     const updateWidth = (width: number | null) => {
         if (width !== null) {
@@ -89,14 +89,18 @@ export default function RobotButton() {
 
     const changeFormat = (newFormat: Format) => {
         const changed = prevFormatRef.current !== newFormat;
-        setFormat(newFormat);
-        setPath(prev => ({
+        fileFormatStore.setState(prev => ({
             ...prev,
-            segments: prev.segments.map((s) => ({
-                ...s,
-                format: newFormat,
-                constants: getDefaultConstants(formatDef, newFormat, s.kind),
-            })),
+            format: newFormat,
+            formatDef: FORMAT_REGISTRY[newFormat] as FormatDef<Format>,
+            path: {
+                ...prev.path,
+                segments: prev.path.segments.map(s => ({
+                    ...s,
+                    format: newFormat,
+                    constants: getDefaultConstants(undefined, newFormat, s.kind),
+                })),
+            },
         }));
         if (changed) saveSnapshot();
         prevFormatRef.current = newFormat;
@@ -265,7 +269,7 @@ export default function RobotButton() {
                                 </div>
                             </div>
 
-                            <div className="mt-0.5 flex flex-col gap-2">
+                            {/* <div className="mt-0.5 flex flex-col gap-2">
                                 <div className="flex items-center gap-2">
                                     <span className="text-[13px] text-gray-400 whitespace-nowrap">Lateral Friction</span>
                                     <div className="flex-1 border-t border-gray-500/40"></div>
@@ -279,18 +283,18 @@ export default function RobotButton() {
                                         }} />
                                     </label>
                                 </div>
-                            </div>
+                            </div> */}
 
-                            {(format === "ReveilLib" || format === "RevMecanum") &&  <div className="mt-0.5 flex flex-col gap-2">
+                            {(format === "mikLib" || format === "Holonomic") &&  <div className="mt-0.5 flex flex-col gap-2">
                                 <div className="flex items-center gap-2">
                                     <span className="text-[13px] text-gray-400 whitespace-nowrap">Robot Type</span>
                                     <div className="flex-1 border-t border-gray-500/40"></div>
                                 </div>
                                 <div className="flex flex-row items-center justify-between h-[35px]">
-                                    <span className="text-[16px]">Mecanum</span>
+                                    <span className="text-[16px]">Holonomic</span>
                                     <label className="flex items-center gap-2 cursor-pointer select-none">
-                                        <Checkbox checked={format === "RevMecanum"} setChecked={(checked: boolean) => {
-                                            changeFormat(checked ? "RevMecanum" : "ReveilLib");
+                                        <Checkbox checked={format === "Holonomic"} setChecked={(checked: boolean) => {
+                                            changeFormat(checked ? "Holonomic" : "mikLib");
                                         }} />
                                     </label>
                                 </div>

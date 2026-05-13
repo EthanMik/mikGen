@@ -26,7 +26,7 @@ export default function RobotLayer({ img, pose, robotPose, robotConstants, visib
     const expansionTransparency: number = 0.18;
     const ghostTransparency: number = 0.05;
     
-    const bgColor = format === "RevMecanum" ? mecnumColor : tankColor;
+    const bgColor = format === "Holonomic" ? mecnumColor : tankColor;
     const bgTransparency: number = 0.4;
 
     return (
