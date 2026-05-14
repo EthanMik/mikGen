@@ -21,7 +21,7 @@ export function resetTurnToPoint() {
     start = true;
 }
 
-export function turnToPoint(robot: Robot, dt: number, x: number, y: number, angle: number, k: LemConstants[]): boolean {
+export function turnToPoint(robot: Robot, dt: number, x: number, y: number, k: LemConstants[]): boolean {
     const params = k[0];
 
     if (start) {

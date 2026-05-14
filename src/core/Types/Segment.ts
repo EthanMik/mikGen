@@ -15,7 +15,8 @@ export type Segment<F extends Format = Format> = {
   pose: Pose;
   format: F;
   kind: SegmentKind;
-  constants: SegmentConstants<F>
+  constants: SegmentConstants<F>;
+  distance?: number | null;
 };
 
 export function createStartSegment<F extends Format>(formatDef: FormatDef<Format>, format: F, pose: Pose): Segment<F> {

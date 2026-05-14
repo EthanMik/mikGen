@@ -1,8 +1,7 @@
 import React from "react";
 import type { Path } from "../../core/Types/Path";
-import { getBackwardsSnapIdx, getBackwardsSnapPose, getForwardSnapPose } from "../../core/Types/Path";
-import { calculateHeading, toPX, toRad, FIELD_REAL_DIMENSIONS, type Rectangle, FIELD_IMG_DIMENSIONS } from "../../core/Util";
-import type { Coordinate } from "../../core/Types/Coordinate";
+import { getBackwardsSnapIdx, getBackwardsSnapPose } from "../../core/Types/Path";
+import { calculateHeading, toPX, toRad, FIELD_REAL_DIMENSIONS, type Rectangle, FIELD_IMG_DIMENSIONS, findPointToFace } from "../../core/Util";
 import { useSettings } from "../../hooks/useSettings";
 import type { Format } from "../../simulation/FormatDefinition";
 import type { LemConstants } from "../../simulation/LemLibSim/LemConstants";
@@ -112,16 +111,7 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 								let angle = control.pose.angle ?? 0;
 
 								if (control.kind === "pointTurn") {
-									const previousPos = getBackwardsSnapPose(path, idx - 1);
-									const turnToPos = getForwardSnapPose(path, idx);
-
-									const pos: Coordinate =
-										turnToPos
-											? { x: turnToPos.x ?? 0, y: turnToPos.y ?? 0 }
-											: previousPos
-												? { x: previousPos.x ?? 0, y: (previousPos.y ?? 0) + VISUAL.turnIndicator.pointTurnFallbackOffset }
-												: { x: 0, y: VISUAL.turnIndicator.pointTurnFallbackOffset };
-
+									const pos = findPointToFace(path, idx);
 									angle = calculateHeading({ x: snapPose.x, y: snapPose.y }, { x: pos.x, y: pos.y }) + (angle);
 								}
 
@@ -157,10 +147,8 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 
 								let angle = control.pose.angle ?? 0;
 								if (control.kind === "pointSwing") {
-									const desiredPos = getForwardSnapPose(path, idx);
-									angle = desiredPos !== null ?
-										calculateHeading({ x: snapPose.x, y: snapPose.y }, { x: desiredPos.x ?? 0, y: desiredPos.y ?? 0 }) + (control.pose.angle ?? 0) :
-										angle;
+									const pos = findPointToFace(path, idx);
+									angle = calculateHeading({ x: snapPose.x, y: snapPose.y }, { x: pos.x, y: pos.y }) + (angle);
 								}
 
 								const curveLeft = (format === "mikLib" && (control.constants[0] as mikConstants).swing_direction == "left") || 

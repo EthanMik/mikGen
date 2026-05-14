@@ -19,12 +19,6 @@ export const buildDraggingIds = (segments: Segment[], segmentId: string): string
   return [segmentId];
 };
 
-export const MOTION_KIND_SET = new Set([
-  "pointDrive", "poseDrive",
-  "angleTurn", "pointTurn",
-  "pointSwing", "angleSwing",
-]);
-
 export const moveSegment = (
   setPath: React.Dispatch<React.SetStateAction<Path>>,
   fromId: string | null,

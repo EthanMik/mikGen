@@ -12,7 +12,7 @@ export const holonomicDef = {
             ...mikLibDef.segments.poseDrive,
             name: "Holonomic to Pose",
             toStringTemplate: "chassis.holonomic_to_pose(${x}, ${y}, ${angle}, ${kBuilder});",
-            simFn: (robot, dt, x, y, angle, constants) => holonomic_to_pose(robot, dt, x, y, angle, constants),
+            simFn: (robot, dt, x, y, angle, constants) => holonomic_to_pose(robot, dt, x, y, angle ?? 0, constants),
         },
         distanceDrive: {
             ...mikLibDef.segments.distanceDrive,

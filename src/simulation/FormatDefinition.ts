@@ -1,7 +1,6 @@
 import { LemLibDef, type LemConstants } from "./LemLibSim/LemConstants";
 import { mikLibDef, type mikConstants } from "./mikLibSim/MikConstants";
 import { reveilLibDef, type ReveilLibConstants } from "./ReveiLibSim/RevConstants";
-import type { RevMecanumConstants } from "./HolonomicSim/RevMecanumConstant";
 import type { Robot } from "../core/Robot";
 import type { Dispatch, SetStateAction } from "react";
 import type { Path } from "../core/Types/Path";
@@ -41,7 +40,7 @@ export type FormatDef<F extends Format, Segs extends Partial<Record<SegmentKind,
     formatPathName: string;
     slider: SliderField<F>;
     segments: Segs;
-    kBuilder?: (kDefault: SegmentConstants<F>, k: SegmentConstants<F>, pose?: Pose) => string;
+    kBuilder?: (kDefault: SegmentConstants<F>, k: SegmentConstants<F>, pose?: Pose, kind?: SegmentKind) => string;
     kParser?: (kDefault: SegmentConstants<F>, kBuilderStr: string, kind: SegmentKind) => [SegmentConstants<F>, Partial<Pose>?];
 };
 
@@ -104,7 +103,7 @@ export type SegmentFactory<F extends Format = Format> = (
     dt: number,
     x: number,
     y: number,
-    angle: number,
+    angle: number | null,
     constants: SegmentConstants<F>
 ) => boolean;
 

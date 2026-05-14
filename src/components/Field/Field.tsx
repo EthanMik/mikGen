@@ -15,7 +15,7 @@ import RobotLayer from "./RobotLayer";
 import PathLayer from "./PathLayer";
 import ControlsLayer from "./ControlsLayer";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
-import type { Path } from "../../core/Types/Path";
+import { resolveHeading, getBackwardsSnapPose, type Path } from "../../core/Types/Path";
 import { useSettings } from "../../hooks/useSettings";
 
 export default function Field() {
@@ -79,7 +79,7 @@ export default function Field() {
   const {
     moveControl, moveHeading, deleteControl, unselectPath, selectPath,
     selectInversePath, undo, addPointDriveSegment, addStartSegment,
-    addPointTurnSegment, addPoseDriveSegment, addAngleTurnSegment,
+    addPointTurnSegment, addPoseDriveSegment, addAngleTurnSegment, addDistanceSegment,
     addAngleSwingSegment, addPointSwingSegment, fieldZoomKeyboard, fieldZoomWheel,
     fieldPanWheel, cut, pastePathString, copySelectedPath, copyAllPath,
   } = FieldMacros();
@@ -229,13 +229,51 @@ export default function Field() {
       if (dx !== 0 || dy !== 0) dragDidMove.current = true;
 
       setPath(prev => {
-        const next: Segment[] = prev.segments.map((c) => {
+        const next: Segment[] = prev.segments.map((c, segIdx) => {
           if (!c.selected || c.locked) return c;
 
           const startPos = dragStartPositions.current[c.id];
           if (!startPos) return c;
           const sx = startPos.x;
           const sy = startPos.y;
+
+          const prevSeg = path.segments[segIdx - 1].kind;
+          if (c.kind === "distanceDrive" && prevSeg !== "pointSwing" && prevSeg !== "pointTurn") {
+            const anchorPose = getBackwardsSnapPose(prev, segIdx - 1);
+            if (!anchorPose || anchorPose.x === null || anchorPose.y === null) {
+              return { ...c, pose: { ...c.pose, x: sx === null ? null : sx + dx, y: sy === null ? null : sy + dy } };
+            }
+
+            const resolved = resolveHeading(prev, segIdx, anchorPose);
+
+            let hx: number, hy: number;
+            if (resolved) {
+              hx = resolved.heading.x / resolved.headingMag;
+              hy = resolved.heading.y / resolved.headingMag;
+            } else {
+              const ofsX = (sx ?? 0) - anchorPose.x;
+              const ofsY = (sy ?? 0) - anchorPose.y;
+              const mag = Math.sqrt(ofsX * ofsX + ofsY * ofsY);
+              if (mag === 0) return c;
+              hx = ofsX / mag;
+              hy = ofsY / mag;
+            }
+
+            const fromAnchorX = posInch.x - anchorPose.x;
+            const fromAnchorY = posInch.y - anchorPose.y;
+            let t = fromAnchorX * hx + fromAnchorY * hy;
+
+            let newX = anchorPose.x + t * hx;
+            let newY = anchorPose.y + t * hy;
+
+            if (ctrlHeld) {
+              newX = Math.round(newX * 2) / 2;
+              newY = Math.round(newY * 2) / 2;
+              t = (newX - anchorPose.x) * hx + (newY - anchorPose.y) * hy;
+            }
+
+            return { ...c, pose: { ...c.pose, x: newX, y: newY }, distance: t };
+          }
 
           let newX = sx === null ? null : sx + dx;
           let newY = sy === null ? null : sy + dy;
@@ -347,8 +385,9 @@ export default function Field() {
       return;
     }
 
-    if (!evt.ctrlKey && evt.button === 0) addPointDriveSegment(format, pos, setPath);
-    else if (evt.ctrlKey && evt.button === 0) addPoseDriveSegment(format, { x: pos.x, y: pos.y, angle: 0 }, setPath);
+    if (!evt.ctrlKey && !evt.altKey && evt.button === 0) addPointDriveSegment(format, pos, setPath);
+    else if (evt.ctrlKey && !evt.altKey && evt.button === 0) addPoseDriveSegment(format, { x: pos.x, y: pos.y, angle: 0 }, setPath);
+    else if (evt.altKey && evt.button === 0) addDistanceSegment(format, { x: pos.x, y: pos.y, angle: null }, setPath);
     else if (!evt.ctrlKey && !evt.altKey && !evt.shiftKey && evt.button === 2) addPointTurnSegment(format, setPath);
     else if (evt.ctrlKey && !evt.altKey && !evt.shiftKey && evt.button === 2) addAngleTurnSegment(format, setPath);
     else if (!evt.ctrlKey && evt.altKey && evt.button === 2) addPointSwingSegment(format, setPath);

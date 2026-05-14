@@ -11,7 +11,7 @@ import {
   type FormatConstants,
   type Format,
 } from "../../simulation/FormatDefinition";
-import { moveMultipleSegments, buildDraggingIds, MOTION_KIND_SET } from "./PathConfigUtils";
+import { moveMultipleSegments, buildDraggingIds } from "./PathConfigUtils";
 import type { CycleImageButtonProps } from "../Util/CycleButton";
 
 export default function PathConfig() {
@@ -116,7 +116,7 @@ export default function PathConfig() {
                 <div className="absolute -top-1 left-2 w-[435px] h-[1px] bg-white rounded-full pointer-events-none z-10" />
               )}
 
-              {idx > 0 && MOTION_KIND_SET.has(c.kind) && (
+              {idx > 0 && (
                 <MotionList
                   name={segDef?.name ?? ""}
                   field={constantsFields}

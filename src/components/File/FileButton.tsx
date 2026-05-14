@@ -141,6 +141,7 @@ export default function FileButton() {
         }
 
         try {
+            // @ts-expect-error showOpenFilePicker not in all TS DOM libs
             const [handle] = await window.showOpenFilePicker({
                 types: [
                     {
@@ -259,6 +260,7 @@ export default function FileButton() {
             const name = await requestFileName();
             if (name === null || name === "") return;
             
+            // @ts-expect-error showSaveFilePicker not in all TS DOM libs
             const handle = await window.showSaveFilePicker({
                 suggestedName: `${name}.txt`,
                 types: [

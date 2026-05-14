@@ -198,7 +198,7 @@ export const mikLibDef = {
             exists: true,
             defaults: [kMikDrive],
             toStringTemplate: "chassis.set_coordinates(${x}, ${y}, ${angle});",
-            simFn: (robot, _dt, x, y, angle) => robot.setPose(x, y, angle),
+            simFn: (robot, _dt, x, y, angle) => robot.setPose(x, y, angle ?? 0),
             cycleButtons: [],
             numberInputs: [],
         },
@@ -208,7 +208,7 @@ export const mikLibDef = {
             exists: true,
             defaults: [kMikDrive, kMikHeading],
             toStringTemplate: "chassis.drive_to_pose(${x}, ${y}, ${angle}, ${kBuilder});",
-            simFn: (robot, dt, x, y, angle, constants) => drive_to_pose(robot, dt, x, y, angle, constants),
+            simFn: (robot, dt, x, y, angle, constants) => drive_to_pose(robot, dt, x, y, angle ?? 0, constants),
             cycleButtons: [
                 { constantsIdx: 0, ...driveDirectionButton },
             ],
@@ -229,8 +229,8 @@ export const mikLibDef = {
             name: "Drive to Distance",
             exists: true,
             defaults: [kMikDrive, kMikHeading],
-            toStringTemplate: "chassis.drive_distance(${angle}, ${kBuilder});",
-            simFn: (robot, dt, x, y, _angle, constants) => drive_distance(robot, dt, x, y, constants),
+            toStringTemplate: "chassis.drive_distance(${distance}, ${kBuilder});",
+            simFn: (robot, dt, distance, _y, angle, constants) => drive_distance(robot, dt, distance, angle, constants),
             cycleButtons: [
                 { constantsIdx: 0, ...driveDirectionButton },
             ],
@@ -260,7 +260,7 @@ export const mikLibDef = {
             exists: true,
             defaults: [kMikTurn],
             toStringTemplate: "chassis.turn_to_point(${x}, ${y}, ${kBuilder});",
-            simFn: (robot, dt, x, y, angle, constants) => turn_to_point(robot, dt, x, y, angle, constants),
+            simFn: (robot, dt, x, y, angle, constants) => turn_to_point(robot, dt, x, y, angle ?? 0, constants),
             cycleButtons: [
                 { constantsIdx: 0, ...turnDirectionButton },
             ],
@@ -275,7 +275,7 @@ export const mikLibDef = {
             exists: true,
             defaults: [kMikTurn],
             toStringTemplate: "chassis.turn_to_angle(${angle}, ${kBuilder});",
-            simFn: (robot, dt, _x, _y, angle, constants) => turn_to_angle(robot, dt, angle, constants),
+            simFn: (robot, dt, _x, _y, angle, constants) => turn_to_angle(robot, dt, angle ?? 0, constants),
             cycleButtons: [
                 { constantsIdx: 0, ...turnDirectionButton },
             ],
@@ -290,7 +290,7 @@ export const mikLibDef = {
             exists: true,
             defaults: [kMikSwing],
             toStringTemplate: "chassis.${swing_direction}_swing_to_angle(${angle}, ${kBuilder});",
-            simFn: (robot, dt, _x, _y, angle, constants) => swing_to_angle(robot, dt, angle, constants),
+            simFn: (robot, dt, _x, _y, angle, constants) => swing_to_angle(robot, dt, angle ?? 0, constants),
             cycleButtons: [
                 { constantsIdx: 0, ...swingDirectionButton },
                 { constantsIdx: 0, ...turnDirectionButton },
@@ -306,7 +306,7 @@ export const mikLibDef = {
             exists: true,
             defaults: [kMikSwing],
             toStringTemplate: "chassis.${swing_direction}_swing_to_point(${x}, ${y}, ${kBuilder});",
-            simFn: (robot, dt, x, y, angle, constants) => swing_to_point(robot, dt, x, y, angle, constants),
+            simFn: (robot, dt, x, y, angle, constants) => swing_to_point(robot, dt, x, y, angle ?? 0, constants),
             cycleButtons: [
                 { constantsIdx: 0, ...swingDirectionButton },
                 { constantsIdx: 0, ...turnDirectionButton },
@@ -319,7 +319,7 @@ export const mikLibDef = {
     },
 } satisfies FormatDef<"mikLib">;
 
-function kMikBuilder(kDefault: mikConstants[], constants: mikConstants[], pose?: Pose): string {
+function kMikBuilder(kDefault: mikConstants[], constants: mikConstants[], pose?: Pose, kind?: SegmentKind): string {
     const keyToDriveConstant = (key: keyof mikConstants, value: mikConstants[keyof mikConstants]): string => {
         switch (key) {
             case "kp": return `.drive_k.p = ${roundOff(value as number, 3)}`;
@@ -391,15 +391,23 @@ function kMikBuilder(kDefault: mikConstants[], constants: mikConstants[], pose?:
         return list;
     };
 
+    let constantsList: string[] = [];
+
+    if (pose?.angle !== null && kind === "distanceDrive") {
+        console.log(pose?.angle, kDefault);
+        constantsList.push(`.heading = ${roundOff(pose?.angle, 2)}`);
+    }
+
     const isDrive = kDefault.length >= 2;
-    const constantsList = isDrive
+    constantsList = isDrive
         ? [
+            ...constantsList,
             ...buildList(kDefault[0], constants[0], keyToDriveConstant),
             ...buildList(kDefault[1], constants[1], keyToHeadingConstant),
         ]
         : buildList(kDefault[0], constants[0], keyToTurnConstant);
 
-    if (!isDrive && pose?.angle) {
+    if (!isDrive && pose?.angle && kind !== "angleSwing" && kind !== "angleTurn") {
         constantsList.push(`.angle_offset = ${roundOff(pose.angle, 2)}`);
     }
 
@@ -415,8 +423,8 @@ function kMikParser(kDefault: mikConstants[], kBuilderStr: string, kind: Segment
     if (!kBuilderStr.trim()) return [constants];
     void kind;
 
-    const inner = kBuilderStr.trim().slice(1, -1); // strip { }
-    const entries = inner.split(/,\s*(?=\.)/);      // split only before "." keys
+    const inner = kBuilderStr.trim().slice(1, -1);
+    const entries = inner.split(/,\s*(?=\.)/);
 
     const isDrive = kDefault.length >= 2;
     let angleOffset: number | undefined;

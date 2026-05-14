@@ -1,6 +1,6 @@
 import { SIM_CONSTANTS } from "../core/ComputePathSim";
 import type { Robot } from "../core/Robot";
-import type { Path } from "../core/Types/Path";
+import { distanceToPosition, getSegmentDistance, type Path } from "../core/Types/Path";
 import { findPointToFace, makeId, roundOff, toDeg } from "../core/Util";
 import type { Segment } from "../core/Types/Segment";
 import type { Format } from "./FormatDefinition";
@@ -18,6 +18,8 @@ export function convertPathToString<F extends Format, Segs extends Partial<Recor
         let x = roundOff(seg.pose.x, 2);
         let y = roundOff(seg.pose.y, 2);
         const angle = roundOff(seg.pose.angle, 2);
+        const rawDistance = seg.kind === "distanceDrive" ? (seg.distance ?? getSegmentDistance(path, idx)) : seg.distance;
+        const distance = roundOff(rawDistance, 2);
         const k = seg.constants as typeof formatDef.constants;
         const kind = seg.kind as SegmentKind;
         const segDef = formatDef.segments[kind];
@@ -31,12 +33,13 @@ export function convertPathToString<F extends Format, Segs extends Partial<Recor
         if (!segDef) continue;
 
         const mergedK: Record<string, unknown> = Object.assign({}, ...k);
-        const kBuilderStr = formatDef.kBuilder ? formatDef.kBuilder(segDef.defaults, k, seg.pose) : "";
+        const kBuilderStr = formatDef.kBuilder ? formatDef.kBuilder(segDef.defaults, k, seg.pose, kind) : "";
 
         let line = segDef.toStringTemplate
             .replace(/\$\{x\}/g, x)
             .replace(/\$\{y\}/g, y)
-            .replace(/\$\{angle\}/g, angle);
+            .replace(/\$\{angle\}/g, angle)
+            .replace(/\$\{distance\}/g, distance);
 
         for (const key of Object.keys(mergedK)) {
             line = line.replace(new RegExp(`\\$\\{${key}\\}`, 'g'), String(mergedK[key]));
@@ -72,6 +75,14 @@ export function convertStringToPath<F extends Format>(
         }
     }
 
+    const tempPath: Path = { name: "", segments };
+    for (let i = 0; i < segments.length; i++) {
+        const seg = segments[i];
+        if (seg.kind !== "distanceDrive" || seg.distance == null) continue;
+        const pos = distanceToPosition(tempPath, i, seg.distance);
+        if (pos) segments[i] = { ...seg, pose: { ...seg.pose, x: pos.x, y: pos.y } };
+    }
+
     return segments;
 }
 
@@ -82,7 +93,7 @@ function templateToRegex(template: string): { regex: RegExp; groups: string[] } 
 
     t = t.replace(/\$\{([^}]+)\}/g, (_, name: string) => {
         groups.push(name);
-        return name === 'x' || name === 'y' || name === 'angle' ? '__COORD__' : '__FIELD__';
+        return name === 'x' || name === 'y' || name === 'angle' || name === 'distance' ? '__COORD__' : '__FIELD__';
     });
 
     t = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -127,13 +138,15 @@ function parseSegmentLine<F extends Format>(
     }
 
     for (const [name, value] of Object.entries(captured)) {
-        if (name === 'x' || name === 'y' || name === 'angle' || name === 'kBuilder' || !value) continue;
+        if (name === 'x' || name === 'y' || name === 'angle' || name === 'distance' || name === 'kBuilder' || !value) continue;
         const num = parseFloat(value);
         const parsed: unknown = isNaN(num) ? value.trim() : num;
         for (const k of constants) {
             if (name in k) (k as unknown as Record<string, unknown>)[name] = parsed;
         }
     }
+
+    const parsedDistance = 'distance' in captured && captured.distance !== '' ? parseFloat(captured.distance) : undefined;
 
     return {
         id: makeId(10),
@@ -142,6 +155,7 @@ function parseSegmentLine<F extends Format>(
         kind,
         pose: { x, y, angle },
         constants,
+        ...(parsedDistance !== undefined && !isNaN(parsedDistance) ? { distance: parsedDistance } : {}),
     };
 }
 
@@ -238,21 +252,23 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
                 );
                 break;
 
-            case "distanceDrive":
+            case "distanceDrive": {
+                const segDistance = seg.distance ?? getSegmentDistance(path, idx) ?? 0;
                 auton.push(
                     (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
                         if (!started) {
                             DEBUG_printSegmentStart(idx, formatDef, kind);
-                            targetDist = Math.abs(x);
+                            targetDist = Math.abs(segDistance);
                             started = true;
                         }
                         DEBUG_printRobotState(robot, dt);
-                        const output = segDef.simFn(robot, dt, x, y, angle, k);
+                        const output = segDef.simFn(robot, dt, segDistance, y, seg.pose.angle, k);
                         if (output) DEBUG_printSegmentEnd(idx, formatDef, kind);
                         return [output, kind, targetDist];
                     }
                 );
                 break;
+            }
         }
     }
 

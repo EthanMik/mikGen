@@ -95,7 +95,7 @@ export const reveilLibDef = {
             exists: true,
             defaults: [kRevDrive],
             toStringTemplate: "set_pose(${x}, ${y}, ${angle});",
-            simFn: (robot, _dt, x, y, angle) => robot.setPose(x, y, angle),
+            simFn: (robot, _dt, x, y, angle) => robot.setPose(x, y, angle ?? 0),
             cycleButtons: [],
             numberInputs: [],
         },
@@ -105,7 +105,7 @@ export const reveilLibDef = {
             exists: true,
             defaults: [kRevDrive],
             toStringTemplate: "pose(${x}, ${y}, ${angle}, ${kBuilder});",
-            simFn: (robot, dt, x, y, angle, constants) => boomerangSegment(robot, dt, x, y, angle, constants),
+            simFn: (robot, dt, x, y, angle, constants) => boomerangSegment(robot, dt, x, y, angle ?? 0, constants),
             cycleButtons: [],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Motion Settings", fields: [
@@ -147,7 +147,7 @@ export const reveilLibDef = {
             exists: true,
             defaults: [kRevTurn],
             toStringTemplate: "look(${x}, ${y}, ${angle}, ${kBuilder});",
-            simFn: (robot, dt, x, y, angle, constants) => lookAt(robot, dt, x, y, angle, constants),
+            simFn: (robot, dt, x, y, angle, constants) => lookAt(robot, dt, x, y, angle ?? 0, constants),
             cycleButtons: [],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Turn Settings", fields: [
@@ -162,7 +162,7 @@ export const reveilLibDef = {
             exists: true,
             defaults: [kRevTurn],
             toStringTemplate: "turn(${angle}, ${kBuilder});",
-            simFn: (robot, dt, _x, _y, angle, constants) => turnSegment(robot, dt, angle, constants),
+            simFn: (robot, dt, _x, _y, angle, constants) => turnSegment(robot, dt, angle ?? 0, constants),
             cycleButtons: [],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Turn Settings", fields: [...turnSettingsFields] },
@@ -174,7 +174,7 @@ export const reveilLibDef = {
             exists: false,
             defaults: [kRevTurn],
             toStringTemplate: "swing(${angle}, ${kBuilder});",
-            simFn: (robot, dt, _x, _y, angle, constants) => turnSegment(robot, dt, angle, constants),
+            simFn: (robot, dt, _x, _y, angle, constants) => turnSegment(robot, dt, angle ?? 0, constants),
             cycleButtons: [],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Turn Settings", fields: [...turnSettingsFields] },
@@ -186,7 +186,7 @@ export const reveilLibDef = {
             exists: false,
             defaults: [kRevTurn],
             toStringTemplate: "swing_look(${x}, ${y}, ${angle}, ${kBuilder});",
-            simFn: (robot, dt, x, y, angle, constants) => lookAt(robot, dt, x, y, angle, constants),
+            simFn: (robot, dt, x, y, angle, constants) => lookAt(robot, dt, x, y, angle ?? 0, constants),
             cycleButtons: [],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Turn Settings", fields: [...turnSettingsFields] },
@@ -195,7 +195,7 @@ export const reveilLibDef = {
     },
 } satisfies FormatDef<"ReveilLib">;
 
-function kRevBuilder(kDefault: ReveilLibConstants[], constants: ReveilLibConstants[], _pose?: Pose): string {
+function kRevBuilder(kDefault: ReveilLibConstants[], constants: ReveilLibConstants[]): string {
     const keyToRevConstant = (key: keyof ReveilLibConstants, value: ReveilLibConstants[keyof ReveilLibConstants]): string => {
         switch (key) {
             case "maxSpeed":           return `.speed = ${roundOff(value as number, 2)}`;

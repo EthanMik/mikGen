@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type React from "react";
 import { clamp, FIELD_IMG_DIMENSIONS, normalizeDeg, type Rectangle } from "../core/Util";
-import type { Path } from "../core/Types/Path";
+import { distanceToPosition, getSegmentDistance, type Path } from "../core/Types/Path";
 import type { SetStateAction } from "react";
 import { createAngleSwingSegment, createAngleTurnSegment, createDistanceSegment, createPointDriveSegment, createPointSwingSegment, createPointTurnSegment, createPoseDriveSegment, createStartSegment, type Segment } from "../core/Types/Segment";
 import type { Coordinate } from "../core/Types/Coordinate";
@@ -230,15 +230,12 @@ export default function FieldMacros() {
                     return false;
                 });
 
-                if (newSegments.length !== prev.segments.length) {
-                    saveSnapshot();
-                }
-
                 return {
                     ...prev,
                     segments: newSegments,
                 };
             });
+            saveSnapshot();
         }
     }
 
@@ -347,20 +344,33 @@ export default function FieldMacros() {
             let selectedIndex = prev.segments.findIndex(c => c.selected);
             selectedIndex = selectedIndex === -1 ? prev.segments.length : selectedIndex + 1;
 
-            const parsedSet = new Set(parsed);
+            const insertStart = selectedIndex;
+            const insertEnd = selectedIndex + parsed.length;
+
             const inserted: Segment[] = [
                 ...prev.segments.slice(0, selectedIndex).map(s => ({ ...s, selected: false })),
                 ...parsed,
                 ...prev.segments.slice(selectedIndex).map(s => ({ ...s, selected: false })),
             ];
 
-            saveSnapshot();
+            const fullPath: Path = { name: "", segments: inserted };
+            for (let i = insertStart; i < insertEnd; i++) {
+                const seg = inserted[i];
+                if (seg.kind !== "distanceDrive") continue;
+                const dist = seg.distance ?? getSegmentDistance(fullPath, i);
+                if (dist == null) continue;
+                const pos = distanceToPosition(fullPath, i, dist);
+                if (pos) inserted[i] = { ...seg, pose: { ...seg.pose, x: pos.x, y: pos.y }, distance: dist };
+            }
 
             return {
                 ...prev,
-                segments: inserted.map(s => parsedSet.has(s) ? { ...s, selected: true } : s),
+                segments: inserted.map((s, i) =>
+                    (i >= insertStart && i < insertEnd) ? { ...s, selected: true } : s
+                ),
             };
         });
+        saveSnapshot();
     }
 
     const pastePathString = (

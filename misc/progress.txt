@@ -6,10 +6,9 @@ Bugs:
 - the robot timeline is not getting updated on all events, includes telemetry
 - copying a start segment makes it do funny things
 - you can add segments that are not start segments
-- lemlib turn segments do not flip the angle
 
 Todo:
-- distance segments
+- distance segments (70% complete)
 - instead of commands add a help button that provides path examples
 - Fix group css for distance traveled so it appears
 

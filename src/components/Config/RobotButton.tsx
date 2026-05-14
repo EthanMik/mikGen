@@ -1,15 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import Checkbox from "../Util/Checkbox";
 import NumberInput from "../Util/NumberInput";
-import { useFormat, usePath, mergeRobot, fileFormatStore, type Format, useFormatDef } from "../../hooks/useFileFormat";
+import { useFormat, mergeRobot, fileFormatStore, type Format } from "../../hooks/useFileFormat";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import { FORMAT_REGISTRY, getDefaultConstants, type FormatDef } from "../../simulation/FormatDefinition";
 
 export default function RobotButton() {
-    const [ , setPath ] = usePath();
-    const [ format, setFormat ] = useFormat();
-    const formatDef = useFormatDef();
-
+    const [ format,  ] = useFormat();
     const [ isOpen, setOpen ] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
     const prevFormatRef = useRef<Format>(format);

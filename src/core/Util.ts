@@ -90,8 +90,8 @@ export function toPX(position: Coordinate, field: Rectangle, img: Rectangle): Co
 }
 
 export function findPointToFace(path: Path, idx: number): Coordinate {
-    const previousPos = getBackwardsSnapPose(path, idx - 1);
-    const turnToPos = getForwardSnapPose(path, idx);
+    const previousPos = getBackwardsSnapPose(path, idx - 1, true);
+    const turnToPos = getForwardSnapPose(path, idx, true);
 
     const pos: Coordinate =
         turnToPos

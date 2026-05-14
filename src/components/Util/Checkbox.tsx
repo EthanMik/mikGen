@@ -15,11 +15,11 @@ export default function Checkbox({
     }
 
     return (
-        <g onMouseDown={handleMouseDown} className="hover:cursor-pointer">
+        <div onMouseDown={handleMouseDown} className="hover:cursor-pointer">
             {checked ?
                 <img src={checkedBox}/> :
-                <img src={uncheckedBox}/> 
+                <img src={uncheckedBox}/>
             }
-        </g>
+        </div>
     )
 }

@@ -119,6 +119,7 @@ export default function MotionList({
     };
 
     const handleOnClick = (evt: React.PointerEvent<HTMLButtonElement>) => {
+        evt.stopPropagation();
         if (evt.button === 0 && evt.ctrlKey) { ctrlSelect(); return; }
         if (evt.button === 0 && evt.shiftKey) { shiftSelect(); return; }
         if (evt.button === 0) { normalSelect(); return; }
@@ -180,7 +181,7 @@ export default function MotionList({
     const speedDecimals = speedScale > 99.9 ? 0 : speedScale > 9.9 ? 1 : 2;
 
     return (
-        <button
+        <div
             className={`flex flex-col gap-2 mt-[1px] ${segment.locked ? "opacity-50 pointer-events-none" : ""}`}
             onClick={() => { if (selected) setOpen(!isOpen); }}
         >
@@ -305,6 +306,6 @@ export default function MotionList({
                     );
                 })}
             </div>
-        </button>
+        </div>
     );
 }

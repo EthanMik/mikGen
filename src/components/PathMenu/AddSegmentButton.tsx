@@ -77,7 +77,7 @@ export default function AddSegmentButton() {
 
                             { formatDef.segments["distanceDrive"]?.exists &&
                                 <button
-                                    onClick={() => addDistanceSegment(format, { x: 0, y: 0, angle: 0 }, setPath)}
+                                    onClick={() => addDistanceSegment(format, { x: 0, y: 0, angle: null }, setPath)}
                                     className="flex pr-1 pl-2 py-0.5 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
                                     <span className="text-[16px]">{formatDef.segments["distanceDrive"].name}</span>
                                     <span className="text-lightgray text-[14px]">Alt+LMB</span>

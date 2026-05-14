@@ -1,8 +1,10 @@
 import flipHorizontal from "../assets/flip-horizontal.svg";
 import flipVertical from "../assets/flip-vertical.svg";
+import { distanceToPosition, getSegmentDistance } from "../core/Types/Path";
 import { saveSnapshot } from "../core/Undo/UndoHistory";
 import { normalizeDeg } from "../core/Util";
 import { useFormat, usePath } from "../hooks/useFileFormat";
+
 import NumberInput from "./Util/NumberInput";
 
 type MirrorDirection = "x" | "y";
@@ -74,6 +76,32 @@ function MirrorControl({
 export default function ControlConfig() {
     const [ path, setPath ] = usePath();
     const [ format ] = useFormat();
+
+    const selectedSegment = path.segments.find((s) => s.selected)?.kind;
+
+    const getDistance = (): number | null => {
+        const selectedIdx = path.segments.findIndex((s) => s.selected);
+        if (path.segments.filter(c => c.selected).length !== 1) return null;
+        return getSegmentDistance(path, selectedIdx);
+    }
+
+    const updateDistance = (newDist: number | null) => {
+        if (newDist === null) return;
+        const selectedIdx = path.segments.findIndex((s) => s.selected);
+        if (path.segments.filter(c => c.selected).length !== 1 || selectedIdx <= 0) return;
+
+        const newPos = distanceToPosition(path, selectedIdx, newDist);
+        if (!newPos) return;
+
+        setPath(prev => ({
+            ...prev,
+            segments: prev.segments.map(control =>
+                control.selected
+                    ? { ...control, pose: { ...control.pose, x: newPos.x, y: newPos.y }, distance: newDist }
+                    : control
+            ),
+        }));
+    }
 
     const getXValue = (): number | null => {
         const selectedCount = path.segments.filter(c => c.selected).length;
@@ -152,7 +180,7 @@ export default function ControlConfig() {
         const selectedSegment = path.segments.find(c => c.selected);
         if (selectedSegment === undefined) return;
 
-        if (newHeading === null && selectedSegment.kind !== "poseDrive") return;
+        if (newHeading === null && selectedSegment.kind !== "poseDrive" && selectedSegment.kind !== "distanceDrive") return;
         if (newHeading !== null) newHeading = normalizeDeg(newHeading);
         setPath(prev => {
                 let kind = selectedSegment.kind;
@@ -177,8 +205,6 @@ export default function ControlConfig() {
             });
     }
 
-    const selectedSegment = path.segments.find((s) => s.selected)?.kind;
-
     return (
         <div className="flex flex-row items-center justify-center gap-4 bg-medgray w-[500px] h-[65px] rounded-lg">
             { selectedSegment !== "distanceDrive" &&
@@ -189,8 +215,8 @@ export default function ControlConfig() {
                             width={80}
                             height={40}
                             fontSize={18}
-                            setValue={format === "ReveilLib" || format === "RevMecanum" ? updateYValue : updateXValue }
-                            value={format === "ReveilLib" || format === "RevMecanum" ? getYValue() : getXValue() }
+                            setValue={format === "ReveilLib" ? updateYValue : updateXValue }
+                            value={format === "ReveilLib" ? getYValue() : getXValue() }
                             stepSize={1}
                             roundTo={2}
                             bounds={[-999, 999]}
@@ -206,8 +232,8 @@ export default function ControlConfig() {
                             fontSize={18}
                             stepSize={1}
                             roundTo={2}
-                            setValue={format === "ReveilLib" || format === "RevMecanum" ? updateXValue : updateYValue }
-                            value={format === "ReveilLib" || format === "RevMecanum" ? getXValue() : getYValue() }
+                            setValue={format === "ReveilLib" ? updateXValue : updateYValue }
+                            value={format === "ReveilLib" ? getXValue() : getYValue() }
                             bounds={[-999, 999]}
                             units="in"
                             addToHistory={() => { saveSnapshot(); }}
@@ -225,8 +251,8 @@ export default function ControlConfig() {
                             width={80}
                             height={40}
                             fontSize={18}
-                            setValue={format === "ReveilLib" ? updateYValue : updateXValue }
-                            value={format === "ReveilLib" ? getYValue() : getXValue() }
+                            setValue={updateDistance}
+                            value={getDistance()}
                             stepSize={1}
                             roundTo={2}
                             bounds={[-999, 999]}

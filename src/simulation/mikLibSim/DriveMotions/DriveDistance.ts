@@ -23,7 +23,7 @@ export function restart_drive_distance() {
     start = true;
 }
 
-export function drive_distance(robot: Robot, dt: number, distance: number, heading: number, p: mikConstants[]) {
+export function drive_distance(robot: Robot, dt: number, distance: number, heading: number | null, p: mikConstants[]) {
     const drive_p = p[0];
     const heading_p = p[1];
 
@@ -34,6 +34,7 @@ export function drive_distance(robot: Robot, dt: number, distance: number, headi
         headingPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, heading_p.timeout, 0);
         start = false;
     }
+    if (heading === null) heading = robot.getAngle();
 
     const dx = robot.getX() - driveDistanceStartX;
     const dy = robot.getY() - driveDistanceStartY;

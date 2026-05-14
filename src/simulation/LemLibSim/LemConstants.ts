@@ -157,7 +157,7 @@ export const LemLibDef = {
             exists: true,
             defaults: [kLemLinear],
             toStringTemplate: "chassis.setPose(${x}, ${y}, ${angle});",
-            simFn: (robot, _dt, x, y, angle) => robot.setPose(x, y, angle),
+            simFn: (robot, _dt, x, y, angle) => robot.setPose(x, y, angle ?? 0),
             cycleButtons: [],
             numberInputs: [],
         },
@@ -167,7 +167,7 @@ export const LemLibDef = {
             exists: true,
             defaults: [kLemLinear, kLemAngular],
             toStringTemplate: "chassis.moveToPose(${x}, ${y}, ${angle}, ${timeout}, ${kBuilder});",
-            simFn: (robot, dt, x, y, angle, constants) => moveToPose(robot, dt, x, y, angle, constants),
+            simFn: (robot, dt, x, y, angle, constants) => moveToPose(robot, dt, x, y, angle ?? 0, constants),
             cycleButtons: [
                 { constantsIdx: 0, ...forwardsButton },
             ],
@@ -219,7 +219,7 @@ export const LemLibDef = {
             exists: true,
             defaults: [kLemAngular],
             toStringTemplate: "chassis.turnToPoint(${x}, ${y}, ${timeout}, ${kBuilder});",
-            simFn: (robot, dt, x, y, angle, constants) => turnToPoint(robot, dt, x, y, angle, constants),
+            simFn: (robot, dt, x, y, _angle, constants) => turnToPoint(robot, dt, x, y, constants),
             cycleButtons: [
                 { constantsIdx: 0, ...forwardsButton, poseEffect: (val) => ({ angle: (val as boolean) ? 0 : 180 }) },
                 { constantsIdx: 0, ...directionButton },
@@ -235,7 +235,7 @@ export const LemLibDef = {
             exists: true,
             defaults: [kLemAngular],
             toStringTemplate: "chassis.turnToHeading(${angle}, ${timeout}, ${kBuilder});",
-            simFn: (robot, dt, _x, _y, angle, constants) => turnToHeading(robot, dt, angle, constants),
+            simFn: (robot, dt, _x, _y, angle, constants) => turnToHeading(robot, dt, angle ?? 0, constants),
             cycleButtons: [
                 { constantsIdx: 0, ...directionButton },
             ],
@@ -250,7 +250,7 @@ export const LemLibDef = {
             exists: true,
             defaults: [kLemAngular],
             toStringTemplate: "chassis.swingToHeading(${angle}, ${lockedSide}, ${timeout}, ${kBuilder});",
-            simFn: (robot, dt, _x, _y, angle, constants) => swingToHeading(robot, dt, angle, constants),
+            simFn: (robot, dt, _x, _y, angle, constants) => swingToHeading(robot, dt, angle ?? 0, constants),
             cycleButtons: [
                 { constantsIdx: 0, ...lockedSideButton },
                 { constantsIdx: 0, ...directionButton },
@@ -266,7 +266,7 @@ export const LemLibDef = {
             exists: true,
             defaults: [kLemAngular],
             toStringTemplate: "chassis.swingToPoint(${x}, ${y}, ${lockedSide}, ${timeout}, ${kBuilder});",
-            simFn: (robot, dt, x, y, angle, constants) => swingToPoint(robot, dt, x, y, angle, constants),
+            simFn: (robot, dt, x, y, angle, constants) => swingToPoint(robot, dt, x, y, angle ?? 0, constants),
             cycleButtons: [
                 { constantsIdx: 0, ...lockedSideButton },
                 { constantsIdx: 0, ...directionButton },
