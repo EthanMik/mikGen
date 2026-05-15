@@ -116,7 +116,7 @@ export default function PathConfig() {
                 <div className="absolute -top-1 left-2 w-[435px] h-[1px] bg-white rounded-full pointer-events-none z-10" />
               )}
 
-              {idx > 0 && (
+              {(
                 <MotionList
                   name={segDef?.name ?? ""}
                   field={constantsFields}
@@ -129,20 +129,6 @@ export default function PathConfig() {
                   onDragStart={() => startDragging(c.id)}
                   onDragEnd={stopDragging}
                   onDragEnter={() => setOverIndex(idx)}
-                  draggingIds={draggingIds}
-                />
-              )}
-
-              {idx === 0 && (
-                <MotionList
-                  name="Start"
-                  field={[]}
-                  directionField={[]}
-                  segmentId={c.id}
-                  index={idx}
-                  isOpenGlobal={isOpen}
-                  start={true}
-                  draggable={false}
                   draggingIds={draggingIds}
                 />
               )}

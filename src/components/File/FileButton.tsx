@@ -2,10 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import FileRenamePopup from "./FileRenamePopup";
 import { usePath, useFileFormat, fileFormatStore, type FileFormat } from "../../hooks/useFileFormat";
 import { defaultRobotConstants } from "../../core/Robot";
-import { saveSnapshot } from "../../core/Undo/UndoHistory";
-import { FORMAT_REGISTRY } from "../../simulation/FormatDefinition";
+import { saveSnapshot, undoHistory } from "../../core/Undo/UndoHistory";
+import { FORMAT_REGISTRY, mergeFormatDef, type FormatDef } from "../../simulation/FormatDefinition";
 
-const SAVED_SNAPSHOT_KEY = "savedSnapshot";
 const FILE_VERSION = "mikGen v1.0.0";
 
 function serializeFile(fileFormat: FileFormat): string {
@@ -22,27 +21,6 @@ function deserializeFile(content: string): FileFormat {
     return JSON.parse(content.slice(newline + 1)) as FileFormat;
 }
 
-function getSaveableSnapshot(fileFormat: FileFormat): string {
-    const stripped = {
-        ...fileFormat,
-        path: {
-            ...fileFormat.path,
-            segments: fileFormat.path.segments.map(segment => ({
-                id: segment.id,
-                groupId: segment.groupId,
-                disabled: segment.disabled,
-                locked: segment.locked,
-                visible: segment.visible,
-                pose: segment.pose,
-                format: segment.format,
-                kind: segment.kind,
-                constants: segment.constants,
-            }))
-        }
-    };
-    return JSON.stringify(stripped);
-}
-
 export default function FileButton() {
     const menuRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -54,11 +32,10 @@ export default function FileButton() {
     const [ path, setPath ] = usePath();
     const [ fileFormat ] = useFileFormat();
     const { format, field } = fileFormat;
-    const [ isSaved, setIsSaved ] = useState(() => {
-        const saved = localStorage.getItem(SAVED_SNAPSHOT_KEY);
-        return saved !== null;
-    });
-    const savedSnapshotRef = useRef<string | null>(localStorage.getItem(SAVED_SNAPSHOT_KEY));
+    const [ isSaved, setIsSaved ] = useState(true);
+    const skipSave = useRef(true);
+
+    const historyLength = undoHistory.useSelector(h => h.length);
 
     const fileText = fileFormat;
 
@@ -74,13 +51,12 @@ export default function FileButton() {
     }
 
     useEffect(() => {
-        const currentSnapshot = getSaveableSnapshot(fileText);
-        if (savedSnapshotRef.current === null) {
-            savedSnapshotRef.current = currentSnapshot;
-            localStorage.setItem(SAVED_SNAPSHOT_KEY, currentSnapshot);
+        if (skipSave.current) {
+            skipSave.current = false;
+            return;
         }
-        setIsSaved(currentSnapshot === savedSnapshotRef.current);
-    }, [fileText])
+        setIsSaved(false);
+    }, [historyLength])
 
     const updatePathName = (name: string) => {
         setPath(prev => ({
@@ -127,8 +103,7 @@ export default function FileButton() {
         saveSnapshot();
         fileHandleRef.current = null;
         setOpen(false);
-        savedSnapshotRef.current = null;
-        localStorage.removeItem(SAVED_SNAPSHOT_KEY);
+        setIsSaved(true);
     }
 
     const handleOpenFile = async () => {
@@ -183,8 +158,7 @@ export default function FileButton() {
             };
             fileFormatStore.setState(newFileFormat);
             saveSnapshot();
-            savedSnapshotRef.current = null;
-            localStorage.removeItem(SAVED_SNAPSHOT_KEY);
+            setIsSaved(true);
 
         } catch (error) {
             if ((error as Error).name !== 'AbortError') {
@@ -205,6 +179,7 @@ export default function FileButton() {
 
                 const newFileFormat = {
                     ...parsed,
+                    formatDef: mergeFormatDef(FORMAT_REGISTRY[parsed.format] as FormatDef<typeof parsed.format>, parsed.formatDef),
                     path: {
                         ...parsed.path,
                         name: fileName
@@ -219,6 +194,8 @@ export default function FileButton() {
         }
         
         event.target.value = '';
+        setIsSaved(true);
+        skipSave.current = true;
     }
 
     const handleSave = async () => {
@@ -235,9 +212,6 @@ export default function FileButton() {
                 const writable = await fileHandleRef.current.createWritable();
                 await writable.write(serializeFile(fileText));
                 await writable.close();
-                const snapshot = getSaveableSnapshot(fileText);
-                savedSnapshotRef.current = snapshot;
-                localStorage.setItem(SAVED_SNAPSHOT_KEY, snapshot);
                 setIsSaved(true);
             } else {
                 await handleSaveAs();
@@ -291,10 +265,6 @@ export default function FileButton() {
             const writable = await handle.createWritable();
             await writable.write(serializeFile(fileText));
             await writable.close();
-
-            const snapshot = getSaveableSnapshot(fileText);
-            savedSnapshotRef.current = snapshot;
-            localStorage.setItem(SAVED_SNAPSHOT_KEY, snapshot);
             setIsSaved(true);
         } catch (error) {
             if ((error as Error).name !== 'AbortError') {
@@ -316,9 +286,6 @@ export default function FileButton() {
     const handleDownload = () => {
         downloadText(serializeFile(fileText), `${getFileName()}.txt`)
         setOpen(false);
-        const snapshot = getSaveableSnapshot(fileText);
-        savedSnapshotRef.current = snapshot;
-        localStorage.setItem(SAVED_SNAPSHOT_KEY, snapshot);
         setIsSaved(true);
     }
 
@@ -329,9 +296,6 @@ export default function FileButton() {
         if (name === null) return;
 
         downloadText(serializeFile(fileText), `${getFileName(name)}.txt`);
-        const snapshot = getSaveableSnapshot(fileText);
-        savedSnapshotRef.current = snapshot;
-        localStorage.setItem(SAVED_SNAPSHOT_KEY, snapshot);
         setIsSaved(true);
     }
 

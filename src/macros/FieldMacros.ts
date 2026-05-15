@@ -344,12 +344,16 @@ export default function FieldMacros() {
             let selectedIndex = prev.segments.findIndex(c => c.selected);
             selectedIndex = selectedIndex === -1 ? prev.segments.length : selectedIndex + 1;
 
+            const toInsert: Segment[] = prev.segments.length === 0 && parsed[0].kind !== "start"
+                ? [createStartSegment(formatDef, format, { x: 0, y: 0, angle: 0 }), ...parsed]
+                : parsed;
+
             const insertStart = selectedIndex;
-            const insertEnd = selectedIndex + parsed.length;
+            const insertEnd = selectedIndex + toInsert.length;
 
             const inserted: Segment[] = [
                 ...prev.segments.slice(0, selectedIndex).map(s => ({ ...s, selected: false })),
-                ...parsed,
+                ...toInsert,
                 ...prev.segments.slice(selectedIndex).map(s => ({ ...s, selected: false })),
             ];
 

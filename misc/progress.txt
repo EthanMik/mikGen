@@ -8,7 +8,6 @@ Bugs:
 - you can add segments that are not start segments
 
 Todo:
-- distance segments (70% complete)
 - instead of commands add a help button that provides path examples
 - Fix group css for distance traveled so it appears
 

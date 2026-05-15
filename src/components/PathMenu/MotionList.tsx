@@ -34,7 +34,6 @@ type MotionListProps = {
     index: number;
     isOpenGlobal: boolean;
     isTelemetryOpenGlobal?: boolean;
-    start?: boolean;
     draggable?: boolean;
     onDragStart?: (e: React.DragEvent<HTMLButtonElement>) => void;
     onDragEnd?: (e: React.DragEvent<HTMLButtonElement>) => void;
@@ -51,7 +50,6 @@ export default function MotionList({
     index,
     isOpenGlobal,
     isTelemetryOpenGlobal,
-    start = false,
     draggable = false,
     onDragStart,
     onDragEnd,
@@ -229,7 +227,7 @@ export default function MotionList({
 
                 <span className="shrink-0 text-left truncate max-w-[130px]">{name}</span>
 
-                {!start && field !== undefined && (
+                {segment.kind !== "start" && field !== undefined && (
                     <div onClick={(e) => e.stopPropagation()} className="flex-1 min-w-0 flex items-center gap-3">
                         <Slider
                             sliderHeight={5}

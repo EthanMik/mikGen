@@ -4,10 +4,11 @@ import NumberInput from "../Util/NumberInput";
 import { useFormat, mergeRobot, fileFormatStore, type Format } from "../../hooks/useFileFormat";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import { FORMAT_REGISTRY, getDefaultConstants, type FormatDef } from "../../simulation/FormatDefinition";
+import Separator from "../Util/Separator";
 
 export default function RobotButton() {
-    const [ format,  ] = useFormat();
-    const [ isOpen, setOpen ] = useState(false);
+    const [format,] = useFormat();
+    const [isOpen, setOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
     const prevFormatRef = useRef<Format>(format);
 
@@ -51,10 +52,10 @@ export default function RobotButton() {
         if (v !== null) mergeRobot({ cogOffsetY: v });
     }
 
-    const updateExpansionFront  = (v: number | null) => { if (v !== null) mergeRobot({ expansionFront: v }); }
-    const updateExpansionLeft   = (v: number | null) => { if (v !== null) mergeRobot({ expansionLeft: v }); }
-    const updateExpansionRight  = (v: number | null) => { if (v !== null) mergeRobot({ expansionRight: v }); }
-    const updateExpansionRear   = (v: number | null) => { if (v !== null) mergeRobot({ expansionRear: v }); }
+    const updateExpansionFront = (v: number | null) => { if (v !== null) mergeRobot({ expansionFront: v }); }
+    const updateExpansionLeft = (v: number | null) => { if (v !== null) mergeRobot({ expansionLeft: v }); }
+    const updateExpansionRight = (v: number | null) => { if (v !== null) mergeRobot({ expansionRight: v }); }
+    const updateExpansionRear = (v: number | null) => { if (v !== null) mergeRobot({ expansionRear: v }); }
 
     const handleToggleMenu = () => {
         setOpen((prev) => !prev)
@@ -76,7 +77,7 @@ export default function RobotButton() {
 
         document.addEventListener("mousedown", handleClickOutside)
         document.addEventListener("keydown", handleClose)
-        
+
         return () => {
             document.removeEventListener("mousedown", handleClickOutside)
             document.removeEventListener("keydown", handleClose)
@@ -114,159 +115,150 @@ export default function RobotButton() {
 
             <div className={`absolute shadow-xs mt-1 shadow-black left-0 top-full w-43 z-40
                     rounded-sm bg-medgray_hover min-h-2 max-h-47 overflow-y-auto scrollbar-thin ${isOpen ? "" : "hidden"}`}>
-                    <div className="flex flex-col mt-3 pl-3 pr-4 mb-1 gap-3">
-                        <div className="flex flex-col gap-2">
-                            <div className="flex flex-row items-center justify-between">
+                <div className="flex flex-col mt-3 pl-3 pr-4 mb-1 gap-3">
+                    <div className="flex flex-col gap-2">
+                        <div className="flex flex-row items-center justify-between">
                             <span className="text-[16px]">Width</span>
-                                    <NumberInput 
-                                        width={60} 
-                                        height={35}
-                                        fontSize={16} 
-                                        bounds={[0, 30]}
-                                        stepSize={1}
-                                        roundTo={1} 
-                                        units="in"
-                                        value={robot.width} 
-                                        setValue={updateWidth} 
-                                        addToHistory={() => saveSnapshot()}
-                                    />
-                            </div>
+                            <NumberInput
+                                width={60}
+                                height={35}
+                                fontSize={16}
+                                bounds={[0, 30]}
+                                stepSize={1}
+                                roundTo={1}
+                                units="in"
+                                value={robot.width}
+                                setValue={updateWidth}
+                                addToHistory={() => saveSnapshot()}
+                            />
+                        </div>
 
+                        <div className="flex flex-row items-center justify-between">
+                            <span className="text-[16px]">Height</span>
+                            <NumberInput
+                                width={60}
+                                height={35}
+                                fontSize={16}
+                                bounds={[0, 30]}
+                                stepSize={1}
+                                roundTo={1}
+                                units="in"
+                                value={robot.height}
+                                setValue={updateHeight}
+                                addToHistory={() => saveSnapshot()}
+                            />
+                        </div>
+
+                        <div className="flex flex-row items-center justify-between">
+                            <span className="text-[16px]">Speed</span>
+                            <NumberInput
+                                width={60}
+                                height={35}
+                                fontSize={16}
+                                bounds={[0, 100]}
+                                stepSize={.5}
+                                roundTo={2}
+                                units="ft/s"
+                                value={robot.speed}
+                                setValue={updateSpeed}
+                                addToHistory={() => saveSnapshot()}
+                            />
+                        </div>
+
+                        <div className="mt-0.5 flex flex-col gap-2">
+                            <Separator name={"Time Constant (Accel)"} />
                             <div className="flex flex-row items-center justify-between">
-                                <span className="text-[16px]">Height</span>
-                                    <NumberInput 
-                                        width={60} 
-                                        height={35}
-                                        fontSize={16} 
-                                        bounds={[0, 30]} 
-                                        stepSize={1}
-                                        roundTo={1}
-                                        units="in"
-                                        value={robot.height} 
-                                        setValue={updateHeight} 
-                                        addToHistory={() => saveSnapshot()}
-                                    />
+                                <span className="text-[16px]">Drive</span>
+                                <NumberInput
+                                    width={60}
+                                    height={35}
+                                    fontSize={16}
+                                    bounds={[0, 2]}
+                                    stepSize={0.05}
+                                    roundTo={2}
+                                    units="s"
+                                    value={robot.lateralTau}
+                                    setValue={updateLateralTau}
+                                    addToHistory={() => saveSnapshot()}
+                                />
                             </div>
-
                             <div className="flex flex-row items-center justify-between">
-                                <span className="text-[16px]">Speed</span>
-                                    <NumberInput 
-                                        width={60} 
-                                        height={35}
-                                        fontSize={16} 
-                                        bounds={[0, 100]} 
-                                        stepSize={.5}
-                                        roundTo={2}
-                                        units="ft/s"
-                                        value={robot.speed} 
-                                        setValue={updateSpeed} 
-                                        addToHistory={() => saveSnapshot()}
-                                    />
+                                <span className="text-[16px]">Turn</span>
+                                <NumberInput
+                                    width={60}
+                                    height={35}
+                                    fontSize={16}
+                                    bounds={[0, 2]}
+                                    stepSize={0.05}
+                                    roundTo={2}
+                                    units="s"
+                                    value={robot.angularTau}
+                                    setValue={updateAngularTau}
+                                    addToHistory={() => saveSnapshot()}
+                                />
                             </div>
+                        </div>
 
-                            <div className="mt-0.5 flex flex-col gap-2">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[13px] text-gray-400 whitespace-nowrap">Time Constant (Accel)</span>
-                                    <div className="flex-1 border-t border-gray-500/40"></div>
-                                </div>
-                                <div className="flex flex-row items-center justify-between">
-                                    <span className="text-[16px]">Drive</span>
-                                    <NumberInput
-                                        width={60}
-                                        height={35}
-                                        fontSize={16}
-                                        bounds={[0, 2]}
-                                        stepSize={0.05}
-                                        roundTo={2}
-                                        units="s"
-                                        value={robot.lateralTau}
-                                        setValue={updateLateralTau}
-                                        addToHistory={() => saveSnapshot()}
-                                    />
-                                </div>
-                                <div className="flex flex-row items-center justify-between">
-                                    <span className="text-[16px]">Turn</span>
-                                    <NumberInput
-                                        width={60}
-                                        height={35}
-                                        fontSize={16}
-                                        bounds={[0, 2]}
-                                        stepSize={0.05}
-                                        roundTo={2}
-                                        units="s"
-                                        value={robot.angularTau}
-                                        setValue={updateAngularTau}
-                                        addToHistory={() => saveSnapshot()}
-                                    />
-                                </div>
-                            </div>
+                        <div className="mt-0.5 flex flex-col gap-2">
+                            <Separator name={"Expansion"} />
+                            {(["Front", "Left", "Right", "Rear"] as const).map((side) => {
+                                const key = `expansion${side}` as "expansionFront" | "expansionLeft" | "expansionRight" | "expansionRear";
+                                const updater = { Front: updateExpansionFront, Left: updateExpansionLeft, Right: updateExpansionRight, Rear: updateExpansionRear }[side];
+                                return (
+                                    <div key={side} className="flex flex-row items-center justify-between">
+                                        <span className="text-[16px]">{side}</span>
+                                        <NumberInput
+                                            width={60}
+                                            height={35}
+                                            fontSize={16}
+                                            bounds={[0, 30]}
+                                            stepSize={0.5}
+                                            roundTo={2}
+                                            units="in"
+                                            value={robot[key]}
+                                            setValue={updater}
+                                            addToHistory={() => saveSnapshot()}
+                                        />
+                                    </div>
+                                );
+                            })}
+                        </div>
 
-                            <div className="mt-0.5 flex flex-col gap-2">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[13px] text-gray-400 whitespace-nowrap">Expansion</span>
-                                    <div className="flex-1 border-t border-gray-500/40"></div>
-                                </div>
-                                {(["Front", "Left", "Right", "Rear"] as const).map((side) => {
-                                    const key = `expansion${side}` as "expansionFront" | "expansionLeft" | "expansionRight" | "expansionRear";
-                                    const updater = { Front: updateExpansionFront, Left: updateExpansionLeft, Right: updateExpansionRight, Rear: updateExpansionRear }[side];
-                                    return (
-                                        <div key={side} className="flex flex-row items-center justify-between">
-                                            <span className="text-[16px]">{side}</span>
-                                            <NumberInput
-                                                width={60}
-                                                height={35}
-                                                fontSize={16}
-                                                bounds={[0, 30]}
-                                                stepSize={0.5}
-                                                roundTo={2}
-                                                units="in"
-                                                value={robot[key]}
-                                                setValue={updater}
-                                                addToHistory={() => saveSnapshot()}
-                                            />
-                                        </div>
-                                    );
-                                })}
+                        <div className="mt-0.5 flex flex-col gap-2">
+                            <Separator name={"CoG Offset"} />
+                            <div className="flex flex-row items-center justify-between">
+                                <span className="text-[16px]">Lateral</span>
+                                <NumberInput
+                                    width={60}
+                                    height={35}
+                                    fontSize={16}
+                                    bounds={[-15, 15]}
+                                    stepSize={0.5}
+                                    roundTo={2}
+                                    units="in"
+                                    value={robot.cogOffsetX}
+                                    setValue={updateCogOffsetX}
+                                    addToHistory={() => saveSnapshot()}
+                                />
                             </div>
-                            
-                            <div className="mt-0.5 flex flex-col gap-2">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[13px] text-gray-400 whitespace-nowrap">CoG Offset</span>
-                                    <div className="flex-1 border-t border-gray-500/40"></div>
-                                </div>
-                                <div className="flex flex-row items-center justify-between">
-                                    <span className="text-[16px]">Lateral</span>
-                                    <NumberInput
-                                        width={60}
-                                        height={35}
-                                        fontSize={16}
-                                        bounds={[-15, 15]}
-                                        stepSize={0.5}
-                                        roundTo={2}
-                                        units="in"
-                                        value={robot.cogOffsetX}
-                                        setValue={updateCogOffsetX}
-                                        addToHistory={() => saveSnapshot()}
-                                    />
-                                </div>
-                                <div className="flex flex-row items-center justify-between">
-                                    <span className="text-[16px]">Forward</span>
-                                    <NumberInput
-                                        width={60}
-                                        height={35}
-                                        fontSize={16}
-                                        bounds={[-15, 15]}
-                                        stepSize={0.5}
-                                        roundTo={2}
-                                        units="in"
-                                        value={robot.cogOffsetY}
-                                        setValue={updateCogOffsetY}
-                                        addToHistory={() => saveSnapshot()}
-                                    />
-                                </div>
+                            <div className="flex flex-row items-center justify-between">
+                                <span className="text-[16px]">Forward</span>
+                                <NumberInput
+                                    width={60}
+                                    height={35}
+                                    fontSize={16}
+                                    bounds={[-15, 15]}
+                                    stepSize={0.5}
+                                    roundTo={2}
+                                    units="in"
+                                    value={robot.cogOffsetY}
+                                    setValue={updateCogOffsetY}
+                                    addToHistory={() => saveSnapshot()}
+                                />
                             </div>
+                        </div>
 
-                            {/* <div className="mt-0.5 flex flex-col gap-2">
+                        {/* <div className="mt-0.5 flex flex-col gap-2">
                                 <div className="flex items-center gap-2">
                                     <span className="text-[13px] text-gray-400 whitespace-nowrap">Lateral Friction</span>
                                     <div className="flex-1 border-t border-gray-500/40"></div>
@@ -282,25 +274,22 @@ export default function RobotButton() {
                                 </div>
                             </div> */}
 
-                            {(format === "mikLib" || format === "Holonomic") &&  <div className="mt-0.5 flex flex-col gap-2">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[13px] text-gray-400 whitespace-nowrap">Robot Type</span>
-                                    <div className="flex-1 border-t border-gray-500/40"></div>
-                                </div>
-                                <div className="flex flex-row items-center justify-between h-[35px]">
-                                    <span className="text-[16px]">Holonomic</span>
-                                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                                        <Checkbox checked={format === "Holonomic"} setChecked={(checked: boolean) => {
-                                            changeFormat(checked ? "Holonomic" : "mikLib");
-                                        }} />
-                                    </label>
-                                </div>
-                            </div>}
+                        {(format === "mikLib" || format === "Holonomic") && <div className="mt-0.5 flex flex-col gap-2">
+                            <Separator name={"Robot Type"} />
+                            <div className="flex flex-row items-center justify-between h-[35px]">
+                                <span className="text-[16px]">Holonomic</span>
+                                <label className="flex items-center gap-2 cursor-pointer select-none">
+                                    <Checkbox checked={format === "Holonomic"} setChecked={(checked: boolean) => {
+                                        changeFormat(checked ? "Holonomic" : "mikLib");
+                                    }} />
+                                </label>
+                            </div>
+                        </div>}
 
-                        </div>
-        
                     </div>
+
                 </div>
+            </div>
         </div>
     )
 }

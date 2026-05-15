@@ -237,7 +237,7 @@ export default function Field() {
           const sx = startPos.x;
           const sy = startPos.y;
 
-          const prevSeg = path.segments[segIdx - 1].kind;
+          const prevSeg = path.segments[segIdx - 1]?.kind;
           if (c.kind === "distanceDrive" && prevSeg !== "pointSwing" && prevSeg !== "pointTurn") {
             const anchorPose = getBackwardsSnapPose(prev, segIdx - 1);
             if (!anchorPose || anchorPose.x === null || anchorPose.y === null) {

@@ -2,14 +2,13 @@ import { createStore } from "../Store";
 import { fileFormatStore } from "../../hooks/useFileFormat";
 import type { FileFormat } from "../../hooks/useFileFormat";
 
-const MAX_UNDO_HISTORY = 100;
+const MAX_UNDO_HISTORY = 300;
 
 export const undoHistory = createStore<FileFormat[]>([fileFormatStore.getState()]);
 export const redoHistory = createStore<FileFormat[]>([]);
 
 export function saveSnapshot() {
     const snapshot = fileFormatStore.getState();
-    // console.log(snapshot);
     const current = undoHistory.getState();
     undoHistory.setState([...current, snapshot].slice(-MAX_UNDO_HISTORY));
     redoHistory.setState([]);
