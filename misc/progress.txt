@@ -2,8 +2,6 @@ Live Progress Txt
 
 Bugs:
 - control config not updating the path??
-- the robot does not snap to the starting point when pressing R
-- the robot timeline is not getting updated on all events, includes telemetry
 - copying a start segment makes it do funny things
 - you can add segments that are not start segments
 

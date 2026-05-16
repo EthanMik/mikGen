@@ -14,7 +14,6 @@ import { setupDragTransfer } from "./PathConfigUtils";
 import { activeSimSegmentStore, computedPathStore, pathTelemetry, simJumpStore } from "../../core/ComputePathSim";
 import { roundNum } from "../../core/Util";
 import type { ConstantsRecord } from "../../simulation/FormatDefinition";
-import type { Segment } from "../../core/Types/Segment";
 
 export type ConstantListField = {
     header: string;
@@ -146,17 +145,15 @@ export default function MotionList({
     useEffect(() => { setOpen(isOpenGlobal); }, [isOpenGlobal]);
     useEffect(() => { if (isTelemetryOpenGlobal !== undefined) setTelemetryOpen(isTelemetryOpenGlobal); }, [isTelemetryOpenGlobal]);
 
-    const toggleSegment = (patch: (s: Segment) => Segment) => {
+    const handleEyeOnClick = () => {
         setPath(prev => ({
             ...prev,
-            segments: prev.segments.map(s => (s.id === segmentId ? patch(s) : s)),
+            segments: prev.segments.map(s =>
+                s.id === segmentId || s.selected ? { ...s, visible: !s.visible } : s
+            ),
         }));
         saveSnapshot();
-    };
-
-    const handleEyeOnClick = () => {
-        toggleSegment(s => ({ ...s, visible: !s.visible }));
-    };
+    }
 
     useEffect(() => { setEyeOpen(segment.visible); }, [segment.visible]);
 
@@ -168,7 +165,7 @@ export default function MotionList({
         return result;
     };
 
-    const telemetrySlice = pathTelemetry.getState()?.[index];
+    const telemetrySlice = pathTelemetry.useSelector(s => s[index]);
 
     const handleContextMenu = (e: React.MouseEvent) => {
         e.preventDefault();

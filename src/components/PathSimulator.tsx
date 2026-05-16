@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import play from "../assets/play.svg";
 import pause from "../assets/pause.svg";
 import { Robot } from "../core/Robot";
@@ -13,7 +13,6 @@ import { PathSimMacros } from "../macros/PathSimMacros";
 import { convertPathToSim } from "../simulation/Conversion";
 import { useRobotPose } from "../hooks/useRobotPose";
 import { useSettings } from "../hooks/useSettings";
-import { undoHistory } from "../core/Undo/UndoHistory";
 import { useSimulateGroup } from "../hooks/useSimulateGroup";
 
 // This fucking file is the biggest piece of shit i find a new bug every day
@@ -52,12 +51,18 @@ export default function PathSimulator() {
     const formatDef = fileFormatStore.useSelector(s => s.formatDef);
     const skip = useRef(false);
     const [ settings ] = useSettings(); 
-    const changes = undoHistory.useStore();
     const computedPath = computedPathStore.useStore();
     const [ simulatedGroups ] = useSimulateGroup();
     const simJump = simJumpStore.useStore();
 
     const { pauseSimulator, scrubSimulator } = PathSimMacros();
+
+    const segmentGeoKey = useMemo(() =>
+        path.segments.map(s =>
+            `${s.id}:${s.kind}:${s.format}:${s.pose.x},${s.pose.y},${s.pose.angle}:${s.distance ?? ''}:${JSON.stringify(s.constants)}`
+        ).join('|'),
+        [path.segments]
+    );
 
     useEffect(() => {
         if (simJump === null) return;
@@ -126,7 +131,15 @@ export default function PathSimulator() {
             return;
         };
 
-        if (!pathSim.trajectory.length || pathSim.totalTime <= 0) return;
+        if (!pathSim.trajectory.length || pathSim.totalTime <= 0) {
+            if (robotVisible) {
+                const start = path.segments[0];
+                if (start?.kind === "start" && start.pose.x !== null && start.pose.y !== null) {
+                    setPose({ x: start.pose.x, y: start.pose.y, angle: start.pose.angle ?? 0 });
+                }
+            }
+            return;
+        }
 
         const clampedTime = clamp(time, 0, pathSim.totalTime);
         if (clampedTime !== time) setTime(clampedTime);
@@ -136,7 +149,7 @@ export default function PathSimulator() {
         skip.current = true;
         setValue((clampedTime / pathSim.totalTime) * 100);
         
-    }, [changes.length, robot, robotVisible, simulatedGroups]);
+    }, [segmentGeoKey, robot, robotVisible, simulatedGroups]);
 
     
     useEffect(() => {
