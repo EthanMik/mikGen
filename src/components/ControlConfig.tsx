@@ -82,7 +82,7 @@ export default function ControlConfig() {
     const getDistance = (): number | null => {
         const selectedIdx = path.segments.findIndex((s) => s.selected);
         if (path.segments.filter(c => c.selected).length !== 1) return null;
-        return getSegmentDistance(path, selectedIdx);
+        return getSegmentDistance(path, selectedIdx, selectedSegment === "strafeDrive" ? 90 : 0);
     }
 
     const updateDistance = (newDist: number | null) => {
@@ -90,7 +90,7 @@ export default function ControlConfig() {
         const selectedIdx = path.segments.findIndex((s) => s.selected);
         if (path.segments.filter(c => c.selected).length !== 1 || selectedIdx <= 0) return;
 
-        const newPos = distanceToPosition(path, selectedIdx, newDist);
+        const newPos = distanceToPosition(path, selectedIdx, newDist, selectedSegment === "strafeDrive" ? 90 : 0);
         if (!newPos) return;
 
         setPath(prev => ({
@@ -180,7 +180,7 @@ export default function ControlConfig() {
         const selectedSegment = path.segments.find(c => c.selected);
         if (selectedSegment === undefined) return;
 
-        if (newHeading === null && selectedSegment.kind !== "poseDrive" && selectedSegment.kind !== "distanceDrive") return;
+        if (newHeading === null && selectedSegment.kind !== "poseDrive" && selectedSegment.kind !== "distanceDrive" && selectedSegment.kind !== "strafeDrive") return;
         if (newHeading !== null) newHeading = normalizeDeg(newHeading);
         setPath(prev => {
                 let kind = selectedSegment.kind;
@@ -207,7 +207,7 @@ export default function ControlConfig() {
 
     return (
         <div className="flex flex-row items-center justify-center gap-4 bg-medgray w-[500px] h-[65px] rounded-lg">
-            { selectedSegment !== "distanceDrive" &&
+            { selectedSegment !== "distanceDrive" && selectedSegment !== "strafeDrive" &&
                 <>
                     <div className="flex items-center gap-2">
                         <span style={{ fontSize: 20 }}>X</span>
@@ -242,7 +242,7 @@ export default function ControlConfig() {
                 </>
             }
 
-            { selectedSegment === "distanceDrive" &&
+            { selectedSegment === "distanceDrive" || selectedSegment === "strafeDrive" &&
                 <>
                     <div className="w-[100px]"></div>
                     <div className="flex items-center gap-2">

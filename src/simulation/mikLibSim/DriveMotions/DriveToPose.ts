@@ -35,7 +35,7 @@ export function drive_to_pose(robot: Robot, dt: number, x: number, y: number, an
     
     if (start) {
         drivePID = new PID(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
-        headingPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, heading_p.timeout, 0);
+        headingPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
         drive_max_speed = drive_p.max_voltage;
         const rawHeadingError = reduce_negative_180_to_180(toDeg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle());
         reverse = drive_p.drive_direction === "reversed";

@@ -31,11 +31,13 @@ export function convertPathToString<F extends Format, Segs extends Partial<Recor
         }
 
         if (!segDef) continue;
+        const resolvedDef = segDef.castTo ? (formatDef.segments[segDef.castTo] ?? segDef) : segDef;
+        if (!resolvedDef.toStringTemplate) continue;
 
         const mergedK: Record<string, unknown> = Object.assign({}, ...k);
-        const kBuilderStr = formatDef.kBuilder ? formatDef.kBuilder(segDef.defaults, k, seg.pose, kind) : "";
+        const kBuilderStr = formatDef.kBuilder ? formatDef.kBuilder(resolvedDef.defaults ?? formatDef.constants, k, seg.pose, kind) : "";
 
-        let line = segDef.toStringTemplate
+        let line = resolvedDef.toStringTemplate
             .replace(/\$\{x\}/g, x)
             .replace(/\$\{y\}/g, y)
             .replace(/\$\{angle\}/g, angle)
@@ -69,7 +71,7 @@ export function convertStringToPath<F extends Format>(
         if (!line) continue;
 
         for (const [kind, segDef] of Object.entries(formatDef.segments) as [SegmentKind, SegmentDef<F>][]) {
-            if (!segDef || !segDef.exists) continue;
+            if (!segDef || segDef.castTo || !segDef.toStringTemplate) continue;
             const seg = parseSegmentLine(line, kind, segDef, formatDef, format);
             if (seg) { segments.push(seg); break; }
         }
@@ -115,6 +117,7 @@ function parseSegmentLine<F extends Format>(
     formatDef: FormatDef<F>,
     format: F
 ): Segment | null {
+    if (!segDef.toStringTemplate) return null;
     const { regex, groups } = templateToRegex(segDef.toStringTemplate);
     const match = line.match(regex);
     if (!match) return null;
@@ -185,6 +188,9 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
 
         const segDef = formatDef.segments[kind];
         if (!segDef) continue;
+        const resolvedSimDef = segDef.castTo ? (formatDef.segments[segDef.castTo] ?? segDef) : segDef;
+        if (!resolvedSimDef.simFn) continue;
+        const simFn = resolvedSimDef.simFn;
 
         let started = false;
         let targetDist = 0;
@@ -194,7 +200,7 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
                 auton.push(
                     (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
                         DEBUG_printRobotState(robot, dt);
-                        const output = segDef.simFn(robot, dt, x, y, angle, k);
+                        const output = simFn(robot, dt, x, y, angle, k);
                         return [output, kind, 0];
                     }
                 );
@@ -210,7 +216,7 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
                             started = true;
                         }
                         DEBUG_printRobotState(robot, dt);
-                        const output = segDef.simFn(robot, dt, x, y, angle, k);
+                        const output = simFn(robot, dt, x, y, angle, k);
                         if (output) DEBUG_printSegmentEnd(idx, formatDef, kind);
                         return [output, kind, targetDist];
                     }
@@ -228,7 +234,7 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
                             started = true;
                         }
                         DEBUG_printRobotState(robot, dt);
-                        const output = segDef.simFn(robot, dt, turn_pos.x, turn_pos.y, angle, k);
+                        const output = simFn(robot, dt, turn_pos.x, turn_pos.y, angle, k);
                         if (output) DEBUG_printSegmentEnd(idx, formatDef, kind);
                         return [output, kind, targetDist];
                     }
@@ -245,13 +251,14 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
                             started = true;
                         }
                         DEBUG_printRobotState(robot, dt);
-                        const output = segDef.simFn(robot, dt, x, y, angle, k);
+                        const output = simFn(robot, dt, x, y, angle, k);
                         if (output) DEBUG_printSegmentEnd(idx, formatDef, kind);
                         return [output, kind, targetDist];
                     }
                 );
                 break;
 
+            case "strafeDrive":
             case "distanceDrive": {
                 const segDistance = seg.distance ?? getSegmentDistance(path, idx) ?? 0;
                 auton.push(
@@ -262,7 +269,7 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
                             started = true;
                         }
                         DEBUG_printRobotState(robot, dt);
-                        const output = segDef.simFn(robot, dt, segDistance, y, seg.pose.angle, k);
+                        const output = simFn(robot, dt, segDistance, y, seg.pose.angle, k);
                         if (output) DEBUG_printSegmentEnd(idx, formatDef, kind);
                         return [output, kind, targetDist];
                     }

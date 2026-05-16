@@ -23,6 +23,7 @@ export type SegmentKind =
     | "angleSwing"
     | "pointSwing"
     | "distanceDrive"
+    | "strafeDrive"
     | "start"
 
 export type FormatConstants = {
@@ -45,13 +46,13 @@ export type FormatDef<F extends Format, Segs extends Partial<Record<SegmentKind,
 };
 
 export type SegmentDef<F extends Format = Format> = {
-    defaults: SegmentConstants<F>;
-    toStringTemplate: string;
-    name: string;
-    exists: boolean,
-    simFn: SegmentFactory<F>;
-    cycleButtons: CycleButtonField<F>[];
-    numberInputs: NumberInputGroup<F>[];
+    defaults?: SegmentConstants<F>;
+    toStringTemplate?: string;
+    name?: string;
+    castTo?: SegmentKind
+    simFn?: SegmentFactory<F>;
+    cycleButtons?: CycleButtonField<F>[];
+    numberInputs?: NumberInputGroup<F>[];
 };
 
 export type SimFn = (robot: Robot, dt: number) => [boolean, SegmentKind, number];
@@ -144,7 +145,7 @@ export function updateDefaultConstants<F extends Format>(
 ): FormatDef<Format> {
     const segDef = formatDef.segments[kind];
     if (!segDef) return formatDef;
-    const newDefaults = segDef.defaults.map((c, i) =>
+    const newDefaults = segDef.defaults?.map((c, i) =>
         i === idx
             ? { ...(c as object), ...(patch as object) } as unknown as FormatConstants[Format]
             : c

@@ -154,7 +154,6 @@ export const LemLibDef = {
     segments: {
         start: {
             name: "Start",
-            exists: true,
             defaults: [kLemLinear],
             toStringTemplate: "chassis.setPose(${x}, ${y}, ${angle});",
             simFn: (robot, _dt, x, y, angle) => robot.setPose(x, y, angle ?? 0),
@@ -164,7 +163,6 @@ export const LemLibDef = {
 
         poseDrive: {
             name: "Move to Pose",
-            exists: true,
             defaults: [kLemLinear, kLemAngular],
             toStringTemplate: "chassis.moveToPose(${x}, ${y}, ${angle}, ${timeout}, ${kBuilder});",
             simFn: (robot, dt, x, y, angle, constants) => moveToPose(robot, dt, x, y, angle ?? 0, constants),
@@ -183,24 +181,15 @@ export const LemLibDef = {
         },
 
         distanceDrive: {
-            name: "Move to Point",
-            exists: false,
-            defaults: [kLemLinear, kLemAngular],
-            toStringTemplate: "chassis.moveToPoint(${x}, ${y}, ${timeout}, ${kBuilder});",
-            simFn: (robot, dt, x, y, _angle, constants) => moveToPoint(robot, dt, x, y, constants),
-            cycleButtons: [
-                { constantsIdx: 0, ...forwardsButton },
-            ],
-            numberInputs: [
-                { constantsIdx: 0, headerName: "Motion Settings", fields: [...motionSettingsFields] },
-                { constantsIdx: 0, headerName: "Lateral Settings", fields: [...lateralSettingsFields] },
-                { constantsIdx: 1, headerName: "Angular Settings", fields: [...angularSettingsFields] },
-            ],
+            castTo: "pointDrive",
+        },
+
+        strafeDrive: {
+            castTo: "pointDrive"
         },
 
         pointDrive: {
             name: "Move to Point",
-            exists: true,
             defaults: [kLemLinear, kLemAngular],
             toStringTemplate: "chassis.moveToPoint(${x}, ${y}, ${timeout}, ${kBuilder});",
             simFn: (robot, dt, x, y, _angle, constants) => moveToPoint(robot, dt, x, y, constants),
@@ -216,13 +205,12 @@ export const LemLibDef = {
 
         pointTurn: {
             name: "Turn to Point",
-            exists: true,
             defaults: [kLemAngular],
             toStringTemplate: "chassis.turnToPoint(${x}, ${y}, ${timeout}, ${kBuilder});",
             simFn: (robot, dt, x, y, _angle, constants) => turnToPoint(robot, dt, x, y, constants),
             cycleButtons: [
-                { constantsIdx: 0, ...forwardsButton, poseEffect: (val) => ({ angle: (val as boolean) ? 0 : 180 }) },
                 { constantsIdx: 0, ...directionButton },
+                { constantsIdx: 0, ...forwardsButton, poseEffect: (val) => ({ angle: (val as boolean) ? 0 : 180 }) },
             ],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Motion Settings", fields: [...motionSettingsFields] },
@@ -232,7 +220,6 @@ export const LemLibDef = {
 
         angleTurn: {
             name: "Turn to Heading",
-            exists: true,
             defaults: [kLemAngular],
             toStringTemplate: "chassis.turnToHeading(${angle}, ${timeout}, ${kBuilder});",
             simFn: (robot, dt, _x, _y, angle, constants) => turnToHeading(robot, dt, angle ?? 0, constants),
@@ -247,7 +234,6 @@ export const LemLibDef = {
 
         angleSwing: {
             name: "Swing to Angle",
-            exists: true,
             defaults: [kLemAngular],
             toStringTemplate: "chassis.swingToHeading(${angle}, ${lockedSide}, ${timeout}, ${kBuilder});",
             simFn: (robot, dt, _x, _y, angle, constants) => swingToHeading(robot, dt, angle ?? 0, constants),
@@ -263,10 +249,9 @@ export const LemLibDef = {
 
         pointSwing: {
             name: "Swing to Point",
-            exists: true,
             defaults: [kLemAngular],
             toStringTemplate: "chassis.swingToPoint(${x}, ${y}, ${lockedSide}, ${timeout}, ${kBuilder});",
-            simFn: (robot, dt, x, y, angle, constants) => swingToPoint(robot, dt, x, y, angle ?? 0, constants),
+            simFn: (robot, dt, x, y, _angle, constants) => swingToPoint(robot, dt, x, y, constants),
             cycleButtons: [
                 { constantsIdx: 0, ...lockedSideButton },
                 { constantsIdx: 0, ...directionButton },

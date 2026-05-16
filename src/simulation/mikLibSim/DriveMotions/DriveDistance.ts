@@ -31,7 +31,7 @@ export function drive_distance(robot: Robot, dt: number, distance: number, headi
         driveDistanceStartX = robot.getX();
         driveDistanceStartY = robot.getY();
         drivePID = new PID(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, drive_p.min_voltage > 0 ? drive_p.exit_error : 0);
-        headingPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, heading_p.timeout, 0);
+        headingPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
         start = false;
     }
     if (heading === null) heading = robot.getAngle();

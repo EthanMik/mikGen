@@ -139,7 +139,7 @@ export const kMikSwing: mikConstants = {
 
 type Fields = NumberInputGroup<"mikLib">["fields"];
 
-const exitConditionsSettings: Fields = [
+export const mikExitConditionsSettings: Fields = [
     { key: "settle_error", units: "in", label: "Settle Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
     { key: "settle_time", units: "ms", label: "Settle Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
     { key: "timeout", units: "ms", label: "Timeout", input: { bounds: [0, 9999], stepSize: 100, roundTo: 0 } },
@@ -147,7 +147,7 @@ const exitConditionsSettings: Fields = [
     { key: "exit_error", units: "in", label: "Exit Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
 ];
 
-const PIDConstantsSettings: Fields = [
+export const mikPIDConstantsSettings: Fields = [
     { key: "max_voltage", units: "volt", label: "Max Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
     { key: "kp", label: "kP", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
     { key: "ki", label: "kI", units: "", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
@@ -195,7 +195,6 @@ export const mikLibDef = {
     segments: {
         start: {
             name: "Start",
-            exists: true,
             defaults: [kMikDrive],
             toStringTemplate: "chassis.set_coordinates(${x}, ${y}, ${angle});",
             simFn: (robot, _dt, x, y, angle) => robot.setPose(x, y, angle ?? 0),
@@ -205,7 +204,6 @@ export const mikLibDef = {
 
         poseDrive: {
             name: "Drive to Pose",
-            exists: true,
             defaults: [kMikDrive, kMikHeading],
             toStringTemplate: "chassis.drive_to_pose(${x}, ${y}, ${angle}, ${kBuilder});",
             simFn: (robot, dt, x, y, angle, constants) => drive_to_pose(robot, dt, x, y, angle ?? 0, constants),
@@ -214,50 +212,45 @@ export const mikLibDef = {
             ],
             numberInputs: [
                 {
-                    constantsIdx: 0, headerName: "Exit Conditions", fields: [...exitConditionsSettings ]
+                    constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings ]
                 },
                 { constantsIdx: 0, headerName: "Drive Constants", fields: [
-                    ...PIDConstantsSettings,
+                    ...mikPIDConstantsSettings,
                     { key: "drift", label: "Drift", units: "", input: { bounds: [0, 100], stepSize: 1, roundTo: 1 } },
                     { key: "lead", label: "Lead", units: "in", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 1 } },
                 ] },
-                { constantsIdx: 1, headerName: "Heading Constants", fields: [...PIDConstantsSettings] },
+                { constantsIdx: 1, headerName: "Heading Constants", fields: [...mikPIDConstantsSettings] },
             ],
         },
 
         distanceDrive: {
             name: "Drive to Distance",
-            exists: true,
             defaults: [kMikDrive, kMikHeading],
             toStringTemplate: "chassis.drive_distance(${distance}, ${kBuilder});",
             simFn: (robot, dt, distance, _y, angle, constants) => drive_distance(robot, dt, distance, angle, constants),
-            cycleButtons: [
-                { constantsIdx: 0, ...driveDirectionButton },
-            ],
+            cycleButtons: [],
             numberInputs: [
-                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...exitConditionsSettings] },
-                { constantsIdx: 0, headerName: "Drive Constants", fields: [...PIDConstantsSettings] },
-                { constantsIdx: 1, headerName: "Heading Constants", fields: [...PIDConstantsSettings] },
+                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
+                { constantsIdx: 0, headerName: "Drive Constants", fields: [...mikPIDConstantsSettings] },
+                { constantsIdx: 1, headerName: "Heading Constants", fields: [...mikPIDConstantsSettings] },
             ],
         },
 
         pointDrive: {
             name: "Drive to Point",
-            exists: true,
             defaults: [kMikDrive, kMikHeading],
             toStringTemplate: "chassis.drive_to_point(${x}, ${y}, ${kBuilder});",
             simFn: (robot, dt, x, y, _angle, constants) => drive_to_point(robot, dt, x, y, constants),
             cycleButtons: [],
             numberInputs: [
-                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...exitConditionsSettings] },
-                { constantsIdx: 0, headerName: "Drive Constants", fields: [...PIDConstantsSettings] },
-                { constantsIdx: 1, headerName: "Heading Constants", fields: [...PIDConstantsSettings] },
+                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
+                { constantsIdx: 0, headerName: "Drive Constants", fields: [...mikPIDConstantsSettings] },
+                { constantsIdx: 1, headerName: "Heading Constants", fields: [...mikPIDConstantsSettings] },
             ],
         },
 
         pointTurn: {
             name: "Turn to Point",
-            exists: true,
             defaults: [kMikTurn],
             toStringTemplate: "chassis.turn_to_point(${x}, ${y}, ${kBuilder});",
             simFn: (robot, dt, x, y, angle, constants) => turn_to_point(robot, dt, x, y, angle ?? 0, constants),
@@ -265,14 +258,13 @@ export const mikLibDef = {
                 { constantsIdx: 0, ...turnDirectionButton },
             ],
             numberInputs: [
-                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...exitConditionsSettings] },
-                { constantsIdx: 0, headerName: "Turn Constants", fields: [...PIDConstantsSettings] },
+                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
+                { constantsIdx: 0, headerName: "Turn Constants", fields: [...mikPIDConstantsSettings] },
             ],
         },
 
         angleTurn: {
             name: "Turn to Angle",
-            exists: true,
             defaults: [kMikTurn],
             toStringTemplate: "chassis.turn_to_angle(${angle}, ${kBuilder});",
             simFn: (robot, dt, _x, _y, angle, constants) => turn_to_angle(robot, dt, angle ?? 0, constants),
@@ -280,14 +272,13 @@ export const mikLibDef = {
                 { constantsIdx: 0, ...turnDirectionButton },
             ],
             numberInputs: [
-                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...exitConditionsSettings] },
-                { constantsIdx: 0, headerName: "Turn Constants", fields: [...PIDConstantsSettings] },
+                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
+                { constantsIdx: 0, headerName: "Turn Constants", fields: [...mikPIDConstantsSettings] },
             ],
         },
 
         angleSwing: {
             name: "Swing to Angle",
-            exists: true,
             defaults: [kMikSwing],
             toStringTemplate: "chassis.${swing_direction}_swing_to_angle(${angle}, ${kBuilder});",
             simFn: (robot, dt, _x, _y, angle, constants) => swing_to_angle(robot, dt, angle ?? 0, constants),
@@ -296,14 +287,13 @@ export const mikLibDef = {
                 { constantsIdx: 0, ...turnDirectionButton },
             ],
             numberInputs: [
-                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...exitConditionsSettings] },
-                { constantsIdx: 0, headerName: "Swing Constants", fields: [...PIDConstantsSettings] },
+                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
+                { constantsIdx: 0, headerName: "Swing Constants", fields: [...mikPIDConstantsSettings] },
             ],
         },
 
         pointSwing: {
             name: "Swing to Point",
-            exists: true,
             defaults: [kMikSwing],
             toStringTemplate: "chassis.${swing_direction}_swing_to_point(${x}, ${y}, ${kBuilder});",
             simFn: (robot, dt, x, y, angle, constants) => swing_to_point(robot, dt, x, y, angle ?? 0, constants),
@@ -312,10 +302,14 @@ export const mikLibDef = {
                 { constantsIdx: 0, ...turnDirectionButton },
             ],
             numberInputs: [
-                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...exitConditionsSettings] },
-                { constantsIdx: 0, headerName: "Swing Constants", fields: [...PIDConstantsSettings] },
+                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
+                { constantsIdx: 0, headerName: "Swing Constants", fields: [...mikPIDConstantsSettings] },
             ],
         },
+
+        strafeDrive: {
+            castTo: "distanceDrive"
+        }
     },
 } satisfies FormatDef<"mikLib">;
 
@@ -393,8 +387,7 @@ function kMikBuilder(kDefault: mikConstants[], constants: mikConstants[], pose?:
 
     let constantsList: string[] = [];
 
-    if (pose?.angle !== null && kind === "distanceDrive") {
-        console.log(pose?.angle, kDefault);
+    if (pose?.angle !== null && (kind === "distanceDrive" || kind === "strafeDrive")) {
         constantsList.push(`.heading = ${roundOff(pose?.angle, 2)}`);
     }
 
@@ -427,7 +420,7 @@ function kMikParser(kDefault: mikConstants[], kBuilderStr: string, kind: Segment
     const entries = inner.split(/,\s*(?=\.)/);
 
     const isDrive = kDefault.length >= 2;
-    let angleOffset: number | undefined;
+    let poseAngle: number | undefined;
 
     for (const entry of entries) {
         const match = entry.trim().match(/^\.(.+?)\s*=\s*(.+)$/);
@@ -456,7 +449,8 @@ function kMikParser(kDefault: mikConstants[], kBuilderStr: string, kind: Segment
             else if (rawKey === "heading_k.starti")   constants[1].starti = num;
             else if (rawKey === "heading_max_voltage") constants[1].max_voltage = num;
             else if (rawKey === "turn_settle_error")  constants[1].settle_error = num;
-            else if (rawKey === "turn_settle_time")  constants[1].settle_time = num;
+            else if (rawKey === "turn_settle_time")   constants[1].settle_time = num;
+            else if (rawKey === "heading")            poseAngle = num;
         } else {
             if      (rawKey === "k.p")              constants[0].kp = num;
             else if (rawKey === "k.i")              constants[0].ki = num;
@@ -471,9 +465,9 @@ function kMikParser(kDefault: mikConstants[], kBuilderStr: string, kind: Segment
             else if (rawKey === "opposite_voltage") constants[0].opposite_voltage = num;
             else if (rawKey === "turn_direction")   constants[0].turn_direction = rawValue as mikConstants["turn_direction"];
             else if (rawKey === "swing_direction")  constants[0].swing_direction = rawValue as mikConstants["swing_direction"];
-            else if (rawKey === "angle_offset")     angleOffset = num;
+            else if (rawKey === "angle_offset")     poseAngle = num;
         }
     }
 
-    return angleOffset !== undefined ? [constants, { angle: angleOffset }] : [constants];
+    return poseAngle !== undefined ? [constants, { angle: poseAngle }] : [constants];
 }

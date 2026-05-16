@@ -60,7 +60,7 @@ export default function PathConfig() {
             header: group.headerName,
             values: c.constants[group.constantsIdx] as unknown as ConstantsRecord,
             fields: group.fields.map(f => ({ key: String(f.key), label: f.label, units: f.units, input: f.input })),
-            defaults: (formatDef.segments[c.kind]?.defaults[group.constantsIdx] ?? formatDef.constants[0]) as unknown as ConstantsRecord,
+            defaults: (formatDef.segments[c.kind]?.defaults?.[group.constantsIdx] ?? formatDef.constants[0]) as unknown as ConstantsRecord,
             onChange: (partial) => updatePathConstants(setPath, c.id, group.constantsIdx, partial as Partial<FormatConstants[Format]>),
             setDefault: (partial) => fileFormatStore.setState(prev => ({
               ...prev,

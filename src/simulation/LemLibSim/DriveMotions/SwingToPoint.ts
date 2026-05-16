@@ -21,7 +21,7 @@ export function resetSwingToPoint() {
     start = true;
 }
 
-export function swingToPoint(robot: Robot, dt: number, x: number, y: number, angle: number, k: LemConstants[]): boolean {
+export function swingToPoint(robot: Robot, dt: number, x: number, y: number, k: LemConstants[]): boolean {
     const params = k[0];
 
     if (start) {
@@ -47,21 +47,21 @@ export function swingToPoint(robot: Robot, dt: number, x: number, y: number, ang
     const pose = toLemPose(robot.getPose(), false, false);
 
     // adjust effective heading for reverse driving
-    const effectiveTheta = params.forwards ? pose.theta : pose.theta - 180;
+    pose.theta = (params.forwards) ? pose.theta % 360 : (pose.theta - 180) % 360;
 
     // compute target heading from the point each loop, plus any heading offset
-    const targetTheta = toDeg(Math.atan2(x - pose.x, y - pose.y)) + angle;
+    const targetTheta = toDeg(Math.atan2(x - pose.x, y - pose.y)) % 360;
 
     // calculate raw delta theta (no direction constraint, used for settling detection)
-    const rawDeltaTheta = angleError(targetTheta, effectiveTheta, false);
+    const rawDeltaTheta = angleError(targetTheta, pose.theta, false);
     if (prevRawDeltaTheta === null) prevRawDeltaTheta = rawDeltaTheta;
     if (Math.sign(rawDeltaTheta) !== Math.sign(prevRawDeltaTheta)) settling = true;
     prevRawDeltaTheta = rawDeltaTheta;
 
     // calculate delta theta (with direction if not settling)
     let deltaTheta: number;
-    if (settling) deltaTheta = angleError(targetTheta, effectiveTheta, false);
-    else deltaTheta = angleError(targetTheta, effectiveTheta, false, params.direction);
+    if (settling) deltaTheta = angleError(targetTheta, pose.theta, false);
+    else deltaTheta = angleError(targetTheta, pose.theta, false, params.direction);
     if (prevDeltaTheta === null) prevDeltaTheta = deltaTheta;
 
     // motion chaining: exit if within early exit range or overshot

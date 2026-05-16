@@ -34,14 +34,15 @@ export function getForwardSnapPose(path: Path, idx: number) {
 export function resolveHeading(
     path: Path,
     idx: number,
-    anchorPose: NonNullable<ReturnType<typeof getBackwardsSnapPose>>
+    anchorPose: NonNullable<ReturnType<typeof getBackwardsSnapPose>>,
+    offset: number = 0,
 ): { heading: Coordinate; headingMag: number } | null {
     const seg = path.segments[idx];
     const prevSeg = path.segments[idx - 1];
     const segAngle = seg.pose.angle;
 
     if (segAngle !== null && segAngle !== undefined) {
-        return { heading: { x: Math.sin(toRad(segAngle)), y: Math.cos(toRad(segAngle)) }, headingMag: 1 };
+        return { heading: { x: Math.sin(toRad(segAngle + offset)), y: Math.cos(toRad(segAngle + offset)) }, headingMag: 1 };
     }
 
     if (prevSeg.pose.angle !== null && prevSeg.pose.angle !== undefined) {
@@ -55,15 +56,15 @@ export function resolveHeading(
                     ? { x: previousPos.x ?? 0, y: (previousPos.y ?? 0) + 5 }
                     : { x: 0, y: 5 };
             const fromPos: Coordinate = { x: anchorPose.x ?? 0, y: anchorPose.y ?? 0 };
-            const bearing = calculateHeading(fromPos, turnTarget) + prevSeg.pose.angle;
+            const bearing = calculateHeading(fromPos, turnTarget) + prevSeg.pose.angle + offset;
             return { heading: { x: Math.sin(toRad(bearing)), y: Math.cos(toRad(bearing)) }, headingMag: 1 };
         }
-        const prevSegAngle = prevSeg.pose.angle;
+        const prevSegAngle = prevSeg.pose.angle + offset;
         return { heading: { x: Math.sin(toRad(prevSegAngle)), y: Math.cos(toRad(prevSegAngle)) }, headingMag: 1 };
     }
 
     if (anchorPose.angle !== null && anchorPose.angle !== undefined) {
-        return { heading: { x: Math.sin(toRad(anchorPose.angle)), y: Math.cos(toRad(anchorPose.angle)) }, headingMag: 1 };
+        return { heading: { x: Math.sin(toRad(anchorPose.angle + offset)), y: Math.cos(toRad(anchorPose.angle + offset)) }, headingMag: 1 };
     }
 
     const anchorIdx = getBackwardsSnapIdx(path, idx - 1);
@@ -80,13 +81,13 @@ export function resolveHeading(
     return { heading: { x: hx, y: hy }, headingMag: mag };
 }
 
-export function getSegmentDistance(path: Path, idx: number): number | null {
+export function getSegmentDistance(path: Path, idx: number, offset: number = 0): number | null {
     if (idx <= 0) return null;
     const seg = path.segments[idx];
     const anchorPose = getBackwardsSnapPose(path, idx - 1);
     if (!anchorPose) return null;
 
-    const resolved = resolveHeading(path, idx, anchorPose);
+    const resolved = resolveHeading(path, idx, anchorPose, offset);
     if (!resolved) {
         return Math.hypot((seg.pose.x ?? 0) - (anchorPose.x ?? 0), (seg.pose.y ?? 0) - (anchorPose.y ?? 0));
     }
@@ -97,13 +98,13 @@ export function getSegmentDistance(path: Path, idx: number): number | null {
     return (offsetX * heading.x + offsetY * heading.y) / headingMag;
 }
 
-export function distanceToPosition(path: Path, idx: number, distance: number): { x: number; y: number } | null {
+export function distanceToPosition(path: Path, idx: number, distance: number, offset: number = 0): { x: number; y: number } | null {
     if (idx <= 0) return null;
     const seg = path.segments[idx];
     const anchorPose = getBackwardsSnapPose(path, idx - 1);
     if (!anchorPose) return null;
 
-    const resolved = resolveHeading(path, idx, anchorPose);
+    const resolved = resolveHeading(path, idx, anchorPose, offset);
 
     let hx: number, hy: number, hMag: number;
     if (!resolved) {

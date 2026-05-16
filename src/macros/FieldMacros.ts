@@ -482,6 +482,7 @@ export default function FieldMacros() {
 
     const addStartSegment = (format: Format, position: Pose, setPath: React.Dispatch<SetStateAction<Path>>) => {
         const formatDef = fileFormatStore.getState().formatDef;
+        if (formatDef.segments["start"]?.castTo) return;
         addSegment(createSegment(formatDef, format, "start", position), setPath);
     }
 
@@ -489,6 +490,7 @@ export default function FieldMacros() {
     const addPointDriveSegment = (evt: React.MouseEvent<Element> | null, format: Format, position: Coordinate, setPath: React.Dispatch<SetStateAction<Path>>) => {
         if (evt !== null && !(!evt.ctrlKey && !evt.altKey && evt.button === 0)) return;
         const formatDef = fileFormatStore.getState().formatDef;
+        if (formatDef.segments["pointDrive"]?.castTo) return;
         addSegment(createSegment(formatDef, format, "pointDrive", { x: position.x, y: position.y, angle: null }), setPath);
     }
 
@@ -496,20 +498,31 @@ export default function FieldMacros() {
     const addPoseDriveSegment = (evt: React.MouseEvent<Element> | null, format: Format, position: Pose, setPath: React.Dispatch<SetStateAction<Path>>) => {
         if (evt !== null && !(evt.ctrlKey && !evt.altKey && evt.button === 0)) return;
         const formatDef = fileFormatStore.getState().formatDef;
+        if (formatDef.segments["poseDrive"]?.castTo) return;
         addSegment(createSegment(formatDef, format, "poseDrive", position), setPath);
     }
 
     /** Alt + Left click */
     const addDistanceSegment = (evt: React.MouseEvent<Element> | null, format: Format, position: Pose, setPath: React.Dispatch<SetStateAction<Path>>) => {
-        if (evt !== null && !(evt.altKey && evt.button === 0)) return;
+        if (evt !== null && !(!evt.ctrlKey && evt.altKey && evt.button === 0)) return;
         const formatDef = fileFormatStore.getState().formatDef;
+        if (formatDef.segments["distanceDrive"]?.castTo) return;
         addSegment(createSegment(formatDef, format, "distanceDrive", position), setPath);
+    }
+
+    /** Ctrl + Alt + Left click */
+    const addStrafeSegment = (evt: React.MouseEvent<Element> | null, format: Format, position: Pose, setPath: React.Dispatch<SetStateAction<Path>>) => {
+        if (evt !== null && !(evt.ctrlKey && evt.altKey && evt.button === 0)) return;
+        const formatDef = fileFormatStore.getState().formatDef;
+        if (formatDef.segments["strafeDrive"]?.castTo) return;
+        addSegment(createSegment(formatDef, format, "strafeDrive", position), setPath);
     }
 
     /** Right click */
     const addPointTurnSegment = (evt: React.MouseEvent<Element> | null, format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
         if (evt !== null && !(!evt.ctrlKey && !evt.altKey && !evt.shiftKey && evt.button === 2)) return;
         const formatDef = fileFormatStore.getState().formatDef;
+        if (formatDef.segments["pointTurn"]?.castTo) return;
         addSegment(createSegment(formatDef, format, "pointTurn", { x: null, y: null, angle: 0 }), setPath);
     }
 
@@ -517,6 +530,7 @@ export default function FieldMacros() {
     const addAngleTurnSegment = (evt: React.MouseEvent<Element> | null, format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
         if (evt !== null && !(evt.ctrlKey && !evt.altKey && !evt.shiftKey && evt.button === 2)) return;
         const formatDef = fileFormatStore.getState().formatDef;
+        if (formatDef.segments["angleTurn"]?.castTo) return;
         addSegment(createSegment(formatDef, format, "angleTurn", { x: null, y: null, angle: 0 }), setPath);
     }
 
@@ -524,6 +538,7 @@ export default function FieldMacros() {
     const addPointSwingSegment = (evt: React.MouseEvent<Element> | null, format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
         if (evt !== null && !(!evt.ctrlKey && evt.altKey && evt.button === 2)) return;
         const formatDef = fileFormatStore.getState().formatDef;
+        if (formatDef.segments["pointSwing"]?.castTo) return;
         addSegment(createSegment(formatDef, format, "pointSwing", { x: null, y: null, angle: 0 }), setPath);
     }
 
@@ -531,6 +546,7 @@ export default function FieldMacros() {
     const addAngleSwingSegment = (evt: React.MouseEvent<Element> | null, format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
         if (evt !== null && !(evt.ctrlKey && evt.altKey && evt.button === 2)) return;
         const formatDef = fileFormatStore.getState().formatDef;
+        if (formatDef.segments["angleSwing"]?.castTo) return;
         addSegment(createSegment(formatDef, format, "angleSwing", { x: null, y: null, angle: 0 }), setPath);
     }
 
@@ -555,6 +571,7 @@ export default function FieldMacros() {
         addAngleTurnSegment,
         addAngleSwingSegment,
         addPointSwingSegment,
+        addStrafeSegment,
         addDistanceSegment,
         addStartSegment,
     };

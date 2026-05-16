@@ -35,7 +35,7 @@ export function drive_to_point(robot: Robot, dt: number, x: number, y: number, p
     
     if (start) {
         drivePID = new PID(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
-        headingPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, heading_p.timeout, 0);
+        headingPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
         desired_heading = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
         start = false;
     }

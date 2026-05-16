@@ -1,5 +1,5 @@
 import { getUnequalKeys, roundOff } from "../../core/Util";
-import { type FormatDef, type NumberInputGroup, type SegmentKind } from "../FormatDefinition";
+import { type FormatDef, type NumberInputGroup } from "../FormatDefinition";
 import { boomerangSegment } from "./DriveMotions/BoomerangSegment";
 import { pilonsSegment } from "./DriveMotions/PilonsSegment";
 import { turnSegment } from "./DriveMotions/TurnSegment";
@@ -92,7 +92,6 @@ export const reveilLibDef = {
     segments: {
         start: {
             name: "Start",
-            exists: true,
             defaults: [kRevDrive],
             toStringTemplate: "set_pose(${x}, ${y}, ${angle});",
             simFn: (robot, _dt, x, y, angle) => robot.setPose(x, y, angle ?? 0),
@@ -102,7 +101,6 @@ export const reveilLibDef = {
 
         poseDrive: {
             name: "Pose Drive",
-            exists: true,
             defaults: [kRevDrive],
             toStringTemplate: "pose(${x}, ${y}, ${angle}, ${kBuilder});",
             simFn: (robot, dt, x, y, angle, constants) => boomerangSegment(robot, dt, x, y, angle ?? 0, constants),
@@ -117,21 +115,11 @@ export const reveilLibDef = {
         },
 
         distanceDrive: {
-            name: "Drive Distance",
-            exists: false,
-            defaults: [kRevDrive],
-            toStringTemplate: "move(${x}, ${y}, ${kBuilder});",
-            simFn: (robot, dt, x, y, _angle, constants) => pilonsSegment(robot, dt, x, y, constants),
-            cycleButtons: [],
-            numberInputs: [
-                { constantsIdx: 0, headerName: "Motion Settings", fields: [...driveSettingsFields] },
-                { constantsIdx: 0, headerName: "Correction", fields: [...correctionFields] },
-            ],
+            castTo: "pointDrive"
         },
 
         pointDrive: {
             name: "Move to Point",
-            exists: true,
             defaults: [kRevDrive],
             toStringTemplate: "move(${x}, ${y}, ${kBuilder});",
             simFn: (robot, dt, x, y, _angle, constants) => pilonsSegment(robot, dt, x, y, constants),
@@ -144,7 +132,6 @@ export const reveilLibDef = {
 
         pointTurn: {
             name: "Look At",
-            exists: true,
             defaults: [kRevTurn],
             toStringTemplate: "look(${x}, ${y}, ${angle}, ${kBuilder});",
             simFn: (robot, dt, x, y, angle, constants) => lookAt(robot, dt, x, y, angle ?? 0, constants),
@@ -159,7 +146,6 @@ export const reveilLibDef = {
 
         angleTurn: {
             name: "Turn to Angle",
-            exists: true,
             defaults: [kRevTurn],
             toStringTemplate: "turn(${angle}, ${kBuilder});",
             simFn: (robot, dt, _x, _y, angle, constants) => turnSegment(robot, dt, angle ?? 0, constants),
@@ -169,28 +155,16 @@ export const reveilLibDef = {
             ],
         },
 
+        strafeDrive: {
+            castTo: "pointDrive"
+        },
+
         angleSwing: {
-            name: "Swing to Angle",
-            exists: false,
-            defaults: [kRevTurn],
-            toStringTemplate: "swing(${angle}, ${kBuilder});",
-            simFn: (robot, dt, _x, _y, angle, constants) => turnSegment(robot, dt, angle ?? 0, constants),
-            cycleButtons: [],
-            numberInputs: [
-                { constantsIdx: 0, headerName: "Turn Settings", fields: [...turnSettingsFields] },
-            ],
+            castTo: "angleTurn"
         },
 
         pointSwing: {
-            name: "Swing to Point",
-            exists: false,
-            defaults: [kRevTurn],
-            toStringTemplate: "swing_look(${x}, ${y}, ${angle}, ${kBuilder});",
-            simFn: (robot, dt, x, y, angle, constants) => lookAt(robot, dt, x, y, angle ?? 0, constants),
-            cycleButtons: [],
-            numberInputs: [
-                { constantsIdx: 0, headerName: "Turn Settings", fields: [...turnSettingsFields] },
-            ],
+            castTo: "pointTurn"
         },
     },
 } satisfies FormatDef<"ReveilLib">;
@@ -227,7 +201,7 @@ function kRevBuilder(kDefault: ReveilLibConstants[], constants: ReveilLibConstan
     return constantsList.join(", ");
 }
 
-function kRevParser(kDefault: ReveilLibConstants[], kBuilderStr: string, _kind: SegmentKind): [[ReveilLibConstants, ...ReveilLibConstants[]], Partial<Pose>?] {
+function kRevParser(kDefault: ReveilLibConstants[], kBuilderStr: string): [[ReveilLibConstants, ...ReveilLibConstants[]], Partial<Pose>?] {
     const constants = kDefault.map(k => ({ ...k })) as [ReveilLibConstants, ...ReveilLibConstants[]];
     if (!kBuilderStr.trim()) return [constants];
 

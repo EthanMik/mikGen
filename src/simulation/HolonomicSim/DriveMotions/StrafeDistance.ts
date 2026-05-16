@@ -23,18 +23,19 @@ function reset_strafe_distance() {
     start = true;
 }
 
-export function strafe_distance(robot: Robot, dt: number, distance: number, heading: number, p: mikConstants[]) {
+export function strafe_distance(robot: Robot, dt: number, distance: number, heading: number | null, p: mikConstants[]) {
     const drive_p = p[0];
     const heading_p = p[1];
-    
-    console.log(heading_p);
+    if (heading === null) heading = robot.getAngle();
+
     if (start) {
         driveDistanceStartX = robot.getX();
         driveDistanceStartY = robot.getY();
         drivePID = new PID(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, drive_p.min_voltage > 0 ? drive_p.exit_error : 0);
-        headingPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, heading_p.timeout, 0);
+        headingPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
         start = false;
     }
+
     const dx = robot.getX() - driveDistanceStartX;
     const dy = robot.getY() - driveDistanceStartY;
 

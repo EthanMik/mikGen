@@ -28,7 +28,7 @@ export default function EditJSONPopup({
     useEffect(() => {
         const initial: Record<string, string> = {};
         for (const [kind, segDef] of Object.entries(formatDef.segments)) {
-            if (segDef?.exists) initial[kind] = segDef.toStringTemplate;
+            if (segDef && !segDef.castTo && segDef.toStringTemplate) initial[kind] = segDef.toStringTemplate;
         }
         templatesRef.current = initial;
     }, [open]);
@@ -131,7 +131,7 @@ export default function EditJSONPopup({
                             <span className="text-[16px] text-white">
                                 {"Templates"}
                             </span>
-                            {(Object.entries(formatDef.segments) as [string, NonNullable<typeof formatDef.segments[keyof typeof formatDef.segments]>][]).filter(([, segDef]) => segDef.exists).map(([kind, segDef]) => (
+                            {(Object.entries(formatDef.segments) as [string, NonNullable<typeof formatDef.segments[keyof typeof formatDef.segments]>][]).filter(([, segDef]) => !segDef.castTo && segDef.toStringTemplate).map(([kind, segDef]) => (
                                 <div key={kind} className="flex flex-row gap-1">
                                     <TextInput
                                         fontSize={16}
@@ -139,7 +139,7 @@ export default function EditJSONPopup({
                                         width={800}
                                         height={40}
                                         units=""
-                                        value={segDef.toStringTemplate}
+                                        value={segDef.toStringTemplate ?? ''}
                                         setValue={() => {}}
                                         focus={false}
                                         setText={(v) => { templatesRef.current[kind] = v; }}

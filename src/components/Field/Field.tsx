@@ -105,7 +105,7 @@ export default function Field() {
   const {
     moveControl, moveHeading, deleteControl, unselectPath, selectPath,
     selectInversePath, undo, redo, addPointDriveSegment, addStartSegment,
-    addPointTurnSegment, addPoseDriveSegment, addAngleTurnSegment, addDistanceSegment,
+    addPointTurnSegment, addPoseDriveSegment, addAngleTurnSegment, addDistanceSegment, addStrafeSegment,
     addAngleSwingSegment, addPointSwingSegment, fieldZoomKeyboard, fieldZoomWheel,
     fieldPanWheel, cut, paste, copy,
   } = FieldMacros();
@@ -265,13 +265,13 @@ export default function Field() {
           const sy = startPos.y;
 
           const prevSeg = path.segments[segIdx - 1]?.kind;
-          if (c.kind === "distanceDrive" && prevSeg !== "pointSwing" && prevSeg !== "pointTurn") {
+          if ((c.kind === "distanceDrive" || c.kind === "strafeDrive") && prevSeg !== "pointSwing" && prevSeg !== "pointTurn") {
             const anchorPose = getBackwardsSnapPose(prev, segIdx - 1);
             if (!anchorPose || anchorPose.x === null || anchorPose.y === null) {
               return { ...c, pose: { ...c.pose, x: sx === null ? null : sx + dx, y: sy === null ? null : sy + dy } };
             }
 
-            const resolved = resolveHeading(prev, segIdx, anchorPose);
+            const resolved = resolveHeading(prev, segIdx, anchorPose, c.kind === "strafeDrive" ? 90 : 0);
 
             let hx: number, hy: number;
             if (resolved) {
@@ -415,6 +415,7 @@ export default function Field() {
     addPoseDriveSegment(evt, format, { x: pos.x, y: pos.y, angle: 0 }, setPath);
     addPointDriveSegment(evt, format, pos, setPath);
     addDistanceSegment(evt, format, { x: pos.x, y: pos.y, angle: null }, setPath);
+    addStrafeSegment(evt, format, { x: pos.x, y: pos.y, angle: null }, setPath);
     addPointTurnSegment(evt, format, setPath);
     addAngleTurnSegment(evt, format, setPath);
     addPointSwingSegment(evt, format, setPath);
