@@ -5,7 +5,6 @@ Bugs:
 
 Todo:
 - instead of commands add a help button that provides path examples
-- strafe segment :thumbsup:
 
 Planned:
 - tooltip when hovering over svg buttons
@@ -14,7 +13,6 @@ Planned:
 - add example paths
 
 Deciding:
-- make it so double clicking the eye turn off the path lines 
 
 Docs:
 - A better way to plan VEX Autonoumous - EthanMik Channel

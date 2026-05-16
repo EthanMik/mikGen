@@ -22,7 +22,7 @@ function reset_holonomic_to_pose() {
 export function holonomic_to_pose(robot: Robot, dt: number, x: number, y: number, angle: number, p: mikConstants[]) {
     const drive_p = p[0];
     const heading_p = p[1];
-    console.log(heading_p, drive_p);
+    
     if (start) {
         drivePID = new PID(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
         turnPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, drive_p.timeout, 0);

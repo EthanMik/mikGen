@@ -87,17 +87,23 @@ export default function RobotButton() {
 
     const changeFormat = (newFormat: Format) => {
         const changed = prevFormatRef.current !== newFormat;
+        const newFormatDef = FORMAT_REGISTRY[newFormat] as FormatDef<Format>;
         fileFormatStore.setState(prev => ({
             ...prev,
             format: newFormat,
-            formatDef: FORMAT_REGISTRY[newFormat] as FormatDef<Format>,
+            formatDef: newFormatDef,
             path: {
                 ...prev.path,
-                segments: prev.path.segments.map(s => ({
-                    ...s,
-                    format: newFormat,
-                    constants: getDefaultConstants(undefined, newFormat, s.kind),
-                })),
+                segments: prev.path.segments.map(s => {
+                    const newSegDef = newFormatDef.segments[s.kind];
+                    const castKind = newSegDef?.castTo ?? s.kind;
+                    return {
+                        ...s,
+                        format: newFormat,
+                        kind: castKind,
+                        constants: getDefaultConstants(undefined, newFormat, castKind),
+                    };
+                }),
             },
         }));
         if (changed) saveSnapshot();
