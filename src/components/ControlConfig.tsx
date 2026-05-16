@@ -27,7 +27,7 @@ function MirrorControl({
             segments: prev.segments.map(c =>
                 c.selected ? {
                     ...c, pose: {
-                        ...c.pose, angle: normalizeDeg(360 - (c.pose.angle ?? 0)),
+                        ...c.pose, angle: c.pose.angle != null ? normalizeDeg(360 - c.pose.angle) : null,
                         x: c.pose.x != null ? -c.pose.x : null
                     }
                 } : c
@@ -43,7 +43,7 @@ function MirrorControl({
             segments: prev.segments.map(c =>
                 c.selected ? {
                     ...c, pose: {
-                        ...c.pose, angle: normalizeDeg(180 - (c.pose.angle ?? 0)),
+                        ...c.pose, angle: c.pose.angle != null ? normalizeDeg(180 - c.pose.angle) : null,
                         y: c.pose.y != null ? -c.pose.y : null
                     }
                 } : c

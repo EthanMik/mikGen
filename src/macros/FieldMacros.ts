@@ -3,7 +3,7 @@ import type React from "react";
 import { clamp, FIELD_IMG_DIMENSIONS, normalizeDeg, type Rectangle } from "../core/Util";
 import { distanceToPosition, getSegmentDistance, type Path } from "../core/Types/Path";
 import type { SetStateAction } from "react";
-import { createAngleSwingSegment, createAngleTurnSegment, createDistanceSegment, createPointDriveSegment, createPointSwingSegment, createPointTurnSegment, createPoseDriveSegment, createStartSegment, type Segment } from "../core/Types/Segment";
+import { createSegment, type Segment } from "../core/Types/Segment";
 import type { Coordinate } from "../core/Types/Coordinate";
 import type { Pose } from "../core/Types/Pose";
 import type { Format } from "../hooks/useFileFormat";
@@ -153,10 +153,10 @@ export default function FieldMacros() {
 
     /** Using key "Escape" to unselect whole path */
     function unselectPath(
-        evt: KeyboardEvent,
-        setPath: React.Dispatch<React.SetStateAction<Path>>
+        evt: KeyboardEvent | null,
+        setPath: React.Dispatch<React.SetStateAction<Path>>,
     ) {
-        if (evt.key === "Escape") {
+        if (evt === null || evt.key === "Escape") {
             setPath((prev) => {
                 const newSegments = prev.segments.map((c) => ({
                     ...c,
@@ -173,11 +173,11 @@ export default function FieldMacros() {
 
     /** Using keys "ctrl + a" to select whole path */
     function selectPath(
-        evt: KeyboardEvent,
-        setPath: React.Dispatch<React.SetStateAction<Path>>
+        evt: KeyboardEvent | null,
+        setPath: React.Dispatch<React.SetStateAction<Path>>,
     ) {
-        if (!evt.shiftKey && evt.ctrlKey && evt.key.toLowerCase() === "a") {
-            evt.preventDefault();
+        if (evt === null || (!evt.shiftKey && evt.ctrlKey && evt.key.toLowerCase() === "a")) {
+            if (evt !== null) evt.preventDefault();
             setPath((prev) => {
                 const newSegments = prev.segments.map((c) => ({
                     ...c,
@@ -193,11 +193,11 @@ export default function FieldMacros() {
     }
 
     function selectInversePath(
-        evt: KeyboardEvent,
-        setPath: React.Dispatch<React.SetStateAction<Path>>
+        evt: KeyboardEvent | null,
+        setPath: React.Dispatch<React.SetStateAction<Path>>,
     ) {
-        if (evt.shiftKey && evt.ctrlKey && evt.key.toLowerCase() === "a") {
-            evt.preventDefault();
+        if (evt === null || (evt.shiftKey && evt.ctrlKey && evt.key.toLowerCase() === "a")) {
+            if (evt !== null) evt.preventDefault();
             setPath((prev) => {
                 const newSegments = prev.segments.map((c) => ({
                     ...c,
@@ -214,10 +214,10 @@ export default function FieldMacros() {
 
     /** Using keys "Backspace" and "Delete" to remove segments */
     function deleteControl(
-        evt: KeyboardEvent,
+        evt: KeyboardEvent | null,
         setPath: React.Dispatch<React.SetStateAction<Path>>
     ) {
-        if (evt.key === "Backspace" || evt.key === "Delete") {
+        if (evt === null || (evt.key === "Backspace" || evt.key === "Delete")) {
             setPath((prev) => {
                 const allSelected = prev.segments.length > 0 && prev.segments.every((s) => s.selected);
 
@@ -239,49 +239,30 @@ export default function FieldMacros() {
         }
     }
 
-    function performUndo() {
-        const undoState = undoHistory.getState();
-        if (undoState.length <= 1) return;
-        const popped = undoState[undoState.length - 1];
-        const previousSnapshot = undoState[undoState.length - 2];
-        undoHistory.setState(undoState.slice(0, -1));
-        redoHistory.setState([...redoHistory.getState(), popped]);
-        fileFormatStore.setState(previousSnapshot);
-    }
-
-    function performRedo() {
-        const redoState = redoHistory.getState();
-        if (redoState.length === 0) return;
-        const nextSnapshot = redoState[redoState.length - 1];
-        redoHistory.setState(redoState.slice(0, -1));
-        undoHistory.setState([...undoHistory.getState(), nextSnapshot]);
-        fileFormatStore.setState(nextSnapshot);
-    }
-
-    function undo(evt: KeyboardEvent) {
-        if (evt.ctrlKey) {
-            const key = evt.key.toLowerCase();
-            if (key === "z" && !evt.shiftKey) {
-                evt.preventDefault();
-                performUndo();
-            } else if ((key === "z" && evt.shiftKey) || key === "y") {
-                evt.preventDefault();
-                performRedo();
-            }
+    function undo(evt: KeyboardEvent | null) {
+        if (evt === null || (evt.ctrlKey && evt.key.toLowerCase() === "z" && !evt.shiftKey)) {
+            if (evt !== null) evt.preventDefault();
+            const undoState = undoHistory.getState();
+            if (undoState.length <= 1) return;
+            const popped = undoState[undoState.length - 1];
+            const previousSnapshot = undoState[undoState.length - 2];
+            undoHistory.setState(undoState.slice(0, -1));
+            redoHistory.setState([...redoHistory.getState(), popped]);
+            fileFormatStore.setState(previousSnapshot);
         }
     }
 
-    // const copy = (
-    //     evt: KeyboardEvent,
-    //     path: Path,
-    //     setClipboard: React.Dispatch<SetStateAction<Segment[]>>
-    // ) => {
-    //     if (evt.key.toLowerCase() === "c" && evt.ctrlKey) {
-    //         const segments = path.segments.filter(s => s.selected);
-    //         if (segments === undefined) return; 
-    //         setClipboard(structuredClone(segments));
-    //     }
-    // }
+    function redo(evt: KeyboardEvent | null) {
+        if (evt === null || (evt.ctrlKey && ((evt.key.toLowerCase() === "z" && evt.shiftKey) || evt.key.toLowerCase() === "y"))) {
+            if (evt !== null) evt.preventDefault();
+            const redoState = redoHistory.getState();
+            if (redoState.length === 0) return;
+            const nextSnapshot = redoState[redoState.length - 1];
+            redoHistory.setState(redoState.slice(0, -1));
+            undoHistory.setState([...undoHistory.getState(), nextSnapshot]);
+            fileFormatStore.setState(nextSnapshot);
+        }
+    }
 
     const writeToClipboard = (text: string) => {
         navigator.clipboard.writeText(text).catch(() => {
@@ -298,11 +279,11 @@ export default function FieldMacros() {
     };
 
     const cut = (
-        evt: KeyboardEvent,
+        evt: KeyboardEvent | null,
         path: Path,
-        setPath: React.Dispatch<SetStateAction<Path>>
+        setPath: React.Dispatch<SetStateAction<Path>>,
     ) => {
-        if (evt.key.toLowerCase() === "x" && evt.ctrlKey) {
+        if (evt === null || (evt.key.toLowerCase() === "x" && evt.ctrlKey)) {
             const formatDef = fileFormatStore.getState().formatDef;
             const out = convertPathToString(formatDef, path, true);
             writeToClipboard(out ?? "");
@@ -311,94 +292,77 @@ export default function FieldMacros() {
         }
     }
 
-    const copySelectedPath = (evt: KeyboardEvent, path: Path, trigger: () => void) => {
-        if (evt.key.toLowerCase() === "c" && evt.ctrlKey && !evt.shiftKey) {
+    const copy = (evt: KeyboardEvent | null, path: Path, trigger: () => void, copyAll: boolean = false) => {
+        const keyMatch = evt !== null && (copyAll
+            ? (evt.key.toLowerCase() === "c" && evt.shiftKey && evt.ctrlKey)
+            : (evt.key.toLowerCase() === "c" && evt.ctrlKey && !evt.shiftKey));
+        if (evt === null || keyMatch) {
             trigger();
-            evt.preventDefault();
+            if (evt !== null) evt.preventDefault();
             const formatDef = fileFormatStore.getState().formatDef;
-            const out = convertPathToString(formatDef, path, true);
+            const out = convertPathToString(formatDef, path, !copyAll);
             writeToClipboard(out ?? "");
         }
     }
 
-    const copyAllPath = (evt: KeyboardEvent, path: Path, trigger: () => void) => {
-        if (evt.key.toLowerCase() === "c" && evt.shiftKey && evt.ctrlKey) {
-            trigger();
-            evt.preventDefault();
-            const formatDef = fileFormatStore.getState().formatDef;
-            const out = convertPathToString(formatDef, path, false);
-            writeToClipboard(out ?? "");
+    const paste = (
+        evt: ClipboardEvent | null,
+        setPath: React.Dispatch<SetStateAction<Path>>,
+    ) => {
+        const apply = (text: string) => {
+            const { formatDef, format } = fileFormatStore.getState();
+            const parsed = convertStringToPath(formatDef, format, text);
+            if (parsed.length === 0) return;
+
+            setPath(prev => {
+                let selectedIndex = prev.segments.findIndex(c => c.selected);
+                selectedIndex = selectedIndex === -1 ? prev.segments.length : selectedIndex + 1;
+
+                const toInsert: Segment[] = prev.segments.length === 0 && parsed[0].kind !== "start"
+                    ? [createSegment(formatDef, format, "start", { x: 0, y: 0, angle: 0 }), ...parsed]
+                    : parsed;
+
+                const insertStart = selectedIndex;
+                const insertEnd = selectedIndex + toInsert.length;
+
+                const inserted: Segment[] = [
+                    ...prev.segments.slice(0, selectedIndex).map(s => ({ ...s, selected: false })),
+                    ...toInsert,
+                    ...prev.segments.slice(selectedIndex).map(s => ({ ...s, selected: false })),
+                ];
+
+                const fullPath: Path = { name: "", segments: inserted };
+                for (let i = insertStart; i < insertEnd; i++) {
+                    const seg = inserted[i];
+                    if (seg.kind !== "distanceDrive") continue;
+                    const dist = seg.distance ?? getSegmentDistance(fullPath, i);
+                    if (dist == null) continue;
+                    const pos = distanceToPosition(fullPath, i, dist);
+                    if (pos) inserted[i] = { ...seg, pose: { ...seg.pose, x: pos.x, y: pos.y }, distance: dist };
+                }
+
+                return {
+                    ...prev,
+                    segments: inserted.map((s, i) =>
+                        (i >= insertStart && i < insertEnd) ? { ...s, selected: true } : s
+                    ),
+                };
+            });
+            saveSnapshot();
+        };
+
+        if (evt === null) {
+            navigator.clipboard.readText().then(apply);
+            return;
         }
 
-    }
-
-    const applyPastedText = (
-        text: string,
-        setPath: React.Dispatch<SetStateAction<Path>>,
-    ) => {
-        const { formatDef, format } = fileFormatStore.getState();
-        const parsed = convertStringToPath(formatDef, format, text);
-        if (parsed.length === 0) return;
-
-        setPath(prev => {
-            let selectedIndex = prev.segments.findIndex(c => c.selected);
-            selectedIndex = selectedIndex === -1 ? prev.segments.length : selectedIndex + 1;
-
-            const toInsert: Segment[] = prev.segments.length === 0 && parsed[0].kind !== "start"
-                ? [createStartSegment(formatDef, format, { x: 0, y: 0, angle: 0 }), ...parsed]
-                : parsed;
-
-            const insertStart = selectedIndex;
-            const insertEnd = selectedIndex + toInsert.length;
-
-            const inserted: Segment[] = [
-                ...prev.segments.slice(0, selectedIndex).map(s => ({ ...s, selected: false })),
-                ...toInsert,
-                ...prev.segments.slice(selectedIndex).map(s => ({ ...s, selected: false })),
-            ];
-
-            const fullPath: Path = { name: "", segments: inserted };
-            for (let i = insertStart; i < insertEnd; i++) {
-                const seg = inserted[i];
-                if (seg.kind !== "distanceDrive") continue;
-                const dist = seg.distance ?? getSegmentDistance(fullPath, i);
-                if (dist == null) continue;
-                const pos = distanceToPosition(fullPath, i, dist);
-                if (pos) inserted[i] = { ...seg, pose: { ...seg.pose, x: pos.x, y: pos.y }, distance: dist };
-            }
-
-            return {
-                ...prev,
-                segments: inserted.map((s, i) =>
-                    (i >= insertStart && i < insertEnd) ? { ...s, selected: true } : s
-                ),
-            };
-        });
-        saveSnapshot();
-    }
-
-    const pastePathString = (
-        evt: ClipboardEvent,
-        setPath: React.Dispatch<SetStateAction<Path>>,
-    ) => {
         const target = evt.target as HTMLElement | null;
         const isPasteProxy = target?.hasAttribute('data-paste-proxy');
         if (!isPasteProxy && (target?.isContentEditable || target?.tagName === "INPUT")) return;
         evt.preventDefault();
-        applyPastedText(evt.clipboardData?.getData('text/plain') ?? '', setPath);
+        apply(evt.clipboardData?.getData('text/plain') ?? '');
     }
 
-    const cutSelectedSegments = (
-        path: Path,
-        setPath: React.Dispatch<SetStateAction<Path>>,
-    ) => {
-        const formatDef = fileFormatStore.getState().formatDef;
-        const out = convertPathToString(formatDef, path, true);
-        writeToClipboard(out ?? "");
-        const del = new KeyboardEvent("keydown", { key: "Delete" });
-        deleteControl(del, setPath);
-    }
-    
     const addSegment = (segment: Segment, setPath: React.Dispatch<SetStateAction<Path>>) => {
         setPath(prev => {
             let selectedIndex = prev.segments.findIndex(c => c.selected);
@@ -518,50 +482,56 @@ export default function FieldMacros() {
 
     const addStartSegment = (format: Format, position: Pose, setPath: React.Dispatch<SetStateAction<Path>>) => {
         const formatDef = fileFormatStore.getState().formatDef;
-        const control = createStartSegment(formatDef, format, position);
-        addSegment(control, setPath);
+        addSegment(createSegment(formatDef, format, "start", position), setPath);
     }
 
-    const addAngleTurnSegment = (format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
+    /** Left click */
+    const addPointDriveSegment = (evt: React.MouseEvent<Element> | null, format: Format, position: Coordinate, setPath: React.Dispatch<SetStateAction<Path>>) => {
+        if (evt !== null && !(!evt.ctrlKey && !evt.altKey && evt.button === 0)) return;
         const formatDef = fileFormatStore.getState().formatDef;
-        const control = createAngleTurnSegment(formatDef, format, 0);
-        addSegment(control, setPath);
+        addSegment(createSegment(formatDef, format, "pointDrive", { x: position.x, y: position.y, angle: null }), setPath);
     }
 
-    const addPointTurnSegment = (format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
+    /** Ctrl + Left click */
+    const addPoseDriveSegment = (evt: React.MouseEvent<Element> | null, format: Format, position: Pose, setPath: React.Dispatch<SetStateAction<Path>>) => {
+        if (evt !== null && !(evt.ctrlKey && !evt.altKey && evt.button === 0)) return;
         const formatDef = fileFormatStore.getState().formatDef;
-        const control = createPointTurnSegment(formatDef, format, {x: null, y: null, angle: 0})
-        addSegment(control, setPath);
+        addSegment(createSegment(formatDef, format, "poseDrive", position), setPath);
     }
 
-    const addPoseDriveSegment = (format: Format, position: Pose, setPath: React.Dispatch<SetStateAction<Path>>) => {
+    /** Alt + Left click */
+    const addDistanceSegment = (evt: React.MouseEvent<Element> | null, format: Format, position: Pose, setPath: React.Dispatch<SetStateAction<Path>>) => {
+        if (evt !== null && !(evt.altKey && evt.button === 0)) return;
         const formatDef = fileFormatStore.getState().formatDef;
-        const control = createPoseDriveSegment(formatDef, format, position)
-        addSegment(control, setPath);
+        addSegment(createSegment(formatDef, format, "distanceDrive", position), setPath);
     }
 
-    const addPointDriveSegment = (format: Format, position: Coordinate, setPath: React.Dispatch<SetStateAction<Path>>) => {
+    /** Right click */
+    const addPointTurnSegment = (evt: React.MouseEvent<Element> | null, format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
+        if (evt !== null && !(!evt.ctrlKey && !evt.altKey && !evt.shiftKey && evt.button === 2)) return;
         const formatDef = fileFormatStore.getState().formatDef;
-        const control = createPointDriveSegment(formatDef, format, position)
-        addSegment(control, setPath);
+        addSegment(createSegment(formatDef, format, "pointTurn", { x: null, y: null, angle: 0 }), setPath);
     }
 
-    const addPointSwingSegment = (format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
+    /** Ctrl + Right click */
+    const addAngleTurnSegment = (evt: React.MouseEvent<Element> | null, format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
+        if (evt !== null && !(evt.ctrlKey && !evt.altKey && !evt.shiftKey && evt.button === 2)) return;
         const formatDef = fileFormatStore.getState().formatDef;
-        const control = createPointSwingSegment(formatDef, format, {x: null, y: null, angle: 0})
-        addSegment(control, setPath);
+        addSegment(createSegment(formatDef, format, "angleTurn", { x: null, y: null, angle: 0 }), setPath);
     }
 
-    const addAngleSwingSegment = (format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
+    /** Alt + Right click */
+    const addPointSwingSegment = (evt: React.MouseEvent<Element> | null, format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
+        if (evt !== null && !(!evt.ctrlKey && evt.altKey && evt.button === 2)) return;
         const formatDef = fileFormatStore.getState().formatDef;
-        const control = createAngleSwingSegment(formatDef, format, 0)
-        addSegment(control, setPath);
+        addSegment(createSegment(formatDef, format, "pointSwing", { x: null, y: null, angle: 0 }), setPath);
     }
 
-    const addDistanceSegment = (format: Format, position: Pose, setPath: React.Dispatch<SetStateAction<Path>>) => {
+    /** Ctrl + Alt + Right click */
+    const addAngleSwingSegment = (evt: React.MouseEvent<Element> | null, format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
+        if (evt !== null && !(evt.ctrlKey && evt.altKey && evt.button === 2)) return;
         const formatDef = fileFormatStore.getState().formatDef;
-        const control = createDistanceSegment(formatDef, format, position);
-        addSegment(control, setPath);
+        addSegment(createSegment(formatDef, format, "angleSwing", { x: null, y: null, angle: 0 }), setPath);
     }
 
     return {
@@ -572,21 +542,20 @@ export default function FieldMacros() {
         deleteControl,
         moveHeading,
         undo,
+        redo,
         cut,
-        cutSelectedSegments,
-        copyAllPath,
-        pastePathString,
+        copy,
+        paste,
         fieldZoomKeyboard,
         fieldZoomWheel,
         fieldPanWheel,
-        copySelectedPath,
         addPointDriveSegment,
         addPointTurnSegment,
         addPoseDriveSegment,
         addAngleTurnSegment,
         addAngleSwingSegment,
         addPointSwingSegment,
-        addDistanceSegment, 
+        addDistanceSegment,
         addStartSegment,
     };
 }

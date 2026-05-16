@@ -35,10 +35,36 @@ export default function Field() {
     },
     numberLabel: "#a0a0a06c",
     path: {
-      stroke: secondary,
+      strokeLight: toRGBA("#21b8c3", 1),
+      stroke: toRGBA("#1560BD", 0.75),
+      strokeDark: toRGBA("#7e1ca1", 1), 
       strokeHovered: "rgba(180, 50, 11, 1)",
     },
   };
+
+  // const primary = toRGBA("#a02007", 0.5);
+  // const secondary = toRGBA("#1560BD", 0.75);
+
+  // const colors = {
+  //   node: {
+  //     fill: primary,
+  //     fillSelected: "rgba(180, 50, 11, .75)",
+  //     stroke: secondary,
+  //   },
+  //   indicator: {
+  //     stroke: "#451717",
+  //     strokeSelected: "rgba(160, 50, 11, .9)",
+  //     strokeWithPos: secondary,
+  //   },
+  //   numberLabel: "#a0a0a06c",
+  //   path: {
+  //     strokeLight: toRGBA("#00ab36", 1),
+  //     stroke: toRGBA("#b1d61c", 0.75),
+  //     strokeDark: toRGBA("#cd2020", 1), 
+  //     strokeHovered: "rgba(180, 50, 11, 1)",
+  //   },
+  // };
+
 
   const [ img, setImg ] = useState<Rectangle>( { x: 0, y: 0, w: 575, h: 575 })
   const [ fieldKey ] = useField();
@@ -78,10 +104,10 @@ export default function Field() {
 
   const {
     moveControl, moveHeading, deleteControl, unselectPath, selectPath,
-    selectInversePath, undo, addPointDriveSegment, addStartSegment,
+    selectInversePath, undo, redo, addPointDriveSegment, addStartSegment,
     addPointTurnSegment, addPoseDriveSegment, addAngleTurnSegment, addDistanceSegment,
     addAngleSwingSegment, addPointSwingSegment, fieldZoomKeyboard, fieldZoomWheel,
-    fieldPanWheel, cut, pastePathString, copySelectedPath, copyAllPath,
+    fieldPanWheel, cut, paste, copy,
   } = FieldMacros();
 
   const { toggleRobotVisibility } = PathSimMacros();
@@ -90,7 +116,7 @@ export default function Field() {
 
   const pasteRef = useRef<(evt: ClipboardEvent) => void>(() => {});
   pasteRef.current = (evt: ClipboardEvent) => {
-    pastePathString(evt, setPath);
+    paste(evt, setPath);
     hiddenInputRef.current?.blur();
   };
 
@@ -117,13 +143,14 @@ export default function Field() {
           if (pathRef.current) saveSnapshot();
         }, 400);
       }
-      copySelectedPath(evt, path, () => {});
-      copyAllPath(evt, path, () => {});
+      copy(evt, path, () => {});
+      copy(evt, path, () => {}, true);
       cut(evt, path, setPath);
       deleteControl(evt, setPath);
       selectPath(evt, setPath);
       selectInversePath(evt, setPath);
       undo(evt);
+      redo(evt);
 
       fieldZoomKeyboard(evt, setImg);
       toggleRobotVisibility(evt, setRobotVisibility);
@@ -157,11 +184,11 @@ export default function Field() {
     selectPath,
     selectInversePath,
     undo,
+    redo,
     fieldZoomKeyboard,
     toggleRobotVisibility,
     cut,
-    copySelectedPath,
-    copyAllPath,
+    copy,
     setRobotVisibility,
   ]);
   
@@ -385,13 +412,13 @@ export default function Field() {
       return;
     }
 
-    if (!evt.ctrlKey && !evt.altKey && evt.button === 0) addPointDriveSegment(format, pos, setPath);
-    else if (evt.ctrlKey && !evt.altKey && evt.button === 0) addPoseDriveSegment(format, { x: pos.x, y: pos.y, angle: 0 }, setPath);
-    else if (evt.altKey && evt.button === 0) addDistanceSegment(format, { x: pos.x, y: pos.y, angle: null }, setPath);
-    else if (!evt.ctrlKey && !evt.altKey && !evt.shiftKey && evt.button === 2) addPointTurnSegment(format, setPath);
-    else if (evt.ctrlKey && !evt.altKey && !evt.shiftKey && evt.button === 2) addAngleTurnSegment(format, setPath);
-    else if (!evt.ctrlKey && evt.altKey && evt.button === 2) addPointSwingSegment(format, setPath);
-    else if (evt.ctrlKey && evt.altKey && evt.button === 2) addAngleSwingSegment(format, setPath);
+    addPoseDriveSegment(evt, format, { x: pos.x, y: pos.y, angle: 0 }, setPath);
+    addPointDriveSegment(evt, format, pos, setPath);
+    addDistanceSegment(evt, format, { x: pos.x, y: pos.y, angle: null }, setPath);
+    addPointTurnSegment(evt, format, setPath);
+    addAngleTurnSegment(evt, format, setPath);
+    addPointSwingSegment(evt, format, setPath);
+    addAngleSwingSegment(evt, format, setPath);
   };
 
   return (

@@ -6,7 +6,6 @@ import clockOpen from "../../assets/clock-open.svg";
 import downArrow from "../../assets/down-arrow.svg";
 import { usePathVisibility } from "../../hooks/usePathVisibility";
 import AddSegmentButton from "./AddSegmentButton";
-import CopyPathButton from "./CopyPathButton";
 
 type PathConfigHeaderProps = {
   name: string
@@ -37,8 +36,6 @@ export default function PathConfigHeader({name, isOpen, setOpen, isTelemetryOpen
         {name}
       </span>
         <div className="flex flex-row gap-[10px] items-center">
-
-          <CopyPathButton />
 
           <button className="cursor-pointer"
               onClick={handleEyeOnClick}>

@@ -214,13 +214,13 @@ export const mikLibDef = {
             ],
             numberInputs: [
                 {
-                    constantsIdx: 0, headerName: "Exit Conditions", fields: [
-                        ...exitConditionsSettings,
-                        { key: "drift", label: "Drift", units: "", input: { bounds: [0, 100], stepSize: 1, roundTo: 1 } },
-                        { key: "lead", label: "Lead", units: "in", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 1 } },
-                    ]
+                    constantsIdx: 0, headerName: "Exit Conditions", fields: [...exitConditionsSettings ]
                 },
-                { constantsIdx: 0, headerName: "Drive Constants", fields: [...PIDConstantsSettings] },
+                { constantsIdx: 0, headerName: "Drive Constants", fields: [
+                    ...PIDConstantsSettings,
+                    { key: "drift", label: "Drift", units: "", input: { bounds: [0, 100], stepSize: 1, roundTo: 1 } },
+                    { key: "lead", label: "Lead", units: "in", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 1 } },
+                ] },
                 { constantsIdx: 1, headerName: "Heading Constants", fields: [...PIDConstantsSettings] },
             ],
         },

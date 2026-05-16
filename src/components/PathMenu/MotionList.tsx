@@ -120,7 +120,11 @@ export default function MotionList({
         evt.stopPropagation();
         if (evt.button === 0 && evt.ctrlKey) { ctrlSelect(); return; }
         if (evt.button === 0 && evt.shiftKey) { shiftSelect(); return; }
-        if (evt.button === 0) { normalSelect(); return; }
+        if (evt.button === 0) {
+            if (selected) setOpen(prev => !prev);
+            normalSelect();
+            return;
+        }
     };
 
     const startHover = () => {

@@ -54,7 +54,6 @@ export function clamp(value: number, min: number, max: number) {
     return Math.min(Math.max(value, min), max);
 }
 
-/** Shallow-clones an object, also shallow-cloning each plain-object value one level deep. */
 export function cloneConstants<T extends object>(obj: T): T {
     const result: Record<string, unknown> = {};
     for (const [key, val] of Object.entries(obj)) {
@@ -90,8 +89,8 @@ export function toPX(position: Coordinate, field: Rectangle, img: Rectangle): Co
 }
 
 export function findPointToFace(path: Path, idx: number): Coordinate {
-    const previousPos = getBackwardsSnapPose(path, idx - 1, true);
-    const turnToPos = getForwardSnapPose(path, idx, true);
+    const previousPos = getBackwardsSnapPose(path, idx - 1);
+    const turnToPos = getForwardSnapPose(path, idx);
 
     const pos: Coordinate =
         turnToPos
@@ -101,6 +100,10 @@ export function findPointToFace(path: Path, idx: number): Coordinate {
                 : { x: 0, y: 5 };
 
     return pos;
+}
+
+export function toRGB(rgba: string): number[] {
+    return rgba.match(/[\d.]+/g)!.map(Number);
 }
 
 export function toRGBA(hex: string, alpha: number) {

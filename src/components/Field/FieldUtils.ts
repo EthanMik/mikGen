@@ -1,7 +1,8 @@
-import { computedPathStore } from "../../core/ComputePathSim";
+import { computedPathStore, SIM_CONSTANTS } from "../../core/ComputePathSim";
 import type { Coordinate } from "../../core/Types/Coordinate";
 import { getBackwardsSnapPose, type Path } from "../../core/Types/Path";
 import { FIELD_REAL_DIMENSIONS, toInch, toPX, toRad, type Rectangle } from "../../core/Util";
+import { fileFormatStore } from "../../hooks/useFileFormat";
 
 export function pointerToSvg(evt: React.PointerEvent | React.MouseEvent<SVGSVGElement> | WheelEvent, svg: SVGSVGElement): Coordinate {
   const ctm = svg.getScreenCTM();
@@ -29,13 +30,38 @@ export function getPressedPositionInch(evt: React.PointerEvent<SVGSVGElement>, s
 
 export const getPreciseSegmentLines = (idx: number, img: Rectangle): string | null => {
   const points: string[] = [];
-  const segPts = computedPathStore.getState().segmentTrajectorys[idx]; 
+  const segPts = computedPathStore.getState().segmentTrajectorys[idx];
   if (segPts === undefined) return null;
   for (const rawPt of segPts) {
     const point = toPX({ x: rawPt.x, y: rawPt.y }, FIELD_REAL_DIMENSIONS, img);
     points.push(`${point.x},${point.y}`);
   }
   return points.join(" ");
+}
+
+export const getPreciseSegmentDots = (idx: number, spacing: number): {x: number, y: number, t: number}[] | null => {
+  const segPts = computedPathStore.getState().segmentTrajectorys[idx];
+  if (segPts === undefined || segPts.length === 0) return null;
+
+  const maxSpeedIn = fileFormatStore.getState().robot.speed * 12;
+  const dots: {x: number, y: number, t: number}[] = [];
+  let distSinceLast = 0;
+
+  for (let i = 1; i < segPts.length; i++) {
+    const dx = segPts[i].x - segPts[i - 1].x;
+    const dy = segPts[i].y - segPts[i - 1].y;
+    const segLen = Math.sqrt(dx * dx + dy * dy);
+    const t = Math.min((segLen / SIM_CONSTANTS.dt) / maxSpeedIn, 1);
+
+    distSinceLast += segLen;
+    while (distSinceLast >= spacing) {
+      distSinceLast -= spacing;
+      const frac = 1 - distSinceLast / segLen;
+      dots.push({ x: segPts[i - 1].x + frac * dx, y: segPts[i - 1].y + frac * dy, t });
+    }
+  }
+
+  return dots;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
