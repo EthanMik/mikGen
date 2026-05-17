@@ -1,6 +1,7 @@
 import { computedPathStore, SIM_CONSTANTS } from "../../core/ComputePathSim";
 import type { Coordinate } from "../../core/Types/Coordinate";
 import { getBackwardsSnapPose, type Path } from "../../core/Types/Path";
+import type { Segment } from "../../core/Types/Segment";
 import { FIELD_REAL_DIMENSIONS, toInch, toPX, toRad, type Rectangle } from "../../core/Util";
 import { fileFormatStore } from "../../hooks/useFileFormat";
 
@@ -26,6 +27,39 @@ export function getPressedPositionInch(evt: React.PointerEvent<SVGSVGElement>, s
   if (!svg) return { x: 0, y: 0 };
   const posSvg = pointerToSvg(evt, svg);
   return toInch(posSvg, FIELD_REAL_DIMENSIONS, img);
+}
+
+export function selectSegmentsInBox(
+  path: Path,
+  startSvg: Coordinate,
+  endSvg: Coordinate,
+  img: Rectangle,
+): Path {
+  const a = toInch(startSvg, FIELD_REAL_DIMENSIONS, img);
+  const b = toInch(endSvg, FIELD_REAL_DIMENSIONS, img);
+  const minX = Math.min(a.x, b.x), maxX = Math.max(a.x, b.x);
+  const minY = Math.min(a.y, b.y), maxY = Math.max(a.y, b.y);
+
+  const snapWithinBox = (seg: Segment): boolean => {
+    const idx = path.segments.indexOf(seg);
+    if (idx <= 0) return false;
+    const snap = getBackwardsSnapPose(path, idx);
+    return snap !== null && snap.x !== null && snap.y !== null &&
+      snap.x >= minX && snap.x <= maxX &&
+      snap.y >= minY && snap.y <= maxY;
+  }
+
+  return {
+    ...path,
+    segments: path.segments.map(s => ({
+      ...s,
+      selected: !s.locked && s.visible &&
+        ((s.pose.x !== null && s.pose.y !== null &&
+        s.pose.x >= minX && s.pose.x <= maxX &&
+        s.pose.y >= minY && s.pose.y <= maxY) ||
+        snapWithinBox(s))
+    }))
+  };
 }
 
 export const getPreciseSegmentLines = (idx: number, img: Rectangle): string | null => {

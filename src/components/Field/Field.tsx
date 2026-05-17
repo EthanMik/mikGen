@@ -11,6 +11,7 @@ import { PathSimMacros } from "../../macros/PathSimMacros";
 import FieldMacros from "../../macros/FieldMacros";
 import { useRobotPose } from "../../hooks/useRobotPose";
 import { getPressedPositionInch, pointerToSvg } from "./FieldUtils";
+import { useBoxSelect } from "./useBoxSelect";
 import RobotLayer from "./RobotLayer";
 import PathLayer from "./PathLayer";
 import ControlsLayer from "./ControlsLayer";
@@ -18,9 +19,10 @@ import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import { resolveHeading, getBackwardsSnapPose, type Path } from "../../core/Types/Path";
 import { useSettings } from "../../hooks/useSettings";
 
+const primary = toRGBA("#a02007", 0.5);
+const secondary = toRGBA("#1560BD", 0.75);
+
 export default function Field() {
-  const primary = toRGBA("#a02007", 0.5);
-  const secondary = toRGBA("#1560BD", 0.75);
 
   const colors = {
     node: {
@@ -101,6 +103,11 @@ export default function Field() {
   const [ middleMouseDown, setMiddleMouseDown ] = useState(false)
   const fieldDragRef = useRef<Coordinate>( { x: 0, y: 0} );
   const isFieldDragging = useRef(false);
+
+  const {
+    boxSelectRect, isBoxSelecting,
+    startBoxSelect, updateBoxSelect, finalizeBoxSelect, cancelBoxSelect,
+  } = useBoxSelect();
 
   const {
     moveControl, moveHeading, deleteControl, unselectPath, selectPath,
@@ -399,6 +406,21 @@ export default function Field() {
   const handleBackgroundPointerDown = (evt: React.PointerEvent<SVGSVGElement>) => {
     if ((evt.button !== 0 && evt.button !== 2) || pathVisible) return;
 
+    const isBareLeftClick = evt.button === 0 && !evt.ctrlKey && !evt.altKey && !evt.shiftKey && !evt.metaKey;
+
+    if (isBareLeftClick) {
+      const selectedCount = path.segments.filter((c) => c.selected).length;
+      if (selectedCount >= 1) endSelection();
+      const pos = getPressedPositionInch(evt, svgRef.current, img);
+      if (path.segments.length <= 0) {
+        addStartSegment(format, { x: pos.x, y: pos.y, angle: 0 }, setPath);
+        return;
+      }
+      const svgPos = pointerToSvg(evt, svgRef.current!);
+      startBoxSelect(svgPos, pos);
+      return;
+    }
+
     const selectedCount = path.segments.filter((c) => c.selected).length;
     if (selectedCount > 1) {
       endSelection();
@@ -422,8 +444,18 @@ export default function Field() {
     addAngleSwingSegment(evt, format, setPath);
   };
 
+  const handlePointerUp = (evt: React.PointerEvent<SVGSVGElement>) => {
+    setMiddleMouseDown(false);
+    endDrag();
+    finalizeBoxSelect(img, path, setPath, (startInch) => {
+      if (path.segments.length > 0) {
+        addPointDriveSegment(evt, format, startInch, setPath);
+      }
+    });
+  };
+
   return (
-    <div tabIndex={0} onMouseLeave={endDrag}>
+    <div tabIndex={0} onMouseLeave={() => { endDrag(); cancelBoxSelect(); }}>
       <input
         ref={hiddenInputRef}
         data-paste-proxy=""
@@ -435,7 +467,7 @@ export default function Field() {
         viewBox={`${0} ${0} ${FIELD_IMG_DIMENSIONS.w} ${FIELD_IMG_DIMENSIONS.h}`}
         width={FIELD_IMG_DIMENSIONS.w}
         height={FIELD_IMG_DIMENSIONS.h}
-        className={`${drag.dragging ? "cursor-grabbing" : middleMouseDown ? "cursor-grab" : "cursor-default"}`}
+        className={`${drag.dragging ? "cursor-grabbing" : middleMouseDown ? "cursor-grab" : isBoxSelecting ? "cursor-crosshair" : "cursor-default"}`}
         onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
         onPointerDown={(e) => {
           if (e.button === 1) {
@@ -447,14 +479,12 @@ export default function Field() {
         onPointerMove={(e) => {
           handlePointerMove(e);
           handleFieldDrag(e);
+          if (svgRef.current) updateBoxSelect(e, svgRef.current, img, path, setPath);
         }}
-        onPointerUp={() => {
-          setMiddleMouseDown(false)
-          endDrag()
-        }}
+        onPointerUp={handlePointerUp}
       >
         <image href={getFieldSrcFromKey(fieldKey)} x={img.x} y={img.y} width={img.w} height={img.h} />
-        
+
         <PathLayer path={path} img={img} visible={pathVisible} precise={settings.precisePath} colors={colors} />
 
         <RobotLayer
@@ -473,6 +503,18 @@ export default function Field() {
             format={format}
             colors={colors}
             onPointerDown={handleControlPointerDown}
+          />
+        )}
+        {boxSelectRect && (
+          <rect
+            x={boxSelectRect.x}
+            y={boxSelectRect.y}
+            width={boxSelectRect.w}
+            height={boxSelectRect.h}
+            fill={toRGBA("#1560BD", 0.15)}
+            stroke={toRGBA("#1560BD", 0.55)}
+            strokeWidth={1}
+            pointerEvents="none"
           />
         )}
       </svg>

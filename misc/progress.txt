@@ -5,12 +5,12 @@ Bugs:
 
 Todo:
 - instead of commands add a help button that provides path examples
+- add example paths
 
 Planned:
 - tooltip when hovering over svg buttons
-- square drag to select add to path config
 - google analytics
-- add example paths
+- make website work offline
 
 Deciding:
 

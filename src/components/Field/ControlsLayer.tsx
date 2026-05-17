@@ -58,7 +58,7 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 	const imgDefaultSize = (FIELD_IMG_DIMENSIONS.w + FIELD_IMG_DIMENSIONS.h) / 2;
 	const imgRealSize = (img.w + img.h) / 2
 	const scale = imgRealSize / imgDefaultSize;
-	const [ settings ] = useSettings();
+	const [settings] = useSettings();
 	radius = radius * scale;
 
 	const snap = getBackwardsSnapIdx(path, path.segments.length - 1);
@@ -82,15 +82,17 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 							{control.pose.x !== null && control.pose.y !== null && (() => {
 								const nodePx = toPX({ x: control.pose.x, y: control.pose.y }, FIELD_REAL_DIMENSIONS, img);
 								return (
-									<circle
-										style={{ stroke: colors.node.stroke, ...(control.locked ? { cursor: "not-allowed" } : { cursor: "grab" }) }}
-										id={control.id}
-										cx={nodePx.x}
-										cy={nodePx.y}
-										r={control.hovered ? radius * VISUAL.node.hoverRadiusMultiplier : radius}
-										fill={control.selected ? colors.node.fillSelected : colors.node.fill}
-										strokeWidth={idx === snap ? VISUAL.node.snapStrokeWidth * scale : 0}
-									/>
+									<>
+										<circle
+											style={{ stroke: colors.node.stroke, ...(control.locked ? { cursor: "not-allowed" } : { cursor: "grab" }) }}
+											id={control.id}
+											cx={nodePx.x}
+											cy={nodePx.y}
+											r={control.hovered ? radius * VISUAL.node.hoverRadiusMultiplier : radius}
+											fill={control.selected ? colors.node.fillSelected : colors.node.fill}
+											strokeWidth={idx === snap ? VISUAL.node.snapStrokeWidth * scale : 0}
+										/>
+									</>
 								);
 							})()}
 
@@ -151,8 +153,8 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 									angle = calculateHeading({ x: snapPose.x, y: snapPose.y }, { x: pos.x, y: pos.y }) + (angle);
 								}
 
-								const curveLeft = (format === "mikLib" && (control.constants[0] as mikConstants).swing_direction == "left") || 
-								(format === "LemLib" && (control.constants[0] as LemConstants).lockedSide === "DriveSide::RIGHT")
+								const curveLeft = (format === "mikLib" && (control.constants[0] as mikConstants).swing_direction == "left") ||
+									(format === "LemLib" && (control.constants[0] as LemConstants).lockedSide === "DriveSide::RIGHT")
 								const rInner = Math.max(0, r - (thickness * VISUAL.swingIndicator.innerRadiusOffsetFactor));
 								const basePx = toPX({ x: snapPose.x, y: snapPose.y }, FIELD_REAL_DIMENSIONS, img);
 
