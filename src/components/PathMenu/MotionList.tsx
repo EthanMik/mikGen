@@ -226,7 +226,7 @@ export default function MotionList({
                     <img className="w-[20px] h-[20px]" src={isTelemetryOpen ? clockClose : clockOpen} />
                 </button>
 
-                <span className="shrink-0 text-left truncate max-w-[160px]">{name}</span>
+                <span className="shrink-0 text-left text-[16px] truncate max-w-[160px]">{name}</span>
 
                 {segment.kind !== "start" && field !== undefined && (
                     <div onClick={(e) => e.stopPropagation()} className="flex-1 min-w-0 flex items-center gap-3">

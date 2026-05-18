@@ -289,7 +289,7 @@ export default function PathSimulator() {
     }, [playing]);
     
     return (
-        <div className="flex bg-medgray w-[575px]  h-[65px] rounded-lg 
+        <div className="flex bg-medgray w-[650px]  h-[65px] rounded-lg 
             items-center justify-center gap-4 relative"
         >
             <button onClick={() => {
@@ -307,7 +307,7 @@ export default function PathSimulator() {
             <Slider 
                 value={value} 
                 setValue={setValue} 
-                sliderWidth={!settings.robotPosition ? 373 : 117}
+                sliderWidth={!settings.robotPosition ? 448 : 192}
                 sliderHeight={8} 
                 knobHeight={22} 
                 knobWidth={22}

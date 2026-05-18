@@ -1,7 +1,7 @@
 Live Progress Txt
 
 Bugs:
-
+- copy and paste buttons are broken
 
 Todo:
 - instead of commands add a help button that provides path examples

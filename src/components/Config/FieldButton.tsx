@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { fieldMap, useField, type FieldType } from "../../hooks/useFileFormat";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import Separator from "../Util/Separator";
+import ConfigButtonTemplate from "./ConfigButtonTemplate";
 
 const imageCache: { [key: string]: HTMLImageElement } = {};
 
@@ -38,132 +39,59 @@ function usePreloadImagesOnMount(srcs: string[]) {
 }
 
 export default function FieldButton() {
-    const [isOpen, setOpen] = useState(false);
     const [fieldKey, setFieldKey] = useField();
-    const menuRef = useRef<HTMLDivElement>(null);
-    const [, setIsLoading] = useState(false);
     const [imagesLoaded, setImagesLoaded] = useState(false);
-
-    const [, startTransition] = useTransition();
-
-    const hoverTimer = useRef<number | null>(null);
     const fieldWhenMenuOpened = useRef<FieldType>(fieldKey);
 
     usePreloadImagesOnMount(fieldMap.map((f) => f.src));
 
-    const handleCloseMenu = useCallback(() => {
-        if (isOpen && fieldKey !== fieldWhenMenuOpened.current) {
-            saveSnapshot();
-        }
-        setOpen(false);
-    }, [isOpen, fieldKey]);
-
-    const handleToggleMenu = async () => {
-        if (!isOpen && !imagesLoaded) {
-            setIsLoading(true);
-            await Promise.all(fieldMap.map(f => preloadImage(f.src)));
-            setImagesLoaded(true);
-            setIsLoading(false);
-        }
-
-        if (!isOpen) {
-            fieldWhenMenuOpened.current = fieldKey;
-            setOpen(true);
-        } else {
-            handleCloseMenu();
-        }
-    };
-
-    const setFieldSmooth = (key: FieldType) => {
-        startTransition(() => setFieldKey(key));
-    };
-
     useEffect(() => {
         if (fieldKey === undefined) {
-            setFieldSmooth(fieldMap[0].key);
+            setFieldKey(fieldMap[0].key);
+        }
+    }, [fieldKey, setFieldKey]);
+
+    const handleOpen = useCallback(() => {
+        fieldWhenMenuOpened.current = fieldKey;
+        if (!imagesLoaded) {
+            Promise.all(fieldMap.map(f => preloadImage(f.src))).then(() => setImagesLoaded(true));
+        }
+    }, [fieldKey, imagesLoaded]);
+
+    const handleClose = useCallback(() => {
+        if (fieldKey !== fieldWhenMenuOpened.current) {
+            saveSnapshot();
         }
     }, [fieldKey]);
 
-    const handleHover = (key: FieldType) => {
-        if (hoverTimer.current) window.clearTimeout(hoverTimer.current);
-        hoverTimer.current = window.setTimeout(() => {
-            setFieldSmooth(key);
-        }, 0);
+    const handleClickItem = (key: FieldType) => {
+        setFieldKey(key);
     };
-
-    const handleLeaveMenu = () => {
-        if (hoverTimer.current) window.clearTimeout(hoverTimer.current);
-        hoverTimer.current = null;
-    };
-
-    const handleClickItem = () => {
-        handleCloseMenu();
-    };
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                handleCloseMenu();
-            }
-        };
-
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [handleCloseMenu]);
-
-    useEffect(() => {
-        return () => {
-            if (hoverTimer.current) window.clearTimeout(hoverTimer.current);
-        };
-    }, []);
 
     return (
-        <div
-            ref={menuRef}
-            className={`relative ${isOpen ? "bg-medgray_hover" : "bg-none"
-                } hover:bg-medgray_hover rounded-sm`}
-        >
-            <button onClick={handleToggleMenu} className="px-2 py-1 cursor-pointer">
-                <span className="text-[20px]">Field</span>
-            </button>
-
-            {isOpen && (
-                <div
-                    className="absolute shadow-xs mt-1 shadow-black left-0 top-full w-50 rounded-sm bg-medgray_hover min-h-2"
-                    onMouseLeave={handleLeaveMenu}
-                >
-                    <div className="mt-2 pl-3 pr-3 mb-2 gap-1 flex flex-col max-h-35 overflow-y-auto scrollbar-thin">
-                        {fieldMap.map((c) => (
-                            <>
-                                {c.src !== "" && <button
-                                    key={c.key}
-                                    type="button"
-                                    className={`flex items-center justify-between px-2 py-1 hover:bg-blackgrayhover cursor-pointer rounded-sm ${fieldKey === c.key ? "bg-blackgrayhover" : ""}`}
-                                    onMouseEnter={() => handleHover(c.key)}
-                                    onClick={handleClickItem}
-                                >
-                                    <span className="text-[16px]">{c.name}</span>
-                                    {fieldKey === c.key && (
-                                        <svg width="15" height="12" viewBox="0 0 15 12" fill="none">
-                                            <path
-                                                d="M1 6.5L5.66752 10.7433C6.11058 11.1461 6.8059 11.0718 7.15393 10.5846L14 1"
-                                                stroke="white"
-                                                strokeWidth="2"
-                                                strokeLinecap="round"
-                                            />
-                                        </svg>
-                                    )}
-                                </button>}
-                                {/* <div className="mt-1 border-t border-gray-500/40 flex flex-row items-center justify-between h-[4px]"></div> */}
-                                {c.key === "separator" &&
-                                    <Separator name={c.name} />
-                                }
-                            </>
-
-                        ))}
-                    </div>
-                </div>
-            )}
-        </div>
+        <ConfigButtonTemplate title="Field" onOpen={handleOpen} onClose={handleClose}>
+            {fieldMap.map((c) => (
+                c.key === "separator"
+                    ? <Separator key={c.key} name={c.name} />
+                    : <button
+                        key={c.key}
+                        type="button"
+                        className={`flex items-center justify-between w-full px-2 py-1 hover:bg-medgray_hover cursor-pointer rounded-sm ${fieldKey === c.key ? "bg-medgray_hover" : ""}`}
+                        onClick={() => handleClickItem(c.key)}
+                    >
+                        <span className="text-[16px]">{c.name}</span>
+                        {fieldKey === c.key && (
+                            <svg width="15" height="12" viewBox="0 0 15 12" fill="none">
+                                <path
+                                    d="M1 6.5L5.66752 10.7433C6.11058 11.1461 6.8059 11.0718 7.15393 10.5846L14 1"
+                                    stroke="white"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                />
+                            </svg>
+                        )}
+                    </button>
+            ))}
+        </ConfigButtonTemplate>
     );
 }

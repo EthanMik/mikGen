@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
-import { useFormat, fileFormatStore, type Format } from "../../hooks/useFileFormat";
+import { useRef } from "react";
+import { useFormat, type Format } from "../../hooks/useFileFormat";
+import { changeFormat } from "../../simulation/FormatDefinition";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
-import { FORMAT_REGISTRY, getDefaultConstants, type FormatDef } from "../../simulation/FormatDefinition";
+import ConfigButtonTemplate from "./ConfigButtonTemplate";
 
 type PathFormats = {
     name: string,
@@ -12,97 +13,41 @@ const FORMATS: PathFormats[] = [
     { name: "mikLib v2.2.0", format: "mikLib" },
     { name: "LemLib v0.5.6", format: "LemLib" },
     { name: "ReveilLib v2.1.0", format: "ReveilLib" },
-    { name: "JAR-Template [SOON]", format: "JAR-Template" },
+    { name: "JAR-Template", format: "JAR-Template" },
 ];
 
 export default function FormatButton() {
-    const [isOpen, setOpen] = useState(false);
     const [format] = useFormat();
-
-    const menuRef = useRef<HTMLDivElement>(null);
     const prevFormatRef = useRef<Format>(format);
-
-    const handleToggleMenu = () => setOpen((prev) => !prev);
 
     const handleClickItem = (newFormat: Format) => {
         const changed = prevFormatRef.current !== newFormat;
-        const newFormatDef = FORMAT_REGISTRY[newFormat] as FormatDef<Format>;
-        fileFormatStore.setState(prev => ({
-            ...prev,
-            format: newFormat,
-            formatDef: newFormatDef,
-            path: {
-                ...prev.path,
-                segments: prev.path.segments.map(s => {
-                    const newSegDef = newFormatDef.segments[s.kind];
-                    const castKind = newSegDef?.castTo ?? s.kind;
-                    return {
-                        ...s,
-                        format: newFormat,
-                        kind: castKind,
-                        constants: getDefaultConstants(undefined, newFormat, castKind),
-                    };
-                }),
-            },
-        }));
+        changeFormat(newFormat);
         if (changed) saveSnapshot();
         prevFormatRef.current = newFormat;
     };
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                setOpen(false);
-            }
-        };
-
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-
     return (
-        <div
-            ref={menuRef}
-            className={`relative ${isOpen ? "bg-medgray_hover" : "bg-none"
-                } hover:bg-medgray_hover rounded-sm`}
-        >
-            <button onClick={handleToggleMenu} className="px-2 py-1 cursor-pointer">
-                <span className="text-[20px]">Format</span>
-            </button>
-
-            {isOpen && (
-                <div
-                    className="absolute shadow-xs mt-1 shadow-black left-0 top-full w-55 rounded-sm bg-medgray_hover min-h-2"
+        <ConfigButtonTemplate title="Format">
+            {FORMATS.map((c) => (
+                <button
+                    key={c.format}
+                    className={`flex items-center justify-between px-2 py-1 hover:bg-medgray_hover cursor-pointer rounded-sm ${format === c.format ? "bg-medgray_hover" : ""}`}
+                    onClick={() => handleClickItem(c.format)}
                 >
-                    <div className="mt-2 pl-3 pr-3 mb-2 gap-1 flex flex-col max-h-40 overflow-y-auto scrollbar-thin">
-                        {FORMATS.map((c) => (
-                            <>
-                                {c.name !== "" && <button
-                                    key={c.format}
-                                    type="button"
-                                    className={`flex items-center justify-between px-2 py-1 hover:bg-blackgrayhover cursor-pointer rounded-sm ${format === c.format ? "bg-blackgrayhover" : ""}`}
-                                    onClick={() => handleClickItem(c.format)}
-                                >
-                                    <span className="text-[16px]">{c.name}</span>
-                                    {format === c.format && (
-                                        <svg width="15" height="12" viewBox="0 0 15 12" fill="none">
-                                            <path
-                                                d="M1 6.5L5.66752 10.7433C6.11058 11.1461 6.8059 11.0718 7.15393 10.5846L14 1"
-                                                stroke="white"
-                                                strokeWidth="2"
-                                                strokeLinecap="round"
-                                            />
-                                        </svg>
-                                    )}
-                                </button>}
-                                {c.name === "" && <div className="mt-1 border-t border-gray-500/40 flex flex-row items-center justify-between h-[4px]"></div>}
-                            </>
-
-                        ))}
-                    </div>
-                </div>
-            )}
-        </div>
+                    <span className="text-[16px]">{c.name}</span>
+                    {format === c.format && (
+                        <svg width="15" height="12" viewBox="0 0 15 12" fill="none">
+                            <path
+                                d="M1 6.5L5.66752 10.7433C6.11058 11.1461 6.8059 11.0718 7.15393 10.5846L14 1"
+                                stroke="white"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                            />
+                        </svg>
+                    )}
+                </button>
+            ))}
+        </ConfigButtonTemplate>
     );
 }

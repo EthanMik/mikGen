@@ -6,6 +6,7 @@ import type { Dispatch, SetStateAction } from "react";
 import type { Path } from "../core/Types/Path";
 import type { Pose } from "../core/Types/Pose";
 import { holonomicDef } from "./HolonomicSim/HolonomicConstants";
+import { fileFormatStore } from "../hooks/useFileFormat";
 
 export type Format =
     "mikLib"
@@ -157,6 +158,28 @@ export function updateDefaultConstants<F extends Format>(
             [kind]: { ...segDef, defaults: newDefaults },
         },
     };
+}
+
+export function changeFormat(newFormat: Format) {
+    const newFormatDef = FORMAT_REGISTRY[newFormat] as FormatDef<Format>;
+    fileFormatStore.setState(prev => ({
+        ...prev,
+        format: newFormat,
+        formatDef: newFormatDef,
+        path: {
+            ...prev.path,
+            segments: prev.path.segments.map(s => {
+                const newSegDef = newFormatDef.segments[s.kind];
+                const castKind = newSegDef?.castTo ?? s.kind;
+                return {
+                    ...s,
+                    format: newFormat,
+                    kind: castKind,
+                    constants: getDefaultConstants(undefined, newFormat, castKind),
+                };
+            }),
+        },
+    }));
 }
 
 export function updatePathConstants<F extends Format>(

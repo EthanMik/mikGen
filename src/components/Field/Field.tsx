@@ -68,7 +68,7 @@ export default function Field() {
 	// };
 
 
-	const [img, setImg] = useState<Rectangle>({ x: 0, y: 0, w: 575, h: 575 })
+	const [img, setImg] = useState<Rectangle>(FIELD_IMG_DIMENSIONS);
 	const [fieldKey] = useField();
 
 	const svgRef = useRef<SVGSVGElement | null>(null);
@@ -159,7 +159,6 @@ export default function Field() {
 			undo(evt);
 			redo(evt);
 
-			resetFieldSize(evt, setImg)
 			fieldZoomKeyboard(evt, setImg);
 			toggleRobotVisibility(evt, setRobotVisibility);
 		};
@@ -523,26 +522,25 @@ export default function Field() {
 				<button
 					onClick={() => fieldZoomKeyboard(null, setImg)}
 					className="
-              absolute top-22 right-129
-              flex
-              opacity-50
-              rounded-sm
-              items-center
-              justify-center
-              w-[20px]
-              h-[20px]
-              bg-medgray
-              z-10
-              cursor-pointer
-              transition
-            "
-				>
+						absolute top-3 right-129
+						flex
+						opacity-50
+						rounded-sm
+						items-center
+						justify-center
+						w-[25px]
+						h-[25px]
+						bg-medgray
+						z-10
+						cursor-pointer
+						transition
+            			"
+					>
 					<img
 						className="
-              w-[15px]
-              h-[15px]"
+							w-[15px]
+							h-[15px]"
 						src={homeButton}>
-
 					</img>
 				</button>
 			)}

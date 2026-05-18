@@ -5,7 +5,6 @@ import clockClose from "../../assets/clock-close.svg";
 import clockOpen from "../../assets/clock-open.svg";
 import downArrow from "../../assets/down-arrow.svg";
 import { usePathVisibility } from "../../hooks/usePathVisibility";
-import AddSegmentButton from "./AddSegmentButton";
 
 type PathConfigHeaderProps = {
   name: string
@@ -52,9 +51,7 @@ export default function PathConfigHeader({name, isOpen, setOpen, isTelemetryOpen
           className="hover:bg-medgray_hover px-1 py-1 rounded-sm">
             <img className={`w-[15px] h-[15px] transition-transform duration-200 ${isOpen ? "rotate-180" : "rotate-0"}`} src={downArrow} />
           </button>
-          
-          <AddSegmentButton/>
-        
+                  
         </div>
     </div>
   );
