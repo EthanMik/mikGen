@@ -87,7 +87,7 @@ export default function SettingsButton() {
             {isOpen && (
                 <div className="absolute shadow-xs mt-1 shadow-black left-0 top-full w-45 z-40
                     rounded-sm bg-medgray_hover min-h-2">
-                    <div className="flex flex-col mt-3 pl-3 pr-3 mb-3 gap-3">
+                    <div className="flex flex-col mt-2 pl-3 pr-3 mb-2 gap-3">
                         <div className="flex flex-row gap-2">
                             {/* <div className="mt-0.5 pt-2 border-t border-gray-500/40 flex flex-row items-center justify-between h-[35px]"> */}
                             <span className="whitespace-nowrap text-[16px]">Robot Outlines</span>

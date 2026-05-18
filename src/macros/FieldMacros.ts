@@ -396,19 +396,19 @@ export default function FieldMacros() {
         saveSnapshot();
     }
 
-    const fieldZoomKeyboard = (evt: KeyboardEvent, setImg: React.Dispatch<SetStateAction<Rectangle>>) => {
+    const fieldZoomKeyboard = (evt: KeyboardEvent | null, setImg: React.Dispatch<SetStateAction<Rectangle>>) => {
         const ZOOM_STEP = 200;
+
+        if (evt === null || evt.key === "0") {
+            setImg(FIELD_IMG_DIMENSIONS);
+            return;         
+        }
 
         let dir = 0;
 
         if (!evt.ctrlKey) return;
         if (evt.key === "=") dir = 1;
         if (evt.key === "-") dir = -1;
-
-        if (evt.key === "0") {
-            setImg(FIELD_IMG_DIMENSIONS);
-            return;         
-        }
         
         evt.preventDefault();
         evt.stopPropagation();

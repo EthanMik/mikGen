@@ -120,8 +120,8 @@ export default function RobotButton() {
             </button>
 
             <div className={`absolute shadow-xs mt-1 shadow-black left-0 top-full w-43 z-40
-                    rounded-sm bg-medgray_hover min-h-2 max-h-47 overflow-y-auto scrollbar-thin ${isOpen ? "" : "hidden"}`}>
-                <div className="flex flex-col mt-3 pl-3 pr-4 mb-1 gap-3">
+                    rounded-sm bg-medgray_hover min-h-2 max-h-35 overflow-y-auto scrollbar-thin ${isOpen ? "" : "hidden"}`}>
+                <div className="flex flex-col mt-2 pl-3 pr-3 mb-2 gap-3">
                     <div className="flex flex-col gap-2">
                         <div className="flex flex-row items-center justify-between">
                             <span className="text-[16px]">Width</span>

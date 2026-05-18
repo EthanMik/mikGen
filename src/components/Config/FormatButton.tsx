@@ -75,7 +75,7 @@ export default function FormatButton() {
                 <div
                     className="absolute shadow-xs mt-1 shadow-black left-0 top-full w-55 rounded-sm bg-medgray_hover min-h-2"
                 >
-                    <div className="mt-2 pl-2 pr-2 mb-2 gap-1 flex flex-col max-h-40 overflow-y-auto scrollbar-thin">
+                    <div className="mt-2 pl-3 pr-3 mb-2 gap-1 flex flex-col max-h-40 overflow-y-auto scrollbar-thin">
                         {FORMATS.map((c) => (
                             <>
                                 {c.name !== "" && <button

@@ -105,7 +105,7 @@ export default function EditButton() {
             {isOpen && (
                 <div className={`absolute shadow-xs mt-1 shadow-black left-0 top-full w-62 z-40
                     rounded-sm bg-medgray_hover min-h-2`}>
-                    <div className="flex flex-col mt-2 pl-2 pr-2 mb-2 gap-2">
+                    <div className="flex flex-col mt-2 pl-3 pr-3 mb-2 gap-2">
                         <div className="flex flex-col">
 
                             <Edit name={"Undo"} keybind={"Ctrl+Z"} callback={() => { undo(null); setOpen(false); }} />

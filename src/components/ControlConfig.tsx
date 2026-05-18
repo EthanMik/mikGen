@@ -242,7 +242,7 @@ export default function ControlConfig() {
                 </>
             }
 
-            { selectedSegment === "distanceDrive" || selectedSegment === "strafeDrive" &&
+            { (selectedSegment === "distanceDrive" || selectedSegment === "strafeDrive") &&
                 <>
                     <div className="w-[100px]"></div>
                     <div className="flex items-center gap-2">

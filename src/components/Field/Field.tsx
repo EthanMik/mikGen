@@ -24,504 +24,505 @@ const secondary = toRGBA("#1560BD", 0.75);
 
 export default function Field() {
 
-  const colors = {
-    node: {
-      fill: primary,
-      fillSelected: "rgba(180, 50, 11, .75)",
-      stroke: secondary,
-    },
-    indicator: {
-      stroke: "#451717",
-      strokeSelected: "rgba(160, 50, 11, .9)",
-      strokeWithPos: secondary,
-    },
-    numberLabel: "#a0a0a06c",
-    path: {
-      strokeLight: toRGBA("#21b8c3", 1),
-      stroke: toRGBA("#1560BD", 0.75),
-      strokeDark: toRGBA("#7e1ca1", 1), 
-      strokeHovered: "rgba(180, 50, 11, 1)",
-    },
-  };
-
-  // const primary = toRGBA("#a02007", 0.5);
-  // const secondary = toRGBA("#1560BD", 0.75);
-
-  // const colors = {
-  //   node: {
-  //     fill: primary,
-  //     fillSelected: "rgba(180, 50, 11, .75)",
-  //     stroke: secondary,
-  //   },
-  //   indicator: {
-  //     stroke: "#451717",
-  //     strokeSelected: "rgba(160, 50, 11, .9)",
-  //     strokeWithPos: secondary,
-  //   },
-  //   numberLabel: "#a0a0a06c",
-  //   path: {
-  //     strokeLight: toRGBA("#00ab36", 1),
-  //     stroke: toRGBA("#b1d61c", 0.75),
-  //     strokeDark: toRGBA("#cd2020", 1), 
-  //     strokeHovered: "rgba(180, 50, 11, 1)",
-  //   },
-  // };
-
-
-  const [ img, setImg ] = useState<Rectangle>( { x: 0, y: 0, w: 575, h: 575 })
-  const [ fieldKey ] = useField();
-
-  const svgRef = useRef<SVGSVGElement | null>(null);
-  const pathRef = useRef<Path | null>(null);
-  const headingHistoryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const moveHistoryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const [path, setPath] = usePath();
-  pathRef.current = path;
-  const [pose] = usePose();
-  const [robotPose] = useRobotPose();
-  const robot = fileFormatStore.useSelector(s => s.robot);
-  const [robotVisible, setRobotVisibility] = useRobotVisibility();
-  const [pathVisible] = usePathVisibility();
-  const [format] = useFormat();
-  const [ settings, ] = useSettings();
-
-  const startDrag = useRef(false);
-  const radius = 15;
-
-  type dragProps = { dragging: boolean; lastPos: Coordinate };
-  const [ drag, setDrag] = useState<dragProps>({ dragging: false, lastPos: { x: 0, y: 0 } });
-  const dragHistoryActive = useRef(false);
-  const dragDidMove = useRef(false);
-  
-  const dragStartSnapshot = useRef<Path | null>(null);
-  const dragStartPushed = useRef(false);
-  const lastReleasedSnapshot = useRef<Path | null>(null);
-  const dragStartPointerInch = useRef<Coordinate | null>(null);
-  const dragStartPositions = useRef<Record<string, { x: number | null; y: number | null }>>({});
-
-  const [ middleMouseDown, setMiddleMouseDown ] = useState(false)
-  const fieldDragRef = useRef<Coordinate>( { x: 0, y: 0} );
-  const isFieldDragging = useRef(false);
-
-  const {
-    boxSelectRect, isBoxSelecting,
-    startBoxSelect, updateBoxSelect, finalizeBoxSelect, cancelBoxSelect,
-  } = useBoxSelect();
-
-  const {
-    moveControl, moveHeading, deleteControl, unselectPath, selectPath,
-    selectInversePath, undo, redo, addPointDriveSegment, addStartSegment,
-    addPointTurnSegment, addPoseDriveSegment, addAngleTurnSegment, addDistanceSegment, addStrafeSegment,
-    addAngleSwingSegment, addPointSwingSegment, fieldZoomKeyboard, fieldZoomWheel,
-    fieldPanWheel, cut, paste, copy,
-  } = FieldMacros();
-
-  const { toggleRobotVisibility } = PathSimMacros();
-
-  const hiddenInputRef = useRef<HTMLInputElement | null>(null);
-
-  const pasteRef = useRef<(evt: ClipboardEvent) => void>(() => {});
-  pasteRef.current = (evt: ClipboardEvent) => {
-    paste(evt, setPath);
-    hiddenInputRef.current?.blur();
-  };
-
-  useEffect(() => {
-    const handlePaste = (evt: ClipboardEvent) => pasteRef.current(evt);
-    document.addEventListener("paste", handlePaste);
-    return () => document.removeEventListener("paste", handlePaste);
-  }, []);
-
-  useEffect(() => {
-    const handleKeyDown = (evt: KeyboardEvent) => {
-      const target = evt.target as HTMLElement | null;
-      if (target?.isContentEditable || target?.tagName === "INPUT") return;
-      if (evt.ctrlKey && evt.key.toLowerCase() === "r") return;
-      if (evt.ctrlKey && evt.key.toLowerCase() === "v") {
-        hiddenInputRef.current?.focus();
-        return;
-      }
-      unselectPath(evt, setPath);
-      moveControl(evt, setPath);
-      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(evt.key)) {
-        if (moveHistoryTimerRef.current) clearTimeout(moveHistoryTimerRef.current);
-        moveHistoryTimerRef.current = setTimeout(() => {
-          if (pathRef.current) saveSnapshot();
-        }, 400);
-      }
-      copy(evt, path, () => {});
-      copy(evt, path, () => {}, true);
-      cut(evt, path, setPath);
-      deleteControl(evt, setPath);
-      selectPath(evt, setPath);
-      selectInversePath(evt, setPath);
-      undo(evt);
-      redo(evt);
-
-      fieldZoomKeyboard(evt, setImg);
-      toggleRobotVisibility(evt, setRobotVisibility);
-    };
-
-    const handleWheelDown = (evt: WheelEvent) => {
-      const target = evt.target as HTMLElement | null;
-      if (target?.isContentEditable || target?.tagName === "INPUT") return;
-      if (moveHeading(evt, path, setPath)) {
-        if (headingHistoryTimerRef.current) clearTimeout(headingHistoryTimerRef.current);
-        headingHistoryTimerRef.current = setTimeout(() => {
-          if (pathRef.current) saveSnapshot();
-        }, 400);
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    document.addEventListener("wheel", handleWheelDown, { passive: false });
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.removeEventListener("wheel", handleWheelDown);
-    };
-  }, [
-    path,
-    setPath,
-    moveControl,
-    moveHeading,
-    deleteControl,
-    unselectPath,
-    selectPath,
-    selectInversePath,
-    undo,
-    redo,
-    fieldZoomKeyboard,
-    toggleRobotVisibility,
-    cut,
-    copy,
-    setRobotVisibility,
-  ]);
-  
-  useEffect(() => {
-    const svg = svgRef.current;
-    if (svg === null) return;
-
-    const onWheel = (evt: WheelEvent) => {
-      fieldZoomWheel(evt, setImg, svgRef);
-      fieldPanWheel(evt, setImg);
-    };
-
-    svg.addEventListener("wheel", onWheel, { passive: false });
-
-    return () => {
-      svg.removeEventListener("wheel", onWheel);
-    };
-  }, []);
-    
-
-    const handleFieldPointerDown = (evt: React.PointerEvent<SVGSVGElement>) => {
-        if (evt.button !== 1) return;
-
-        evt.preventDefault();
-        svgRef.current?.setPointerCapture(evt.pointerId);
-
-        fieldDragRef.current = { x: evt.clientX, y: evt.clientY };
-    };
-
-    const handleFieldDrag = (evt: React.PointerEvent<SVGSVGElement>) => {
-        if (!(evt.buttons & 4)) return;
-
-        const dx = evt.clientX - fieldDragRef.current.x;
-        const dy = evt.clientY - fieldDragRef.current.y;
-
-        setImg((prev) => ({
-            ...prev,
-            x: prev.x + dx,
-            y: prev.y + dy,
-        }));
-
-        fieldDragRef.current = { x: evt.clientX, y: evt.clientY };
-    };
-
-    const lastAppliedDelta = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 });
-
-    const handlePointerMove = (evt: React.PointerEvent<SVGSVGElement>) => {
-      if (!drag.dragging || !svgRef.current) return;
-
-      const posSvg = pointerToSvg(evt, svgRef.current);
-      const posInch = toInch(posSvg, FIELD_REAL_DIMENSIONS, img);
-
-      const start = dragStartPointerInch.current;
-      if (!start) return;
-
-      const dx = posInch.x - start.x;
-      const dy = posInch.y - start.y;
-      const ctrlHeld = evt.ctrlKey;
-
-      if (!ctrlHeld && dx === lastAppliedDelta.current.dx && dy === lastAppliedDelta.current.dy) {
-        return;
-      }
-      lastAppliedDelta.current = { dx, dy };
-
-      if (dx !== 0 || dy !== 0) dragDidMove.current = true;
-
-      setPath(prev => {
-        const next: Segment[] = prev.segments.map((c, segIdx) => {
-          if (!c.selected || c.locked) return c;
-
-          const startPos = dragStartPositions.current[c.id];
-          if (!startPos) return c;
-          const sx = startPos.x;
-          const sy = startPos.y;
-
-          const prevSeg = path.segments[segIdx - 1]?.kind;
-          if ((c.kind === "distanceDrive" || c.kind === "strafeDrive") && prevSeg !== "pointSwing" && prevSeg !== "pointTurn") {
-            const anchorPose = getBackwardsSnapPose(prev, segIdx - 1);
-            if (!anchorPose || anchorPose.x === null || anchorPose.y === null) {
-              return { ...c, pose: { ...c.pose, x: sx === null ? null : sx + dx, y: sy === null ? null : sy + dy } };
-            }
-
-            const resolved = resolveHeading(prev, segIdx, anchorPose, c.kind === "strafeDrive" ? 90 : 0);
-
-            let hx: number, hy: number;
-            if (resolved) {
-              hx = resolved.heading.x / resolved.headingMag;
-              hy = resolved.heading.y / resolved.headingMag;
-            } else {
-              const ofsX = (sx ?? 0) - anchorPose.x;
-              const ofsY = (sy ?? 0) - anchorPose.y;
-              const mag = Math.sqrt(ofsX * ofsX + ofsY * ofsY);
-              if (mag === 0) return c;
-              hx = ofsX / mag;
-              hy = ofsY / mag;
-            }
-
-            const fromAnchorX = posInch.x - anchorPose.x;
-            const fromAnchorY = posInch.y - anchorPose.y;
-            let t = fromAnchorX * hx + fromAnchorY * hy;
-
-            let newX = anchorPose.x + t * hx;
-            let newY = anchorPose.y + t * hy;
-
-            if (ctrlHeld) {
-              newX = Math.round(newX * 2) / 2;
-              newY = Math.round(newY * 2) / 2;
-              t = (newX - anchorPose.x) * hx + (newY - anchorPose.y) * hy;
-            }
-
-            return { ...c, pose: { ...c.pose, x: newX, y: newY }, distance: t };
-          }
-
-          let newX = sx === null ? null : sx + dx;
-          let newY = sy === null ? null : sy + dy;
-
-          if (ctrlHeld) {
-            if (newX !== null) newX = Math.round(newX * 2) / 2;
-            if (newY !== null) newY = Math.round(newY * 2) / 2;
-          }
-
-          return { ...c, pose: { ...c.pose, x: newX, y: newY } };
-        });
-
-        return { ...prev, segments: next };
-      });
-    };
-
-  const endDrag = () => {
-    setDrag({ dragging: false, lastPos: { x: 0, y: 0 } });
-    dragHistoryActive.current = false;
-
-    if (dragDidMove.current) {
-      saveSnapshot();
-      lastReleasedSnapshot.current = structuredClone(path);
-    }
-
-    dragDidMove.current = false;
-    dragStartSnapshot.current = null;
-    dragStartPushed.current = false;
-    dragStartPointerInch.current = null;
-    dragStartPositions.current = {};
-    isFieldDragging.current = false;
-  }
-
-  const selectSegment = (controlId: string, shifting: boolean) => {
-    setPath((prevSegment) => {
-      const prevSelectedIds = prevSegment.segments
-        .filter((c) => c.selected)
-        .map((c) => c.id);
-
-      let nextSelectedIds: string[];
-      if (!shifting && prevSelectedIds.length <= 1) {
-        nextSelectedIds = [controlId];
-      } else if (shifting && prevSegment.segments.find((c) => c.id === controlId && c.selected)) {
-        nextSelectedIds = prevSelectedIds.filter((c) => c !== controlId);
-      } else {
-        nextSelectedIds = [...prevSelectedIds, controlId];
-      }
-
-      return {
-        ...prevSegment,
-        segments: prevSegment.segments.map((c) => ({
-          ...c,
-          selected: !c.locked && nextSelectedIds.includes(c.id),
-        })),
-      };
-    });
-  };
-
-  const handleControlPointerDown = (evt: React.PointerEvent<SVGGElement>, controlId: string) => {
-    if (evt.button !== 0 || !svgRef.current) return;
-    evt.stopPropagation();
-    (evt.currentTarget as Element).setPointerCapture(evt.pointerId);
-
-    if (!dragHistoryActive.current) {
-      setPath((prev) => {
-        dragStartSnapshot.current = structuredClone(prev);
-        return prev;
-      });
-      dragStartPushed.current = false;
-      dragHistoryActive.current = true;
-      dragDidMove.current = false;
-    }
-
-    const posSvg = pointerToSvg(evt, svgRef.current);
-    if (!drag.dragging) selectSegment(controlId, evt.shiftKey);
-
-    const startInch = toInch(posSvg, FIELD_REAL_DIMENSIONS, img);
-    dragStartPointerInch.current = structuredClone(startInch);
-    const startPositions: Record<string, { x: number | null; y: number | null }> = {};
-    for (const s of path.segments) {
-      startPositions[s.id] = { x: s.pose.x, y: s.pose.y };
-    }
-    dragStartPositions.current = startPositions;
-
-    startDrag.current = true;
-    setDrag({ dragging: true, lastPos: posSvg });
-  };
-
-  const endSelection = () => {
-    setPath((prev) => ({
-      ...prev,
-      segments: prev.segments.map((c) => ({ ...c, selected: false })),
-    }));
-  };
-
-  const handleBackgroundPointerDown = (evt: React.PointerEvent<SVGSVGElement>) => {
-    if ((evt.button !== 0 && evt.button !== 2) || pathVisible) return;
-
-    const isBareLeftClick = evt.button === 0 && !evt.ctrlKey && !evt.altKey && !evt.shiftKey && !evt.metaKey;
-
-    if (isBareLeftClick) {
-      const selectedCount = path.segments.filter((c) => c.selected).length;
-      if (selectedCount >= 1) endSelection();
-      const pos = getPressedPositionInch(evt, svgRef.current, img);
-      if (path.segments.length <= 0) {
-        addStartSegment(format, { x: pos.x, y: pos.y, angle: 0 }, setPath);
-        return;
-      }
-      const svgPos = pointerToSvg(evt, svgRef.current!);
-      startBoxSelect(svgPos, pos);
-      return;
-    }
-
-    const selectedCount = path.segments.filter((c) => c.selected).length;
-    if (selectedCount > 1) {
-      endSelection();
-      return;
-    }
-
-    const pos = getPressedPositionInch(evt, svgRef.current, img);
-
-    if (path.segments.length <= 0) {
-      addStartSegment(format, { x: pos.x, y: pos.y, angle: 0 }, setPath);
-      return;
-    }
-
-    addPoseDriveSegment(evt, format, { x: pos.x, y: pos.y, angle: 0 }, setPath);
-    addPointDriveSegment(evt, format, pos, setPath);
-    addDistanceSegment(evt, format, { x: pos.x, y: pos.y, angle: null }, setPath);
-    addStrafeSegment(evt, format, { x: pos.x, y: pos.y, angle: null }, setPath);
-    addPointTurnSegment(evt, format, setPath);
-    addAngleTurnSegment(evt, format, setPath);
-    addPointSwingSegment(evt, format, setPath);
-    addAngleSwingSegment(evt, format, setPath);
-  };
-
-  const handlePointerUp = (evt: React.PointerEvent<SVGSVGElement>) => {
-    setMiddleMouseDown(false);
-    endDrag();
-    finalizeBoxSelect(img, path, setPath, (startInch) => {
-      if (path.segments.length > 0) {
-        addPointDriveSegment(evt, format, startInch, setPath);
-      }
-    });
-  };
-
-  return (
-    <div tabIndex={0} onMouseLeave={() => { endDrag(); cancelBoxSelect(); }}>
-      <input
-        ref={hiddenInputRef}
-        data-paste-proxy=""
-        tabIndex={-1}
-        style={{ position: "fixed", opacity: 0, pointerEvents: "none", width: 0, height: 0 }}
-      />
-      <svg
-        ref={svgRef}
-        viewBox={`${0} ${0} ${FIELD_IMG_DIMENSIONS.w} ${FIELD_IMG_DIMENSIONS.h}`}
-        width={FIELD_IMG_DIMENSIONS.w}
-        height={FIELD_IMG_DIMENSIONS.h}
-        className={`${drag.dragging ? "cursor-grabbing" : middleMouseDown ? "cursor-grab" : isBoxSelecting ? "cursor-crosshair" : "cursor-default"}`}
-        onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
-        onPointerDown={(e) => {
-          if (e.button === 1) {
-            setMiddleMouseDown(true);
-          }
-          handleFieldPointerDown(e);
-          handleBackgroundPointerDown(e);
-        }}
-        onPointerMove={(e) => {
-          handlePointerMove(e);
-          handleFieldDrag(e);
-          if (svgRef.current) updateBoxSelect(e, svgRef.current, img, path, setPath);
-        }}
-        onPointerUp={handlePointerUp}
-      >
-        <image href={getFieldSrcFromKey(fieldKey)} x={img.x} y={img.y} width={img.w} height={img.h} />
-
-        <PathLayer path={path} img={img} visible={pathVisible} precise={settings.precisePath} colors={colors} />
-
-        <RobotLayer
-          img={img}
-          pose={pose}
-          robotPose={robotPose}
-          robotConstants={robot}
-          visible={robotVisible}
-          path={path}
-      />
-        {!pathVisible && (
-          <ControlsLayer
-            path={path}
-            img={img}
-            radius={radius}
-            format={format}
-            colors={colors}
-            onPointerDown={handleControlPointerDown}
-          />
-        )}
-        {boxSelectRect && (
-          <rect
-            x={boxSelectRect.x}
-            y={boxSelectRect.y}
-            width={boxSelectRect.w}
-            height={boxSelectRect.h}
-            fill={toRGBA("#1560BD", 0.15)}
-            stroke={toRGBA("#1560BD", 0.55)}
-            strokeWidth={1}
-            pointerEvents="none"
-          />
-        )}
-      </svg>
-        {(img.x !== 0 || img.y !== 0 || img.w !== FIELD_IMG_DIMENSIONS.w || img.h !== FIELD_IMG_DIMENSIONS.h) && (
-          <button
-            onClick={() => setImg(prev => ({ ...prev, x: 0, y: 0, w: 575, h: 575 }))}
-            className="
+	const colors = {
+		node: {
+			fill: primary,
+			fillSelected: "rgba(180, 50, 11, .75)",
+			stroke: secondary,
+		},
+		indicator: {
+			stroke: "#451717",
+			strokeSelected: "rgba(160, 50, 11, .9)",
+			strokeWithPos: secondary,
+		},
+		numberLabel: "#a0a0a06c",
+		path: {
+			strokeLight: toRGBA("#21b8c3", 1),
+			stroke: toRGBA("#1560BD", 0.75),
+			strokeDark: toRGBA("#7e1ca1", 1),
+			strokeHovered: "rgba(180, 50, 11, 1)",
+		},
+	};
+
+	// const primary = toRGBA("#a02007", 0.5);
+	// const secondary = toRGBA("#1560BD", 0.75);
+
+	// const colors = {
+	//   node: {
+	//     fill: primary,
+	//     fillSelected: "rgba(180, 50, 11, .75)",
+	//     stroke: secondary,
+	//   },
+	//   indicator: {
+	//     stroke: "#451717",
+	//     strokeSelected: "rgba(160, 50, 11, .9)",
+	//     strokeWithPos: secondary,
+	//   },
+	//   numberLabel: "#a0a0a06c",
+	//   path: {
+	//     strokeLight: toRGBA("#00ab36", 1),
+	//     stroke: toRGBA("#b1d61c", 0.75),
+	//     strokeDark: toRGBA("#cd2020", 1), 
+	//     strokeHovered: "rgba(180, 50, 11, 1)",
+	//   },
+	// };
+
+
+	const [img, setImg] = useState<Rectangle>({ x: 0, y: 0, w: 575, h: 575 })
+	const [fieldKey] = useField();
+
+	const svgRef = useRef<SVGSVGElement | null>(null);
+	const pathRef = useRef<Path | null>(null);
+	const headingHistoryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const moveHistoryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	const [path, setPath] = usePath();
+	pathRef.current = path;
+	const [pose] = usePose();
+	const [robotPose] = useRobotPose();
+	const robot = fileFormatStore.useSelector(s => s.robot);
+	const [robotVisible, setRobotVisibility] = useRobotVisibility();
+	const [pathVisible] = usePathVisibility();
+	const [format] = useFormat();
+	const [settings,] = useSettings();
+
+	const startDrag = useRef(false);
+	const radius = 15;
+
+	type dragProps = { dragging: boolean; lastPos: Coordinate };
+	const [drag, setDrag] = useState<dragProps>({ dragging: false, lastPos: { x: 0, y: 0 } });
+	const dragHistoryActive = useRef(false);
+	const dragDidMove = useRef(false);
+
+	const dragStartSnapshot = useRef<Path | null>(null);
+	const dragStartPushed = useRef(false);
+	const lastReleasedSnapshot = useRef<Path | null>(null);
+	const dragStartPointerInch = useRef<Coordinate | null>(null);
+	const dragStartPositions = useRef<Record<string, { x: number | null; y: number | null }>>({});
+
+	const [middleMouseDown, setMiddleMouseDown] = useState(false)
+	const fieldDragRef = useRef<Coordinate>({ x: 0, y: 0 });
+	const isFieldDragging = useRef(false);
+
+	const {
+		boxSelectRect, isBoxSelecting,
+		startBoxSelect, updateBoxSelect, finalizeBoxSelect, cancelBoxSelect,
+	} = useBoxSelect();
+
+	const {
+		moveControl, moveHeading, deleteControl, unselectPath, selectPath,
+		selectInversePath, undo, redo, addPointDriveSegment, addStartSegment,
+		addPointTurnSegment, addPoseDriveSegment, addAngleTurnSegment, addDistanceSegment, addStrafeSegment,
+		addAngleSwingSegment, addPointSwingSegment, fieldZoomKeyboard, fieldZoomWheel,
+		fieldPanWheel, cut, paste, copy,
+	} = FieldMacros();
+
+	const { toggleRobotVisibility } = PathSimMacros();
+
+	const hiddenInputRef = useRef<HTMLInputElement | null>(null);
+
+	const pasteRef = useRef<(evt: ClipboardEvent) => void>(() => { });
+	pasteRef.current = (evt: ClipboardEvent) => {
+		paste(evt, setPath);
+		hiddenInputRef.current?.blur();
+	};
+
+	useEffect(() => {
+		const handlePaste = (evt: ClipboardEvent) => pasteRef.current(evt);
+		document.addEventListener("paste", handlePaste);
+		return () => document.removeEventListener("paste", handlePaste);
+	}, []);
+
+	useEffect(() => {
+		const handleKeyDown = (evt: KeyboardEvent) => {
+			const target = evt.target as HTMLElement | null;
+			if (target?.isContentEditable || target?.tagName === "INPUT") return;
+			if (evt.ctrlKey && evt.key.toLowerCase() === "r") return;
+			if (evt.ctrlKey && evt.key.toLowerCase() === "v") {
+				hiddenInputRef.current?.focus();
+				return;
+			}
+			unselectPath(evt, setPath);
+			moveControl(evt, setPath);
+			if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(evt.key)) {
+				if (moveHistoryTimerRef.current) clearTimeout(moveHistoryTimerRef.current);
+				moveHistoryTimerRef.current = setTimeout(() => {
+					if (pathRef.current) saveSnapshot();
+				}, 400);
+			}
+			copy(evt, path, () => { });
+			copy(evt, path, () => { }, true);
+			cut(evt, path, setPath);
+			deleteControl(evt, setPath);
+			selectPath(evt, setPath);
+			selectInversePath(evt, setPath);
+			undo(evt);
+			redo(evt);
+
+			resetFieldSize(evt, setImg)
+			fieldZoomKeyboard(evt, setImg);
+			toggleRobotVisibility(evt, setRobotVisibility);
+		};
+
+		const handleWheelDown = (evt: WheelEvent) => {
+			const target = evt.target as HTMLElement | null;
+			if (target?.isContentEditable || target?.tagName === "INPUT") return;
+			if (moveHeading(evt, path, setPath)) {
+				if (headingHistoryTimerRef.current) clearTimeout(headingHistoryTimerRef.current);
+				headingHistoryTimerRef.current = setTimeout(() => {
+					if (pathRef.current) saveSnapshot();
+				}, 400);
+			}
+		};
+
+		document.addEventListener("keydown", handleKeyDown);
+		document.addEventListener("wheel", handleWheelDown, { passive: false });
+
+		return () => {
+			document.removeEventListener("keydown", handleKeyDown);
+			document.removeEventListener("wheel", handleWheelDown);
+		};
+	}, [
+		path,
+		setPath,
+		moveControl,
+		moveHeading,
+		deleteControl,
+		unselectPath,
+		selectPath,
+		selectInversePath,
+		undo,
+		redo,
+		fieldZoomKeyboard,
+		toggleRobotVisibility,
+		cut,
+		copy,
+		setRobotVisibility,
+	]);
+
+	useEffect(() => {
+		const svg = svgRef.current;
+		if (svg === null) return;
+
+		const onWheel = (evt: WheelEvent) => {
+			fieldZoomWheel(evt, setImg, svgRef);
+			fieldPanWheel(evt, setImg);
+		};
+
+		svg.addEventListener("wheel", onWheel, { passive: false });
+
+		return () => {
+			svg.removeEventListener("wheel", onWheel);
+		};
+	}, []);
+
+
+	const handleFieldPointerDown = (evt: React.PointerEvent<SVGSVGElement>) => {
+		if (evt.button !== 1) return;
+
+		evt.preventDefault();
+		svgRef.current?.setPointerCapture(evt.pointerId);
+
+		fieldDragRef.current = { x: evt.clientX, y: evt.clientY };
+	};
+
+	const handleFieldDrag = (evt: React.PointerEvent<SVGSVGElement>) => {
+		if (!(evt.buttons & 4)) return;
+
+		const dx = evt.clientX - fieldDragRef.current.x;
+		const dy = evt.clientY - fieldDragRef.current.y;
+
+		setImg((prev) => ({
+			...prev,
+			x: prev.x + dx,
+			y: prev.y + dy,
+		}));
+
+		fieldDragRef.current = { x: evt.clientX, y: evt.clientY };
+	};
+
+	const lastAppliedDelta = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 });
+
+	const handlePointerMove = (evt: React.PointerEvent<SVGSVGElement>) => {
+		if (!drag.dragging || !svgRef.current) return;
+
+		const posSvg = pointerToSvg(evt, svgRef.current);
+		const posInch = toInch(posSvg, FIELD_REAL_DIMENSIONS, img);
+
+		const start = dragStartPointerInch.current;
+		if (!start) return;
+
+		const dx = posInch.x - start.x;
+		const dy = posInch.y - start.y;
+		const ctrlHeld = evt.ctrlKey;
+
+		if (!ctrlHeld && dx === lastAppliedDelta.current.dx && dy === lastAppliedDelta.current.dy) {
+			return;
+		}
+		lastAppliedDelta.current = { dx, dy };
+
+		if (dx !== 0 || dy !== 0) dragDidMove.current = true;
+
+		setPath(prev => {
+			const next: Segment[] = prev.segments.map((c, segIdx) => {
+				if (!c.selected || c.locked) return c;
+
+				const startPos = dragStartPositions.current[c.id];
+				if (!startPos) return c;
+				const sx = startPos.x;
+				const sy = startPos.y;
+
+				const prevSeg = path.segments[segIdx - 1]?.kind;
+				if ((c.kind === "distanceDrive" || c.kind === "strafeDrive") && prevSeg !== "pointSwing" && prevSeg !== "pointTurn") {
+					const anchorPose = getBackwardsSnapPose(prev, segIdx - 1);
+					if (!anchorPose || anchorPose.x === null || anchorPose.y === null) {
+						return { ...c, pose: { ...c.pose, x: sx === null ? null : sx + dx, y: sy === null ? null : sy + dy } };
+					}
+
+					const resolved = resolveHeading(prev, segIdx, anchorPose, c.kind === "strafeDrive" ? 90 : 0);
+
+					let hx: number, hy: number;
+					if (resolved) {
+						hx = resolved.heading.x / resolved.headingMag;
+						hy = resolved.heading.y / resolved.headingMag;
+					} else {
+						const ofsX = (sx ?? 0) - anchorPose.x;
+						const ofsY = (sy ?? 0) - anchorPose.y;
+						const mag = Math.sqrt(ofsX * ofsX + ofsY * ofsY);
+						if (mag === 0) return c;
+						hx = ofsX / mag;
+						hy = ofsY / mag;
+					}
+
+					const fromAnchorX = posInch.x - anchorPose.x;
+					const fromAnchorY = posInch.y - anchorPose.y;
+					let t = fromAnchorX * hx + fromAnchorY * hy;
+
+					let newX = anchorPose.x + t * hx;
+					let newY = anchorPose.y + t * hy;
+
+					if (ctrlHeld) {
+						newX = Math.round(newX * 2) / 2;
+						newY = Math.round(newY * 2) / 2;
+						t = (newX - anchorPose.x) * hx + (newY - anchorPose.y) * hy;
+					}
+
+					return { ...c, pose: { ...c.pose, x: newX, y: newY }, distance: t };
+				}
+
+				let newX = sx === null ? null : sx + dx;
+				let newY = sy === null ? null : sy + dy;
+
+				if (ctrlHeld) {
+					if (newX !== null) newX = Math.round(newX * 2) / 2;
+					if (newY !== null) newY = Math.round(newY * 2) / 2;
+				}
+
+				return { ...c, pose: { ...c.pose, x: newX, y: newY } };
+			});
+
+			return { ...prev, segments: next };
+		});
+	};
+
+	const endDrag = () => {
+		setDrag({ dragging: false, lastPos: { x: 0, y: 0 } });
+		dragHistoryActive.current = false;
+
+		if (dragDidMove.current) {
+			saveSnapshot();
+			lastReleasedSnapshot.current = structuredClone(path);
+		}
+
+		dragDidMove.current = false;
+		dragStartSnapshot.current = null;
+		dragStartPushed.current = false;
+		dragStartPointerInch.current = null;
+		dragStartPositions.current = {};
+		isFieldDragging.current = false;
+	}
+
+	const selectSegment = (controlId: string, shifting: boolean) => {
+		setPath((prevSegment) => {
+			const prevSelectedIds = prevSegment.segments
+				.filter((c) => c.selected)
+				.map((c) => c.id);
+
+			let nextSelectedIds: string[];
+			if (!shifting && prevSelectedIds.length <= 1) {
+				nextSelectedIds = [controlId];
+			} else if (shifting && prevSegment.segments.find((c) => c.id === controlId && c.selected)) {
+				nextSelectedIds = prevSelectedIds.filter((c) => c !== controlId);
+			} else {
+				nextSelectedIds = [...prevSelectedIds, controlId];
+			}
+
+			return {
+				...prevSegment,
+				segments: prevSegment.segments.map((c) => ({
+					...c,
+					selected: !c.locked && nextSelectedIds.includes(c.id),
+				})),
+			};
+		});
+	};
+
+	const handleControlPointerDown = (evt: React.PointerEvent<SVGGElement>, controlId: string) => {
+		if (evt.button !== 0 || !svgRef.current) return;
+		evt.stopPropagation();
+		(evt.currentTarget as Element).setPointerCapture(evt.pointerId);
+
+		if (!dragHistoryActive.current) {
+			setPath((prev) => {
+				dragStartSnapshot.current = structuredClone(prev);
+				return prev;
+			});
+			dragStartPushed.current = false;
+			dragHistoryActive.current = true;
+			dragDidMove.current = false;
+		}
+
+		const posSvg = pointerToSvg(evt, svgRef.current);
+		if (!drag.dragging) selectSegment(controlId, evt.shiftKey);
+
+		const startInch = toInch(posSvg, FIELD_REAL_DIMENSIONS, img);
+		dragStartPointerInch.current = structuredClone(startInch);
+		const startPositions: Record<string, { x: number | null; y: number | null }> = {};
+		for (const s of path.segments) {
+			startPositions[s.id] = { x: s.pose.x, y: s.pose.y };
+		}
+		dragStartPositions.current = startPositions;
+
+		startDrag.current = true;
+		setDrag({ dragging: true, lastPos: posSvg });
+	};
+
+	const endSelection = () => {
+		setPath((prev) => ({
+			...prev,
+			segments: prev.segments.map((c) => ({ ...c, selected: false })),
+		}));
+	};
+
+	const handleBackgroundPointerDown = (evt: React.PointerEvent<SVGSVGElement>) => {
+		if ((evt.button !== 0 && evt.button !== 2) || pathVisible) return;
+
+		const isBareLeftClick = evt.button === 0 && !evt.ctrlKey && !evt.altKey && !evt.shiftKey && !evt.metaKey;
+
+		if (isBareLeftClick) {
+			const selectedCount = path.segments.filter((c) => c.selected).length;
+			if (selectedCount >= 1) endSelection();
+			const pos = getPressedPositionInch(evt, svgRef.current, img);
+			if (path.segments.length <= 0) {
+				addStartSegment(format, { x: pos.x, y: pos.y, angle: 0 }, setPath);
+				return;
+			}
+			const svgPos = pointerToSvg(evt, svgRef.current!);
+			startBoxSelect(svgPos, pos);
+			return;
+		}
+
+		const selectedCount = path.segments.filter((c) => c.selected).length;
+		if (selectedCount > 1) {
+			endSelection();
+			return;
+		}
+
+		const pos = getPressedPositionInch(evt, svgRef.current, img);
+
+		if (path.segments.length <= 0) {
+			addStartSegment(format, { x: pos.x, y: pos.y, angle: 0 }, setPath);
+			return;
+		}
+
+		addPoseDriveSegment(evt, format, { x: pos.x, y: pos.y, angle: 0 }, setPath);
+		addPointDriveSegment(evt, format, pos, setPath);
+		addDistanceSegment(evt, format, { x: pos.x, y: pos.y, angle: null }, setPath);
+		addStrafeSegment(evt, format, { x: pos.x, y: pos.y, angle: null }, setPath);
+		addPointTurnSegment(evt, format, setPath);
+		addAngleTurnSegment(evt, format, setPath);
+		addPointSwingSegment(evt, format, setPath);
+		addAngleSwingSegment(evt, format, setPath);
+	};
+
+	const handlePointerUp = (evt: React.PointerEvent<SVGSVGElement>) => {
+		setMiddleMouseDown(false);
+		endDrag();
+		finalizeBoxSelect(img, path, setPath, (startInch) => {
+			if (path.segments.length > 0) {
+				addPointDriveSegment(evt, format, startInch, setPath);
+			}
+		});
+	};
+
+	return (
+		<div tabIndex={0} onMouseLeave={() => { endDrag(); cancelBoxSelect(); }}>
+			<input
+				ref={hiddenInputRef}
+				data-paste-proxy=""
+				tabIndex={-1}
+				style={{ position: "fixed", opacity: 0, pointerEvents: "none", width: 0, height: 0 }}
+			/>
+			<svg
+				ref={svgRef}
+				viewBox={`${0} ${0} ${FIELD_IMG_DIMENSIONS.w} ${FIELD_IMG_DIMENSIONS.h}`}
+				width={FIELD_IMG_DIMENSIONS.w}
+				height={FIELD_IMG_DIMENSIONS.h}
+				className={`${drag.dragging ? "cursor-grabbing" : middleMouseDown ? "cursor-grab" : isBoxSelecting ? "cursor-crosshair" : "cursor-default"}`}
+				onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
+				onPointerDown={(e) => {
+					if (e.button === 1) {
+						setMiddleMouseDown(true);
+					}
+					handleFieldPointerDown(e);
+					handleBackgroundPointerDown(e);
+				}}
+				onPointerMove={(e) => {
+					handlePointerMove(e);
+					handleFieldDrag(e);
+					if (svgRef.current) updateBoxSelect(e, svgRef.current, img, path, setPath);
+				}}
+				onPointerUp={handlePointerUp}
+			>
+				<image href={getFieldSrcFromKey(fieldKey)} x={img.x} y={img.y} width={img.w} height={img.h} />
+
+				<PathLayer path={path} img={img} visible={pathVisible} precise={settings.precisePath} colors={colors} />
+
+				<RobotLayer
+					img={img}
+					pose={pose}
+					robotPose={robotPose}
+					robotConstants={robot}
+					visible={robotVisible}
+					path={path}
+				/>
+				{!pathVisible && (
+					<ControlsLayer
+						path={path}
+						img={img}
+						radius={radius}
+						format={format}
+						colors={colors}
+						onPointerDown={handleControlPointerDown}
+					/>
+				)}
+				{boxSelectRect && (
+					<rect
+						x={boxSelectRect.x}
+						y={boxSelectRect.y}
+						width={boxSelectRect.w}
+						height={boxSelectRect.h}
+						fill={toRGBA("#1560BD", 0.15)}
+						stroke={toRGBA("#1560BD", 0.55)}
+						strokeWidth={1}
+						pointerEvents="none"
+					/>
+				)}
+			</svg>
+			{(img.x !== 0 || img.y !== 0 || img.w !== FIELD_IMG_DIMENSIONS.w || img.h !== FIELD_IMG_DIMENSIONS.h) && (
+				<button
+					onClick={() => fieldZoomKeyboard(null, setImg)}
+					className="
               absolute top-22 right-129
               flex
               opacity-50
@@ -535,16 +536,16 @@ export default function Field() {
               cursor-pointer
               transition
             "
-          >
-            <img
-              className="
+				>
+					<img
+						className="
               w-[15px]
-              h-[15px]" 
-              src={homeButton}>
-            
-            </img>
-          </button>
-        )}
-    </div>
-  );
+              h-[15px]"
+						src={homeButton}>
+
+					</img>
+				</button>
+			)}
+		</div>
+	);
 }

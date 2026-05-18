@@ -6,11 +6,11 @@ Bugs:
 Todo:
 - instead of commands add a help button that provides path examples
 - add example paths
+- make logo
 
 Planned:
 - tooltip when hovering over svg buttons
 - google analytics
-- make website work offline
 
 Deciding:
 

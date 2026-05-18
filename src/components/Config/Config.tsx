@@ -14,6 +14,7 @@ export default function Config() {
             <FormatButton />
             <RobotButton/>
             <SettingsButton />
+            {/* <HelpButton /> */}
         </div>
     );
 }
