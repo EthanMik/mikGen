@@ -67,6 +67,14 @@ export default function NumberInput({
   const [edit, setEdit] = useState<string | null>(null);
   const displayRef = useRef("");
   const [isHovering, setIsHovering] = useState(false);
+  const [dragging, setDragging] = useState(false);
+
+  const isDragging = useRef(false);
+  const hasDragged = useRef(false);
+  const dragStartX = useRef(0);
+  const dragStartY = useRef(0);
+  const dragStartValue = useRef(0);
+  const dragCurrentValue = useRef<number | null>(null);
 
   const labelRef = useRef<HTMLSpanElement>(null);
   const [labelW, setLabelW] = useState(0);
@@ -89,13 +97,13 @@ export default function NumberInput({
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevClampedNum = useRef<number | null>(value);
 
-  const addToHistoryCheck = (value: number | null ) => {
+  const addToHistoryCheck = useCallback((value: number | null) => {
     const prevNum = Number(prevClampedNum.current?.toFixed(2));
     if (prevNum !== value && value !== null) {
       addToHistory?.(value);
     }
     prevClampedNum.current = value;
-  }
+  }, [addToHistory]);
 
   const stepInput = useCallback((stepDirection: Direction) => {
       if (value === null) return;
@@ -116,6 +124,74 @@ export default function NumberInput({
     },    
     [value, stepSize, bounds, setValue]
   );
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLInputElement>) => {
+    if (value === null) return;
+    isDragging.current = true;
+    hasDragged.current = false;
+    dragStartX.current = e.clientX;
+    dragStartY.current = e.clientY;
+    dragStartValue.current = value;
+    dragCurrentValue.current = value;
+  };
+
+  useEffect(() => {
+    const PIXELS_PER_STEP = 8;
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isDragging.current) return;
+
+      const deltaX = e.clientX - dragStartX.current;
+      const deltaY = e.clientY - dragStartY.current;
+      const delta = deltaX - deltaY;
+      if (!hasDragged.current && Math.abs(delta) <= 3) return;
+
+      if (!hasDragged.current) {
+        hasDragged.current = true;
+        setDragging(true);
+        (document.activeElement as HTMLElement)?.blur();
+      }
+
+      e.preventDefault();
+
+      const steps = Math.round(delta / PIXELS_PER_STEP);
+      const next = clamp(dragStartValue.current + steps * stepSize, bounds[0], bounds[1]);
+      if (next !== undefined) {
+        dragCurrentValue.current = next;
+        setValue(next);
+      }
+    };
+
+    const onMouseUp = () => {
+      if (!isDragging.current) return;
+      isDragging.current = false;
+
+      if (hasDragged.current) {
+        hasDragged.current = false;
+        setDragging(false);
+        if (dragCurrentValue.current !== null) {
+          addToHistoryCheck(dragCurrentValue.current);
+        }
+      }
+    };
+
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+    return () => {
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    };
+  }, [stepSize, bounds, setValue, addToHistoryCheck]);
+
+  useEffect(() => {
+    if (!dragging) return;
+    document.body.style.cursor = "move";
+    document.body.style.userSelect = "none";
+    return () => {
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+  }, [dragging]);
 
   useEffect(() => {
     const el = inputRef.current;
@@ -243,6 +319,7 @@ export default function NumberInput({
         type="text"
         value={displayRef.current}
         onChange={handleChange}
+        onMouseDown={handleMouseDown}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => {
           setIsHovering(false)
