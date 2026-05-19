@@ -32,10 +32,10 @@ export default function FormatButton() {
             {FORMATS.map((c) => (
                 <button
                     key={c.format}
-                    className={`flex items-center justify-between px-2 py-1 hover:bg-medgray_hover cursor-pointer rounded-sm ${format === c.format ? "bg-medgray_hover" : ""}`}
+                    className={`flex items-center justify-between px-2 py-1 bg-medgray hover:brightness-92 cursor-pointer rounded-sm ${format === c.format ? "bg-medlightgray" : ""}`}
                     onClick={() => handleClickItem(c.format)}
                 >
-                    <span className="text-[16px]">{c.name}</span>
+                    <span className="text-[14px]">{c.name}</span>
                     {format === c.format && (
                         <svg width="15" height="12" viewBox="0 0 15 12" fill="none">
                             <path

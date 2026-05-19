@@ -320,6 +320,7 @@ export default function NumberInput({
         value={displayRef.current}
         onChange={handleChange}
         onMouseDown={handleMouseDown}
+        onClick={e => e.currentTarget.select()}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => {
           setIsHovering(false)

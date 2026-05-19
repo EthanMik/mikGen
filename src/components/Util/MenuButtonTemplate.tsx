@@ -1,7 +1,6 @@
-import { useRef, useState, type ReactNode, useEffect } from "react";
-import downArrow from "../../assets/down-arrow.svg";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
-type ConfigButtonTemplateProps = {
+type MenuButtonTemplateProps = {
     title: string;
     children: ReactNode;
     onOpen?: () => void;
@@ -10,13 +9,15 @@ type ConfigButtonTemplateProps = {
     underlineRef?: { current: ((val: boolean) => void) | undefined };
 }
 
-export default function ConfigButtonTemplate({ title, children, onOpen, onClose, flashRef, underlineRef }: ConfigButtonTemplateProps) {
+export default function MenuButtonTemplate({ title, children, onOpen, onClose, flashRef, underlineRef }: MenuButtonTemplateProps) {
     const [isOpen, setOpen] = useState(false);
     const [flash, setFlash] = useState(false);
     const [underline, setUnderline] = useState(false);
     const flashTimeoutRef = useRef<number | null>(null);
     const blockNextContextMenu = useRef(false);
-    const containerRef = useRef<HTMLDivElement>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
+    const onCloseRef = useRef(onClose);
+    onCloseRef.current = onClose;
 
     useEffect(() => {
         const handleContextMenu = (e: MouseEvent) => {
@@ -27,20 +28,31 @@ export default function ConfigButtonTemplate({ title, children, onOpen, onClose,
     }, []);
 
     useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (e.button !== 0) return;
+            if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+                setOpen(false);
+                onCloseRef.current?.();
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    useEffect(() => {
         if (!isOpen) return;
         const handleRightClick = (e: MouseEvent) => {
             if (e.button !== 2) return;
-            if (containerRef.current?.contains(e.target as Node)) {
+            if (menuRef.current?.contains(e.target as Node)) {
                 e.preventDefault();
                 e.stopImmediatePropagation();
                 blockNextContextMenu.current = true;
                 setOpen(false);
+                onCloseRef.current?.();
             }
         };
         document.addEventListener("mousedown", handleRightClick, true);
-        return () => {
-            document.removeEventListener("mousedown", handleRightClick, true);
-        };
+        return () => document.removeEventListener("mousedown", handleRightClick, true);
     }, [isOpen]);
 
     if (flashRef) {
@@ -59,39 +71,33 @@ export default function ConfigButtonTemplate({ title, children, onOpen, onClose,
         setOpen(prev => {
             const next = !prev;
             if (next) onOpen?.();
-            else onClose?.();
+            else onCloseRef.current?.();
             return next;
         });
     };
 
-    return (
+    return (  
         <div
-            ref={containerRef}
-            className={`flex flex-col ${isOpen ? "config-open" : ""}`}
+            ref={menuRef}
+            className={`relative rounded-sm hover:bg-medgray_hover
+                ${isOpen ? "bg-medgray_hover" : flash ? "bg-medlightgray ease-out duration-100" : ""}`}
             onContextMenu={e => { e.preventDefault(); e.stopPropagation(); }}
             onMouseDown={e => { if (e.button === 2) { e.preventDefault(); e.stopPropagation(); } }}
         >
-            <button
-                onClick={handleToggle}
-                className={`flex flex-row items-center justify-between
-                    gap-[12px] px-2 py-2 cursor-pointer bg-medgray [.config-open+div_&]:rounded-t-sm [*:last-child:not(.config-open)>&]:rounded-b-sm
-                    ${flash ? "bg-medlightgray ease-out duration-100" : ""}`}
-            >
-                <span className={`text-[16px] ${underline ? "underline" : ""}`}>{title}</span>
-                <img
-                    className={`w-[12px] h-[12px] transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-                    src={downArrow}
-                />
+            <button onClick={handleToggle} className="px-1 cursor-pointer">
+                <span className={`text-[12px] ${underline ? "underline" : ""}`}>{title}</span>
             </button>
 
-            <div className={`grid transition-[grid-template-rows] duration-200 ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"} 
-            ${isOpen ? "mb-2" : ""}`}>
-                <div className="overflow-hidden">
-                    <div className={`relative flex flex-col gap-1 bg-medgray px-2 py-2 ${isOpen ? "rounded-b-sm" : ""}`}>
+            {isOpen && (
+                <div
+                    className="absolute left-0 top-full mt-1 z-40 w-45 rounded-sm bg-medgray_hover shadow-sm shadow-black"
+                    onClick={() => { setOpen(false); onCloseRef.current?.(); }}
+                >
+                    <div className="flex flex-col mt-2 px-1 mb-2 gap-0.5">
                         {children}
                     </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 }

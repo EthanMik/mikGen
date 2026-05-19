@@ -68,18 +68,44 @@ export default function FieldButton() {
         setFieldKey(key);
     };
 
+    const [collapsedSections, setCollapsedSections] = useState<Set<string>>(
+        new Set(fieldMap.filter(c => c.key === "separator").map(c => c.name))
+    );
+
+    const toggleSection = (name: string) => {
+        setCollapsedSections(prev => {
+            const next = new Set(prev);
+            if (next.has(name)) next.delete(name); else next.add(name);
+            return next;
+        });
+    };
+
+    let currentSection = "";
+
     return (
         <ConfigButtonTemplate title="Field" onOpen={handleOpen} onClose={handleClose}>
-            {fieldMap.map((c) => (
-                c.key === "separator"
-                    ? <Separator key={c.key} name={c.name} />
-                    : <button
+            {fieldMap.map((c, i) => {
+                if (c.key === "separator") {
+                    currentSection = c.name;
+                    const sectionHasChildren = fieldMap[i + 1]?.key !== "separator" && i + 1 < fieldMap.length;
+                    return (
+                        <Separator
+                            key={`sep-${c.name}`}
+                            name={c.name}
+                            onClick={sectionHasChildren ? () => toggleSection(c.name) : undefined}
+                            isCollapsed={collapsedSections.has(c.name)}
+                        />
+                    );
+                }
+                if (collapsedSections.has(currentSection)) return null;
+                return (
+                    <button
                         key={c.key}
                         type="button"
-                        className={`flex items-center justify-between w-full px-2 py-1 hover:bg-medgray_hover cursor-pointer rounded-sm ${fieldKey === c.key ? "bg-medgray_hover" : ""}`}
+                        className={`flex items-center justify-between w-full px-2 py-1 bg-medgray hover:brightness-92 cursor-pointer rounded-sm ${fieldKey === c.key ? "bg-medlightgray" : ""}`}
                         onClick={() => handleClickItem(c.key)}
                     >
-                        <span className="text-[16px]">{c.name}</span>
+                        <span className="text-[14px]">{c.name}</span>
                         {fieldKey === c.key && (
                             <svg width="15" height="12" viewBox="0 0 15 12" fill="none">
                                 <path
@@ -91,7 +117,8 @@ export default function FieldButton() {
                             </svg>
                         )}
                     </button>
-            ))}
+                );
+            })}
         </ConfigButtonTemplate>
     );
 }

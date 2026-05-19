@@ -18,6 +18,7 @@ import ControlsLayer from "./ControlsLayer";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import { resolveHeading, getBackwardsSnapPose, type Path } from "../../core/Types/Path";
 import { useSettings } from "../../hooks/useSettings";
+import { useFieldImg } from "../../hooks/useFieldImg";
 
 const primary = toRGBA("#a02007", 0.5);
 const secondary = toRGBA("#1560BD", 0.75);
@@ -68,7 +69,7 @@ export default function Field() {
 	// };
 
 
-	const [img, setImg] = useState<Rectangle>(FIELD_IMG_DIMENSIONS);
+	const [img, setImg] = useFieldImg();
 	const [fieldKey] = useField();
 
 	const svgRef = useRef<SVGSVGElement | null>(null);
@@ -410,6 +411,7 @@ export default function Field() {
 
 		if (isBareLeftClick) {
 			const selectedCount = path.segments.filter((c) => c.selected).length;
+			if (selectedCount > 1) { endSelection(); return; }
 			if (selectedCount >= 1) endSelection();
 			const pos = getPressedPositionInch(evt, svgRef.current, img);
 			if (path.segments.length <= 0) {

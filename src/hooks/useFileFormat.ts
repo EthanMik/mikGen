@@ -42,7 +42,6 @@ export function usePath() {
 type FieldEntry = { key: FieldType; src: string; name: string };
 
 export const fieldMap: FieldEntry[] = [
-    { key: "separator", src: "", name: "Override" },
     { key: "override-v5-match", src: overrideV5MatchField, name: "V5 Match Field" },
     { key: "override-v5-skills", src: overrideV5SkillsField, name: "V5 Skills Field" },
     { key: "override-vexu-match", src: overrideVEXUMatchField, name: "VEXU Match Field" },

@@ -6,13 +6,24 @@ Bugs:
 Todo:
 - instead of commands add a help button that provides path examples
 - add example paths
-- make logo
+- save dropdowwn state on reload
+- save motion list dropdown state on dropdown refresh
+- add view button
+- add help button
+- add snap to setting
+- add color settings for precise path
+- add view options for split screen
+
+- add a second line to motion list dropdown
+- add an always playback button setting
+- add a speed multipier setting
 
 Planned:
 - tooltip when hovering over svg buttons
 - google analytics
 
 Deciding:
+- time segment
 
 Docs:
 - A better way to plan VEX Autonoumous - EthanMik Channel

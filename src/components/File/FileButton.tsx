@@ -4,8 +4,8 @@ import { usePath, useFileFormat, fileFormatStore, type FileFormat } from "../../
 import { defaultRobotConstants } from "../../core/Robot";
 import { saveSnapshot, undoHistory } from "../../core/Undo/UndoHistory";
 import { FORMAT_REGISTRY, mergeFormatDef, type FormatDef } from "../../simulation/FormatDefinition";
-import ConfigButtonTemplate from "../Config/ConfigButtonTemplate";
-import KeybindButton from "../Util/KeybindButton";
+import MenuButtonTemplate from "../Util/MenuButtonTemplate";
+import { MenuKeybindButton } from "../Util/KeybindButton";
 import Separator from "../Util/Separator";
 
 const FILE_VERSION = "mikGen v1.0.0";
@@ -289,17 +289,17 @@ export default function FileButton() {
                 style={{ display: "none" }}
                 onChange={handleFileSelect}
             />
-            <ConfigButtonTemplate title="File" underlineRef={underlineRef}>
-                <KeybindButton name="New File" keybind="Ctrl+P" callback={handleNewFile} />
+            <MenuButtonTemplate title="File" underlineRef={underlineRef}>
+                <MenuKeybindButton name="New File" keybind="Ctrl+P" callback={handleNewFile} />
                 <Separator name="" />
-                <KeybindButton name="Open File" keybind="Ctrl+O" callback={handleOpenFile} />
+                <MenuKeybindButton name="Open File" keybind="Ctrl+O" callback={handleOpenFile} />
                 <Separator name="" />
-                <KeybindButton name="Save" keybind="Ctrl+S" callback={handleSave} />
-                <KeybindButton name="Save As" keybind="Ctrl+⇧S" callback={handleSaveAs} />
+                <MenuKeybindButton name="Save" keybind="Ctrl+S" callback={handleSave} />
+                <MenuKeybindButton name="Save As" keybind="Ctrl+⇧S" callback={handleSaveAs} />
                 <Separator name="" />
-                <KeybindButton name="Download" keybind="Ctrl+D" callback={handleDownload} />
-                <KeybindButton name="Download As" keybind="Ctrl+⇧D" callback={handleDownloadAs} />
-            </ConfigButtonTemplate>
+                <MenuKeybindButton name="Download" keybind="Ctrl+D" callback={handleDownload} />
+                <MenuKeybindButton name="Download As" keybind="Ctrl+⇧D" callback={handleDownloadAs} />
+            </MenuButtonTemplate>
         </>
     );
 }
