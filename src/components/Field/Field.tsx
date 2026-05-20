@@ -436,14 +436,14 @@ export default function Field() {
 			return;
 		}
 
-		addPoseDriveSegment(evt, format, { x: pos.x, y: pos.y, angle: 0 }, setPath);
-		addPointDriveSegment(evt, format, pos, setPath);
-		addDistanceSegment(evt, format, { x: pos.x, y: pos.y, angle: null }, setPath);
-		addStrafeSegment(evt, format, { x: pos.x, y: pos.y, angle: null }, setPath);
-		addPointTurnSegment(evt, format, setPath);
-		addAngleTurnSegment(evt, format, setPath);
-		addPointSwingSegment(evt, format, setPath);
-		addAngleSwingSegment(evt, format, setPath);
+		addPoseDriveSegment(evt, format, { x: pos.x, y: pos.y, angle: 0 }, setPath, path);
+		addPointDriveSegment(evt, format, pos, setPath, path);
+		addDistanceSegment(evt, format, { x: pos.x, y: pos.y, angle: null }, setPath, path);
+		addStrafeSegment(evt, format, { x: pos.x, y: pos.y, angle: null }, setPath, path);
+		addPointTurnSegment(evt, format, setPath, path);
+		addAngleTurnSegment(evt, format, setPath, path);
+		addPointSwingSegment(evt, format, setPath, path);
+		addAngleSwingSegment(evt, format, setPath, path);
 	};
 
 	const handlePointerUp = (evt: React.PointerEvent<SVGSVGElement>) => {
@@ -451,7 +451,7 @@ export default function Field() {
 		endDrag();
 		finalizeBoxSelect(img, path, setPath, (startInch) => {
 			if (path.segments.length > 0) {
-				addPointDriveSegment(evt, format, startInch, setPath);
+				addPointDriveSegment(evt, format, startInch, setPath, path);
 			}
 		});
 	};

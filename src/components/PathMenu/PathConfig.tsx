@@ -32,11 +32,11 @@ export default function PathConfig() {
         setOverIndex(null);
     };
 
-    const name = FORMAT_REGISTRY[format].formatPathName;
+    const name = path.name || FORMAT_REGISTRY[format].formatPathName;
 
     return (
         <div className="bg-medgray w-[500px] h-[650px] rounded-lg p-[15px] flex flex-col">
-            <PathConfigHeader name={name} isOpen={isOpen} setOpen={setOpen} isTelemetryOpen={isTelemetryOpen} onTelemetryToggle={() => setTelemetryOpen(p => !p)} />
+            <PathConfigHeader name={name} isOpen={isOpen} setOpen={setOpen} isTelemetryOpen={isTelemetryOpen} onTelemetryToggle={() => setTelemetryOpen(p => !p)} onRename={n => setPath(prev => ({ ...prev, name: n }))} />
 
             <div
                 className="mt-[10px] flex-1 min-h-2 overflow-y-auto scrollbar-thin

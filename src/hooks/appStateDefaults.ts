@@ -28,9 +28,11 @@ export type FileFormat = {
     robot: RobotConstants
 }
 
+export const DEFAULT_FIELD_KEY: FieldType = "override-v5-match";
+
 export const DEFAULT_FORMAT: FileFormat = {
     format: "mikLib",
-    field: "override-v5-match",
+    field: DEFAULT_FIELD_KEY,
     formatDef: FORMAT_REGISTRY["mikLib"] as FormatDef<Format>,
     path: { segments: [], name: "" },
     robot: defaultRobotConstants,

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import eyeOpen from "../../assets/eye-open.svg";
 import eyeClosed from "../../assets/eye-closed.svg";
 import clockClose from "../../assets/clock-close.svg";
@@ -12,11 +12,15 @@ type PathConfigHeaderProps = {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>,
   isTelemetryOpen: boolean,
   onTelemetryToggle: () => void,
+  onRename: (name: string) => void,
 }
 
-export default function PathConfigHeader({name, isOpen, setOpen, isTelemetryOpen, onTelemetryToggle} : PathConfigHeaderProps) {
+export default function PathConfigHeader({name, isOpen, setOpen, isTelemetryOpen, onTelemetryToggle, onRename} : PathConfigHeaderProps) {
   const [ isEyeOpen, setEyeOpen ] = useState(false);
   const [ , setPathVisibility ] = usePathVisibility();
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleOpenOnClick = () => {
     setOpen(prev => !prev);
@@ -29,11 +33,39 @@ export default function PathConfigHeader({name, isOpen, setOpen, isTelemetryOpen
     });
   }
 
+  const startEditing = () => {
+    setDraft(name);
+    setEditing(true);
+    setTimeout(() => inputRef.current?.select(), 0);
+  };
+
+  const commit = () => {
+    setEditing(false);
+    if (draft.trim()) onRename(draft.trim());
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") commit();
+    if (e.key === "Escape") setEditing(false);
+  };
+
   return (
     <div className="w-full flex flex-row items-center justify-between">
-      <span className="block text-[20px]">
-        {name}
-      </span>
+      {editing ? (
+        <input
+          ref={inputRef}
+          value={draft}
+          onChange={e => setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={handleKeyDown}
+          className="text-[20px] bg-blackgray outline-none rounded-lg px-2 w-40"
+          autoFocus
+        />
+      ) : (
+        <span className="block text-[20px] cursor-text" onClick={startEditing}>
+          {name}
+        </span>
+      )}
         <div className="flex flex-row gap-[10px] items-center">
 
           <button className="cursor-pointer"

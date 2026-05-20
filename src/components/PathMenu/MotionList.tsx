@@ -146,12 +146,16 @@ export default function MotionList({
     useEffect(() => { if (isTelemetryOpenGlobal !== undefined) setTelemetryOpen(isTelemetryOpenGlobal); }, [isTelemetryOpenGlobal]);
 
     const handleEyeOnClick = () => {
-        setPath(prev => ({
-            ...prev,
-            segments: prev.segments.map(s =>
-                s.id === segmentId || s.selected ? { ...s, visible: !s.visible } : s
-            ),
-        }));
+        setPath(prev => {
+            const affected = prev.segments.filter(s => s.id === segmentId || s.selected);
+            const anyVisible = affected.some(s => s.visible);
+            return {
+                ...prev,
+                segments: prev.segments.map(s =>
+                    s.id === segmentId || s.selected ? { ...s, visible: anyVisible ? false : true } : s
+                ),
+            };
+        });
         saveSnapshot();
     }
 

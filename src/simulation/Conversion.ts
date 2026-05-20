@@ -88,7 +88,7 @@ export function convertStringToPath<F extends Format>(
     return segments;
 }
 
-function templateToRegex(template: string): { regex: RegExp; groups: string[] } {
+export function templateToRegex(template: string): { regex: RegExp; groups: string[] } {
     const groups: string[] = [];
     const hasOptKBuilder = template.includes(', ${kBuilder}');
     let t = template.replace(', ${kBuilder}', '__KBUILDER_OPT__');

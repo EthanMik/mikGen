@@ -2,6 +2,8 @@ Live Progress Txt
 
 Bugs:
 - copy and paste buttons are broken
+- zoom in and out buttons are broken
+- exit error is not copying properly
 
 Todo:
 - instead of commands add a help button that provides path examples
@@ -16,13 +18,13 @@ Todo:
 
 - add a second line to motion list dropdown
 - add an always playback button setting
-- add a speed multipier setting
 
 Planned:
 - tooltip when hovering over svg buttons
 - google analytics
 
 Deciding:
+- add a speed multipier setting
 - time segment
 
 Docs:

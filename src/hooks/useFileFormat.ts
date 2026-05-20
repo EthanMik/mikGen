@@ -1,5 +1,5 @@
 import { createStore } from "../core/Store";
-import { DEFAULT_FORMAT, VALIDATED_APP_STATE, type FileFormat, type FieldType } from "./appStateDefaults";
+import { DEFAULT_FORMAT, DEFAULT_FIELD_KEY, VALIDATED_APP_STATE, type FileFormat, type FieldType } from "./appStateDefaults";
 import type { Path } from "../core/Types/Path";
 import type { Format, FormatDef } from "../simulation/FormatDefinition";
 import type { RobotConstants } from "../core/Robot";
@@ -42,7 +42,7 @@ export function usePath() {
 type FieldEntry = { key: FieldType; src: string; name: string };
 
 export const fieldMap: FieldEntry[] = [
-    { key: "override-v5-match", src: overrideV5MatchField, name: "V5 Match Field" },
+    { key: DEFAULT_FIELD_KEY, src: overrideV5MatchField, name: "V5 Match Field" },
     { key: "override-v5-skills", src: overrideV5SkillsField, name: "V5 Skills Field" },
     { key: "override-vexu-match", src: overrideVEXUMatchField, name: "VEXU Match Field" },
     { key: "override-vexu-skills", src: overrideVEXUSkillsField, name: "VEXU Skills Field" },
