@@ -245,6 +245,7 @@ type DragAndDropProps = {
 function DragAndDrop({ onHandle }: DragAndDropProps) {
     const [isDragging, setIsDragging] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
+    const [unsupportedBroswer, setUnsupportedBroswer] = useState(false);
 
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
@@ -279,8 +280,9 @@ function DragAndDrop({ onHandle }: DragAndDropProps) {
                 multiple: false,
             });
             if (handle) onHandle(handle);
+            setUnsupportedBroswer(false);
         } catch {
-            // user cancelled
+            setUnsupportedBroswer(true);
         }
     };
 
@@ -289,19 +291,27 @@ function DragAndDrop({ onHandle }: DragAndDropProps) {
     };
 
     return (
-        <div
-            className={`h-12 outline-1 pt-2.5 pb-1.5 outline-dashed flex items-center justify-between flex-col rounded-sm cursor-pointer transition-colors duration-100
-                ${isDragging ? "outline-white" : "outline-lightgray"}`}
-            onDragOver={handleDragOver}
-            onDragEnter={handleDragEnter}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={handleClick}
-        >
-            <input ref={inputRef} type="file" accept=".cpp" className="hidden" onChange={handleInputChange} />
-            <img src={download} className="w-4 h-4" />
-            <span className="text-[8px]">Choose .cpp file or drag it here</span>
-        </div>
+        <>
+            <span className="text-[8px] mb-1 opacity-50">Segments can be exported by Ctrl+C</span>
+            <div
+                className={`h-12 outline-1 pt-2.5 pb-1.5 outline-dashed flex items-center justify-between flex-col rounded-sm cursor-pointer transition-colors duration-100
+                    ${isDragging ? "outline-white" : "outline-lightgray"}`}
+                onDragOver={handleDragOver}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={handleClick}
+            >
+                <input ref={inputRef} type="file" accept=".cpp" className="hidden" onChange={handleInputChange} />
+                <img src={download} className="w-4 h-4" />
+                <span className="text-[8px]">Choose .cpp file or drag it here</span>
+            </div>
+            {unsupportedBroswer && (
+                <span className="text-[8px] mt-1 opacity-50">
+                    Your browser does not support writing to files. Please use a compatible browser like Chrome or Edge.
+                </span>
+            )}
+        </>
     );
 }
 
@@ -336,22 +346,22 @@ function ErrorConsole({ lines }: { lines: string[] }) {
 export default function ExportButton() {
     const [handle, setHandle] = useState<FileSystemFileHandle | null>(null);
     const [consoleLines, setConsoleLines] = useState<string[]>([]);
+    const [mergeMode, setMergeMode] = useState(true);
     const [replaceMode, setReplaceMode] = useState(false);
-    const [strictReplace, setStrictReplace] = useState(false);
-    const [ path, ] = usePath();
+    const [path,] = usePath();
 
     const log = (text: string) => setConsoleLines(prev => [...prev, text]);
+
+    const toggleMergeMode = () => {
+        const next = !mergeMode;
+        setMergeMode(next);
+        if (next) { setReplaceMode(false); log("Merge Mode: Replaces segments by matching them to segments in file. Will delete or add segments. Non-visible segments are ignored."); }
+    };
 
     const toggleReplaceMode = () => {
         const next = !replaceMode;
         setReplaceMode(next);
-        if (next) { setStrictReplace(false); log("Merge Mode: Replaces segments by matching them to segments in file. Will delete or add segments. Non-visible segments are ignored."); }
-    };
-
-    const toggleStrictReplace = () => {
-        const next = !strictReplace;
-        setStrictReplace(next);
-        if (next) setReplaceMode(false);
+        if (next) setMergeMode(false);
         if (next) log("Replace Mode: Only replaces segments that match the type and amount as mikGen. Non-visible or non selected segments are ignored.");
     };
 
@@ -371,7 +381,7 @@ export default function ExportButton() {
             const { formatDef, path } = fileFormatStore.getState();
             const file = await handle.getFile();
             const content = await file.text();
-            const result = strictReplace
+            const result = replaceMode
                 ? replaceGeneratedBlock(content, formatDef, path)
                 : flexReplaceGeneratedBlock(content, formatDef, path);
             if (!result.content) {
@@ -426,15 +436,15 @@ export default function ExportButton() {
                     </div>
                     <button
                         className="w-full flex items-center justify-center px-2 py-1 brightness-120 bg-medgray hover:brightness-95 cursor-pointer rounded-sm"
-                        onClick={strictReplace || replaceMode ? replaceInFile : writeToFile}
+                        onClick={replaceMode || mergeMode ? replaceInFile : writeToFile}
                     >
                         <span className="text-[14px]">Write</span>
                     </button>
                     <div className="pt-2 pb-2">
                         <ErrorConsole lines={consoleLines} />
                     </div>
-                    <CheckboxButton name="Merge" checked={replaceMode} setChecked={toggleReplaceMode} />
-                    <CheckboxButton name="Replace" checked={strictReplace} setChecked={toggleStrictReplace} />
+                    <CheckboxButton name="Merge" checked={mergeMode} setChecked={toggleMergeMode} />
+                    <CheckboxButton name="Replace" checked={replaceMode} setChecked={toggleReplaceMode} />
                 </div>
             ) : (
                 <DragAndDrop onHandle={setHandle} />
