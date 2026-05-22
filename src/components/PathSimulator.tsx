@@ -58,9 +58,11 @@ export default function PathSimulator() {
     const { pauseSimulator, scrubSimulator } = PathSimMacros();
 
     const segmentGeoKey = useMemo(() =>
-        path.segments.map(s =>
-            `${s.id}:${s.kind}:${s.format}:${s.pose.x},${s.pose.y},${s.pose.angle}:${s.distance ?? ''}:${JSON.stringify(s.constants)}`
-        ).join('|'),
+        path.segments.map(s => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { selected, hovered, locked, visible, disabled, groupId, ...rest } = s;
+            return JSON.stringify(rest);
+        }).join('|'),
         [path.segments]
     );
 

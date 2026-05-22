@@ -19,6 +19,7 @@ export default function AddSegmentButton() {
         addPointSwingSegment,
         addDistanceSegment,
         addStartSegment,
+        addWaitSegment,
         addStrafeSegment,
     } = FieldMacros();
 
@@ -41,6 +42,7 @@ export default function AddSegmentButton() {
             {visible("angleSwing") && <ConfigKeybindButton name={segName("angleSwing")} callback={() => addAngleSwingSegment(null, format, setPath, path)} />}
             <Separator name="" />
             {visible("start") && <ConfigKeybindButton name={segName("start")} callback={() => addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath)} />}
+            {visible("wait") && <ConfigKeybindButton name={segName("wait")} callback={() => addWaitSegment(format, setPath, path)} />}
         </ConfigButtonTemplate>
     );
 }

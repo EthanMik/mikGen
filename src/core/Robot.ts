@@ -1,3 +1,4 @@
+import { SIM_CONSTANTS } from "./ComputePathSim";
 import type { Pose } from "./Types/Pose";
 import { clamp, normalizeDeg, toDeg, toRad } from "./Util";
 
@@ -46,6 +47,7 @@ export class Robot {
     private vRR: number = 0;
 
     private lateralFriction: number = 0;
+    private timeout: number = 0;
 
     constructor(
         private x: number,
@@ -296,5 +298,16 @@ export class Robot {
         this.velY = 0;
 
         return true;
+    }
+
+    
+    public wait(timeout: number, dt: number): boolean {
+        this.timeout += (dt * 1000);
+        this.tankDrive(0, 0, dt);
+        if (this.timeout >= timeout) {
+            this.timeout = 0;
+            return true;
+        }
+        return false;
     }
 }

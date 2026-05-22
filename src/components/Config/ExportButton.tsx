@@ -28,6 +28,147 @@ function spliceGeneratedBlock(fileContent: string, generated: string, path: Path
     return { content: `${before}\n${indented}${after}`, message: `Wrote to file (lines ${startLine}-${endLine})` };
 }
 
+function lcsIndices(a: string[], b: string[]): [number, number][] {
+    const m = a.length, n = b.length;
+    const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0) as number[]);
+    for (let i = 1; i <= m; i++)
+        for (let j = 1; j <= n; j++)
+            dp[i][j] = a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
+    const pairs: [number, number][] = [];
+    let i = m, j = n;
+    while (i > 0 && j > 0) {
+        if (a[i - 1] === b[j - 1]) { pairs.unshift([i - 1, j - 1]); i--; j--; }
+        else if (dp[i - 1][j] > dp[i][j - 1]) i--;
+        else j--;
+    }
+    return pairs;
+}
+
+function flexReplaceGeneratedBlock(fileContent: string, formatDef: FormatDef<Format>, path: Path): { content: string; message: string } {
+    const marker = "[" + path.name + "]";
+    const begin = fileContent.indexOf(marker);
+    if (begin === -1) return { content: "", message: `No start marker found: ${marker}` };
+
+    const end = fileContent.indexOf(marker, begin + marker.length);
+    if (end === -1) return { content: "", message: `No end marker found: ${marker}` };
+
+    const blockStart = fileContent.indexOf('\n', begin + marker.length) + 1;
+    const closingLineStart = fileContent.lastIndexOf('\n', end - 1) + 1;
+    const endMarkerIndent = fileContent.slice(closingLineStart, fileContent.indexOf('\n', closingLineStart)).match(/^(\s*)/)?.[1] ?? '';
+
+    const beforeEndMarker = fileContent.slice(closingLineStart, end);
+    const commentPrefix = beforeEndMarker.match(/\/\/\s*$/);
+    const codeOnClosingLine = (commentPrefix
+        ? beforeEndMarker.slice(0, beforeEndMarker.length - commentPrefix[0].length)
+        : beforeEndMarker).trimEnd();
+
+    const block = codeOnClosingLine
+        ? fileContent.slice(blockStart, closingLineStart) + codeOnClosingLine + '\n'
+        : fileContent.slice(blockStart, closingLineStart);
+    const after = (codeOnClosingLine && commentPrefix)
+        ? '\n' + endMarkerIndent + fileContent.slice(closingLineStart + beforeEndMarker.lastIndexOf('//'))
+        : fileContent.slice(closingLineStart);
+    const lines = block.split('\n');
+
+    const lineToFileSeg = new Map<number, number>();
+    const fileKinds: string[] = [];
+    for (let i = 0; i < lines.length; i++) {
+        const trimmed = lines[i].trim();
+        if (!trimmed) continue;
+        for (const [kind, segDef] of Object.entries(formatDef.segments) as [SegmentKind, SegmentDef<Format>][]) {
+            if (!segDef || segDef.castTo || !segDef.toStringTemplate) continue;
+            if (templateToRegex(segDef.toStringTemplate).regex.test(trimmed)) {
+                lineToFileSeg.set(i, fileKinds.length);
+                fileKinds.push(kind);
+                break;
+            }
+        }
+    }
+
+    const webSegs = path.segments.filter(seg => {
+        const def = formatDef.segments[seg.kind as SegmentKind];
+        return def && (def.castTo ? formatDef.segments[def.castTo] : def)?.toStringTemplate;
+    });
+
+    const webKinds = webSegs.map(seg => {
+        const k = seg.kind as SegmentKind;
+        return (formatDef.segments[k]?.castTo ?? k) as string;
+    });
+
+    const alignment = lcsIndices(fileKinds, webKinds);
+    const fileToWeb = new Map(alignment);
+    const webToFile = new Map(alignment.map(([fi, wi]): [number, number] => [wi, fi]));
+
+    const insertBefore = new Map<number, number[]>();
+    const insertAtEnd: number[] = [];
+    for (let wi = 0; wi < webSegs.length; wi++) {
+        if (webToFile.has(wi)) continue;
+        const nextPair = alignment.find(([, lwi]) => lwi > wi);
+        if (nextPair) {
+            const fi = nextPair[0];
+            if (!insertBefore.has(fi)) insertBefore.set(fi, []);
+            insertBefore.get(fi)!.push(wi);
+        } else {
+            insertAtEnd.push(wi);
+        }
+    }
+
+    const anySelected = webSegs.some(seg => seg.selected);
+    const newSegLines = convertPathToString(formatDef, path, false).split('\n').filter(Boolean);
+
+    const newLines: string[] = [];
+    let replacedCount = 0, insertedCount = 0, deletedCount = 0;
+
+    for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+        const fileSeg = lineToFileSeg.get(lineIdx);
+        if (fileSeg === undefined) { newLines.push(lines[lineIdx]); continue; }
+
+        const indent = lines[lineIdx].match(/^(\s*)/)?.[1] ?? '';
+
+        if (!fileToWeb.has(fileSeg)) { deletedCount++; continue; }
+
+        const wi = fileToWeb.get(fileSeg)!;
+        for (const insertWi of insertBefore.get(fileSeg) ?? []) {
+            const seg = webSegs[insertWi];
+            if (!seg.visible || (anySelected && !seg.selected)) continue;
+            newLines.push(indent + newSegLines[insertWi]);
+            insertedCount++;
+        }
+
+        const seg = webSegs[wi];
+        if (seg.visible && (!anySelected || seg.selected)) {
+            const trailingMarker = lines[lineIdx].match(/(\/\/\s*\[.*?\])$/)?.[1];
+            newLines.push(indent + newSegLines[wi]);
+            if (trailingMarker) newLines.push(indent + trailingMarker);
+            replacedCount++;
+        } else {
+            newLines.push(lines[lineIdx]);
+        }
+    }
+
+    let insertedAtEnd = 0;
+    for (const wi of insertAtEnd) {
+        const seg = webSegs[wi];
+        if (!seg.visible || (anySelected && !seg.selected)) continue;
+        newLines.push(endMarkerIndent + newSegLines[wi]);
+        insertedCount++;
+        insertedAtEnd++;
+    }
+
+    const before = fileContent.slice(0, begin + marker.length);
+    const parts = [
+        replacedCount && `replaced ${replacedCount}`,
+        insertedCount && `inserted ${insertedCount}`,
+        deletedCount && `deleted ${deletedCount}`,
+    ].filter(Boolean);
+    const joined = newLines.join('\n');
+    const separator = insertedAtEnd > 0 && !after.startsWith('\n') && !joined.endsWith('\n') ? '\n' : '';
+    return {
+        content: `${before}\n${joined}${separator}${after}`,
+        message: parts.length ? `Synced: ${parts.join(', ')} segments` : 'No changes made',
+    };
+}
+
 function replaceGeneratedBlock(fileContent: string, formatDef: FormatDef<Format>, path: Path): { content: string; message: string } {
     const marker = "[" + path.name + "]";
     const begin = fileContent.indexOf(marker);
@@ -204,14 +345,14 @@ export default function ExportButton() {
     const toggleReplaceMode = () => {
         const next = !replaceMode;
         setReplaceMode(next);
-        if (next) { setStrictReplace(false); log("Replace Mode: Replaces segments by matching them to segments in file. Will delete or add segments. Non-visible segments are ignored."); }
+        if (next) { setStrictReplace(false); log("Merge Mode: Replaces segments by matching them to segments in file. Will delete or add segments. Non-visible segments are ignored."); }
     };
 
     const toggleStrictReplace = () => {
         const next = !strictReplace;
         setStrictReplace(next);
         if (next) setReplaceMode(false);
-        if (next) log("Strict Replace Mode: Only replaces segments that match the type and amount as mikGen. Non-visible or non selected segments are ignored.");
+        if (next) log("Replace Mode: Only replaces segments that match the type and amount as mikGen. Non-visible or non selected segments are ignored.");
     };
 
     useEffect(() => {
@@ -230,7 +371,9 @@ export default function ExportButton() {
             const { formatDef, path } = fileFormatStore.getState();
             const file = await handle.getFile();
             const content = await file.text();
-            const result = replaceGeneratedBlock(content, formatDef, path);
+            const result = strictReplace
+                ? replaceGeneratedBlock(content, formatDef, path)
+                : flexReplaceGeneratedBlock(content, formatDef, path);
             if (!result.content) {
                 log(result.message);
                 return;
@@ -290,8 +433,8 @@ export default function ExportButton() {
                     <div className="pt-2 pb-2">
                         <ErrorConsole lines={consoleLines} />
                     </div>
-                    <CheckboxButton name="Replace" checked={replaceMode} setChecked={toggleReplaceMode} />
-                    <CheckboxButton name="Strict Replace" checked={strictReplace} setChecked={toggleStrictReplace} />
+                    <CheckboxButton name="Merge" checked={replaceMode} setChecked={toggleReplaceMode} />
+                    <CheckboxButton name="Replace" checked={strictReplace} setChecked={toggleStrictReplace} />
                 </div>
             ) : (
                 <DragAndDrop onHandle={setHandle} />

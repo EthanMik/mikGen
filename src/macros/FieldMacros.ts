@@ -399,19 +399,21 @@ export default function FieldMacros() {
     const fieldZoomKeyboard = (evt: KeyboardEvent | null, setImg: React.Dispatch<SetStateAction<Rectangle>>, action: "ZoomIn" | "ZoomOut" | "ZoomReset" | null = null) => {
         const ZOOM_STEP = 200;
 
-        if (evt === null || action === "ZoomReset" || evt.key === "0") {
+        if (action === "ZoomReset" || (evt !== null && evt.key === "0")) {
             setImg(FIELD_IMG_DIMENSIONS);
-            return;         
+            return;
         }
 
         let dir = 0;
 
-        if (!evt.ctrlKey && action !== null) return;
-        if (evt.key === "=" || action === "ZoomIn") dir = 1;
-        if (evt.key === "-" || action === "ZoomOut") dir = -1;
-        
-        evt.preventDefault();
-        evt.stopPropagation();
+        if (evt !== null && !evt.ctrlKey && action !== null) return;
+        if (evt?.key === "=" || action === "ZoomIn") dir = 1;
+        if (evt?.key === "-" || action === "ZoomOut") dir = -1;
+
+        if (evt !== null) {
+            evt.preventDefault();
+            evt.stopPropagation();
+        }
 
         setImg((prev) => {
             const aspectRatio = prev.w / prev.h;
@@ -558,6 +560,13 @@ export default function FieldMacros() {
         addSegment(createSegment(formatDef, format, "angleSwing", { x: null, y: null, angle: 0 }), setPath);
     }
 
+    const addWaitSegment = (format: Format, setPath: React.Dispatch<SetStateAction<Path>>, path: Path) => {
+        const formatDef = fileFormatStore.getState().formatDef;
+        if (formatDef.segments["wait"]?.castTo) return;
+        if (path.segments.length === 0) return addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath);
+        addSegment(createSegment(formatDef, format, "wait", { x: null, y: null, angle: null }), setPath);
+    }
+
     return {
         moveControl,
         unselectPath,
@@ -580,6 +589,7 @@ export default function FieldMacros() {
         addAngleSwingSegment,
         addPointSwingSegment,
         addStrafeSegment,
+        addWaitSegment,
         addDistanceSegment,
         addStartSegment,
     };

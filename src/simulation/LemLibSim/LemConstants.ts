@@ -149,8 +149,6 @@ export const LemLibDef = {
     formatPathName: "LemLib Path",
     kBuilder: kLemBuilder,
     kParser: kLemParser,
-    slider: { key: "maxSpeed", bounds: [0, 127], roundTo: 1 },
-
     segments: {
         start: {
             name: "Start",
@@ -161,11 +159,26 @@ export const LemLibDef = {
             numberInputs: [],
         },
 
+        wait: {
+            name: "Wait",
+            defaults: [kLemLinear],
+            toStringTemplate: "pros::delay(${time});",
+            simFn: (robot, dt, time) => robot.wait(time, dt),
+            slider: { key: "time", bounds: [0, 1000], roundTo: 10, constantsIdx: 0 },
+            cycleButtons: [],
+            numberInputs: [{
+                constantsIdx: 0, headerName: "Wait Settings", fields: [
+                    { key: "time", label: "Time", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+                ]
+            }],
+        },
+
         poseDrive: {
             name: "Move to Pose",
             defaults: [kLemLinear, kLemAngular],
             toStringTemplate: "chassis.moveToPose(${x}, ${y}, ${angle}, ${timeout}, ${kBuilder});",
             simFn: (robot, dt, x, y, angle, constants) => moveToPose(robot, dt, x, y, angle ?? 0, constants),
+            slider: { key: "maxSpeed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
             cycleButtons: [
                 { constantsIdx: 0, ...forwardsButton },
             ],
@@ -193,6 +206,7 @@ export const LemLibDef = {
             defaults: [kLemLinear, kLemAngular],
             toStringTemplate: "chassis.moveToPoint(${x}, ${y}, ${timeout}, ${kBuilder});",
             simFn: (robot, dt, x, y, _angle, constants) => moveToPoint(robot, dt, x, y, constants),
+            slider: { key: "maxSpeed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
             cycleButtons: [
                 { constantsIdx: 0, ...forwardsButton },
             ],
@@ -208,6 +222,7 @@ export const LemLibDef = {
             defaults: [kLemAngular],
             toStringTemplate: "chassis.turnToPoint(${x}, ${y}, ${timeout}, ${kBuilder});",
             simFn: (robot, dt, x, y, _angle, constants) => turnToPoint(robot, dt, x, y, constants),
+            slider: { key: "maxSpeed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
             cycleButtons: [
                 { constantsIdx: 0, ...directionButton },
                 { constantsIdx: 0, ...forwardsButton, poseEffect: (val) => ({ angle: (val as boolean) ? 0 : 180 }) },
@@ -223,6 +238,7 @@ export const LemLibDef = {
             defaults: [kLemAngular],
             toStringTemplate: "chassis.turnToHeading(${angle}, ${timeout}, ${kBuilder});",
             simFn: (robot, dt, _x, _y, angle, constants) => turnToHeading(robot, dt, angle ?? 0, constants),
+            slider: { key: "maxSpeed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
             cycleButtons: [
                 { constantsIdx: 0, ...directionButton },
             ],
@@ -237,6 +253,7 @@ export const LemLibDef = {
             defaults: [kLemAngular],
             toStringTemplate: "chassis.swingToHeading(${angle}, ${lockedSide}, ${timeout}, ${kBuilder});",
             simFn: (robot, dt, _x, _y, angle, constants) => swingToHeading(robot, dt, angle ?? 0, constants),
+            slider: { key: "maxSpeed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
             cycleButtons: [
                 { constantsIdx: 0, ...lockedSideButton },
                 { constantsIdx: 0, ...directionButton },
@@ -252,6 +269,7 @@ export const LemLibDef = {
             defaults: [kLemAngular],
             toStringTemplate: "chassis.swingToPoint(${x}, ${y}, ${lockedSide}, ${timeout}, ${kBuilder});",
             simFn: (robot, dt, x, y, _angle, constants) => swingToPoint(robot, dt, x, y, constants),
+            slider: { key: "maxSpeed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
             cycleButtons: [
                 { constantsIdx: 0, ...lockedSideButton },
                 { constantsIdx: 0, ...directionButton },

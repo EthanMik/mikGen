@@ -69,7 +69,7 @@ export default function FieldButton() {
     };
 
     const [collapsedSections, setCollapsedSections] = useState<Set<string>>(
-        new Set(fieldMap.filter(c => c.key === "separator").map(c => c.name))
+        new Set(fieldMap.filter(c => c.key === "separator" && c.name !== "Override").map(c => c.name))
     );
 
     const toggleSection = (name: string) => {

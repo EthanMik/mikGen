@@ -87,8 +87,6 @@ export const reveilLibDef = {
     formatPathName: "ReveilLib Path",
     kBuilder: kRevBuilder,
     kParser: kRevParser,
-    slider: { key: "maxSpeed", bounds: [0, 1], roundTo: 0.01 },
-
     segments: {
         start: {
             name: "Start",
@@ -104,6 +102,7 @@ export const reveilLibDef = {
             defaults: [kRevDrive],
             toStringTemplate: "pose(${x}, ${y}, ${angle}, ${kBuilder});",
             simFn: (robot, dt, x, y, angle, constants) => boomerangSegment(robot, dt, x, y, angle ?? 0, constants),
+            slider: { key: "maxSpeed", bounds: [0, 1], roundTo: 0.01, constantsIdx: 0 },
             cycleButtons: [],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Motion Settings", fields: [
@@ -123,6 +122,7 @@ export const reveilLibDef = {
             defaults: [kRevDrive],
             toStringTemplate: "move(${x}, ${y}, ${kBuilder});",
             simFn: (robot, dt, x, y, _angle, constants) => pilonsSegment(robot, dt, x, y, constants),
+            slider: { key: "maxSpeed", bounds: [0, 1], roundTo: 0.01, constantsIdx: 0 },
             cycleButtons: [],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Motion Settings", fields: [...driveSettingsFields] },
@@ -135,6 +135,7 @@ export const reveilLibDef = {
             defaults: [kRevTurn],
             toStringTemplate: "look(${x}, ${y}, ${angle}, ${kBuilder});",
             simFn: (robot, dt, x, y, angle, constants) => lookAt(robot, dt, x, y, angle ?? 0, constants),
+            slider: { key: "maxSpeed", bounds: [0, 1], roundTo: 0.01, constantsIdx: 0 },
             cycleButtons: [],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Turn Settings", fields: [
@@ -149,10 +150,25 @@ export const reveilLibDef = {
             defaults: [kRevTurn],
             toStringTemplate: "turn(${angle}, ${kBuilder});",
             simFn: (robot, dt, _x, _y, angle, constants) => turnSegment(robot, dt, angle ?? 0, constants),
+            slider: { key: "maxSpeed", bounds: [0, 1], roundTo: 0.01, constantsIdx: 0 },
             cycleButtons: [],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Turn Settings", fields: [...turnSettingsFields] },
             ],
+        },
+
+        wait: {
+            name: "Wait",
+            defaults: [kRevTurn],
+            toStringTemplate: "pros::delay(${time});",
+            simFn: (robot, dt, time) => robot.wait(time, dt),
+            slider: { key: "time", bounds: [0, 1000], roundTo: 10, constantsIdx: 0 },
+            cycleButtons: [],
+            numberInputs: [{
+                constantsIdx: 0, headerName: "Wait Settings", fields: [
+                    { key: "time", label: "Time", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+                ]
+            }],
         },
 
         strafeDrive: {

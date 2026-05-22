@@ -17,14 +17,13 @@ Todo:
 - add view options for split screen
 
 - add a second line to motion list dropdown
-- add an always playback button setting
 
 Planned:
 - tooltip when hovering over svg buttons
 - google analytics
+- file directory view for easy selecting
 
 Deciding:
-- add a speed multipier setting
 - time segment
 
 Docs:

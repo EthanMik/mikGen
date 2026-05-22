@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import type { Coordinate } from "../../core/Types/Coordinate";
 import homeButton from "../../assets/home.svg";
 import { type Segment } from "../../core/Types/Segment";
-import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, toInch, toRGBA, type Rectangle } from "../../core/Util";
+import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, toInch, toRGBA } from "../../core/Util";
 import { usePath, useFormat, useField, getFieldSrcFromKey, fileFormatStore } from "../../hooks/useFileFormat";
 import { usePathVisibility } from "../../hooks/usePathVisibility";
 import { usePose } from "../../hooks/usePose";
@@ -30,6 +30,7 @@ export default function Field() {
 			fill: primary,
 			fillSelected: "rgba(180, 50, 11, .75)",
 			stroke: secondary,
+			strokeHex: "#1560BD",
 		},
 		indicator: {
 			stroke: "#451717",

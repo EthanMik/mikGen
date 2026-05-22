@@ -1,7 +1,7 @@
 import React from "react";
 import type { Path } from "../../core/Types/Path";
 import { getBackwardsSnapIdx, getBackwardsSnapPose } from "../../core/Types/Path";
-import { calculateHeading, toPX, toRad, FIELD_REAL_DIMENSIONS, type Rectangle, FIELD_IMG_DIMENSIONS, findPointToFace } from "../../core/Util";
+import { calculateHeading, toPX, toRad, FIELD_REAL_DIMENSIONS, type Rectangle, FIELD_IMG_DIMENSIONS, findPointToFace, toRGBA } from "../../core/Util";
 import { useSettings } from "../../hooks/useSettings";
 import type { Format } from "../../simulation/FormatDefinition";
 import type { LemConstants } from "../../simulation/LemLibSim/LemConstants";
@@ -34,13 +34,22 @@ const VISUAL = {
 		hoverThickness: 4,
 		defaultThickness: 2,
 	},
+	waitIndicator: {
+		scale: 0.3,
+		activeHoveredRadiusMultiplier: 1.8,
+		activeRadiusMultiplier: 1.4,
+		hoverRadiusMultiplier: 1.2,
+		activeThickness: 5,
+		hoverThickness: 4,
+		defaultThickness: 2,
+	},
 	numberLabel: {
 		fontSizeMultiplier: 0.9,
 	},
 } as const;
 
 type Colors = {
-	node: { fill: string; fillSelected: string; stroke: string };
+	node: { fill: string; fillSelected: string; stroke: string, strokeHex: string };
 	indicator: { stroke: string; strokeSelected: string; strokeWithPos: string };
 	numberLabel: string;
 };
@@ -191,6 +200,29 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 					)}
 				</g>
 			))}
+
+			{path.segments.map((control, idx) => {
+				if (control.kind !== "wait" || !control.visible) return null;
+				const snapPose = getBackwardsSnapPose(path, idx);
+				if (!snapPose || snapPose.x === null || snapPose.y === null) return null;
+
+				const active = control.selected;
+				const hovered = control.hovered;
+				const r = (active && hovered) ? radius * VISUAL.waitIndicator.activeHoveredRadiusMultiplier : active ? radius * VISUAL.waitIndicator.activeRadiusMultiplier : hovered ? radius * VISUAL.waitIndicator.hoverRadiusMultiplier : radius;
+				const fill = active ? toRGBA(colors.node.strokeHex, 0.6) : toRGBA(colors.node.strokeHex, 0.3);
+				const px = toPX({ x: snapPose.x, y: snapPose.y }, FIELD_REAL_DIMENSIONS, img);
+
+				return (
+					<circle
+						key={`wait-${control.id}`}
+						pointerEvents="none"
+						cx={px.x}
+						cy={px.y}
+						r={r * VISUAL.waitIndicator.scale}
+						fill={fill}
+					/>
+				);
+			})}
 
 			{settings.numberedPath && path.segments.map((control, idx) => {
 				if (!control.visible || control.pose.x === null || control.pose.y === null) return null;

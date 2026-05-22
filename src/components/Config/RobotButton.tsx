@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import CheckboxButton from "../Util/CheckboxButton";
+import Checkbox from "../Util/Checkbox";
 import NumberInput from "../Util/NumberInput";
 import { useFormat, mergeRobot, fileFormatStore, type Format } from "../../hooks/useFileFormat";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
@@ -37,14 +38,59 @@ function NumberInputButton({ name, value, setValue, bounds, stepSize, roundTo, u
     );
 }
 
+type NumberInputCheckboxButtonProps = NumberInputButtonProps & {
+    checked: boolean;
+    setChecked: (v: boolean) => void;
+};
+
+function NumberInputCheckboxButton({ name, value, setValue, bounds, stepSize, roundTo, units, checked, setChecked }: NumberInputCheckboxButtonProps) {
+    return (
+        <div className="flex flex-row pr-1 pl-2 items-center justify-between rounded-sm">
+            <span className="text-[14px]">{name}</span>
+            <div className="flex flex-row items-center gap-1.5">
+                <Checkbox checked={checked} setChecked={setChecked} size={18} />
+                <div className={checked ? "" : "opacity-40 pointer-events-none"}>
+                    <NumberInput
+                        width={45}
+                        height={28}
+                        fontSize={14}
+                        bounds={bounds}
+                        stepSize={stepSize}
+                        roundTo={roundTo}
+                        units={units}
+                        value={value}
+                        setValue={setValue}
+                        addToHistory={() => saveSnapshot()}
+                    />
+                </div>
+            </div>
+        </div>
+    );
+}
+
+type ExpansionSide = "Front" | "Left" | "Right" | "Rear";
+
 export default function RobotButton() {
     const [format] = useFormat();
     const prevFormatRef = useRef<Format>(format);
     const robot = fileFormatStore.useSelector(s => s.robot);
 
-    const allSections = ["Time Constant (Accel)", "Expansion", "CoG Offset", "Robot Type"] as const;
-    type Section = typeof allSections[number];
-    const [collapsedSections, setCollapsedSections] = useState<Set<Section>>(new Set(allSections));
+    type Section = "General" | "Time Constant (Accel)" | "Expansion" | "CoG Offset" | "Robot Type";
+    const [collapsedSections, setCollapsedSections] = useState<Set<Section>>(new Set(["Time Constant (Accel)", "Expansion", "CoG Offset", "Robot Type"] as Section[]));
+
+    const [storedExpansion, setStoredExpansion] = useState<Record<ExpansionSide, number>>({
+        Front: robot.expansionFront > 0 ? robot.expansionFront : 4,
+        Left: robot.expansionLeft > 0 ? robot.expansionLeft : 4,
+        Right: robot.expansionRight > 0 ? robot.expansionRight : 4,
+        Rear: robot.expansionRear > 0 ? robot.expansionRear : 4,
+    });
+
+    const [expansionEnabled, setExpansionEnabled] = useState<Record<ExpansionSide, boolean>>({
+        Front: robot.expansionFront > 0,
+        Left: robot.expansionLeft > 0,
+        Right: robot.expansionRight > 0,
+        Rear: robot.expansionRear > 0,
+    });
 
     const toggleSection = (name: Section) => {
         setCollapsedSections(prev => {
@@ -52,6 +98,18 @@ export default function RobotButton() {
             if (next.has(name)) next.delete(name); else next.add(name);
             return next;
         });
+    };
+
+    const handleExpansionChange = (side: ExpansionSide, v: number | null) => {
+        if (v === null) return;
+        setStoredExpansion(prev => ({ ...prev, [side]: v }));
+        if (expansionEnabled[side]) mergeRobot({ [`expansion${side}`]: v });
+    };
+
+    const handleExpansionToggle = (side: ExpansionSide, checked: boolean) => {
+        setExpansionEnabled(prev => ({ ...prev, [side]: checked }));
+        mergeRobot({ [`expansion${side}`]: checked ? storedExpansion[side] : 0 });
+        saveSnapshot();
     };
 
     const handleToggleHolonomic = (checked: boolean) => {
@@ -65,9 +123,14 @@ export default function RobotButton() {
     return (
         <ConfigButtonTemplate title="Robot">
             <div className="flex flex-col gap-2">
-                <NumberInputButton name="Width" value={robot.width} setValue={v => v !== null && mergeRobot({ width: v })} bounds={[0, 30]} stepSize={1} roundTo={1} units="in" />
-                <NumberInputButton name="Height" value={robot.height} setValue={v => v !== null && mergeRobot({ height: v })} bounds={[0, 30]} stepSize={1} roundTo={1} units="in" />
-                <NumberInputButton name="Speed" value={robot.speed} setValue={v => v !== null && mergeRobot({ speed: v })} bounds={[0, 100]} stepSize={0.5} roundTo={2} units="ft/s" />
+                <div className="flex flex-col gap-2">
+                    <Separator name="General" onClick={() => toggleSection("General")} isCollapsed={collapsedSections.has("General")} />
+                    {!collapsedSections.has("General") && <>
+                        <NumberInputButton name="Width" value={robot.width} setValue={v => v !== null && mergeRobot({ width: v })} bounds={[0, 30]} stepSize={1} roundTo={1} units="in" />
+                        <NumberInputButton name="Height" value={robot.height} setValue={v => v !== null && mergeRobot({ height: v })} bounds={[0, 30]} stepSize={1} roundTo={1} units="in" />
+                        <NumberInputButton name="Speed" value={robot.speed} setValue={v => v !== null && mergeRobot({ speed: v })} bounds={[0, 100]} stepSize={0.5} roundTo={2} units="ft/s" />
+                    </>}
+                </div>
 
                 <div className="flex flex-col gap-2">
                     <Separator name="Time Constant (Accel)" onClick={() => toggleSection("Time Constant (Accel)")} isCollapsed={collapsedSections.has("Time Constant (Accel)")} />
@@ -79,12 +142,20 @@ export default function RobotButton() {
 
                 <div className="flex flex-col gap-2">
                     <Separator name="Expansion" onClick={() => toggleSection("Expansion")} isCollapsed={collapsedSections.has("Expansion")} />
-                    {!collapsedSections.has("Expansion") && (["Front", "Left", "Right", "Rear"] as const).map((side) => {
-                        const key = `expansion${side}` as "expansionFront" | "expansionLeft" | "expansionRight" | "expansionRear";
-                        return (
-                            <NumberInputButton key={side} name={side} value={robot[key]} setValue={v => v !== null && mergeRobot({ [key]: v })} bounds={[0, 30]} stepSize={0.5} roundTo={2} units="in" />
-                        );
-                    })}
+                    {!collapsedSections.has("Expansion") && (["Front", "Left", "Right", "Rear"] as const).map((side) => (
+                        <NumberInputCheckboxButton
+                            key={side}
+                            name={side}
+                            value={storedExpansion[side]}
+                            setValue={v => handleExpansionChange(side, v)}
+                            bounds={[0, 30]}
+                            stepSize={0.5}
+                            roundTo={2}
+                            units="in"
+                            checked={expansionEnabled[side]}
+                            setChecked={checked => handleExpansionToggle(side, checked)}
+                        />
+                    ))}
                 </div>
 
                 <div className="flex flex-col gap-2">

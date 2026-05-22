@@ -3,7 +3,7 @@ import downArrow from "../../assets/play.svg";
 
 export default function HelpButton() {
     const [isOpen, setOpen] = useState(false);
-    const [exampleOpen, setExampleOpen] = useState(false);
+    const [, setExampleOpen] = useState(false);
 
     const menuRef = useRef<HTMLDivElement>(null);
 

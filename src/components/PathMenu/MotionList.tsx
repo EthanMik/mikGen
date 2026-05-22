@@ -16,6 +16,7 @@ import { roundNum } from "../../core/Util";
 import type { ConstantsRecord } from "../../simulation/FormatDefinition";
 
 export type ConstantListField = {
+    constantsIdx: number;
     header: string;
     values: ConstantsRecord;
     fields: ConstantField[];
@@ -59,10 +60,12 @@ export default function MotionList({
     const [path, setPath] = usePath();
     const formatDef = useFormatDef();
 
-    const sliderKey = String(formatDef.slider.key);
-    const speedScale = formatDef.kMaxSpeed;
-
-    const segment = path.segments.find(s => s.id === segmentId)!;
+    const segment = path.segments.find(s => s.id === segmentId)!
+    const segDef = formatDef.segments[segment.kind];
+    const sliderDef = segDef?.slider;
+    const sliderKey = sliderDef ? String(sliderDef.key) : "";
+    const sliderConstantsIdx = sliderDef?.constantsIdx ?? 0;
+    const speedScale = sliderDef?.bounds[1] ?? 1;;
     const selected = segment?.selected;
     const activeSimSegment = activeSimSegmentStore.useStore();
 
@@ -179,7 +182,10 @@ export default function MotionList({
         simJumpStore.setState(percent);
     };
 
-    const sliderValue = field?.[0]?.values?.[sliderKey];
+    const sliderField = field?.find(f => f.constantsIdx === sliderConstantsIdx) ?? field?.[0];
+    const sliderSegmentRaw = sliderKey in segment ? (segment as Record<string, unknown>)[sliderKey] : undefined;
+    const isSegmentKey = typeof sliderSegmentRaw === 'number';
+    const sliderValue = isSegmentKey ? sliderSegmentRaw : sliderField?.values?.[sliderKey];
     const sliderNum = typeof sliderValue === 'number' ? sliderValue : 0;
     const speedDecimals = speedScale > 99.9 ? 0 : speedScale > 9.9 ? 1 : 2;
 
@@ -232,14 +238,27 @@ export default function MotionList({
 
                 <span className="shrink-0 text-left text-[16px] truncate max-w-[160px]">{name}</span>
 
-                {segment.kind !== "start" && field !== undefined && (
+                {sliderDef !== undefined && field !== undefined && (
                     <div onClick={(e) => e.stopPropagation()} className="flex-1 min-w-0 flex items-center gap-3">
                         <Slider
                             sliderHeight={5}
                             knobHeight={16}
                             knobWidth={16}
                             value={sliderNum / speedScale * 100}
-                            setValue={(v: number) => field[0]?.onChange({ [sliderKey]: (v / 100) * speedScale })}
+                            step={sliderDef.roundTo !== undefined ? (sliderDef.roundTo / speedScale) * 100 : undefined}
+                            setValue={(v: number) => {
+                                const newValue = (v / 100) * speedScale;
+                                if (isSegmentKey) {
+                                    setPath(prev => ({
+                                        ...prev,
+                                        segments: prev.segments.map(s =>
+                                            s.id === segmentId ? { ...s, [sliderKey]: newValue } : s
+                                        ),
+                                    }));
+                                } else {
+                                    sliderField?.onChange({ [sliderKey]: newValue });
+                                }
+                            }}
                             OnChangeEnd={() => { saveSnapshot(); }}
                         />
                         <span className="shrink-0 relative tabular-nums">
