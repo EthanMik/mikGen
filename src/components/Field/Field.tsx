@@ -523,7 +523,7 @@ export default function Field() {
 			</svg>
 			{(img.x !== 0 || img.y !== 0 || img.w !== FIELD_IMG_DIMENSIONS.w || img.h !== FIELD_IMG_DIMENSIONS.h) && (
 				<button
-					onClick={() => fieldZoomKeyboard(null, setImg)}
+					onClick={() => fieldZoomKeyboard(null, setImg, "ZoomReset")}
 					className="
 						absolute top-3 right-129
 						flex

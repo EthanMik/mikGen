@@ -18,7 +18,7 @@ import { useSimulateGroup } from "../hooks/useSimulateGroup";
 // This fucking file is the biggest piece of shit i find a new bug every day
 
 function createRobot(): Robot {
-    const { width, height, speed, lateralTau, angularTau, isOmni, cogOffsetX, cogOffsetY, expansionFront, expansionLeft, expansionRight, expansionRear } = fileFormatStore.getState().robot;
+    const { width, height, speed, lateralTau, angularTau, isOmni, cogOffsetX, cogOffsetY, expansionFront, expansionLeft, expansionRight, expansionRear, expansionFrontDisabled, expansionLeftDisabled, expansionRightDisabled, expansionRearDisabled } = fileFormatStore.getState().robot;
 
     return new Robot(
         0, // Start x
@@ -29,10 +29,10 @@ function createRobot(): Robot {
         speed, // Speed (ft/s)
         cogOffsetX, // CoG lateral offset (inches)
         cogOffsetY, // CoG longitudinal offset (inches)
-        expansionFront,
-        expansionLeft,
-        expansionRight,
-        expansionRear,
+        expansionFrontDisabled ? 0 : expansionFront,
+        expansionLeftDisabled ? 0 : expansionLeft,
+        expansionRightDisabled ? 0 : expansionRight,
+        expansionRearDisabled ? 0 : expansionRear,
         isOmni, // Lateral Friction (higher = less drift)
         lateralTau,
         angularTau,
@@ -74,40 +74,6 @@ export default function PathSimulator() {
         setValue(simJump);
         simJumpStore.setState(null);
     }, [simJump, setRobotVisibility]);
-
-    // const cullSimulatedPath = (sim: PathSim): PathSim => {
-    //     if (!simulatedGroups?.length) return sim;
-
-    //     const indices: number[] = [];
-    //     path.segments.filter(prev => prev.kind !== "group")?.forEach((seg, i) => {
-    //         if (seg.groupId && simulatedGroups.includes(seg.groupId)) indices.push(i);
-    //     });
-
-    //     if (indices.length === 0) return sim;
-
-    //     const culledSegments = indices.map(i => sim.segmentTrajectorys[i]).filter(Boolean);
-    //     const culledEnds = indices.map(i => sim.endTrajectory[i]).filter(Boolean);
-    //     const culledTrajectory = culledSegments.flat();
-
-    //     const timeOffset = culledTrajectory.length > 0 ? culledTrajectory[0].t : 0;
-    //     const rebasedTrajectory = culledTrajectory.map(snap => ({
-    //         ...snap,
-    //         t: snap.t - timeOffset,
-    //     }));
-
-    //     const totalTime = rebasedTrajectory.length > 0
-    //         ? rebasedTrajectory[rebasedTrajectory.length - 1].t
-    //         : 0;
-
-    //     return {
-    //         totalTime,
-    //         trajectory: rebasedTrajectory,
-    //         endTrajectory: culledEnds,
-    //         segmentTrajectorys: sim.segmentTrajectorys,
-    //         segmentCumulativeDists: sim.segmentCumulativeDists,
-    //         timeOffset,
-    //     };
-    // }
 
     useEffect(() => {
         if (path.segments.length === 0) {

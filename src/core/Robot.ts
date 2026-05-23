@@ -14,6 +14,10 @@ export type RobotConstants = {
     expansionLeft: number,
     expansionRight: number,
     expansionRear: number,
+    expansionFrontDisabled: boolean,
+    expansionLeftDisabled: boolean,
+    expansionRightDisabled: boolean,
+    expansionRearDisabled: boolean,
     isOmni: boolean,
 }
 
@@ -29,6 +33,10 @@ export const defaultRobotConstants: RobotConstants = {
     expansionLeft: 0,
     expansionRight: 0,
     expansionRear: 0,
+    expansionFrontDisabled: true,
+    expansionLeftDisabled: true,
+    expansionRightDisabled: true,
+    expansionRearDisabled: true,
     isOmni: false,
 }
 

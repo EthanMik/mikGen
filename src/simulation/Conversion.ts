@@ -215,7 +215,7 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
                     (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
                         if (!started) {
                             DEBUG_printSegmentStart(idx, formatDef, kind);
-                            targetDist = Math.hypot(x - robot.getX(), y - robot.getY());
+                            targetDist = 999;
                             started = true;
                         }
                         DEBUG_printRobotState(robot, dt);

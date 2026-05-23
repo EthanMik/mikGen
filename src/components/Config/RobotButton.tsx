@@ -78,20 +78,6 @@ export default function RobotButton() {
     type Section = "General" | "Time Constant (Accel)" | "Expansion" | "CoG Offset" | "Robot Type";
     const [collapsedSections, setCollapsedSections] = useState<Set<Section>>(new Set(["Time Constant (Accel)", "Expansion", "CoG Offset", "Robot Type"] as Section[]));
 
-    const [storedExpansion, setStoredExpansion] = useState<Record<ExpansionSide, number>>({
-        Front: robot.expansionFront > 0 ? robot.expansionFront : 4,
-        Left: robot.expansionLeft > 0 ? robot.expansionLeft : 4,
-        Right: robot.expansionRight > 0 ? robot.expansionRight : 4,
-        Rear: robot.expansionRear > 0 ? robot.expansionRear : 4,
-    });
-
-    const [expansionEnabled, setExpansionEnabled] = useState<Record<ExpansionSide, boolean>>({
-        Front: robot.expansionFront > 0,
-        Left: robot.expansionLeft > 0,
-        Right: robot.expansionRight > 0,
-        Rear: robot.expansionRear > 0,
-    });
-
     const toggleSection = (name: Section) => {
         setCollapsedSections(prev => {
             const next = new Set(prev);
@@ -102,13 +88,11 @@ export default function RobotButton() {
 
     const handleExpansionChange = (side: ExpansionSide, v: number | null) => {
         if (v === null) return;
-        setStoredExpansion(prev => ({ ...prev, [side]: v }));
-        if (expansionEnabled[side]) mergeRobot({ [`expansion${side}`]: v });
+        mergeRobot({ [`expansion${side}`]: v });
     };
 
     const handleExpansionToggle = (side: ExpansionSide, checked: boolean) => {
-        setExpansionEnabled(prev => ({ ...prev, [side]: checked }));
-        mergeRobot({ [`expansion${side}`]: checked ? storedExpansion[side] : 0 });
+        mergeRobot({ [`expansion${side}Disabled`]: !checked });
         saveSnapshot();
     };
 
@@ -146,13 +130,13 @@ export default function RobotButton() {
                         <NumberInputCheckboxButton
                             key={side}
                             name={side}
-                            value={storedExpansion[side]}
+                            value={robot[`expansion${side}`]}
                             setValue={v => handleExpansionChange(side, v)}
                             bounds={[0, 30]}
                             stepSize={0.5}
                             roundTo={2}
                             units="in"
-                            checked={expansionEnabled[side]}
+                            checked={!robot[`expansion${side}Disabled`]}
                             setChecked={checked => handleExpansionToggle(side, checked)}
                         />
                     ))}

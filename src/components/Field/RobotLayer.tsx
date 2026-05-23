@@ -43,21 +43,21 @@ export default function RobotLayer({ img, pose, robotPose, robotConstants, visib
                     bg={bgColor}
                     expansionTransparency={expansionTransparency}
                     bgTransparency={bgTransparency}
-                    frontExpansion={robotConstants.expansionFront}
-                    leftExpansion={robotConstants.expansionLeft}
-                    rightExpansion={robotConstants.expansionRight}
-                    rearExpansion={robotConstants.expansionRear}    
+                    frontExpansion={robotConstants.expansionFrontDisabled ? 0 : robotConstants.expansionFront}
+                    leftExpansion={robotConstants.expansionLeftDisabled ? 0 : robotConstants.expansionLeft}
+                    rightExpansion={robotConstants.expansionRightDisabled ? 0 : robotConstants.expansionRight}
+                    rearExpansion={robotConstants.expansionRearDisabled ? 0 : robotConstants.expansionRear}
                 />
             )}
 
         {/* Ghost Robots */}
-        {!visible && settings.ghostRobots && 
+        {!visible && settings.ghostRobots &&
             robotPose.map((p, idx) => (
             <React.Fragment key={`ghost-${idx}`}>
                 {path.segments[idx]?.visible && (
                     <RobotView
                         img={img}
-                        x={p.x ?? 0} 
+                        x={p.x ?? 0}
                         y={p.y ?? 0}
                         angle={p.angle ?? 0}
                         width={robotConstants.width}
@@ -65,10 +65,10 @@ export default function RobotLayer({ img, pose, robotPose, robotConstants, visib
                         bg={bgColor}
                         bgTransparency={ghostTransparency}
                         expansionTransparency={ghostTransparency}
-                        frontExpansion={robotConstants.expansionFront}
-                        leftExpansion={robotConstants.expansionLeft}
-                        rightExpansion={robotConstants.expansionRight}
-                        rearExpansion={robotConstants.expansionRear}    
+                        frontExpansion={robotConstants.expansionFrontDisabled ? 0 : robotConstants.expansionFront}
+                        leftExpansion={robotConstants.expansionLeftDisabled ? 0 : robotConstants.expansionLeft}
+                        rightExpansion={robotConstants.expansionRightDisabled ? 0 : robotConstants.expansionRight}
+                        rearExpansion={robotConstants.expansionRearDisabled ? 0 : robotConstants.expansionRear}    
                     />
                 )}
             </React.Fragment>

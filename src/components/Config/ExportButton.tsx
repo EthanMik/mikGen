@@ -292,7 +292,7 @@ function DragAndDrop({ onHandle }: DragAndDropProps) {
 
     return (
         <>
-            <span className="text-[8px] mb-1 opacity-50">Segments can be exported by Ctrl+C</span>
+            <span className="text-[7.5px] mb-1 opacity-50">Segments can be also be exported by Ctrl+C</span>
             <div
                 className={`h-12 outline-1 pt-2.5 pb-1.5 outline-dashed flex items-center justify-between flex-col rounded-sm cursor-pointer transition-colors duration-100
                     ${isDragging ? "outline-white" : "outline-lightgray"}`}

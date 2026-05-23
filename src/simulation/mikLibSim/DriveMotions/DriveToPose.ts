@@ -66,7 +66,6 @@ export function drive_to_pose(robot: Robot, dt: number, x: number, y: number, an
     crossed_line = line_settled === carrot_settled;
     
     if (!(crossed_line == prev_crossed_line) && settling && drive_p.min_voltage > 0) {
-        console.log("exited");
         reset_drive_to_pose();
         return true;
     }
