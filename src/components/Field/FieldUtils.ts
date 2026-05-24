@@ -24,7 +24,6 @@ export type FieldColors = {
         stroke: string,
         strokeDark: string,
         hovered: string,
-        textLabel: string,
     }
 }
 
@@ -47,7 +46,6 @@ const RED_BLUE_THEME: FieldColors = {
         stroke: toRGBA("#1560BD", 0.75),
         strokeDark: toRGBA("#7e1ca1", 1),
         hovered: toRGBA("#a02007", 1),
-        textLabel: "#a0a0a06c",
     }
 };
 
@@ -70,11 +68,10 @@ const GREEN_PURPLE_THEME: FieldColors = {
         strokePos: toRGBA(gp_secondary, 1),
     },
     path: {
-        strokeLight: toRGBA("#b3db5d", 1),
+        strokeLight: toRGBA("#c8db5d", 1),
         stroke: toRGBA(gp_secondary, 0.75),
         strokeDark: toRGBA("#c80505", 1),
         hovered: toRGBA(gp_primary, 1),
-        textLabel: "#a0a0a06c",
     }
 };
 
@@ -97,7 +94,6 @@ const ORANGE_CYAN_THEME: FieldColors = {
         stroke: toRGBA("#0096aa", 0.75),
         strokeDark: toRGBA("#1b03a4", 1),
         hovered: toRGBA("#d45a00", 1),
-        textLabel: "#a0a0a06c",
     }
 };
 
@@ -124,7 +120,6 @@ const GOLD_NAVY_THEME: FieldColors = {
         stroke: toRGBA(gn_secondary, 0.75),
         strokeDark: toRGBA("#85b50c", 1),
         hovered: toRGBA(gn_primary, 1),
-        textLabel: "#a0a0a06c",
     }
 };
 

@@ -6,6 +6,7 @@ import { normalizeDeg } from "../core/Util";
 import { useFormat, usePath } from "../hooks/useFileFormat";
 
 import NumberInput from "./Util/NumberInput";
+import Tooltip from "./Util/Tooltip";
 
 type MirrorDirection = "x" | "y";
 
@@ -276,8 +277,12 @@ export default function ControlConfig() {
             </div>
 
             <div className={`flex items-center flex-row gap-[15px] ${selectedSegment === "wait" ? "opacity-50 pointer-events-none" : ""}`}>
-                <MirrorControl mirrorDirection="x" src={flipHorizontal}/>
-                <MirrorControl mirrorDirection="y" src={flipVertical}/>
+                <Tooltip label="Mirror horizontally">
+                    <MirrorControl mirrorDirection="x" src={flipHorizontal}/>
+                </Tooltip>
+                <Tooltip label="Mirror vertically">
+                    <MirrorControl mirrorDirection="y" src={flipVertical}/>
+                </Tooltip>
             </div>
         </div>
     );

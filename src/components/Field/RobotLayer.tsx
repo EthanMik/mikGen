@@ -47,6 +47,8 @@ export default function RobotLayer({ img, pose, robotPose, robotConstants, visib
                     leftExpansion={robotConstants.expansionLeftDisabled ? 0 : robotConstants.expansionLeft}
                     rightExpansion={robotConstants.expansionRightDisabled ? 0 : robotConstants.expansionRight}
                     rearExpansion={robotConstants.expansionRearDisabled ? 0 : robotConstants.expansionRear}
+                    cogOffsetX={robotConstants.cogOffsetX}
+                    cogOffsetY={robotConstants.cogOffsetY}
                 />
             )}
 

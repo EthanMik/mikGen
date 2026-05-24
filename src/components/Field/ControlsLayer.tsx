@@ -232,7 +232,7 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 						textAnchor="middle"
 						dominantBaseline="central"
 						fontSize={radius * VISUAL.numberLabel.fontSizeMultiplier}
-						fill={colors.path.textLabel}
+						fill={"#FFFFFF"}
 					>
 						{num}
 					</text>

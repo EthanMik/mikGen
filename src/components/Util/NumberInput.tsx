@@ -136,7 +136,7 @@ export default function NumberInput({
   };
 
   useEffect(() => {
-    const PIXELS_PER_STEP = 8;
+    const PIXELS_PER_STEP = 10;
 
     const onMouseMove = (e: MouseEvent) => {
       if (!isDragging.current) return;
@@ -185,7 +185,7 @@ export default function NumberInput({
 
   useEffect(() => {
     if (!dragging) return;
-    document.body.style.cursor = "move";
+    document.body.style.cursor = "ew-resize";
     document.body.style.userSelect = "none";
     return () => {
       document.body.style.cursor = "";
@@ -233,7 +233,9 @@ export default function NumberInput({
     setValue(clampNum);
     addToHistoryCheck(clampNum);
 
-    displayRef.current = trimZeros(clampNum.toFixed(roundTo));
+    const display = trimZeros(clampNum.toFixed(roundTo));
+    displayRef.current = display;
+    setEdit(display);
   };
 
   const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
@@ -315,7 +317,7 @@ export default function NumberInput({
       <input
         ref={inputRef}
         className="bg-blackgray rounded-lg text-center text-white outline-none"
-        style={{ fontSize: `${fontSize}px`, width: `${width}px`, height: `${height}px` }}
+        style={{ fontSize: `${fontSize}px`, width: `${width}px`, height: `${height}px`, cursor: dragging ? "ew-resize" : undefined }}
         type="text"
         value={displayRef.current}
         onChange={handleChange}

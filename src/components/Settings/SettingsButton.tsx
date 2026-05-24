@@ -75,7 +75,7 @@ export default function SettingsButton() {
                     </Section>
 
                     <Section name="Field">
-                        <NumberInputButton name="Grid Snap" value={settings.snapToGrid} setValue={v => v !== null && set("snapToGrid")(v)} bounds={[0, 10]} stepSize={0.5} roundTo={1} units="" />
+                        <NumberInputButton name="Grid Snap" value={settings.snapToGrid} setValue={v => v !== null && set("snapToGrid")(v)} bounds={[0.1, 10]} stepSize={0.5} roundTo={1} units="" />
                         <ColorButton name="Theme" primary={DEFAULT_THEMES[settings.themeIdx].primary} secondary={DEFAULT_THEMES[settings.themeIdx].secondary} callback={() => updateTheme(settings.themeIdx)} />
                     </Section>
 

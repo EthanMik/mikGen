@@ -14,6 +14,7 @@ import { convertPathToSim } from "../simulation/Conversion";
 import { useRobotPose } from "../hooks/useRobotPose";
 import { useSettings } from "../hooks/useSettings";
 import { useSimulateGroup } from "../hooks/useSimulateGroup";
+import Tooltip from "./Util/Tooltip";
 
 // This fucking file is the biggest piece of shit i find a new bug every day
 
@@ -42,17 +43,17 @@ function createRobot(): Robot {
 export default function PathSimulator() {
     const [value, setValue] = useState<number>(0);
     const [time, setTime] = useState<number>(0);
-    const [ pose, setPose] = usePose()
-    const [ , setRobotPose ] = useRobotPose();
+    const [pose, setPose] = usePose()
+    const [, setRobotPose] = useRobotPose();
     const robot = fileFormatStore.useSelector(s => s.robot);
     const [playing, setPlaying] = useState<boolean>(false);
     const [robotVisible, setRobotVisibility] = useRobotVisibility();
-    const [ path,  ] = usePath();
+    const [path,] = usePath();
     const formatDef = fileFormatStore.useSelector(s => s.formatDef);
     const skip = useRef(false);
-    const [ settings ] = useSettings(); 
+    const [settings] = useSettings();
     const computedPath = computedPathStore.useStore();
-    const [ simulatedGroups ] = useSimulateGroup();
+    const [simulatedGroups] = useSimulateGroup();
     const simJump = simJumpStore.useStore();
 
     const { pauseSimulator, scrubSimulator } = PathSimMacros();
@@ -78,7 +79,7 @@ export default function PathSimulator() {
     useEffect(() => {
         if (path.segments.length === 0) {
             computedPathStore.setState(precomputePath(createRobot(), convertPathToSim(formatDef, path)));
-            
+
             setRobotPose(computedPath.endTrajectory);
             setPlaying(false);
             setTime(0);
@@ -87,7 +88,7 @@ export default function PathSimulator() {
             setPose({ x: 0, y: 0, angle: 0 });
             return;
         }
-        
+
         const pathSim = precomputePath(createRobot(), convertPathToSim(formatDef, path));
         // const pathSim = cullSimulatedPath(fullSim);
         computedPathStore.setState(pathSim);
@@ -116,10 +117,10 @@ export default function PathSimulator() {
 
         skip.current = true;
         setValue((clampedTime / pathSim.totalTime) * 100);
-        
+
     }, [segmentGeoKey, robot, robotVisible, simulatedGroups]);
 
-    
+
     useEffect(() => {
         if (skip.current) {
             skip.current = false;
@@ -172,7 +173,7 @@ export default function PathSimulator() {
             const target = evt.target as HTMLElement | null;
             if (target?.isContentEditable || target?.tagName === "INPUT") return;
             pauseSimulator(evt, setPlaying, setRobotVisibility)
-            scrubSimulator(evt, setValue, setPlaying, setRobotVisibility, skip, computedPath, 1/60, 0.25);
+            scrubSimulator(evt, setValue, setPlaying, setRobotVisibility, skip, computedPath, 1 / 60, 0.25);
         }
 
         document.addEventListener('keydown', handleKeyDown)
@@ -191,7 +192,7 @@ export default function PathSimulator() {
         const snap = path.trajectory[idx];
         setTime(snap.t);
 
-        setPose({x: snap.x, y: snap.y, angle: snap.angle})
+        setPose({ x: snap.x, y: snap.y, angle: snap.angle })
     }
 
     const forceSnapTime = (path: PathSim, t: number) => {
@@ -201,7 +202,7 @@ export default function PathSimulator() {
         const idx = Math.floor(percent * (path.trajectory.length - 1));
         try {
             const snap = path.trajectory[idx];
-            setPose({x: snap.x, y: snap.y, angle: snap.angle})       
+            setPose({ x: snap.x, y: snap.y, angle: snap.angle })
         } catch {
             return;
         }
@@ -219,7 +220,7 @@ export default function PathSimulator() {
         const idx = Math.floor(percent * (path.trajectory.length - 1));
         const snap = path.trajectory[idx];
 
-        setPose({x: snap.x, y: snap.y, angle: snap.angle})
+        setPose({ x: snap.x, y: snap.y, angle: snap.angle })
     }
 
     useEffect(() => {
@@ -255,7 +256,7 @@ export default function PathSimulator() {
 
         return () => clearInterval(interval);
     }, [playing]);
-    
+
     return (
         <div className="flex bg-medgray w-[650px]  h-[65px] rounded-lg 
             items-center justify-center gap-4 relative"
@@ -265,35 +266,37 @@ export default function PathSimulator() {
                     if (!p) setRobotVisibility(true);
                     return !p
                 });
-            }} 
-            className="hover:bg-medgray_hover px-1 py-1 rounded-sm">
+            }}
+                className="hover:bg-medgray_hover px-1 py-1 rounded-sm">
                 {playing ?
-                    <img className="w-[25px] h-[25px]" src={pause}/> :
-                    <img className="w-[25px] h-[25px]" src={play}/> 
+                    <img className="w-[25px] h-[25px]" src={pause} /> :
+                    <img className="w-[25px] h-[25px]" src={play} />
                 }
             </button>
-            <Slider 
-                value={value} 
-                setValue={setValue} 
+            <Slider
+                value={value}
+                setValue={setValue}
                 sliderWidth={!settings.robotPosition ? 448 : 192}
-                sliderHeight={8} 
-                knobHeight={22} 
+                sliderHeight={8}
+                knobHeight={22}
                 knobWidth={22}
                 onChangeStart={() => {
                     setPlaying(false);
                     setRobotVisibility(true);
                 }}
-                OnChangeEnd={() => {}}
+                OnChangeEnd={() => { }}
             />
-            {settings.robotPosition &&  
-                <span className="block w-60 bg-medgray_hover rounded-sm pl-2 pt-1 pb-1 text-center whitespace-pre font-mono">
-                    X: <span className="inline-block w-14 text-left">{pose?.x?.toFixed(2)}</span>
-                    Y: <span className="inline-block w-14 text-left">{pose?.y?.toFixed(2)}</span> 
-                    θ: <span className="inline-block w-12 text-left">{pose?.angle?.toFixed(2)}</span>
+            {settings.robotPosition &&
+                <span className="block w-61 bg-medgray_hover rounded-sm pl-2 pt-1 pb-1 text-center whitespace-pre font-mono">
+                    X: <span className="inline-block w-13 text-left">{pose?.x?.toFixed(2)}</span>
+                    Y: <span className="inline-block w-13 text-left">{pose?.y?.toFixed(2)}</span>
+                    θ: <span className="inline-block w-12 text-left">{pose?.angle?.toFixed(1)}</span>
                 </span>
             }
             <span className="block w-14 ">{time.toFixed(2)} s</span>
-            <Checkbox checked={robotVisible} setChecked={setRobotVisibility}/>
-        </div>        
-);
+            <Tooltip label="Toggle Robot Visibility" placement="top" speed="fast">
+                <Checkbox checked={robotVisible} setChecked={setRobotVisibility} />
+            </Tooltip>
+        </div>
+    );
 }

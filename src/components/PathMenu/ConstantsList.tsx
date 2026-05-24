@@ -1,10 +1,11 @@
-import { Fragment, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import downArrow from "../../assets/down-arrow.svg";
 import type { ConstantField } from "./ConstantRow";
 import ConstantRow from "./ConstantRow";
 import { deepEqual } from "../../core/Util";
 import { saveSnapshot, undoHistory } from "../../core/Undo/UndoHistory";
 import type { ConstantsRecord } from "../../simulation/FormatDefinition";
+import Tooltip from "../Util/Tooltip";
 
 type ConstantsListProps = {
     header: string;
@@ -108,67 +109,74 @@ export default function ConstantsList({
                 </div>
 
                 <div className="flex pr-5 gap-2">
-                    <button
-                        className={`
+                    <Tooltip label="Set default constants">
+                        <button
+                            className={`
                         bg-medgray hover:bg-medgray_hover px-2 rounded-sm
                         transition-all duration-100 active:scale-[0.995] active:bg-medgray_hover/70
                         ${!isDirty ? "opacity-40 cursor-not-allowed hover:bg-medlightgray" : "cursor-pointer"}`}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            if (!isDirty) return;
-                            const vals = hasSelection ? buildSelectedPartial(values) : values;
-                            onSetDefault(vals);
-                        }}
-                    >
-                        <span className="text-verylightgray">Default</span>
-                    </button>
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (!isDirty) return;
+                                const vals = hasSelection ? buildSelectedPartial(values) : values;
+                                onSetDefault(vals);
+                            }}
+                        >
+                            <span className="text-verylightgray">Default</span>
+                        </button>
+                    </Tooltip>
 
-                    <button
-                        className={`
+                    <Tooltip label="Reset to defaults">
+                        <button
+                            className={`
                         bg-medgray hover:bg-medgray_hover px-2 rounded-sm
                         transition-all duration-100 active:scale-[0.995] active:bg-medgray_hover/70
                         ${!isDirty ? "opacity-40 cursor-not-allowed hover:bg-medlightgray" : "cursor-pointer"}
                         `}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            if (!isDirty) return;
-                            if (hasSelection) {
-                                onChange(buildSelectedPartial(defaults));
-                                saveSnapshot();
-                            } else {
-                                onReset();
-                            }
-                        }}
-                    >
-                        <span className="text-verylightgray">Reset</span>
-                    </button>
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (!isDirty) return;
+                                if (hasSelection) {
+                                    onChange(buildSelectedPartial(defaults));
+                                    saveSnapshot();
+                                } else {
+                                    onReset();
+                                }
+                            }}
+                        >
+                            <span className="text-verylightgray">Reset</span>
+                        </button>
+                    </Tooltip>
 
-                    <button
-                        className={`
+                    <Tooltip label="Apply to all segments">
+                        <button
+                            className={`
                         bg-medgray px-2 rounded-sm
                         transition-all duration-100 active:scale-[0.995]
                         ${applied ? "opacity-40 cursor-not-allowed" : "hover:bg-medgray_hover cursor-pointer active:bg-medgray_hover/70"}
                         `}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            if (applied) return;
-                            skipNextHistoryChange.current = true;
-                            setApplied(true);
-                            const vals = hasSelection ? buildSelectedPartial(values) : values;
-                            onApply(vals);
-                            saveSnapshot();
-                        }}
-                    >
-                        <span className="text-verylightgray">Apply</span>
-                    </button>
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (applied) return;
+                                skipNextHistoryChange.current = true;
+                                setApplied(true);
+                                const vals = hasSelection ? buildSelectedPartial(values) : values;
+                                onApply(vals);
+                                saveSnapshot();
+                            }}
+                        >
+                            <span className="text-verylightgray">Apply</span>
+                        </button>
+                    </Tooltip>
 
                 </div>
             </button>
 
 
             {open && (
-                <Fragment>
-                    <div className="relative grid grid-cols-2 min-w-0 pl-5 gap-1.5 mt-2 w-[400px]">
+                <div className="relative">
+                    <div className="absolute left-[10px] top-0 h-full w-[4px] rounded-full bg-medlightgray" />
+                    <div className="grid grid-cols-2 min-w-0 pl-5 gap-1.5 mt-2 w-[400px]">
                         {fields.map((f) => (
                             <ConstantRow
                                 key={f.key}
@@ -183,7 +191,7 @@ export default function ConstantsList({
                             />
                         ))}
                     </div>
-                </Fragment>
+                </div>
             )}
         </div>
     );
