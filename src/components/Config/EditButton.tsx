@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { fileFormatStore, usePath } from "../../hooks/useFileFormat";
-import Separator from "../Util/Separator";
+import Section from "../Util/Section";
 import FieldMacros from "../../macros/FieldMacros";
 import MenuButtonTemplate from "../Util/MenuButtonTemplate";
 import { MenuKeybindButton } from "../Util/KeybindButton";
@@ -43,14 +43,14 @@ export default function EditButton() {
             <MenuButtonTemplate title="Edit" flashRef={flashRef}>
                 <MenuKeybindButton name={"Undo"} keybind={"Ctrl+Z"} callback={() => undo(null)} />
                 <MenuKeybindButton name={"Redo"} keybind={"Ctrl+Y"} callback={() => redo(null)} />
-                <Separator name="" />
+                <Section />
 
                 <MenuKeybindButton name={"Cut"} keybind={"Ctrl+X"} callback={() => cut(null, pathRef.current, setPath)} />
                 <MenuKeybindButton name={"Copy"} keybind={"Ctrl+C"} callback={() => copy(null, pathRef.current, triggerFlash)} />
                 <MenuKeybindButton name={"Copy All"} keybind={"Ctrl+⇧C"} callback={() => copy(null, pathRef.current, triggerFlash, true)} />
                 <MenuKeybindButton name={"Paste"} keybind={"Ctrl+V"} callback={() => paste(null, setPath)} />
                 <MenuKeybindButton name={"Delete"} keybind={"⌫"} callback={() => deleteControl(null, setPath)} />
-                <Separator name="" />
+                <Section />
 
                 <MenuKeybindButton name={"Select All"} keybind={"Ctrl+A"} callback={() => selectPath(null, setPath)} />
                 <MenuKeybindButton name={"Select None"} keybind={"Esc"} callback={() => unselectPath(null, setPath)} />

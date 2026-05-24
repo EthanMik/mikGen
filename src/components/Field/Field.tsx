@@ -10,8 +10,9 @@ import { useRobotVisibility } from "../../hooks/useRobotVisibility";
 import { PathSimMacros } from "../../macros/PathSimMacros";
 import FieldMacros from "../../macros/FieldMacros";
 import { useRobotPose } from "../../hooks/useRobotPose";
-import { getPressedPositionInch, pointerToSvg } from "./FieldUtils";
+import { DEFAULT_THEMES, getPressedPositionInch, pointerToSvg } from "./FieldUtils";
 import { useBoxSelect } from "./useBoxSelect";
+import { useMagnetSnap } from "./useMagnetSnap";
 import RobotLayer from "./RobotLayer";
 import PathLayer from "./PathLayer";
 import ControlsLayer from "./ControlsLayer";
@@ -20,56 +21,7 @@ import { resolveHeading, getBackwardsSnapPose, type Path } from "../../core/Type
 import { useSettings } from "../../hooks/useSettings";
 import { useFieldImg } from "../../hooks/useFieldImg";
 
-const primary = toRGBA("#a02007", 0.5);
-const secondary = toRGBA("#1560BD", 0.75);
-
 export default function Field() {
-
-	const colors = {
-		node: {
-			fill: primary,
-			fillSelected: "rgba(180, 50, 11, .75)",
-			stroke: secondary,
-			strokeHex: "#1560BD",
-		},
-		indicator: {
-			stroke: "#451717",
-			strokeSelected: "rgba(160, 50, 11, .9)",
-			strokeWithPos: secondary,
-		},
-		numberLabel: "#a0a0a06c",
-		path: {
-			strokeLight: toRGBA("#21b8c3", 1),
-			stroke: toRGBA("#1560BD", 0.75),
-			strokeDark: toRGBA("#7e1ca1", 1),
-			strokeHovered: "rgba(180, 50, 11, 1)",
-		},
-	};
-
-	// const primary = toRGBA("#a02007", 0.5);
-	// const secondary = toRGBA("#1560BD", 0.75);
-
-	// const colors = {
-	//   node: {
-	//     fill: primary,
-	//     fillSelected: "rgba(180, 50, 11, .75)",
-	//     stroke: secondary,
-	//   },
-	//   indicator: {
-	//     stroke: "#451717",
-	//     strokeSelected: "rgba(160, 50, 11, .9)",
-	//     strokeWithPos: secondary,
-	//   },
-	//   numberLabel: "#a0a0a06c",
-	//   path: {
-	//     strokeLight: toRGBA("#00ab36", 1),
-	//     stroke: toRGBA("#b1d61c", 0.75),
-	//     strokeDark: toRGBA("#cd2020", 1), 
-	//     strokeHovered: "rgba(180, 50, 11, 1)",
-	//   },
-	// };
-
-
 	const [img, setImg] = useFieldImg();
 	const [fieldKey] = useField();
 
@@ -101,6 +53,7 @@ export default function Field() {
 	const lastReleasedSnapshot = useRef<Path | null>(null);
 	const dragStartPointerInch = useRef<Coordinate | null>(null);
 	const dragStartPositions = useRef<Record<string, { x: number | null; y: number | null }>>({});
+	const shiftPendingSelectRef = useRef<string | null>(null);
 
 	const [middleMouseDown, setMiddleMouseDown] = useState(false)
 	const fieldDragRef = useRef<Coordinate>({ x: 0, y: 0 });
@@ -110,6 +63,8 @@ export default function Field() {
 		boxSelectRect, isBoxSelecting,
 		startBoxSelect, updateBoxSelect, finalizeBoxSelect, cancelBoxSelect,
 	} = useBoxSelect();
+
+	const { snapInfo, findSnap, clearSnap } = useMagnetSnap();
 
 	const {
 		moveControl, moveHeading, deleteControl, unselectPath, selectPath,
@@ -253,9 +208,32 @@ export default function Field() {
 		const start = dragStartPointerInch.current;
 		if (!start) return;
 
-		const dx = posInch.x - start.x;
-		const dy = posInch.y - start.y;
+		const shiftHeld = evt.shiftKey;
+		let effectivePosInch = posInch;
+
+		if (shiftHeld) {
+			const refSeg = path.segments.find(s => s.selected && !s.locked);
+			const refStart = refSeg ? dragStartPositions.current[refSeg.id] : null;
+			if (refStart && refStart.x !== null && refStart.y !== null) {
+				const rawDx = posInch.x - start.x;
+				const rawDy = posInch.y - start.y;
+				const segCurrentPos = { x: refStart.x + rawDx, y: refStart.y + rawDy };
+				const snappedSegPos = findSnap(segCurrentPos, path, img);
+				effectivePosInch = {
+					x: posInch.x + (snappedSegPos.x - segCurrentPos.x),
+					y: posInch.y + (snappedSegPos.y - segCurrentPos.y),
+				};
+			} else {
+				clearSnap();
+			}
+		} else {
+			clearSnap();
+		}
+
+		const dx = effectivePosInch.x - start.x;
+		const dy = effectivePosInch.y - start.y;
 		const ctrlHeld = evt.ctrlKey;
+		const snapValue = 1 / settings.snapToGrid;
 
 		if (!ctrlHeld && dx === lastAppliedDelta.current.dx && dy === lastAppliedDelta.current.dy) {
 			return;
@@ -295,16 +273,16 @@ export default function Field() {
 						hy = ofsY / mag;
 					}
 
-					const fromAnchorX = posInch.x - anchorPose.x;
-					const fromAnchorY = posInch.y - anchorPose.y;
+					const fromAnchorX = effectivePosInch.x - anchorPose.x;
+					const fromAnchorY = effectivePosInch.y - anchorPose.y;
 					let t = fromAnchorX * hx + fromAnchorY * hy;
 
 					let newX = anchorPose.x + t * hx;
 					let newY = anchorPose.y + t * hy;
 
 					if (ctrlHeld) {
-						newX = Math.round(newX * 2) / 2;
-						newY = Math.round(newY * 2) / 2;
+						newX = Math.round(newX * snapValue) / snapValue;
+						newY = Math.round(newY * snapValue) / snapValue;
 						t = (newX - anchorPose.x) * hx + (newY - anchorPose.y) * hy;
 					}
 
@@ -315,8 +293,8 @@ export default function Field() {
 				let newY = sy === null ? null : sy + dy;
 
 				if (ctrlHeld) {
-					if (newX !== null) newX = Math.round(newX * 2) / 2;
-					if (newY !== null) newY = Math.round(newY * 2) / 2;
+					if (newX !== null) newX = Math.round(newX * snapValue) / snapValue;
+					if (newY !== null) newY = Math.round(newY * snapValue) / snapValue;
 				}
 
 				return { ...c, pose: { ...c.pose, x: newX, y: newY } };
@@ -327,6 +305,8 @@ export default function Field() {
 	};
 
 	const endDrag = () => {
+		clearSnap();
+		shiftPendingSelectRef.current = null;
 		setDrag({ dragging: false, lastPos: { x: 0, y: 0 } });
 		dragHistoryActive.current = false;
 
@@ -384,7 +364,13 @@ export default function Field() {
 		}
 
 		const posSvg = pointerToSvg(evt, svgRef.current);
-		if (!drag.dragging) selectSegment(controlId, evt.shiftKey);
+		if (!drag.dragging) {
+			if (evt.shiftKey) {
+				shiftPendingSelectRef.current = controlId;
+			} else {
+				selectSegment(controlId, false);
+			}
+		}
 
 		const startInch = toInch(posSvg, FIELD_REAL_DIMENSIONS, img);
 		dragStartPointerInch.current = structuredClone(startInch);
@@ -449,6 +435,9 @@ export default function Field() {
 
 	const handlePointerUp = (evt: React.PointerEvent<SVGSVGElement>) => {
 		setMiddleMouseDown(false);
+		if (shiftPendingSelectRef.current !== null && !dragDidMove.current) {
+			selectSegment(shiftPendingSelectRef.current, true);
+		}
 		endDrag();
 		finalizeBoxSelect(img, path, setPath, (startInch) => {
 			if (path.segments.length > 0) {
@@ -488,7 +477,7 @@ export default function Field() {
 			>
 				<image href={getFieldSrcFromKey(fieldKey)} x={img.x} y={img.y} width={img.w} height={img.h} />
 
-				<PathLayer path={path} img={img} visible={pathVisible} precise={settings.precisePath} colors={colors} />
+				<PathLayer path={path} img={img} visible={pathVisible} precise={settings.precisePath} colors={DEFAULT_THEMES[settings.themeIdx]} />
 
 				<RobotLayer
 					img={img}
@@ -504,7 +493,7 @@ export default function Field() {
 						img={img}
 						radius={radius}
 						format={format}
-						colors={colors}
+						colors={DEFAULT_THEMES[settings.themeIdx]}
 						onPointerDown={handleControlPointerDown}
 					/>
 				)}
@@ -516,9 +505,31 @@ export default function Field() {
 						height={boxSelectRect.h}
 						fill={toRGBA("#1560BD", 0.15)}
 						stroke={toRGBA("#1560BD", 0.55)}
-						strokeWidth={1}
+						strokeWidth={1.5}
 						pointerEvents="none"
 					/>
+				)}
+				{snapInfo && (
+					<>
+						{snapInfo.snapYpx !== null && (
+							<line
+								x1={0} y1={snapInfo.snapYpx}
+								x2={FIELD_IMG_DIMENSIONS.w} y2={snapInfo.snapYpx}
+								stroke={toRGBA("#ff0000", 0.9)}
+								strokeWidth={1.5}
+								pointerEvents="none"
+							/>
+						)}
+						{snapInfo.snapXpx !== null && (
+							<line
+								x1={snapInfo.snapXpx} y1={0}
+								x2={snapInfo.snapXpx} y2={FIELD_IMG_DIMENSIONS.h}
+								stroke={toRGBA("#ff0000", 0.9)}
+								strokeWidth={1.5}
+								pointerEvents="none"
+							/>
+						)}
+					</>
 				)}
 			</svg>
 			{(img.x !== 0 || img.y !== 0 || img.w !== FIELD_IMG_DIMENSIONS.w || img.h !== FIELD_IMG_DIMENSIONS.h) && (

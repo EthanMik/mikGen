@@ -5,6 +5,8 @@ type Settings = {
     robotPosition: boolean;
     precisePath: boolean;
     numberedPath: boolean;
+    snapToGrid: number;
+    themeIdx: number;
 };
 
 const DEFAULTS: Settings = {
@@ -12,6 +14,8 @@ const DEFAULTS: Settings = {
     robotPosition: false,
     precisePath: false,
     numberedPath: false,
+    snapToGrid: 0.5,
+    themeIdx: 0
 };
 
 const saved = localStorage.getItem("settings");

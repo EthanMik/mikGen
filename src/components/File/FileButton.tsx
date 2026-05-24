@@ -6,7 +6,7 @@ import { saveSnapshot, undoHistory } from "../../core/Undo/UndoHistory";
 import { FORMAT_REGISTRY, mergeFormatDef, type FormatDef } from "../../simulation/FormatDefinition";
 import MenuButtonTemplate from "../Util/MenuButtonTemplate";
 import { MenuKeybindButton } from "../Util/KeybindButton";
-import Separator from "../Util/Separator";
+import Section from "../Util/Section";
 
 const FILE_VERSION = "mikGen v1.0.0";
 
@@ -291,12 +291,12 @@ export default function FileButton() {
             />
             <MenuButtonTemplate title="File" underlineRef={underlineRef}>
                 <MenuKeybindButton name="New File" keybind="Ctrl+P" callback={handleNewFile} />
-                <Separator name="" />
+                <Section />
                 <MenuKeybindButton name="Open File" keybind="Ctrl+O" callback={handleOpenFile} />
-                <Separator name="" />
+                <Section />
                 <MenuKeybindButton name="Save" keybind="Ctrl+S" callback={handleSave} />
                 <MenuKeybindButton name="Save As" keybind="Ctrl+⇧S" callback={handleSaveAs} />
-                <Separator name="" />
+                <Section />
                 <MenuKeybindButton name="Download" keybind="Ctrl+D" callback={handleDownload} />
                 <MenuKeybindButton name="Download As" keybind="Ctrl+⇧D" callback={handleDownloadAs} />
             </MenuButtonTemplate>

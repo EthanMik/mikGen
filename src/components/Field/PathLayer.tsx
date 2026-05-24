@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { computedPathStore } from "../../core/ComputePathSim";
 import type { Path } from "../../core/Types/Path";
 import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, toRGB, type Rectangle } from "../../core/Util";
-import { getSegmentLines, getPreciseSegmentDots } from "./FieldUtils";
+import { getSegmentLines, getPreciseSegmentDots, type FieldColors } from "./FieldUtils";
 
 const DOT_SPACING = 2;
 // radius in real-world inches so the SVG group transform scales it automatically with zoom
@@ -14,21 +14,12 @@ function speedColor(t: number, slow: number[], mid: number[], fast: number[]): s
   return `rgb(${Math.round(a[0] + frac * (b[0] - a[0]))},${Math.round(a[1] + frac * (b[1] - a[1]))},${Math.round(a[2] + frac * (b[2] - a[2]))})`;
 }
 
-type Colors = {
-  path: {
-    stroke: string;
-    strokeHovered: string
-    strokeLight: string,
-    strokeDark: string,
-  };
-};
-
 type PathLayerProps = {
   path: Path;
   img: Rectangle;
   visible: boolean;
   precise: boolean;
-  colors: Colors;
+  colors: FieldColors;
 };
 
 export default function PathLayer({ path, img, visible, precise, colors }: PathLayerProps) {
@@ -61,7 +52,7 @@ export default function PathLayer({ path, img, visible, precise, colors }: PathL
   return (
     <>
       {path.segments.map((control, idx) => {
-        const color = control.hovered ? colors.path.strokeHovered : colors.path.stroke;
+        const color = control.hovered ? colors.path.hovered : colors.path.stroke;
 
         if (precise) {
           const dots = allDots[idx];
