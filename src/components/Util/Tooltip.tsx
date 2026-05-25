@@ -68,7 +68,7 @@ export default function Tooltip({ label, placement = "top", keybind = false, chi
                             className={`
                                 pointer-events-none flex items-center gap-1 px-2 py-1
                                 bg-medgray_hover rounded-sm border-medgrayoffset border whitespace-nowrap
-                                transition-all duration-150
+                                duration-150
                                 ${centerClass[placement]}
                                 ${visible
                                     ? "opacity-100"

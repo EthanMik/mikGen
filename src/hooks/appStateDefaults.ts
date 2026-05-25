@@ -3,22 +3,29 @@ import type { Path } from "../core/Types/Path"
 import { FORMAT_REGISTRY, mergeFormatDef, type FormatDef } from "../simulation/FormatDefinition"
 import type { Format } from "../simulation/FormatDefinition"
 
-export type FieldType = 
-    "pushback-v5-match"   | 
-    "pushback-v5-skills"  | 
-    "pushback-vexu-match" | 
-    
-    "override-v5-match"   |
-    "override-v5-skills"  |
+export type FieldType =
+    "pushback-v5-match" |
+    "pushback-v5-skills" |
+    "pushback-vexu-match" |
+
+    "override-v5-match" |
+    "override-v5-skills" |
     "override-vexu-match" |
-    "override-vexu-skills"|
-     
-    "highstakes-v5-match"   |
-    "highstakes-v5-skills"  |
+    "override-vexu-skills" |
+
+    "highstakes-v5-match" |
+    "highstakes-v5-skills" |
     "highstakes-vexu-match" |
-    "highstakes-vexu-skills"|
-     
+    "highstakes-vexu-skills" |
+
     "empty" | "separator";
+
+export const VALID_FIELDS = new Set<FieldType>([
+    "pushback-v5-match", "pushback-v5-skills", "pushback-vexu-match",
+    "override-v5-match", "override-v5-skills", "override-vexu-match", "override-vexu-skills",
+    "highstakes-v5-match", "highstakes-v5-skills", "highstakes-vexu-match", "highstakes-vexu-skills",
+    "empty", "separator",
+]);
 
 export type FileFormat = {
     format: Format,
