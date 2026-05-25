@@ -38,6 +38,13 @@ export function usePath() {
     return [path, setPath] as const;
 }
 
+export function updatePath(next: Path | ((prev: Path) => Path)) {
+    fileFormatStore.setState(prev => ({
+        ...prev,
+        path: typeof next === "function" ? next(prev.path) : next,
+    }));
+}
+
 type FieldEntry = { key: FieldType; src: string; name: string };
 
 export const fieldMap: FieldEntry[] = [

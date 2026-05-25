@@ -3,7 +3,7 @@ import type { Coordinate } from "../../core/Types/Coordinate";
 import homeButton from "../../assets/home.svg";
 import { type Segment } from "../../core/Types/Segment";
 import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, toInch, toRGBA } from "../../core/Util";
-import { usePath, useFormat, useField, getFieldSrcFromKey, fileFormatStore } from "../../hooks/useFileFormat";
+import { usePath, useFormat, useField, getFieldSrcFromKey, fileFormatStore, updatePath } from "../../hooks/useFileFormat";
 import { usePathVisibility } from "../../hooks/usePathVisibility";
 import { usePose } from "../../hooks/usePose";
 import { useRobotVisibility } from "../../hooks/useRobotVisibility";
@@ -99,20 +99,20 @@ export default function Field() {
 				hiddenInputRef.current?.focus();
 				return;
 			}
-			unselectPath(evt, setPath);
-			moveControl(evt, setPath);
+			unselectPath(evt, updatePath);
+			moveControl(evt, updatePath);
 			if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(evt.key)) {
 				if (moveHistoryTimerRef.current) clearTimeout(moveHistoryTimerRef.current);
 				moveHistoryTimerRef.current = setTimeout(() => {
 					if (pathRef.current) saveSnapshot();
 				}, 400);
 			}
-			copy(evt, path, () => { });
-			copy(evt, path, () => { }, true);
-			cut(evt, path, setPath);
-			deleteControl(evt, setPath);
-			selectPath(evt, setPath);
-			selectInversePath(evt, setPath);
+			copy(evt, pathRef.current!, () => { });
+			copy(evt, pathRef.current!, () => { }, true);
+			cut(evt, pathRef.current!, updatePath);
+			deleteControl(evt, updatePath);
+			selectPath(evt, updatePath);
+			selectInversePath(evt, updatePath);
 			undo(evt);
 			redo(evt);
 
@@ -123,7 +123,7 @@ export default function Field() {
 		const handleWheelDown = (evt: WheelEvent) => {
 			const target = evt.target as HTMLElement | null;
 			if (target?.isContentEditable || target?.tagName === "INPUT") return;
-			if (moveHeading(evt, path, setPath)) {
+			if (moveHeading(evt, pathRef.current!, updatePath)) {
 				if (headingHistoryTimerRef.current) clearTimeout(headingHistoryTimerRef.current);
 				headingHistoryTimerRef.current = setTimeout(() => {
 					if (pathRef.current) saveSnapshot();
@@ -139,8 +139,6 @@ export default function Field() {
 			document.removeEventListener("wheel", handleWheelDown);
 		};
 	}, [
-		path,
-		setPath,
 		moveControl,
 		moveHeading,
 		deleteControl,
@@ -153,6 +151,7 @@ export default function Field() {
 		toggleRobotVisibility,
 		cut,
 		copy,
+		setImg,
 		setRobotVisibility,
 	]);
 

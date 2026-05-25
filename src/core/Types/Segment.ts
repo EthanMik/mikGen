@@ -8,7 +8,6 @@ export type Segment<F extends Format = Format> = {
   groupId?: string;
   disabled: boolean;
   selected: boolean;
-  hovered: boolean;
   locked: boolean;
   visible: boolean;
   pose: Pose;
@@ -23,7 +22,6 @@ export function createSegment<F extends Format>(formatDef: FormatDef<Format>, fo
   return {
     id: makeId(10),
     selected: false,
-    hovered: false,
     disabled: false,
     locked: false,
     visible: true,

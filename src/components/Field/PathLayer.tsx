@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { computedPathStore } from "../../core/ComputePathSim";
+import { hoveredSegmentStore } from "../../core/HoverStore";
 import type { Path } from "../../core/Types/Path";
 import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, toRGB, type Rectangle } from "../../core/Util";
 import { getSegmentLines, getPreciseSegmentDots, type FieldColors } from "./FieldUtils";
@@ -24,6 +25,7 @@ type PathLayerProps = {
 
 export default function PathLayer({ path, img, visible, precise, colors }: PathLayerProps) {
   const trajectories = computedPathStore.useSelector(s => s.segmentTrajectorys);
+  const hoveredId = hoveredSegmentStore.useStore();
 
   const allDots = useMemo(
     () => path.segments.map((_, idx) => getPreciseSegmentDots(idx, DOT_SPACING)),
@@ -52,7 +54,8 @@ export default function PathLayer({ path, img, visible, precise, colors }: PathL
   return (
     <>
       {path.segments.map((control, idx) => {
-        const color = control.hovered ? colors.path.hovered : colors.path.stroke;
+        const hovered = hoveredId === control.id;
+        const color = hovered ? colors.path.hovered : colors.path.stroke;
 
         if (precise) {
           const dots = allDots[idx];
@@ -65,7 +68,7 @@ export default function PathLayer({ path, img, visible, precise, colors }: PathL
                   cx={pt.x}
                   cy={pt.y}
                   r={DOT_RADIUS}
-                  fill={control.hovered ? color : speedColor(pt.t, slowRGB, midRGB, fastRGB)}
+                  fill={hovered ? color : speedColor(pt.t, slowRGB, midRGB, fastRGB)}
                 />
               ))}
             </g>
@@ -82,7 +85,7 @@ export default function PathLayer({ path, img, visible, precise, colors }: PathL
             fill="none"
             stroke={color}
             strokeDasharray={`${10 * scale}, ${7 * scale}`}
-            strokeWidth={control.hovered ? (3 * scale) : (2 * scale)}
+            strokeWidth={hovered ? (3 * scale) : (2 * scale)}
             strokeLinecap="round"
           />
         );

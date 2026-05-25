@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import eyeOpen from "../../assets/eye-open.svg";
 import eyeClosed from "../../assets/eye-closed.svg";
 import clockClose from "../../assets/clock-close.svg";
 import clockOpen from "../../assets/clock-open.svg";
 import downArrow from "../../assets/down-arrow.svg";
 import Slider from "../Util/Slider";
-import { usePath, useFormatDef, fileFormatStore } from "../../hooks/useFileFormat";
+import { useFormatDef, fileFormatStore, updatePath } from "../../hooks/useFileFormat";
 import type { ConstantField } from "./ConstantRow";
 import ConstantsList from "./ConstantsList";
 import CycleImageButton, { type CycleImageButtonProps } from "../Util/CycleButton";
@@ -13,6 +13,7 @@ import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import { setupDragTransfer } from "./PathConfigUtils";
 import { activeSimSegmentStore, computedPathStore, pathTelemetry, simJumpStore } from "../../core/ComputePathSim";
 import { roundNum } from "../../core/Util";
+import { hoveredSegmentStore } from "../../core/HoverStore";
 import {
     updatePathConstants,
     updatePathConstantsByKind,
@@ -46,7 +47,7 @@ type MotionListProps = {
     shrink?: boolean;
 }
 
-export default function MotionList({
+const MotionList = memo(function MotionList({
     segmentId,
     index,
     isOpenGlobal,
@@ -58,11 +59,11 @@ export default function MotionList({
     draggingIds = [],
     shrink = false,
 }: MotionListProps) {
-    const [path, setPath] = usePath();
+    const segment = fileFormatStore.useSelector(s => s.path.segments.find(seg => seg.id === segmentId))!;
     const formatDef = useFormatDef();
+    const isActiveSimSegment = activeSimSegmentStore.useSelector(s => s === index);
 
-    const segment = path.segments.find(s => s.id === segmentId)!;
-    const segDef = formatDef.segments[segment.kind];
+    const segDef = formatDef.segments[segment?.kind];
     const name = segDef?.name ?? "";
 
     const sliderDef = segDef?.slider;
@@ -70,16 +71,13 @@ export default function MotionList({
     const sliderConstantsIdx = sliderDef?.constantsIdx ?? 0;
     const speedScale = sliderDef?.bounds[1] ?? 1;
     const selected = segment?.selected;
-    const activeSimSegment = activeSimSegmentStore.useStore();
 
     const [isEyeOpen, setEyeOpen] = useState(true);
     const [isTelemetryOpen, setTelemetryOpen] = useState(false);
     const [isOpen, setOpen] = useState(false);
-    const pathRef = useRef(path);
-    pathRef.current = path;
 
     const normalSelect = () => {
-        setPath(prev => ({
+        updatePath(prev => ({
             ...prev,
             segments: prev.segments.map(s =>
                 s.id === segmentId ? { ...s, selected: true } : { ...s, selected: false }
@@ -88,7 +86,7 @@ export default function MotionList({
     };
 
     const ctrlSelect = () => {
-        setPath(prev => {
+        updatePath(prev => {
             const willSelect = !prev.segments.find(s => s.id === segmentId)?.selected;
             return {
                 ...prev,
@@ -100,7 +98,7 @@ export default function MotionList({
     };
 
     const shiftSelect = () => {
-        setPath(prev => {
+        updatePath(prev => {
             const segments = prev.segments;
             const clickedIdx = segments.findIndex(s => s.id === segmentId);
             if (clickedIdx === -1) return prev;
@@ -132,27 +130,11 @@ export default function MotionList({
         }
     };
 
-    const startHover = () => {
-        setPath(prev => ({
-            ...prev,
-            segments: prev.segments.map(s =>
-                s.id === segmentId ? { ...s, hovered: true } : { ...s, hovered: false }
-            ),
-        }));
-    };
-
-    const endHover = () => {
-        setPath(prev => ({
-            ...prev,
-            segments: prev.segments.map(s => ({ ...s, hovered: false })),
-        }));
-    };
-
     useEffect(() => { setOpen(isOpenGlobal); }, [isOpenGlobal]);
     useEffect(() => { if (isTelemetryOpenGlobal !== undefined) setTelemetryOpen(isTelemetryOpenGlobal); }, [isTelemetryOpenGlobal]);
 
     const handleEyeOnClick = () => {
-        setPath(prev => {
+        updatePath(prev => {
             const affected = prev.segments.filter(s => s.id === segmentId || s.selected);
             const anyVisible = affected.some(s => s.visible);
             return {
@@ -165,7 +147,7 @@ export default function MotionList({
         saveSnapshot();
     }
 
-    useEffect(() => { setEyeOpen(segment.visible); }, [segment.visible]);
+    useEffect(() => { setEyeOpen(segment?.visible); }, [segment?.visible]);
 
     const getValuesFromKeys = (keys: string[], obj: ConstantsRecord): ConstantsRecord => {
         const result: ConstantsRecord = {};
@@ -175,7 +157,7 @@ export default function MotionList({
         return result;
     };
 
-    const telemetrySlice = pathTelemetry.useSelector(s => s[index]);
+    const telemetrySlice = pathTelemetry.useSelector(s => isTelemetryOpen ? s[index] : undefined);
 
     const handleContextMenu = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -185,76 +167,100 @@ export default function MotionList({
         simJumpStore.setState(percent);
     };
 
-    const segRecord = segment as unknown as ConstantsRecord;
-    const field: ConstantListField[] = (segDef?.numberInputs ?? []).map(group => {
-        const constValues = segment.constants[group.constantsIdx] as unknown as ConstantsRecord;
-        const isSegKey = (key: string) =>
-            key in segment && typeof segRecord[key] === 'number' && !(key in constValues);
-        const splitPatch = (partial: Partial<ConstantsRecord>) => {
-            const segPatch: Record<string, unknown> = {};
-            const constPatch: Partial<FormatConstants[Format]> = {};
-            for (const [k, v] of Object.entries(partial)) {
-                if (isSegKey(k)) segPatch[k] = v;
-                else (constPatch as Record<string, unknown>)[k] = v;
-            }
-            return { segPatch, constPatch };
-        };
-        const applySegPatch = (segPatch: Record<string, unknown>, allOfKind = false) =>
-            setPath(prev => ({
-                ...prev,
-                segments: prev.segments.map(s =>
-                    (allOfKind ? s.kind === segment.kind : s.id === segmentId) ? { ...s, ...segPatch } : s
-                ),
-            }));
-        return {
-            constantsIdx: group.constantsIdx,
-            header: group.headerName,
-            values: { ...segRecord, ...constValues },
-            fields: group.fields.map(f => ({ key: String(f.key), label: f.label, units: f.units, input: f.input })),
-            defaults: {
-                ...segRecord,
-                ...(formatDef.segments[segment.kind]?.defaults?.[group.constantsIdx] ?? formatDef.constants[0]) as unknown as ConstantsRecord,
-            },
-            onChange: (partial: Partial<ConstantsRecord>) => {
-                const { segPatch, constPatch } = splitPatch(partial);
-                if (Object.keys(segPatch).length > 0) applySegPatch(segPatch);
-                if (Object.keys(constPatch).length > 0) updatePathConstants(setPath, segmentId, group.constantsIdx, constPatch);
-            },
-            setDefault: (partial: Partial<ConstantsRecord>) => {
-                const constOnly = Object.fromEntries(Object.entries(partial).filter(([k]) => !isSegKey(k)));
-                if (Object.keys(constOnly).length > 0) fileFormatStore.setState(prev => ({
-                    ...prev,
-                    formatDef: updateDefaultConstants(prev.formatDef, segment.kind, group.constantsIdx, constOnly as Partial<FormatConstants[Format]>),
-                }));
-            },
-            onApply: (partial: Partial<ConstantsRecord>) => {
-                const { segPatch, constPatch } = splitPatch(partial);
-                if (Object.keys(segPatch).length > 0) applySegPatch(segPatch, true);
-                if (Object.keys(constPatch).length > 0) updatePathConstantsByKind(setPath, segment.kind, group.constantsIdx, constPatch);
-            },
-        };
-    });
-
-    const directionField: CycleImageButtonProps[] = (segDef?.cycleButtons ?? []).map(btn => ({
-        imageKeys: btn.keyValues.map(kv => ({ src: kv.srcImg, key: String(kv.value) })) as CycleImageButtonProps["imageKeys"],
-        label: String(btn.key),
-        value: String((segment.constants[btn.constantsIdx] as unknown as ConstantsRecord)[String(btn.key)]),
-        onKeyChange: (newKey: string | null) => {
-            const match = btn.keyValues.find(kv => String(kv.value) === newKey);
-            if (match !== undefined) {
-                updatePathConstants(setPath, segmentId, btn.constantsIdx, { [String(btn.key)]: match.value } as Partial<FormatConstants[Format]>);
-                const posePartial = btn.poseEffect?.(match.value as never);
-                if (posePartial) {
-                    setPath(prev => ({
-                        ...prev,
-                        segments: prev.segments.map(s =>
-                            s.id === segmentId ? { ...s, pose: { ...s.pose, ...posePartial } } : s
-                        ),
-                    }));
+    const field = useMemo<ConstantListField[]>(() => {
+        if (!segment || !segDef) return [];
+        const segRecord = segment as unknown as ConstantsRecord;
+        return (segDef.numberInputs ?? []).map(group => {
+            const constValues = segment.constants[group.constantsIdx] as unknown as ConstantsRecord;
+            const isSegKey = (key: string) =>
+                key in segment && typeof segRecord[key] === 'number' && !(key in constValues);
+            const splitPatch = (partial: Partial<ConstantsRecord>) => {
+                const segPatch: Record<string, unknown> = {};
+                const constPatch: Partial<FormatConstants[Format]> = {};
+                for (const [k, v] of Object.entries(partial)) {
+                    if (isSegKey(k)) segPatch[k] = v;
+                    else (constPatch as Record<string, unknown>)[k] = v;
                 }
-            }
-        },
-    }));
+                return { segPatch, constPatch };
+            };
+            const applySegPatch = (segPatch: Record<string, unknown>, allOfKind = false) =>
+                updatePath(prev => ({
+                    ...prev,
+                    segments: prev.segments.map(s =>
+                        (allOfKind ? s.kind === segment.kind : s.id === segmentId) ? { ...s, ...segPatch } : s
+                    ),
+                }));
+            return {
+                constantsIdx: group.constantsIdx,
+                header: group.headerName,
+                values: { ...segRecord, ...constValues },
+                fields: group.fields.map(f => ({ key: String(f.key), label: f.label, units: f.units, input: f.input })),
+                defaults: {
+                    ...segRecord,
+                    ...(formatDef.segments[segment.kind]?.defaults?.[group.constantsIdx] ?? formatDef.constants[0]) as unknown as ConstantsRecord,
+                },
+                onChange: (partial: Partial<ConstantsRecord>) => {
+                    const { segPatch, constPatch } = splitPatch(partial);
+                    if (Object.keys(segPatch).length > 0) applySegPatch(segPatch);
+                    if (Object.keys(constPatch).length > 0) updatePathConstants(updatePath, segmentId, group.constantsIdx, constPatch);
+                },
+                setDefault: (partial: Partial<ConstantsRecord>) => {
+                    const constOnly = Object.fromEntries(Object.entries(partial).filter(([k]) => !isSegKey(k)));
+                    if (Object.keys(constOnly).length > 0) fileFormatStore.setState(prev => ({
+                        ...prev,
+                        formatDef: updateDefaultConstants(prev.formatDef, segment.kind, group.constantsIdx, constOnly as Partial<FormatConstants[Format]>),
+                    }));
+                },
+                onApply: (partial: Partial<ConstantsRecord>) => {
+                    const { segPatch, constPatch } = splitPatch(partial);
+                    if (Object.keys(segPatch).length > 0) applySegPatch(segPatch, true);
+                    if (Object.keys(constPatch).length > 0) updatePathConstantsByKind(updatePath, segment.kind, group.constantsIdx, constPatch);
+                },
+            };
+        });
+    }, [segment, segDef, segmentId, formatDef]);
+
+    const fieldSections = useMemo(() => field.map(f => {
+        const fieldKeys = f.fields.map(m => m.key);
+        const relevantValues = getValuesFromKeys(fieldKeys, f.values);
+        const relevantDefaults = getValuesFromKeys(fieldKeys, f.defaults);
+        return {
+            header: f.header,
+            fields: f.fields,
+            values: relevantValues,
+            defaults: relevantDefaults,
+            onChange: f.onChange,
+            onApply: f.onApply,
+            onReset: () => { f.onChange(relevantDefaults); saveSnapshot(); },
+            onSetDefault: (constants: Partial<ConstantsRecord>) => { f.setDefault(constants); saveSnapshot(); },
+        };
+    }), [field]);
+
+    const directionField = useMemo<CycleImageButtonProps[]>(() => {
+        if (!segment || !segDef) return [];
+        return (segDef.cycleButtons ?? []).map(btn => ({
+            imageKeys: btn.keyValues.map(kv => ({ src: kv.srcImg, key: String(kv.value) })) as CycleImageButtonProps["imageKeys"],
+            label: String(btn.key),
+            value: String((segment.constants[btn.constantsIdx] as unknown as ConstantsRecord)[String(btn.key)]),
+            onKeyChange: (newKey: string | null) => {
+                const match = btn.keyValues.find(kv => String(kv.value) === newKey);
+                if (match !== undefined) {
+                    updatePathConstants(updatePath, segmentId, btn.constantsIdx, { [String(btn.key)]: match.value } as Partial<FormatConstants[Format]>);
+                    const posePartial = btn.poseEffect?.(match.value as never);
+                    if (posePartial) {
+                        updatePath(prev => ({
+                            ...prev,
+                            segments: prev.segments.map(s =>
+                                s.id === segmentId ? { ...s, pose: { ...s.pose, ...posePartial } } : s
+                            ),
+                        }));
+                    }
+                }
+            },
+        }));
+    }, [segment, segDef, segmentId]);
+
+    if (!segment) return null;
 
     const sliderField = field.find(f => f.constantsIdx === sliderConstantsIdx) ?? field[0];
     const sliderSegmentRaw = sliderKey in segment ? (segment as Record<string, unknown>)[sliderKey] : undefined;
@@ -278,8 +284,8 @@ export default function MotionList({
                 onDragEnter={() => { if (onDragEnter) onDragEnter(); }}
                 onClick={handleOnClick}
                 onContextMenu={handleContextMenu}
-                onMouseEnter={startHover}
-                onMouseLeave={endHover}
+                onMouseEnter={() => hoveredSegmentStore.setState(segmentId)}
+                onMouseLeave={() => hoveredSegmentStore.setState(null)}
                 style={{ width: `${!shrink ? 450 : 400}px` }}
                 className={`${selected ? "bg-medlightgray" : ""}
                     relative flex flex-row justify-start items-center
@@ -293,7 +299,7 @@ export default function MotionList({
                     ${draggingIds.includes(segmentId) ? "opacity-10" : ""}
                 `}
             >
-                <div className={`absolute left-0 top-[20%] h-[60%] w-[3px] rounded-full bg-lightgray transition-opacity duration-150 ${activeSimSegment === index ? "opacity-100" : "opacity-0"}`} />
+                <div className={`absolute left-0 top-[20%] h-[60%] w-[3px] rounded-full bg-lightgray transition-opacity duration-150 ${isActiveSimSegment ? "opacity-100" : "opacity-0"}`} />
 
                 <button
                     className="cursor-pointer shrink-0"
@@ -323,7 +329,7 @@ export default function MotionList({
                             setValue={(v: number) => {
                                 const newValue = (v / 100) * speedScale;
                                 if (isSegmentKey) {
-                                    setPath(prev => ({
+                                    updatePath(prev => ({
                                         ...prev,
                                         segments: prev.segments.map(s =>
                                             s.id === segmentId ? { ...s, [sliderKey]: newValue } : s
@@ -377,34 +383,24 @@ export default function MotionList({
                 )}
 
                 <div className={`flex flex-col gap-1 ${isOpen ? "" : "hidden"}`}>
-                    {field.map((f) => {
-                        const fieldKeys = f.fields.map(m => m.key);
-                        const relevantValues = getValuesFromKeys(fieldKeys, f.values);
-                        const relevantDefaults = getValuesFromKeys(fieldKeys, f.defaults);
-
-                        return (
-                            <ConstantsList
-                                key={f.header}
-                                header={f.header}
-                                fields={f.fields}
-                                values={relevantValues}
-                                isOpenGlobal={false}
-                                onChange={f.onChange}
-                                onReset={() => {
-                                    f.onChange(relevantDefaults);
-                                    saveSnapshot();
-                                }}
-                                onSetDefault={(constants) => {
-                                    f.setDefault(constants);
-                                    saveSnapshot();
-                                }}
-                                onApply={f.onApply}
-                                defaults={relevantDefaults}
-                            />
-                        );
-                    })}
+                    {fieldSections.map((f) => (
+                        <ConstantsList
+                            key={f.header}
+                            header={f.header}
+                            fields={f.fields}
+                            values={f.values}
+                            isOpenGlobal={false}
+                            onChange={f.onChange}
+                            onReset={f.onReset}
+                            onSetDefault={f.onSetDefault}
+                            onApply={f.onApply}
+                            defaults={f.defaults}
+                        />
+                    ))}
                 </div>
             </div>
         </div>
     );
-}
+});
+
+export default MotionList;

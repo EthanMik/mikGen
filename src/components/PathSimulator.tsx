@@ -154,12 +154,19 @@ export default function PathSimulator() {
             const startT = seg[0].t;
             const endT = seg[seg.length - 1].t;
 
-            if (adjustedTime <= startT) return { ...tel, progressRaw: 0, progressPercent: 0 };
-            if (adjustedTime >= endT) return { ...tel, progressRaw: tel.totalDistance, progressPercent: 100 };
+            if (adjustedTime <= startT) {
+                if (tel.progressRaw === 0 && tel.progressPercent === 0) return tel;
+                return { ...tel, progressRaw: 0, progressPercent: 0 };
+            }
+            if (adjustedTime >= endT) {
+                if (tel.progressRaw === tel.totalDistance && tel.progressPercent === 100) return tel;
+                return { ...tel, progressRaw: tel.totalDistance, progressPercent: 100 };
+            }
 
             const idx = Math.min(Math.floor((adjustedTime - startT) / dt), cumDist.length - 1);
             const progressRaw = cumDist[idx];
             const progressPercent = tel.totalDistance > 0 ? (progressRaw / tel.totalDistance) * 100 : 0;
+            if (tel.progressRaw === progressRaw && tel.progressPercent === progressPercent) return tel;
             return { ...tel, progressRaw, progressPercent };
         });
 
