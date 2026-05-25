@@ -7,6 +7,7 @@ import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import { changeFormat } from "../../simulation/FormatDefinition";
 import Section from "../Util/Section";
 import ConfigButtonTemplate from "./ConfigButtonTemplate";
+import Tooltip from "../Util/Tooltip";
 
 type NumberInputButtonProps = {
     name: string;
@@ -16,24 +17,27 @@ type NumberInputButtonProps = {
     stepSize: number;
     roundTo: number;
     units: string;
+    label?: string;
 };
 
-export function NumberInputButton({ name, value, setValue, bounds, stepSize, roundTo, units }: NumberInputButtonProps) {
+export function NumberInputButton({ name, value, setValue, bounds, stepSize, roundTo, units, label }: NumberInputButtonProps) {
     return (
         <div className="flex flex-row pr-1 pl-2 items-center justify-between rounded-sm">
             <span className="text-[14px]">{name}</span>
-            <NumberInput
-                width={45}
-                height={28}
-                fontSize={14}
-                bounds={bounds}
-                stepSize={stepSize}
-                roundTo={roundTo}
-                units={units}
-                value={value}
-                setValue={setValue}
-                addToHistory={() => saveSnapshot()}
-            />
+            <Tooltip label={label}>
+                <NumberInput
+                    width={45}
+                    height={28}
+                    fontSize={14}
+                    bounds={bounds}
+                    stepSize={stepSize}
+                    roundTo={roundTo}
+                    units={units}
+                    value={value}
+                    setValue={setValue}
+                    addToHistory={() => saveSnapshot()}
+                />
+            </Tooltip>
         </div>
     );
 }
@@ -99,12 +103,15 @@ export default function RobotButton() {
                 <Section name="General">
                     <NumberInputButton name="Width" value={robot.width} setValue={v => v !== null && mergeRobot({ width: v })} bounds={[0, 30]} stepSize={1} roundTo={1} units="in" />
                     <NumberInputButton name="Height" value={robot.height} setValue={v => v !== null && mergeRobot({ height: v })} bounds={[0, 30]} stepSize={1} roundTo={1} units="in" />
-                    <NumberInputButton name="Speed" value={robot.speed} setValue={v => v !== null && mergeRobot({ speed: v })} bounds={[0, 100]} stepSize={0.5} roundTo={2} units="ft/s" />
+                    {(format === "mikLib" || format === "Holonomic") && (
+                        <CheckboxButton name="Holonomic" checked={format === "Holonomic"} label="Toggle format to mikLib Holonomic" setChecked={handleToggleHolonomic} />
+                    )}
                 </Section>
-
-                <Section name="Time Constant (Accel)" defaultCollapsed>
-                    <NumberInputButton name="Drive" value={robot.lateralTau} setValue={v => v !== null && mergeRobot({ lateralTau: v })} bounds={[0, 2]} stepSize={0.05} roundTo={2} units="s" />
-                    <NumberInputButton name="Turn" value={robot.angularTau} setValue={v => v !== null && mergeRobot({ angularTau: v })} bounds={[0, 2]} stepSize={0.05} roundTo={2} units="s" />
+                <Section name="Motion" defaultCollapsed>
+                    <NumberInputButton name="Speed" value={robot.speed} setValue={v => v !== null && mergeRobot({ speed: v })} bounds={[0, 100]} stepSize={0.5} roundTo={2} units="ft/s" />
+                    <NumberInputButton name="Track Width" label="Distance measured from wheel to wheel" value={robot.trackwidth} setValue={v => v !== null && mergeRobot({ trackwidth: v })} bounds={[0, 30]} stepSize={0.5} roundTo={1} units="in" />
+                    <NumberInputButton name="Drive Constant" label="Time for robot to reach 63.2% of its max velocity laterally" value={robot.lateralTau} setValue={v => v !== null && mergeRobot({ lateralTau: v })} bounds={[0, 2]} stepSize={0.05} roundTo={2} units="s" />
+                    <NumberInputButton name="Turn Constant" label="Time for robot to reach 63.2% of max velocity turning" value={robot.angularTau} setValue={v => v !== null && mergeRobot({ angularTau: v })} bounds={[0, 2]} stepSize={0.05} roundTo={2} units="s" />
                 </Section>
 
                 <Section name="Expansion" defaultCollapsed>
@@ -125,15 +132,9 @@ export default function RobotButton() {
                 </Section>
 
                 <Section name="CoG Offset" defaultCollapsed>
-                    <NumberInputButton name="Lateral" value={robot.cogOffsetX} setValue={v => v !== null && mergeRobot({ cogOffsetX: v })} bounds={[-15, 15]} stepSize={0.5} roundTo={2} units="in" />
-                    <NumberInputButton name="Forward" value={robot.cogOffsetY} setValue={v => v !== null && mergeRobot({ cogOffsetY: v })} bounds={[-15, 15]} stepSize={0.5} roundTo={2} units="in" />
+                    <NumberInputCheckboxButton name="Lateral" value={robot.cogOffsetX} setValue={v => v !== null && mergeRobot({ cogOffsetX: v })} bounds={[-15, 15]} stepSize={0.5} roundTo={2} units="in" checked={!robot.cogOffsetXDisabled} setChecked={checked => { mergeRobot({ cogOffsetXDisabled: !checked }); saveSnapshot(); }} />
+                    <NumberInputCheckboxButton name="Forward" value={robot.cogOffsetY} setValue={v => v !== null && mergeRobot({ cogOffsetY: v })} bounds={[-15, 15]} stepSize={0.5} roundTo={2} units="in" checked={!robot.cogOffsetYDisabled} setChecked={checked => { mergeRobot({ cogOffsetYDisabled: !checked }); saveSnapshot(); }} />
                 </Section>
-
-                {(format === "mikLib" || format === "Holonomic") && (
-                    <Section name="Robot Type" defaultCollapsed>
-                        <CheckboxButton name="Holonomic" checked={format === "Holonomic"} setChecked={handleToggleHolonomic} />
-                    </Section>
-                )}
             </div>
         </ConfigButtonTemplate>
     );

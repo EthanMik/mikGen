@@ -1,10 +1,10 @@
-import { type ReactNode, useRef, useState } from "react";
+import { Fragment, type ReactNode, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 type TooltipPlacement = "top" | "bottom" | "left" | "right";
 
 type TooltipProps = {
-    label: string;
+    label: string | undefined;
     placement?: TooltipPlacement;
     speed?: "slow" | "fast";
     keybind?: boolean,
@@ -57,28 +57,32 @@ export default function Tooltip({ label, placement = "top", keybind = false, chi
     }
 
     return (
-        <>
-            <div ref={ref} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-                {children}
-            </div>
-            {tooltipStyle && createPortal(
-                <div
-                    className={`
-                        pointer-events-none flex items-center gap-1 px-2 py-1
-                        bg-medgray_hover rounded-sm border-medgrayoffset border whitespace-nowrap
-                        transition-all duration-150
-                        ${centerClass[placement]}
-                        ${visible
-                            ? "opacity-100"
-                            : `opacity-0 ${slideClass[placement]} delay-100`
-                        }
-                    `}
-                    style={{ ...tooltipStyle, transitionDelay: visible ? `${openDelay}ms` : "100ms" }}
-                >
-                    <span className={`text-[10px] ${keybind ? "text-lightgray" : "text-verylightgray"}`}>{label}</span>
-                </div>,
-                document.body
-            )}
-        </>
+        <Fragment>
+            {label !== undefined ? (
+                <>
+                    <div ref={ref} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+                        {children}
+                    </div>
+                    {tooltipStyle && createPortal(
+                        <div
+                            className={`
+                                pointer-events-none flex items-center gap-1 px-2 py-1
+                                bg-medgray_hover rounded-sm border-medgrayoffset border whitespace-nowrap
+                                transition-all duration-150
+                                ${centerClass[placement]}
+                                ${visible
+                                    ? "opacity-100"
+                                    : `opacity-0 ${slideClass[placement]} delay-100`
+                                }
+                            `}
+                            style={{ ...tooltipStyle, transitionDelay: visible ? `${openDelay}ms` : "100ms" }}
+                        >
+                            <span className={`text-[10px] ${keybind ? "text-lightgray" : "text-verylightgray"}`}>{label}</span>
+                        </div>,
+                        document.body
+                    )}
+                </>
+            ) : children}
+        </Fragment>
     );
 }

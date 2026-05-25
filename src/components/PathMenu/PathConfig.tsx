@@ -1,18 +1,9 @@
 import { useState } from "react";
-import { usePath, useFormat, useFormatDef, fileFormatStore } from "../../hooks/useFileFormat";
-import MotionList, { type ConstantListField } from "./MotionList";
+import { usePath, useFormat } from "../../hooks/useFileFormat";
+import MotionList from "./MotionList";
 import PathConfigHeader from "./PathHeader";
-import {
-    FORMAT_REGISTRY,
-    updatePathConstants,
-    updateDefaultConstants,
-    updatePathConstantsByKind,
-    type ConstantsRecord,
-    type FormatConstants,
-    type Format,
-} from "../../simulation/FormatDefinition";
+import { FORMAT_REGISTRY } from "../../simulation/FormatDefinition";
 import { moveMultipleSegments, buildDraggingIds } from "./PathConfigUtils";
-import type { CycleImageButtonProps } from "../Util/CycleButton";
 
 export default function PathConfig() {
     const [path, setPath] = usePath();
@@ -21,7 +12,6 @@ export default function PathConfig() {
     const [isOpen, setOpen] = useState(false);
     const [isTelemetryOpen, setTelemetryOpen] = useState(false);
     const [format] = useFormat();
-    const formatDef = useFormatDef();
 
     const startDragging = (segmentId: string) => {
         setDraggingIds(buildDraggingIds(path.segments, segmentId));
@@ -54,78 +44,6 @@ export default function PathConfig() {
                 }}
             >
                 {path.segments.map((c, idx) => {
-                    const segDef = FORMAT_REGISTRY[format].segments[c.kind];
-
-                    const segRecord = c as unknown as ConstantsRecord;
-                    const constantsFields: ConstantListField[] = (segDef?.numberInputs ?? []).map(group => {
-                        const constValues = c.constants[group.constantsIdx] as unknown as ConstantsRecord;
-                        const isSegKey = (key: string) =>
-                            key in c && typeof segRecord[key] === 'number' && !(key in constValues);
-                        const splitPatch = (partial: Partial<ConstantsRecord>) => {
-                            const segPatch: Record<string, unknown> = {};
-                            const constPatch: Partial<FormatConstants[Format]> = {};
-                            for (const [k, v] of Object.entries(partial)) {
-                                if (isSegKey(k)) segPatch[k] = v;
-                                else (constPatch as Record<string, unknown>)[k] = v;
-                            }
-                            return { segPatch, constPatch };
-                        };
-                        const applySegPatch = (segPatch: Record<string, unknown>, allOfKind = false) =>
-                            setPath(prev => ({
-                                ...prev,
-                                segments: prev.segments.map(s =>
-                                    (allOfKind ? s.kind === c.kind : s.id === c.id) ? { ...s, ...segPatch } : s
-                                ),
-                            }));
-                        return {
-                            constantsIdx: group.constantsIdx,
-                            header: group.headerName,
-                            values: { ...segRecord, ...constValues },
-                            fields: group.fields.map(f => ({ key: String(f.key), label: f.label, units: f.units, input: f.input })),
-                            defaults: {
-                                ...segRecord,
-                                ...(formatDef.segments[c.kind]?.defaults?.[group.constantsIdx] ?? formatDef.constants[0]) as unknown as ConstantsRecord,
-                            },
-                            onChange: (partial) => {
-                                const { segPatch, constPatch } = splitPatch(partial);
-                                if (Object.keys(segPatch).length > 0) applySegPatch(segPatch);
-                                if (Object.keys(constPatch).length > 0) updatePathConstants(setPath, c.id, group.constantsIdx, constPatch);
-                            },
-                            setDefault: (partial) => {
-                                const constOnly = Object.fromEntries(Object.entries(partial).filter(([k]) => !isSegKey(k)));
-                                if (Object.keys(constOnly).length > 0) fileFormatStore.setState(prev => ({
-                                    ...prev,
-                                    formatDef: updateDefaultConstants(prev.formatDef, c.kind, group.constantsIdx, constOnly as Partial<FormatConstants[Format]>),
-                                }));
-                            },
-                            onApply: (partial) => {
-                                const { segPatch, constPatch } = splitPatch(partial);
-                                if (Object.keys(segPatch).length > 0) applySegPatch(segPatch, true);
-                                if (Object.keys(constPatch).length > 0) updatePathConstantsByKind(setPath, c.kind, group.constantsIdx, constPatch);
-                            },
-                        };
-                    });
-
-                    const directionFields: CycleImageButtonProps[] = (segDef?.cycleButtons ?? []).map(btn => ({
-                        imageKeys: btn.keyValues.map(kv => ({ src: kv.srcImg, key: String(kv.value) })) as CycleImageButtonProps["imageKeys"],
-                        value: String((c.constants[btn.constantsIdx] as unknown as ConstantsRecord)[String(btn.key)]),
-                        onKeyChange: (newKey: string | null) => {
-                            const match = btn.keyValues.find(kv => String(kv.value) === newKey);
-                            if (match !== undefined) {
-                                updatePathConstants(setPath, c.id, btn.constantsIdx, { [String(btn.key)]: match.value } as Partial<FormatConstants[Format]>);
-                                const posePartial = btn.poseEffect?.(match.value as never);
-                                if (posePartial) {
-                                    setPath(prev => ({
-                                        ...prev,
-                                        segments: prev.segments.map(s =>
-                                            s.id === c.id ? { ...s, pose: { ...s.pose, ...posePartial } } : s
-                                        ),
-                                    }));
-                                }
-                            }
-                        },
-                    }));
-
                     const showDropIndicator = overIndex === idx && draggingIds.length > 0 && idx > 0;
 
                     return (
@@ -153,22 +71,17 @@ export default function PathConfig() {
                                 <div className="absolute -top-1 left-2 w-[435px] h-[1px] bg-white rounded-full pointer-events-none z-10" />
                             )}
 
-                            {(
-                                <MotionList
-                                    name={segDef?.name ?? ""}
-                                    field={constantsFields}
-                                    directionField={directionFields}
-                                    segmentId={c.id}
-                                    index={idx}
-                                    isOpenGlobal={isOpen}
-                                    isTelemetryOpenGlobal={isTelemetryOpen}
-                                    draggable={true}
-                                    onDragStart={() => startDragging(c.id)}
-                                    onDragEnd={stopDragging}
-                                    onDragEnter={() => setOverIndex(idx)}
-                                    draggingIds={draggingIds}
-                                />
-                            )}
+                            <MotionList
+                                segmentId={c.id}
+                                index={idx}
+                                isOpenGlobal={isOpen}
+                                isTelemetryOpenGlobal={isTelemetryOpen}
+                                draggable={true}
+                                onDragStart={() => startDragging(c.id)}
+                                onDragEnd={stopDragging}
+                                onDragEnter={() => setOverIndex(idx)}
+                                draggingIds={draggingIds}
+                            />
                         </div>
                     );
                 })}

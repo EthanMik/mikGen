@@ -19,17 +19,18 @@ import Tooltip from "./Util/Tooltip";
 // This fucking file is the biggest piece of shit i find a new bug every day
 
 function createRobot(): Robot {
-    const { width, height, speed, lateralTau, angularTau, isOmni, cogOffsetX, cogOffsetY, expansionFront, expansionLeft, expansionRight, expansionRear, expansionFrontDisabled, expansionLeftDisabled, expansionRightDisabled, expansionRearDisabled } = fileFormatStore.getState().robot;
+    const { width, height, trackwidth, speed, lateralTau, angularTau, isOmni, cogOffsetX, cogOffsetY, cogOffsetXDisabled, cogOffsetYDisabled, expansionFront, expansionLeft, expansionRight, expansionRear, expansionFrontDisabled, expansionLeftDisabled, expansionRightDisabled, expansionRearDisabled } = fileFormatStore.getState().robot;
 
     return new Robot(
         0, // Start x
         0, // Start y
         0, // Start angle
         width, // Width (inches)
+        trackwidth, // Track width (inches)
         height, // Height (inches)
         speed, // Speed (ft/s)
-        cogOffsetX, // CoG lateral offset (inches)
-        cogOffsetY, // CoG longitudinal offset (inches)
+        cogOffsetXDisabled ? 0 : cogOffsetX, // CoG lateral offset (inches)
+        cogOffsetYDisabled ? 0 : cogOffsetY, // CoG longitudinal offset (inches)
         expansionFrontDisabled ? 0 : expansionFront,
         expansionLeftDisabled ? 0 : expansionLeft,
         expansionRightDisabled ? 0 : expansionRight,

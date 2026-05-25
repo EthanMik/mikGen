@@ -7,6 +7,7 @@ import { NumberInputButton } from "../Config/RobotButton";
 import { DEFAULT_THEMES } from "../Field/FieldUtils";
 import { ConfigKeybindButton } from "../Util/KeybindButton";
 import Section from "../Util/Section";
+import Tooltip from "../Util/Tooltip";
 
 type ColorButtonProps = {
     callback: () => void;
@@ -68,17 +69,16 @@ export default function SettingsButton() {
             <ConfigButtonTemplate title="Settings">
                 <div className="flex flex-col gap-1.5">
                     <Section name="Display">
-                        <CheckboxButton name="Robot Outlines" checked={settings.ghostRobots} setChecked={set("ghostRobots")} />
-                        <CheckboxButton name="Robot Position" checked={settings.robotPosition} setChecked={set("robotPosition")} />
-                        <CheckboxButton name="Precise Path" checked={settings.precisePath} setChecked={set("precisePath")} />
-                        <CheckboxButton name="Numbered Path" checked={settings.numberedPath} setChecked={set("numberedPath")} />
+                        <CheckboxButton name="Robot Outlines" label="Displays end positions when sim is off" checked={settings.ghostRobots} setChecked={set("ghostRobots")} />
+                        <CheckboxButton name="Robot Position" label="Displays robots's actual position" checked={settings.robotPosition} setChecked={set("robotPosition")} />
+                        <CheckboxButton name="Precise Path" label="Displays robots exact path taken" checked={settings.precisePath} setChecked={set("precisePath")} />
+                        <CheckboxButton name="Numbered Path" label="Displays number labels for notebook screenshots" checked={settings.numberedPath} setChecked={set("numberedPath")} />
                     </Section>
 
                     <Section name="Field">
-                        <NumberInputButton name="Grid Snap" value={settings.snapToGrid} setValue={v => v !== null && set("snapToGrid")(v)} bounds={[0.1, 10]} stepSize={0.5} roundTo={1} units="" />
+                        <NumberInputButton name="Grid Snap" label="What to snap to while Ctrl+Dragging" value={settings.snapToGrid} setValue={v => v !== null && set("snapToGrid")(v)} bounds={[0.1, 10]} stepSize={0.5} roundTo={1} units="" />
                         <ColorButton name="Theme" primary={DEFAULT_THEMES[settings.themeIdx].primary} secondary={DEFAULT_THEMES[settings.themeIdx].secondary} callback={() => updateTheme(settings.themeIdx)} />
                     </Section>
-
                     <ConfigKeybindButton name="Edit Templates" keybind={""} callback={() => setPopup(true)} />
                 </div>
             </ConfigButtonTemplate>

@@ -277,10 +277,10 @@ export default function ControlConfig() {
             </div>
 
             <div className={`flex items-center flex-row gap-[15px] ${selectedSegment === "wait" ? "opacity-50 pointer-events-none" : ""}`}>
-                <Tooltip label="Mirror horizontally">
+                <Tooltip label="Mirror Horizontally">
                     <MirrorControl mirrorDirection="x" src={flipHorizontal}/>
                 </Tooltip>
-                <Tooltip label="Mirror vertically">
+                <Tooltip label="Mirror Vertically">
                     <MirrorControl mirrorDirection="y" src={flipVertical}/>
                 </Tooltip>
             </div>

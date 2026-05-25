@@ -81,7 +81,7 @@ export default function RobotView({
                 strokeWidth={1}
             />
 
-            <circle cx={cogPxX} cy={cogPxY} r={3} fill={`rgba(${[...bg, bgTransparency].join(", ")})`} />
+            <circle cx={cogPxX} cy={cogPxY} r={2} fill={`rgba(${[...bg, bgTransparency].join(", ")})`} />
 
             {/* Front expansion */}
             <rect

@@ -7,15 +7,14 @@ import pushbackVEXUMatchField from "../assets/pushback-match.png";
 import pushbackSkillsField from "../assets/pushback-skills.png";
 import pushbackV5MatchField from "../assets/pushback-matchv5.png";
 
-import overrideVEXUMatchField from "../assets/VURC-Override-H2H-TopDownHighlighted-TileColor66_71@0.1.png"
-import overrideVEXUSkillsField from "../assets/VURC-Override-Skills-TopDownHighlighted-TileColor66_71@0.1.png"
-import overrideV5MatchField from "../assets/V5RC-Override-H2H-TopDownHighlighted-TileColor66_71@0.1.png"
-import overrideV5SkillsField from "../assets/V5RC-Override-Skills-TopDownHighlighted-TileColor66_71@0.1.png"
+import overrideVEXUMatchField from "../assets/VURC-Override-H2H-TopDownHighlighted-TileColor66_71@0.1.png";
+import overrideV5MatchField from "../assets/V5RC-Override-H2H-TopDownHighlighted-TileColor66_71@0.1.png";
+import overrideV5SkillsField from "../assets/V5RC-Override-Skills-TopDownHighlighted-TileColor66_71@0.1.png";
 
-import highstakesVEXUMatchField from "../assets/VURC-HighStakes-H2H-TopDownHighlighted-TileColor66_71@4.0.png"
-import highstakesVEXUSkillsField from "../assets/VURC-HighStakes-Skills-TopDownHighlighted-TileColor66_71@4.0.png"
-import highstakesV5MatchField from "../assets/V5RC-HighStakes-H2H-TopDownHighlighted-TileColor66_71@4.0.png"
-import highstakesV5SkillsField from "../assets/V5RC-HighStakes-Skills-TopDownHighlighted-TileColor66_71@4.0.png"
+import highstakesVEXUMatchField from "../assets/VURC-HighStakes-H2H-TopDownHighlighted-TileColor66_71@4.0.png";
+import highstakesVEXUSkillsField from "../assets/VURC-HighStakes-Skills-TopDownHighlighted-TileColor66_71@4.0.png";
+import highstakesV5MatchField from "../assets/V5RC-HighStakes-H2H-TopDownHighlighted-TileColor66_71@4.0.png";
+import highstakesV5SkillsField from "../assets/V5RC-HighStakes-Skills-TopDownHighlighted-TileColor66_71@4.0.png";
 
 
 import emptyField from "../assets/empty-field.png";
@@ -44,9 +43,8 @@ type FieldEntry = { key: FieldType; src: string; name: string };
 export const fieldMap: FieldEntry[] = [
     { key: "separator", src: "", name: "Override" },
     { key: DEFAULT_FIELD_KEY, src: overrideV5MatchField, name: "V5 Match Field" },
-    { key: "override-v5-skills", src: overrideV5SkillsField, name: "V5 Skills Field" },
+    { key: "override-v5-skills", src: overrideV5SkillsField, name: "Skills Field" },
     { key: "override-vexu-match", src: overrideVEXUMatchField, name: "VEXU Match Field" },
-    { key: "override-vexu-skills", src: overrideVEXUSkillsField, name: "VEXU Skills Field" },
     
     { key: "separator", src: "", name: "Misc" },
     { key: "empty", src: emptyField, name: "Empty Field" },
