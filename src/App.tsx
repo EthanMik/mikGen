@@ -7,14 +7,14 @@ import Config from "./components/Config/Config";
 import { clamp } from "./core/Util";
 import Field from "./components/Field/Field";
 import { ScaleContext } from "./contexts/ScaleContext";
-import { usePath } from "./hooks/useFileFormat";
+import { fileFormatStore } from "./hooks/useFileFormat";
 
 export default function App() {
-  const [path] = usePath();
+  const pathName = fileFormatStore.useSelector(s => s.path.name);
 
   useEffect(() => {
-    document.title = path.name || "mikGen";
-  }, [path.name]);
+    document.title = pathName || "mikGen";
+  }, [pathName]);
   const viewportRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);

@@ -130,9 +130,32 @@ export function mergeFormatDef(registry: FormatDef<Format>, saved: unknown): For
     const segs = { ...registry.segments } as Record<SegmentKind, SegmentDef<Format>>;
     for (const [k, v] of Object.entries((s.segments ?? {}) as object)) {
         const reg = segs[k as SegmentKind];
-        if (reg) segs[k as SegmentKind] = { ...reg, ...(v as object), simFn: reg.simFn };
+        if (reg) segs[k as SegmentKind] = {
+            ...reg, ...(v as object),
+            simFn: reg.simFn,
+            cycleButtons: reg.cycleButtons,
+            numberInputs: reg.numberInputs,
+            slider: reg.slider,
+        };
     }
     return { ...registry, ...s, kBuilder: registry.kBuilder, kParser: registry.kParser, segments: segs } as FormatDef<Format>;
+}
+
+const SEGMENT_UI_KEYS = new Set(['simFn', 'cycleButtons', 'numberInputs', 'slider']);
+const FORMAT_FN_KEYS = new Set(['kBuilder', 'kParser']);
+
+export function stripFormatDefForSave(formatDef: FormatDef<Format>): object {
+    const segments: Record<string, object> = {};
+    for (const [k, seg] of Object.entries(formatDef.segments)) {
+        segments[k] = Object.fromEntries(
+            Object.entries(seg as object).filter(([key]) => !SEGMENT_UI_KEYS.has(key))
+        );
+    }
+    return Object.fromEntries(
+        Object.entries(formatDef as object)
+            .filter(([key]) => !FORMAT_FN_KEYS.has(key))
+            .map(([key, val]) => [key, key === 'segments' ? segments : val])
+    );
 }
 
 export function getDefaultConstants<F extends Format>(formatDef: FormatDef<Format> | undefined, format: F, kind: SegmentKind): SegmentConstants<F> {

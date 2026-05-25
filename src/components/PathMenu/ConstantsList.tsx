@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import downArrow from "../../assets/down-arrow.svg";
 import type { ConstantField } from "./ConstantRow";
 import ConstantRow from "./ConstantRow";
@@ -19,7 +19,7 @@ type ConstantsListProps = {
     defaults: ConstantsRecord;
 }
 
-export default function ConstantsList({
+const ConstantsList = memo(function ConstantsList({
     header,
     values,
     fields,
@@ -195,4 +195,6 @@ export default function ConstantsList({
             )}
         </div>
     );
-}
+});
+
+export default ConstantsList;

@@ -1,4 +1,5 @@
 import React from "react";
+import { hoveredSegmentStore } from "../../core/HoverStore";
 import type { Path } from "../../core/Types/Path";
 import { getBackwardsSnapIdx, getBackwardsSnapPose } from "../../core/Types/Path";
 import { calculateHeading, toPX, toRad, FIELD_REAL_DIMENSIONS, type Rectangle, FIELD_IMG_DIMENSIONS, findPointToFace, toRGBA } from "../../core/Util";
@@ -63,6 +64,7 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 	const imgRealSize = (img.w + img.h) / 2
 	const scale = imgRealSize / imgDefaultSize;
 	const [settings] = useSettings();
+	const hoveredId = hoveredSegmentStore.useStore();
 	radius = radius * scale;
 
 	const snap = getBackwardsSnapIdx(path, path.segments.length - 1);
@@ -92,7 +94,7 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 											id={control.id}
 											cx={nodePx.x}
 											cy={nodePx.y}
-											r={control.hovered ? radius * VISUAL.node.hoverRadiusMultiplier : radius}
+											r={hoveredId === control.id ? radius * VISUAL.node.hoverRadiusMultiplier : radius}
 											fill={control.selected ? colors.control.selected : colors.control.fill}
 											strokeWidth={idx === snap ? VISUAL.node.snapStrokeWidth * scale : 0}
 										/>
@@ -106,7 +108,7 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 								if (snapPose?.x === null || snapPose?.y === null || snapPose === null) return null;
 
 								const active = control.selected;
-								const hovered = control.hovered;
+								const hovered = hoveredId === control.id;
 								const reduced = control.kind === "poseDrive" || control.kind === "start" ? VISUAL.turnIndicator.poseDriveStartReducedFactor : 1;
 								const r = (active && hovered) ? radius * (VISUAL.turnIndicator.activeHoveredRadiusMultiplier * reduced) : active ? radius * (VISUAL.turnIndicator.activeRadiusMultiplier * reduced) : hovered ? radius * VISUAL.turnIndicator.hoverRadiusMultiplier : radius;
 
@@ -146,7 +148,7 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 								if (!snapPose?.x || !snapPose?.y) return null;
 
 								const active = control.selected;
-								const hovered = control.hovered;
+								const hovered = hoveredId === control.id;
 								const r = (active && hovered) ? radius * VISUAL.swingIndicator.activeHoveredRadiusMultiplier : active ? radius * VISUAL.swingIndicator.activeRadiusMultiplier : hovered ? radius * VISUAL.swingIndicator.hoverRadiusMultiplier : radius;
 								const thickness = active ? VISUAL.swingIndicator.activeThickness : hovered ? VISUAL.swingIndicator.hoverThickness : VISUAL.swingIndicator.defaultThickness;
 								const baseStroke = active ? colors.turn.selected : colors.turn.stroke;
@@ -202,7 +204,7 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 				if (!snapPose || snapPose.x === null || snapPose.y === null) return null;
 
 				const active = control.selected;
-				const hovered = control.hovered;
+				const hovered = hoveredId === control.id;
 				const r = (active && hovered) ? radius * VISUAL.waitIndicator.activeHoveredRadiusMultiplier : active ? radius * VISUAL.waitIndicator.activeRadiusMultiplier : hovered ? radius * VISUAL.waitIndicator.hoverRadiusMultiplier : radius;
 				const fill = active ? toRGBA(colors.secondary, 0.6) : toRGBA(colors.secondary, 0.3);
 				const px = toPX({ x: snapPose.x, y: snapPose.y }, FIELD_REAL_DIMENSIONS, img);
