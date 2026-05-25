@@ -69,7 +69,7 @@ export function useBoxSelect() {
 
   return {
     boxSelectRect,
-    isBoxSelecting: boxSelectRect !== null && (boxSelectRect.w > 0 || boxSelectRect.h > 0),
+    isBoxSelecting: boxSelectRect !== null && (boxSelectRect.w > 400 || boxSelectRect.h > 400),
     startBoxSelect,
     updateBoxSelect,
     finalizeBoxSelect,

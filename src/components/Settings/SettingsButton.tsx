@@ -1,138 +1,87 @@
-import { useEffect, useRef, useState } from "react";
-import Checkbox from "../Util/Checkbox";
+import { useEffect, useState } from "react";
 import { useSettings } from "../../hooks/useSettings";
+import ConfigButtonTemplate from "../Config/ConfigButtonTemplate";
+import CheckboxButton from "../Util/CheckboxButton";
+import EditJSONPopup from "../PathMenu/EditJSONPopup";
+import { NumberInputButton } from "../Config/RobotButton";
+import { DEFAULT_THEMES } from "../Field/FieldUtils";
+import { ConfigKeybindButton } from "../Util/KeybindButton";
+import Section from "../Util/Section";
+import Tooltip from "../Util/Tooltip";
+
+type ColorButtonProps = {
+    callback: () => void;
+    name: string,
+    primary: string,
+    secondary: string,
+    textSize?: number,
+}
+
+function ColorButton({ callback, name, primary, secondary, textSize }: ColorButtonProps) {
+    return (
+        <button className="flex pr-1 pl-2 py-0.5 items-center justify-between bg-medgray hover:brightness-92 cursor-pointer rounded-sm"
+            onClick={callback}
+        >
+            <span className={`text-[${textSize || 14}px]`}>{name}</span>
+            <div className="flex flex-row gap-1">
+                <div 
+                    style={{ backgroundColor: primary }} 
+                    className="w-4 h-4 rounded-sm"
+                >                
+                </div>
+                <div 
+                    style={{ backgroundColor: secondary }} 
+                    className="w-4 h-4 rounded-sm"
+                >
+                </div>
+            </div>
+        </button>
+    );
+}
+
+
 
 export default function SettingsButton() {
-    const [ isOpen, setOpen ] = useState(false);
-    const menuRef = useRef<HTMLDivElement>(null);
-    
-    const [ settings, setSettings ] = useSettings();
+    const [settings, setSettings] = useSettings();
+    const [popup, setPopup] = useState(false);
 
     useEffect(() => {
-        localStorage.setItem("ghostRobots", settings.ghostRobots ? "true" : "false");
-        localStorage.setItem("robotPosition", settings.robotPosition ? "true" : "false");
-        localStorage.setItem("precisePath", settings.precisePath ? "true" : "false");
-        localStorage.setItem("numberedPath", settings.numberedPath ? "true" : "false");
-    }, [settings.ghostRobots, settings.robotPosition, settings.precisePath, settings.numberedPath]);
+        localStorage.setItem("settings", JSON.stringify(settings));
+    }, [settings]);
 
-    const ghostRobots = settings.ghostRobots;
-    const setGhostRobots = (state: boolean) => {
-        setSettings(prev => ({
-            ...prev,
-            ghostRobots: state
-        }))
+    const updateTheme = (idx: number) => {
+        const newIdx = settings.themeIdx === idx ? (idx + 1) % DEFAULT_THEMES.length : idx;
+        setSettings(prev => ({ ...prev, themeIdx: newIdx }));
     }
 
-    const robotPosition = settings.robotPosition;
-    const setRobotPosition = (state: boolean) => {
-        setSettings(prev => ({
-            ...prev,
-            robotPosition: state
-        }))
-    }
-
-    const precisePath = settings.precisePath;
-    const setPrecisePath = (state: boolean) => {
-        setSettings(prev => ({
-            ...prev,
-            precisePath: state
-        }))
-    }
-
-    const numberedPath = settings.numberedPath;
-    const setNumberdPath = (state: boolean) => {
-        setSettings(prev => ({
-            ...prev,
-            numberedPath: state
-        }))
-    }
-
-
-    const handleToggleMenu = () => {
-        setOpen((prev) => !prev)
-    }
-
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                setOpen(false);
-            }
-        }
-
-        const handleClose = (evt: KeyboardEvent) => {
-            if (evt.key === "Escape") {
-                setOpen(false);
-            }
-        }
-
-        document.addEventListener("mousedown", handleClickOutside)
-        document.addEventListener("keydown", handleClose)
-        
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside)
-            document.removeEventListener("keydown", handleClose)
-        }
-    }, []);
+    const set = (key: keyof typeof settings) => (state: boolean | number) =>
+        setSettings(prev => ({ ...prev, [key]: state }));
 
     return (
-        <div ref={menuRef} className={`relative ${isOpen ? "bg-medgray_hover" : "bg-none"} hover:bg-medgray_hover rounded-sm`}>
+        <>
+            {popup && <EditJSONPopup
+                label={""}
+                open={popup}
+                setOpen={setPopup}
+                onEnter={() => { }}
+            />}
 
-            <button onClick={handleToggleMenu} className="px-2 py-1 cursor-pointer">
-                <span className="text-[20px]">
-                    Settings
-                </span>
-            </button>
+            <ConfigButtonTemplate title="Settings">
+                <div className="flex flex-col gap-1.5">
+                    <Section name="Display">
+                        <CheckboxButton name="Robot Outlines" label="Displays end positions when sim is off" checked={settings.ghostRobots} setChecked={set("ghostRobots")} />
+                        <CheckboxButton name="Robot Position" label="Displays robots's actual position" checked={settings.robotPosition} setChecked={set("robotPosition")} />
+                        <CheckboxButton name="Precise Path" label="Displays robots exact path taken" checked={settings.precisePath} setChecked={set("precisePath")} />
+                        <CheckboxButton name="Numbered Path" label="Displays number labels for notebook screenshots" checked={settings.numberedPath} setChecked={set("numberedPath")} />
+                    </Section>
 
-            {isOpen && (
-                <div className="absolute shadow-xs mt-1 shadow-black left-0 top-full w-45 z-40
-                    rounded-sm bg-medgray_hover min-h-2">
-                    <div className="flex flex-col mt-2 pl-3 pr-3 mb-2 gap-3">
-                        <div className="flex flex-row gap-2">
-                            {/* <div className="mt-0.5 pt-2 border-t border-gray-500/40 flex flex-row items-center justify-between h-[35px]"> */}
-                            <span className="whitespace-nowrap text-[16px]">Robot Outlines</span>
-
-                            <div className="w-25 flex items-center justify-end">
-                                <label className="flex items-center gap-2 cursor-pointer select-none">
-                                <Checkbox checked={ghostRobots} setChecked={setGhostRobots} />
-                                </label>
-                            </div>
-
-                        </div>
-                        <div className="flex flex-row gap-2">
-
-                            <span className="whitespace-nowrap text-[16px]">Robot Position</span>
-
-                            <div className="w-25 flex items-center justify-end">
-                                <label className="flex items-center gap-2 cursor-pointer select-none">
-                                <Checkbox checked={robotPosition} setChecked={setRobotPosition} />
-                                </label>
-                            </div>
-                        </div>
-                        <div className="flex flex-row gap-2">
-
-                            <span className="whitespace-nowrap text-[16px]">Precise Path</span>
-
-                            <div className="w-25 flex items-center justify-end">
-                                <label className="flex items-center gap-2 cursor-pointer select-none">
-                                <Checkbox checked={precisePath} setChecked={setPrecisePath} />
-                                </label>
-                            </div>
-                        </div>
-
-                        <div className="flex flex-row gap-2">
-
-                            <span className="whitespace-nowrap text-[16px]">Numbered Path</span>
-
-                            <div className="w-25 flex items-center justify-end">
-                                <label className="flex items-center gap-2 cursor-pointer select-none">
-                                <Checkbox checked={numberedPath} setChecked={setNumberdPath} />
-                                </label>
-                            </div>
-                        </div>
-                    </div>
+                    <Section name="Field">
+                        <NumberInputButton name="Grid Snap" label="What to snap to while Ctrl+Dragging" value={settings.snapToGrid} setValue={v => v !== null && set("snapToGrid")(v)} bounds={[0.1, 10]} stepSize={0.5} roundTo={1} units="" />
+                        <ColorButton name="Theme" primary={DEFAULT_THEMES[settings.themeIdx].primary} secondary={DEFAULT_THEMES[settings.themeIdx].secondary} callback={() => updateTheme(settings.themeIdx)} />
+                    </Section>
+                    <ConfigKeybindButton name="Edit Templates" keybind={""} callback={() => setPopup(true)} />
                 </div>
-            )}
-        </div>
-    )
+            </ConfigButtonTemplate>
+        </>
+    );
 }

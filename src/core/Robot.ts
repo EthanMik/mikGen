@@ -5,14 +5,21 @@ export type RobotConstants = {
     width: number,
     height: number,
     speed: number,
+    trackwidth: number,
     lateralTau: number,  // first-order lag time constant for lateral (linear) motion (seconds)
     angularTau: number,  // first-order lag time constant for angular (turning) motion (seconds)
     cogOffsetX: number, // lateral offset (positive = robot's right)
     cogOffsetY: number, // longitudinal offset (positive = robot's forward)
+    cogOffsetXDisabled: boolean,
+    cogOffsetYDisabled: boolean,
     expansionFront: number,
     expansionLeft: number,
     expansionRight: number,
     expansionRear: number,
+    expansionFrontDisabled: boolean,
+    expansionLeftDisabled: boolean,
+    expansionRightDisabled: boolean,
+    expansionRearDisabled: boolean,
     isOmni: boolean,
 }
 
@@ -20,14 +27,21 @@ export const defaultRobotConstants: RobotConstants = {
     width: 14,
     height: 14,
     speed: 6,
+    trackwidth: 12,
     lateralTau: 0.2,
     angularTau: 0.1,
     cogOffsetX: 0,
     cogOffsetY: 0,
+    cogOffsetXDisabled: true,
+    cogOffsetYDisabled: true,
     expansionFront: 0,
     expansionLeft: 0,
     expansionRight: 0,
     expansionRear: 0,
+    expansionFrontDisabled: true,
+    expansionLeftDisabled: true,
+    expansionRightDisabled: true,
+    expansionRearDisabled: true,
     isOmni: false,
 }
 
@@ -40,18 +54,18 @@ export class Robot {
 
     private vFL: number = 0;
     private vFR: number = 0;
-    private vCL: number = 0;
-    private vCR: number = 0;
     private vRL: number = 0;
     private vRR: number = 0;
 
     private lateralFriction: number = 0;
+    private timeout: number = 0;
 
     constructor(
         private x: number,
         private y: number,
         private angle: number,
         public width: number,
+        public trackwidth: number,
         public height: number,
         public maxSpeed: number,
 
@@ -115,15 +129,12 @@ export class Robot {
     }
 
     tankDrive(leftCmd: number, rightCmd: number, dt: number) {
-        const b_in = this.width - 2;
-
         const left = clamp(leftCmd, -1, 1);
         const right = clamp(rightCmd, -1, 1);
 
         const targetVL_ft = left * this.maxSpeed;
         const targetVR_ft = right * this.maxSpeed;
 
-        // Decompose into linear and angular, apply separate first-order lag
         const targetLinear = (targetVL_ft + targetVR_ft) / 2;
         const targetAngular = (targetVR_ft - targetVL_ft) / 2;
         const currentLinear = (this.vL + this.vR) / 2;
@@ -142,9 +153,8 @@ export class Robot {
         const vR_in = this.vR * 12;
 
         const fwd_speed = (vL_in + vR_in) / 2;
-        const orientation_delta_rad = (vL_in - vR_in) / b_in * dt;
+        const orientation_delta_rad = (vL_in - vR_in) / this.trackwidth * dt;
 
-        // Compute lateral slip speed using the new orientation
         const new_orientation_rad = toRad(this.angle) + orientation_delta_rad;
         const rightX =  Math.cos(new_orientation_rad);
         const rightY = -Math.sin(new_orientation_rad);
@@ -164,20 +174,20 @@ export class Robot {
         const tRL = rl * this.maxSpeed;
         const tRR = rr * this.maxSpeed;
 
-        const r = (this.height + (this.width - 2)) / 2;
-        const targetFwd   = (tFL + tFR + tRL + tRR) / 4;
-        const targetLat   = (tFL - tFR - tRL + tRR) / 4;
+        const r = (this.height + this.trackwidth) / 2;
+        const targetFwd = (tFL + tFR + tRL + tRR) / 4;
+        const targetLat = (tFL - tFR - tRL + tRR) / 4;
         const targetOmega = (tFL - tFR + tRL - tRR) / (4 * r);
 
-        const curFwd   = (this.vFL + this.vFR + this.vRL + this.vRR) / 4;
-        const curLat   = (this.vFL - this.vFR - this.vRL + this.vRR) / 4;
+        const curFwd = (this.vFL + this.vFR + this.vRL + this.vRR) / 4;
+        const curLat = (this.vFL - this.vFR - this.vRL + this.vRR) / 4;
         const curOmega = (this.vFL - this.vFR + this.vRL - this.vRR) / (4 * r);
 
         const kLat = 1 - Math.exp(-dt / this.lateralTau);
         const kAng = 1 - Math.exp(-dt / this.angularTau);
 
-        const newFwd   = curFwd   + (targetFwd   - curFwd)   * kLat;
-        const newLat   = curLat   + (targetLat   - curLat)   * kLat;
+        const newFwd = curFwd + (targetFwd - curFwd) * kLat;
+        const newLat = curLat + (targetLat - curLat) * kLat;
         const newOmega = curOmega + (targetOmega - curOmega) * kAng;
 
         this.vFL = newFwd + newLat + newOmega * r;
@@ -192,58 +202,6 @@ export class Robot {
         this.odometryUpdate(fwd_in * dt, lat_in * dt, omega_in * dt, fwd_in, lat_in);
     }
 
-    // 4 mecanum corner wheels + 2 center omni wheels (asterisk layout)
-    asteriskDrive(flCmd: number, frCmd: number, clCmd: number, crCmd: number, rlCmd: number, rrCmd: number, dt: number) {
-        const fl = clamp(flCmd, -1, 1);
-        const fr = clamp(frCmd, -1, 1);
-        const cl = clamp(clCmd, -1, 1);
-        const cr = clamp(crCmd, -1, 1);
-        const rl = clamp(rlCmd, -1, 1);
-        const rr = clamp(rrCmd, -1, 1);
-
-        const r_m = (this.height + (this.width - 2)) / 2;  // mecanum corner turning radius (in)
-        const b   = this.width - 2;                         // center omni track width (in)
-
-        const tFL = fl * this.maxSpeed;
-        const tFR = fr * this.maxSpeed;
-        const tCL = cl * this.maxSpeed;
-        const tCR = cr * this.maxSpeed;
-        const tRL = rl * this.maxSpeed;
-        const tRR = rr * this.maxSpeed;
-
-        // Forward: average all 6 wheels (lat and omega terms cancel)
-        const targetFwd   = (tFL + tFR + tCL + tCR + tRL + tRR) / 6;
-        // Lateral: only mecanum corners can strafe
-        const targetLat   = (tFL - tFR - tRL + tRR) / 4;
-        // Omega: weighted average of corner mecanum estimate (×4) and center omni estimate (×2)
-        const targetOmega = ((tFL - tFR + tRL - tRR) / r_m + 2 * (tCL - tCR) / b) / 6;
-
-        const curFwd      = (this.vFL + this.vFR + this.vCL + this.vCR + this.vRL + this.vRR) / 6;
-        const curLat      = (this.vFL - this.vFR - this.vRL + this.vRR) / 4;
-        const curOmega    = ((this.vFL - this.vFR + this.vRL - this.vRR) / r_m + 2 * (this.vCL - this.vCR) / b) / 6;
-
-        const kLat = 1 - Math.exp(-dt / this.lateralTau);
-        const kAng = 1 - Math.exp(-dt / this.angularTau);
-
-        const newFwd   = curFwd   + (targetFwd   - curFwd)   * kLat;
-        const newLat   = curLat   + (targetLat   - curLat)   * kLat;
-        const newOmega = curOmega + (targetOmega - curOmega) * kAng;
-
-        this.vFL = newFwd + newLat + newOmega * r_m;
-        this.vFR = newFwd - newLat - newOmega * r_m;
-        this.vCL = newFwd + newOmega * (b / 2);
-        this.vCR = newFwd - newOmega * (b / 2);
-        this.vRL = newFwd - newLat + newOmega * r_m;
-        this.vRR = newFwd + newLat - newOmega * r_m;
-
-        const fwd_in   = newFwd   * 12;
-        const lat_in   = newLat   * 12;
-        const omega_in = newOmega * 12;
-
-        this.odometryUpdate(fwd_in * dt, lat_in * dt, omega_in * dt, fwd_in, lat_in);
-    }
-
-    // Arc odometry (5225A tracking document style) + world-frame velocity update
     private odometryUpdate(forward_delta: number, sideways_delta: number, orientation_delta_rad: number, fwd_speed: number, lat_speed: number) {
         const prev_orientation_rad = toRad(this.angle);
         const orientation_rad = prev_orientation_rad + orientation_delta_rad;
@@ -280,8 +238,6 @@ export class Robot {
 
         this.vFL = 0;
         this.vFR = 0;
-        this.vCL = 0;
-        this.vCR = 0;
         this.vRL = 0;
         this.vRR = 0;
     }
@@ -296,5 +252,16 @@ export class Robot {
         this.velY = 0;
 
         return true;
+    }
+
+    
+    public wait(timeout: number, dt: number): boolean {
+        this.timeout += (dt * 1000);
+        this.tankDrive(0, 0, dt);
+        if (this.timeout >= timeout) {
+            this.timeout = 0;
+            return true;
+        }
+        return false;
     }
 }

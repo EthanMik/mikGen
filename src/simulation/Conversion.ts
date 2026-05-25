@@ -20,6 +20,7 @@ export function convertPathToString<F extends Format, Segs extends Partial<Recor
         const angle = roundOff(seg.pose.angle, 2);
         const rawDistance = seg.kind === "distanceDrive" ? (seg.distance ?? getSegmentDistance(path, idx)) : seg.distance;
         const distance = roundOff(rawDistance, 2);
+        const time = roundOff(seg.time, 0);
         const k = seg.constants as typeof formatDef.constants;
         const kind = seg.kind as SegmentKind;
         const segDef = formatDef.segments[kind];
@@ -41,7 +42,8 @@ export function convertPathToString<F extends Format, Segs extends Partial<Recor
             .replace(/\$\{x\}/g, x)
             .replace(/\$\{y\}/g, y)
             .replace(/\$\{angle\}/g, angle)
-            .replace(/\$\{distance\}/g, distance);
+            .replace(/\$\{distance\}/g, distance)
+            .replace(/\$\{time\}/g, time);
 
         for (const key of Object.keys(mergedK)) {
             line = line.replace(new RegExp(`\\$\\{${key}\\}`, 'g'), String(mergedK[key]));
@@ -88,14 +90,14 @@ export function convertStringToPath<F extends Format>(
     return segments;
 }
 
-function templateToRegex(template: string): { regex: RegExp; groups: string[] } {
+export function templateToRegex(template: string): { regex: RegExp; groups: string[] } {
     const groups: string[] = [];
     const hasOptKBuilder = template.includes(', ${kBuilder}');
     let t = template.replace(', ${kBuilder}', '__KBUILDER_OPT__');
 
     t = t.replace(/\$\{([^}]+)\}/g, (_, name: string) => {
         groups.push(name);
-        return name === 'x' || name === 'y' || name === 'angle' || name === 'distance' ? '__COORD__' : '__FIELD__';
+        return name === 'x' || name === 'y' || name === 'angle' || name === 'distance' || name === 'time' ? '__COORD__' : '__FIELD__';
     });
 
     t = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -141,7 +143,7 @@ function parseSegmentLine<F extends Format>(
     }
 
     for (const [name, value] of Object.entries(captured)) {
-        if (name === 'x' || name === 'y' || name === 'angle' || name === 'distance' || name === 'kBuilder' || !value) continue;
+        if (name === 'x' || name === 'y' || name === 'angle' || name === 'distance' || name === 'time' || name === 'kBuilder' || !value) continue;
         const num = parseFloat(value);
         const parsed: unknown = isNaN(num) ? value.trim() : num;
         for (const k of constants) {
@@ -150,6 +152,7 @@ function parseSegmentLine<F extends Format>(
     }
 
     const parsedDistance = 'distance' in captured && captured.distance !== '' ? parseFloat(captured.distance) : undefined;
+    const parsedTime = 'time' in captured && captured.time !== '' ? parseFloat(captured.time) : undefined;
 
     return {
         id: makeId(10),
@@ -158,14 +161,15 @@ function parseSegmentLine<F extends Format>(
         kind,
         pose: { x, y, angle },
         constants,
-        ...(parsedDistance !== undefined && !isNaN(parsedDistance) ? { distance: parsedDistance } : {}),
+        distance: parsedDistance !== undefined && !isNaN(parsedDistance) ? parsedDistance : 0,
+        time: parsedTime !== undefined && !isNaN(parsedTime) ? parsedTime : 0,
     };
 }
 
-
-const LOG_SEGMENT_START_AND_END = false;
-const LOG_ROBOT_STATE = false;
-const LOG_SIMULATION_NUMBER = false;
+const DEBUG = false;
+const LOG_SEGMENT_START_AND_END = DEBUG;
+const LOG_ROBOT_STATE = DEBUG;
+const LOG_SIMULATION_NUMBER = DEBUG;
 
 SIM_CONSTANTS.seconds = 99;
 let currentPathTime = -2 / 60;
@@ -179,6 +183,7 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
     for (let idx = 0; idx < path.segments.length; idx++) {
         const seg = path.segments[idx];
         const x = seg.pose.x ?? 0;
+        const time = seg.time ?? 0;
         const y = seg.pose.y ?? 0;
         const angle = seg.pose.angle ?? 0;
         const k = seg.constants as typeof formatDef.constants;
@@ -202,6 +207,21 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
                         DEBUG_printRobotState(robot, dt);
                         const output = simFn(robot, dt, x, y, angle, k);
                         return [output, kind, 0];
+                    }
+                );
+                break;
+            case "wait":
+                auton.push(
+                    (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
+                        if (!started) {
+                            DEBUG_printSegmentStart(idx, formatDef, kind);
+                            targetDist = 999;
+                            started = true;
+                        }
+                        DEBUG_printRobotState(robot, dt);
+                        const output = simFn(robot, dt, time, 0, 0, k);
+                        if (output) DEBUG_printSegmentEnd(idx, formatDef, kind);
+                        return [output, kind, targetDist];
                     }
                 );
                 break;

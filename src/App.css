@@ -10,8 +10,11 @@
     --color-verylightgray: #DBDBDB;
     --color-medlightgray: #4A4A4A;
     --color-accent: #500000;
+    --font-symbols: 'Noto Sans Symbols 2', 'Noto Sans Symbols', 'Segoe UI Symbol', 'Apple Symbols', sans-serif;
 }
 
-* {
-  font-family: sans-serif !important;
+@layer base {
+  * {
+    font-family: sans-serif;
+  }
 }

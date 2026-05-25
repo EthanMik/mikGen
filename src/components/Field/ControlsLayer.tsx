@@ -1,11 +1,12 @@
 import React from "react";
 import type { Path } from "../../core/Types/Path";
 import { getBackwardsSnapIdx, getBackwardsSnapPose } from "../../core/Types/Path";
-import { calculateHeading, toPX, toRad, FIELD_REAL_DIMENSIONS, type Rectangle, FIELD_IMG_DIMENSIONS, findPointToFace } from "../../core/Util";
+import { calculateHeading, toPX, toRad, FIELD_REAL_DIMENSIONS, type Rectangle, FIELD_IMG_DIMENSIONS, findPointToFace, toRGBA } from "../../core/Util";
 import { useSettings } from "../../hooks/useSettings";
 import type { Format } from "../../simulation/FormatDefinition";
 import type { LemConstants } from "../../simulation/LemLibSim/LemConstants";
 import type { mikConstants } from "../../simulation/mikLibSim/MikConstants";
+import type { FieldColors } from "./FieldUtils";
 
 const VISUAL = {
 	node: {
@@ -34,23 +35,26 @@ const VISUAL = {
 		hoverThickness: 4,
 		defaultThickness: 2,
 	},
+	waitIndicator: {
+		scale: 0.3,
+		activeHoveredRadiusMultiplier: 1.8,
+		activeRadiusMultiplier: 1.4,
+		hoverRadiusMultiplier: 1.2,
+		activeThickness: 5,
+		hoverThickness: 4,
+		defaultThickness: 2,
+	},
 	numberLabel: {
 		fontSizeMultiplier: 0.9,
 	},
 } as const;
-
-type Colors = {
-	node: { fill: string; fillSelected: string; stroke: string };
-	indicator: { stroke: string; strokeSelected: string; strokeWithPos: string };
-	numberLabel: string;
-};
 
 type ControlsLayerProps = {
 	path: Path;
 	img: Rectangle;
 	radius: number;
 	format: Format;
-	colors: Colors;
+	colors: FieldColors;
 	onPointerDown: (e: React.PointerEvent<SVGGElement>, id: string) => void;
 };
 
@@ -84,12 +88,12 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 								return (
 									<>
 										<circle
-											style={{ stroke: colors.node.stroke, ...(control.locked ? { cursor: "not-allowed" } : { cursor: "grab" }) }}
+											style={{ stroke: colors.control.stroke, ...(control.locked ? { cursor: "not-allowed" } : { cursor: "grab" }) }}
 											id={control.id}
 											cx={nodePx.x}
 											cy={nodePx.y}
 											r={control.hovered ? radius * VISUAL.node.hoverRadiusMultiplier : radius}
-											fill={control.selected ? colors.node.fillSelected : colors.node.fill}
+											fill={control.selected ? colors.control.selected : colors.control.fill}
 											strokeWidth={idx === snap ? VISUAL.node.snapStrokeWidth * scale : 0}
 										/>
 									</>
@@ -107,7 +111,7 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 								const r = (active && hovered) ? radius * (VISUAL.turnIndicator.activeHoveredRadiusMultiplier * reduced) : active ? radius * (VISUAL.turnIndicator.activeRadiusMultiplier * reduced) : hovered ? radius * VISUAL.turnIndicator.hoverRadiusMultiplier : radius;
 
 								const thickness = active ? VISUAL.turnIndicator.activeThickness : hovered ? VISUAL.turnIndicator.hoverThickness : VISUAL.turnIndicator.defaultThickness;
-								const baseStroke = control.pose.x !== null ? colors.indicator.strokeWithPos : active ? colors.indicator.strokeSelected : colors.indicator.stroke;
+								const baseStroke = control.pose.x !== null ? colors.turn.strokePos : active ? colors.turn.selected : colors.turn.stroke;
 
 								const basePx = toPX({ x: snapPose.x, y: snapPose.y }, FIELD_REAL_DIMENSIONS, img);
 								let angle = control.pose.angle ?? 0;
@@ -145,7 +149,7 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 								const hovered = control.hovered;
 								const r = (active && hovered) ? radius * VISUAL.swingIndicator.activeHoveredRadiusMultiplier : active ? radius * VISUAL.swingIndicator.activeRadiusMultiplier : hovered ? radius * VISUAL.swingIndicator.hoverRadiusMultiplier : radius;
 								const thickness = active ? VISUAL.swingIndicator.activeThickness : hovered ? VISUAL.swingIndicator.hoverThickness : VISUAL.swingIndicator.defaultThickness;
-								const baseStroke = active ? colors.indicator.strokeSelected : colors.indicator.stroke;
+								const baseStroke = active ? colors.turn.selected : colors.turn.stroke;
 
 								let angle = control.pose.angle ?? 0;
 								if (control.kind === "pointSwing") {
@@ -192,6 +196,29 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 				</g>
 			))}
 
+			{path.segments.map((control, idx) => {
+				if (control.kind !== "wait" || !control.visible) return null;
+				const snapPose = getBackwardsSnapPose(path, idx);
+				if (!snapPose || snapPose.x === null || snapPose.y === null) return null;
+
+				const active = control.selected;
+				const hovered = control.hovered;
+				const r = (active && hovered) ? radius * VISUAL.waitIndicator.activeHoveredRadiusMultiplier : active ? radius * VISUAL.waitIndicator.activeRadiusMultiplier : hovered ? radius * VISUAL.waitIndicator.hoverRadiusMultiplier : radius;
+				const fill = active ? toRGBA(colors.secondary, 0.6) : toRGBA(colors.secondary, 0.3);
+				const px = toPX({ x: snapPose.x, y: snapPose.y }, FIELD_REAL_DIMENSIONS, img);
+
+				return (
+					<circle
+						key={`wait-${control.id}`}
+						pointerEvents="none"
+						cx={px.x}
+						cy={px.y}
+						r={r * VISUAL.waitIndicator.scale}
+						fill={fill}
+					/>
+				);
+			})}
+
 			{settings.numberedPath && path.segments.map((control, idx) => {
 				if (!control.visible || control.pose.x === null || control.pose.y === null) return null;
 				const pos = toPX({ x: control.pose.x, y: control.pose.y }, FIELD_REAL_DIMENSIONS, img);
@@ -205,7 +232,7 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 						textAnchor="middle"
 						dominantBaseline="central"
 						fontSize={radius * VISUAL.numberLabel.fontSizeMultiplier}
-						fill={colors.numberLabel}
+						fill={"#FFFFFF"}
 					>
 						{num}
 					</text>

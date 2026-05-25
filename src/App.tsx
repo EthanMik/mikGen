@@ -66,8 +66,11 @@ export default function App() {
           style={{ transform: `scale(${scale})`, transformOrigin: "top left" }}
           className="inline-flex w-max h-max origin-top-left"
         >
-          <div className="flex flex-col gap-[10px] ml-[10px] pl-[10px] pt-[10px]">
+          <div className="pt-[10px] ml-[10px]">
             <Config />
+          </div>
+
+          <div className="flex flex-col gap-[10px] ml-[4px] pt-[10px]">
             <Field />
             <PathSimulator />
           </div>

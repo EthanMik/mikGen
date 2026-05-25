@@ -13,7 +13,9 @@ type RobotViewProps = {
     frontExpansion?: number,
     leftExpansion?: number,
     rightExpansion?: number,
-    rearExpansion?: number
+    rearExpansion?: number,
+    cogOffsetX?: number,
+    cogOffsetY?: number,
 };
 
 function toPxHeight(imgHeight: number, value: number) {
@@ -38,12 +40,17 @@ export default function RobotView({
     leftExpansion,
     rightExpansion,
     rearExpansion,
+    cogOffsetX = 0,
+    cogOffsetY = 0,
 }: RobotViewProps) {
 
     const pxWidth = toPxWidth(img.w, width);
     const pxHeight = toPxHeight(img.h, height);
     const pos = toPX({x: x, y: y}, FIELD_REAL_DIMENSIONS, img)
     const normAngle = normalizeDeg(angle);
+
+    const cogPxX = toPxWidth(img.w, cogOffsetX);
+    const cogPxY = -toPxHeight(img.h, cogOffsetY);
 
     const pxFrontExpansion = toPxHeight(img.h, frontExpansion ?? 0);
     const pxRearExpansion = toPxHeight(img.h, rearExpansion ?? 0);
@@ -73,6 +80,8 @@ export default function RobotView({
                 stroke="black"
                 strokeWidth={1}
             />
+
+            <circle cx={cogPxX} cy={cogPxY} r={2} fill={`rgba(${[...bg, bgTransparency].join(", ")})`} />
 
             {/* Front expansion */}
             <rect

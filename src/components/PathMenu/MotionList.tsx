@@ -5,7 +5,7 @@ import clockClose from "../../assets/clock-close.svg";
 import clockOpen from "../../assets/clock-open.svg";
 import downArrow from "../../assets/down-arrow.svg";
 import Slider from "../Util/Slider";
-import { usePath, useFormatDef } from "../../hooks/useFileFormat";
+import { usePath, useFormatDef, fileFormatStore } from "../../hooks/useFileFormat";
 import type { ConstantField } from "./ConstantRow";
 import ConstantsList from "./ConstantsList";
 import CycleImageButton, { type CycleImageButtonProps } from "../Util/CycleButton";
@@ -13,9 +13,17 @@ import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import { setupDragTransfer } from "./PathConfigUtils";
 import { activeSimSegmentStore, computedPathStore, pathTelemetry, simJumpStore } from "../../core/ComputePathSim";
 import { roundNum } from "../../core/Util";
-import type { ConstantsRecord } from "../../simulation/FormatDefinition";
+import {
+    updatePathConstants,
+    updatePathConstantsByKind,
+    updateDefaultConstants,
+    type ConstantsRecord,
+    type FormatConstants,
+    type Format,
+} from "../../simulation/FormatDefinition";
 
-export type ConstantListField = {
+type ConstantListField = {
+    constantsIdx: number;
     header: string;
     values: ConstantsRecord;
     fields: ConstantField[];
@@ -26,9 +34,6 @@ export type ConstantListField = {
 }
 
 type MotionListProps = {
-    name: string;
-    field: ConstantListField[] | undefined;
-    directionField: CycleImageButtonProps[] | undefined;
     segmentId: string;
     index: number;
     isOpenGlobal: boolean;
@@ -42,9 +47,6 @@ type MotionListProps = {
 }
 
 export default function MotionList({
-    name,
-    field,
-    directionField,
     segmentId,
     index,
     isOpenGlobal,
@@ -59,10 +61,14 @@ export default function MotionList({
     const [path, setPath] = usePath();
     const formatDef = useFormatDef();
 
-    const sliderKey = String(formatDef.slider.key);
-    const speedScale = formatDef.kMaxSpeed;
-
     const segment = path.segments.find(s => s.id === segmentId)!;
+    const segDef = formatDef.segments[segment.kind];
+    const name = segDef?.name ?? "";
+
+    const sliderDef = segDef?.slider;
+    const sliderKey = sliderDef ? String(sliderDef.key) : "";
+    const sliderConstantsIdx = sliderDef?.constantsIdx ?? 0;
+    const speedScale = sliderDef?.bounds[1] ?? 1;
     const selected = segment?.selected;
     const activeSimSegment = activeSimSegmentStore.useStore();
 
@@ -146,12 +152,16 @@ export default function MotionList({
     useEffect(() => { if (isTelemetryOpenGlobal !== undefined) setTelemetryOpen(isTelemetryOpenGlobal); }, [isTelemetryOpenGlobal]);
 
     const handleEyeOnClick = () => {
-        setPath(prev => ({
-            ...prev,
-            segments: prev.segments.map(s =>
-                s.id === segmentId || s.selected ? { ...s, visible: !s.visible } : s
-            ),
-        }));
+        setPath(prev => {
+            const affected = prev.segments.filter(s => s.id === segmentId || s.selected);
+            const anyVisible = affected.some(s => s.visible);
+            return {
+                ...prev,
+                segments: prev.segments.map(s =>
+                    s.id === segmentId || s.selected ? { ...s, visible: anyVisible ? false : true } : s
+                ),
+            };
+        });
         saveSnapshot();
     }
 
@@ -175,7 +185,81 @@ export default function MotionList({
         simJumpStore.setState(percent);
     };
 
-    const sliderValue = field?.[0]?.values?.[sliderKey];
+    const segRecord = segment as unknown as ConstantsRecord;
+    const field: ConstantListField[] = (segDef?.numberInputs ?? []).map(group => {
+        const constValues = segment.constants[group.constantsIdx] as unknown as ConstantsRecord;
+        const isSegKey = (key: string) =>
+            key in segment && typeof segRecord[key] === 'number' && !(key in constValues);
+        const splitPatch = (partial: Partial<ConstantsRecord>) => {
+            const segPatch: Record<string, unknown> = {};
+            const constPatch: Partial<FormatConstants[Format]> = {};
+            for (const [k, v] of Object.entries(partial)) {
+                if (isSegKey(k)) segPatch[k] = v;
+                else (constPatch as Record<string, unknown>)[k] = v;
+            }
+            return { segPatch, constPatch };
+        };
+        const applySegPatch = (segPatch: Record<string, unknown>, allOfKind = false) =>
+            setPath(prev => ({
+                ...prev,
+                segments: prev.segments.map(s =>
+                    (allOfKind ? s.kind === segment.kind : s.id === segmentId) ? { ...s, ...segPatch } : s
+                ),
+            }));
+        return {
+            constantsIdx: group.constantsIdx,
+            header: group.headerName,
+            values: { ...segRecord, ...constValues },
+            fields: group.fields.map(f => ({ key: String(f.key), label: f.label, units: f.units, input: f.input })),
+            defaults: {
+                ...segRecord,
+                ...(formatDef.segments[segment.kind]?.defaults?.[group.constantsIdx] ?? formatDef.constants[0]) as unknown as ConstantsRecord,
+            },
+            onChange: (partial: Partial<ConstantsRecord>) => {
+                const { segPatch, constPatch } = splitPatch(partial);
+                if (Object.keys(segPatch).length > 0) applySegPatch(segPatch);
+                if (Object.keys(constPatch).length > 0) updatePathConstants(setPath, segmentId, group.constantsIdx, constPatch);
+            },
+            setDefault: (partial: Partial<ConstantsRecord>) => {
+                const constOnly = Object.fromEntries(Object.entries(partial).filter(([k]) => !isSegKey(k)));
+                if (Object.keys(constOnly).length > 0) fileFormatStore.setState(prev => ({
+                    ...prev,
+                    formatDef: updateDefaultConstants(prev.formatDef, segment.kind, group.constantsIdx, constOnly as Partial<FormatConstants[Format]>),
+                }));
+            },
+            onApply: (partial: Partial<ConstantsRecord>) => {
+                const { segPatch, constPatch } = splitPatch(partial);
+                if (Object.keys(segPatch).length > 0) applySegPatch(segPatch, true);
+                if (Object.keys(constPatch).length > 0) updatePathConstantsByKind(setPath, segment.kind, group.constantsIdx, constPatch);
+            },
+        };
+    });
+
+    const directionField: CycleImageButtonProps[] = (segDef?.cycleButtons ?? []).map(btn => ({
+        imageKeys: btn.keyValues.map(kv => ({ src: kv.srcImg, key: String(kv.value) })) as CycleImageButtonProps["imageKeys"],
+        label: String(btn.key),
+        value: String((segment.constants[btn.constantsIdx] as unknown as ConstantsRecord)[String(btn.key)]),
+        onKeyChange: (newKey: string | null) => {
+            const match = btn.keyValues.find(kv => String(kv.value) === newKey);
+            if (match !== undefined) {
+                updatePathConstants(setPath, segmentId, btn.constantsIdx, { [String(btn.key)]: match.value } as Partial<FormatConstants[Format]>);
+                const posePartial = btn.poseEffect?.(match.value as never);
+                if (posePartial) {
+                    setPath(prev => ({
+                        ...prev,
+                        segments: prev.segments.map(s =>
+                            s.id === segmentId ? { ...s, pose: { ...s.pose, ...posePartial } } : s
+                        ),
+                    }));
+                }
+            }
+        },
+    }));
+
+    const sliderField = field.find(f => f.constantsIdx === sliderConstantsIdx) ?? field[0];
+    const sliderSegmentRaw = sliderKey in segment ? (segment as Record<string, unknown>)[sliderKey] : undefined;
+    const isSegmentKey = typeof sliderSegmentRaw === 'number';
+    const sliderValue = isSegmentKey ? sliderSegmentRaw : sliderField?.values?.[sliderKey];
     const sliderNum = typeof sliderValue === 'number' ? sliderValue : 0;
     const speedDecimals = speedScale > 99.9 ? 0 : speedScale > 9.9 ? 1 : 2;
 
@@ -226,16 +310,29 @@ export default function MotionList({
                     <img className="w-[20px] h-[20px]" src={isTelemetryOpen ? clockClose : clockOpen} />
                 </button>
 
-                <span className="shrink-0 text-left truncate max-w-[160px]">{name}</span>
+                <span className="shrink-0 text-left text-[16px] truncate max-w-[160px]">{name}</span>
 
-                {segment.kind !== "start" && field !== undefined && (
+                {sliderDef !== undefined && (
                     <div onClick={(e) => e.stopPropagation()} className="flex-1 min-w-0 flex items-center gap-3">
                         <Slider
                             sliderHeight={5}
                             knobHeight={16}
                             knobWidth={16}
                             value={sliderNum / speedScale * 100}
-                            setValue={(v: number) => field[0]?.onChange({ [sliderKey]: (v / 100) * speedScale })}
+                            step={sliderDef.roundTo !== undefined ? (sliderDef.roundTo / speedScale) * 100 : undefined}
+                            setValue={(v: number) => {
+                                const newValue = (v / 100) * speedScale;
+                                if (isSegmentKey) {
+                                    setPath(prev => ({
+                                        ...prev,
+                                        segments: prev.segments.map(s =>
+                                            s.id === segmentId ? { ...s, [sliderKey]: newValue } : s
+                                        ),
+                                    }));
+                                } else {
+                                    sliderField?.onChange({ [sliderKey]: newValue });
+                                }
+                            }}
                             OnChangeEnd={() => { saveSnapshot(); }}
                         />
                         <span className="shrink-0 relative tabular-nums">
@@ -245,11 +342,12 @@ export default function MotionList({
                     </div>
                 )}
 
-                {directionField !== undefined && directionField.length !== 0 && (
+                {directionField.length > 0 && (
                     <div onClick={(e) => e.stopPropagation()} className="ml-auto flex flex-row items-center gap-2.5">
-                        {directionField.map((f, i) => (
+                        {directionField.map((f) => (
                             <CycleImageButton
-                                key={i}
+                                key={f.label}
+                                label={f.label}
                                 imageKeys={f.imageKeys}
                                 onKeyChange={(key: string | null) => {
                                     f.onKeyChange(key);
@@ -278,32 +376,34 @@ export default function MotionList({
                     </div>
                 )}
 
-                {isOpen && field !== undefined && field.map((f) => {
-                    const fieldKeys = f.fields.map(m => m.key);
-                    const relevantValues = getValuesFromKeys(fieldKeys, f.values);
-                    const relevantDefaults = getValuesFromKeys(fieldKeys, f.defaults);
+                <div className={`flex flex-col gap-1 ${isOpen ? "" : "hidden"}`}>
+                    {field.map((f) => {
+                        const fieldKeys = f.fields.map(m => m.key);
+                        const relevantValues = getValuesFromKeys(fieldKeys, f.values);
+                        const relevantDefaults = getValuesFromKeys(fieldKeys, f.defaults);
 
-                    return (
-                        <ConstantsList
-                            key={f.header}
-                            header={f.header}
-                            fields={f.fields}
-                            values={relevantValues}
-                            isOpenGlobal={false}
-                            onChange={f.onChange}
-                            onReset={() => {
-                                f.onChange(relevantDefaults);
-                                saveSnapshot();
-                            }}
-                            onSetDefault={(constants) => {
-                                f.setDefault(constants);
-                                saveSnapshot();
-                            }}
-                            onApply={f.onApply}
-                            defaults={relevantDefaults}
-                        />
-                    );
-                })}
+                        return (
+                            <ConstantsList
+                                key={f.header}
+                                header={f.header}
+                                fields={f.fields}
+                                values={relevantValues}
+                                isOpenGlobal={false}
+                                onChange={f.onChange}
+                                onReset={() => {
+                                    f.onChange(relevantDefaults);
+                                    saveSnapshot();
+                                }}
+                                onSetDefault={(constants) => {
+                                    f.setDefault(constants);
+                                    saveSnapshot();
+                                }}
+                                onApply={f.onApply}
+                                defaults={relevantDefaults}
+                            />
+                        );
+                    })}
+                </div>
             </div>
         </div>
     );

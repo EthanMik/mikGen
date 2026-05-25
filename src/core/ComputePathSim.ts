@@ -93,10 +93,11 @@ export function precomputePath(
 
         }
 
-        if (autoIdx >= auton.length) {
-            if (Math.abs(robot.getXVelocity()) < 0.01 && Math.abs(robot.getYVelocity()) < 0.01) break;
-            robot.tankDrive(0, 0, dt);
-        }
+        if (autoIdx >= auton.length) break;
+        // {
+        //     if (Math.abs(robot.getXVelocity()) < 0.01 && Math.abs(robot.getYVelocity()) < 0.01) break;
+        //     robot.tankDrive(0, 0, dt);
+        // }
 
         segmentTrajectory.push({
             t,

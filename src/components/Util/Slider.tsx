@@ -12,6 +12,7 @@ type SliderProps = {
   setValue: (value: number) => void;
   onChangeStart?: () => void;
   OnChangeEnd?: (value: number) => void;
+  step?: number;
 }
 
 /** Uses value on a scale of 0-100 */
@@ -25,7 +26,8 @@ export default function Slider({
   value,
   setValue,
   onChangeStart,
-  OnChangeEnd
+  OnChangeEnd,
+  step,
 }: SliderProps) {
   const trackRef = useRef<HTMLDivElement | null>(null);
 
@@ -36,6 +38,7 @@ export default function Slider({
     const rect = track.getBoundingClientRect();
     let newValue = ((clientX - rect.left) / rect.width) * 100;
 
+    if (step) newValue = Math.round(newValue / step) * step;
     newValue = clamp(newValue, 0, 100);
     setValue?.(newValue);
   }
@@ -80,7 +83,7 @@ export default function Slider({
           backgroundColor: `var(${knobColor})`,
           width: `${knobWidth}px`,
           height: `${knobHeight}px`,
-          left: `${value}%`,
+          left: `${clamp(value, 0, 100)}%`,
           top: "50%",
           transform: `translate(-50%, -50%) scale(${1})`,
           transition: "transform 0.05s ease",

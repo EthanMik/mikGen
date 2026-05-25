@@ -13,6 +13,7 @@ export const holonomicDef = {
             defaults: [kMikDrive, kMikHeading],
             toStringTemplate: "chassis.holonomic_to_pose(${x}, ${y}, ${angle}, ${kBuilder});",
             simFn: (robot, dt, x, y, angle, constants) => holonomic_to_pose(robot, dt, x, y, angle ?? 0, constants),
+            slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
             cycleButtons: [],
             numberInputs: [
                 {
@@ -43,6 +44,7 @@ export const holonomicDef = {
             defaults: [kMikDrive, kMikHeading],
             toStringTemplate: "chassis.strafe_distance(${distance}, ${kBuilder});",
             simFn: (robot, dt, distance, _y, angle, constants) => strafe_distance(robot, dt, distance, angle, constants),
+            slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
             cycleButtons: [],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings,] },

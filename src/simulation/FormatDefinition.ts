@@ -6,6 +6,8 @@ import type { Dispatch, SetStateAction } from "react";
 import type { Path } from "../core/Types/Path";
 import type { Pose } from "../core/Types/Pose";
 import { holonomicDef } from "./HolonomicSim/HolonomicConstants";
+import { fileFormatStore } from "../hooks/useFileFormat";
+import type { Segment } from "../core/Types/Segment";
 
 export type Format =
     "mikLib"
@@ -25,6 +27,7 @@ export type SegmentKind =
     | "distanceDrive"
     | "strafeDrive"
     | "start"
+    | "wait"
 
 export type FormatConstants = {
     mikLib: mikConstants;
@@ -39,7 +42,6 @@ export type FormatDef<F extends Format, Segs extends Partial<Record<SegmentKind,
     constants: SegmentConstants<F>;
     kMaxSpeed: number;
     formatPathName: string;
-    slider: SliderField<F>;
     segments: Segs;
     kBuilder?: (kDefault: SegmentConstants<F>, k: SegmentConstants<F>, pose?: Pose, kind?: SegmentKind) => string;
     kParser?: (kDefault: SegmentConstants<F>, kBuilderStr: string, kind: SegmentKind) => [SegmentConstants<F>, Partial<Pose>?];
@@ -53,6 +55,7 @@ export type SegmentDef<F extends Format = Format> = {
     simFn?: SegmentFactory<F>;
     cycleButtons?: CycleButtonField<F>[];
     numberInputs?: NumberInputGroup<F>[];
+    slider?: SliderField<F>;
 };
 
 export type SimFn = (robot: Robot, dt: number) => [boolean, SegmentKind, number];
@@ -66,10 +69,11 @@ export function forSegments<F extends Format, K extends SegmentKind>(
 
 export type SegmentConstants<F extends Format> = [FormatConstants[F], ...FormatConstants[F][]];
 
-type SliderField<F extends Format = Format> = {
-    key: keyof FormatConstants[F];
+export type SliderField<F extends Format = Format> = {
+    key: keyof FormatConstants[F] | keyof Segment;
     bounds: [number, number];
     roundTo: number;
+    constantsIdx?: number;
 }
 
 export type CycleButtonField<F extends Format = Format,
@@ -88,7 +92,7 @@ export type NumberInputGroup<F extends Format = Format> = {
     constantsIdx: number;
     headerName: string;
     fields: {
-        key: keyof FormatConstants[F];
+        key: keyof FormatConstants[F] | keyof Segment;
         units: string;
         label: string;
         input: {
@@ -157,6 +161,28 @@ export function updateDefaultConstants<F extends Format>(
             [kind]: { ...segDef, defaults: newDefaults },
         },
     };
+}
+
+export function changeFormat(newFormat: Format) {
+    const newFormatDef = FORMAT_REGISTRY[newFormat] as FormatDef<Format>;
+    fileFormatStore.setState(prev => ({
+        ...prev,
+        format: newFormat,
+        formatDef: newFormatDef,
+        path: {
+            ...prev.path,
+            segments: prev.path.segments.map(s => {
+                const newSegDef = newFormatDef.segments[s.kind];
+                const castKind = newSegDef?.castTo ?? s.kind;
+                return {
+                    ...s,
+                    format: newFormat,
+                    kind: castKind,
+                    constants: getDefaultConstants(undefined, newFormat, castKind),
+                };
+            }),
+        },
+    }));
 }
 
 export function updatePathConstants<F extends Format>(

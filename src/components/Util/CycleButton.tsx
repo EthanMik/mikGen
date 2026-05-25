@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import Tooltip from "./Tooltip";
 
 type ImageKey = {
     src: string;
@@ -7,13 +8,15 @@ type ImageKey = {
 
 export type CycleImageButtonProps = {
     imageKeys: [ImageKey, ImageKey, ...ImageKey[]];
-    value: string | null; 
+    value: string | null;
     onKeyChange: (key: string | null) => void;
+    label?: string;
 };
 
 export default function CycleImageButton({
     imageKeys,
     value,
+    label,
     onKeyChange,
 }: CycleImageButtonProps) {
     const keyToIdx = useMemo(() => {
@@ -31,12 +34,15 @@ export default function CycleImageButton({
     };
 
     return (
-        <button
-            type="button"
-            className="flex items-center w-[20px] h-[20px] cursor-pointer"
-            onClick={handleNextCycle}
-        >
-        <img src={current.src} alt="" draggable={false} />
-        </button>
+        <Tooltip label={label ? `${label}: ${String(value)}` : String(value)}>
+            <button
+                type="button"
+                className="flex items-center w-[20px] h-[20px] cursor-pointer"
+                onClick={handleNextCycle}
+            >
+                <img src={current.src} alt="" draggable={false} />
+            </button>
+
+        </Tooltip>
     );
 }

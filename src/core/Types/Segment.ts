@@ -15,7 +15,8 @@ export type Segment<F extends Format = Format> = {
   format: F;
   kind: SegmentKind;
   constants: SegmentConstants<F>;
-  distance?: number | null;
+  distance: number;
+  time: number;
 };
 
 export function createSegment<F extends Format>(formatDef: FormatDef<Format>, format: F, kind: SegmentKind, pose: Pose): Segment<F> {
@@ -29,6 +30,8 @@ export function createSegment<F extends Format>(formatDef: FormatDef<Format>, fo
     pose,
     format,
     kind,
+    time: 0,
+    distance: 0,
     constants: getDefaultConstants(formatDef, format, kind)
   }
 }

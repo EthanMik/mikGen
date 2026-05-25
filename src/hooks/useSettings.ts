@@ -1,27 +1,24 @@
 import { createSharedState } from "../core/SharedState";
 
 type Settings = {
-    ghostRobots: boolean,
-    robotPosition: boolean,
-    precisePath: boolean,
-    numberedPath: boolean
-}
+    ghostRobots: boolean;
+    robotPosition: boolean;
+    precisePath: boolean;
+    numberedPath: boolean;
+    snapToGrid: number;
+    themeIdx: number;
+};
 
-const savedGhostRobot = localStorage.getItem("ghostRobots");
-const initialGhostRobots = savedGhostRobot === null ? false : savedGhostRobot === "true";
+const DEFAULTS: Settings = {
+    ghostRobots: false,
+    robotPosition: false,
+    precisePath: false,
+    numberedPath: false,
+    snapToGrid: 0.5,
+    themeIdx: 0
+};
 
-const savedRobotPosition = localStorage.getItem("robotPosition");
-const initialRobotsPosition = savedRobotPosition === null ? false : savedRobotPosition === "true";
+const saved = localStorage.getItem("settings");
+const initial: Settings = saved ? { ...DEFAULTS, ...JSON.parse(saved) } : DEFAULTS;
 
-const savedPrecisePath = localStorage.getItem("precisePath");
-const initialPrecisePath = savedPrecisePath === null ? false : savedPrecisePath === "true";
-
-const savedNumberedPath = localStorage.getItem("numberedPath");
-const initialNumberedPath = savedNumberedPath === null ? false : savedNumberedPath === "true";
-
-export const useSettings = createSharedState<Settings>({
-    ghostRobots: initialGhostRobots,
-    robotPosition: initialRobotsPosition,
-    precisePath: initialPrecisePath,
-    numberedPath: initialNumberedPath
-})
+export const useSettings = createSharedState<Settings>(initial);

@@ -396,22 +396,24 @@ export default function FieldMacros() {
         saveSnapshot();
     }
 
-    const fieldZoomKeyboard = (evt: KeyboardEvent | null, setImg: React.Dispatch<SetStateAction<Rectangle>>) => {
+    const fieldZoomKeyboard = (evt: KeyboardEvent | null, setImg: React.Dispatch<SetStateAction<Rectangle>>, action: "ZoomIn" | "ZoomOut" | "ZoomReset" | null = null) => {
         const ZOOM_STEP = 200;
 
-        if (evt === null || evt.key === "0") {
+        if (action === "ZoomReset" || (evt !== null && evt.key === "0")) {
             setImg(FIELD_IMG_DIMENSIONS);
-            return;         
+            return;
         }
 
         let dir = 0;
 
-        if (!evt.ctrlKey) return;
-        if (evt.key === "=") dir = 1;
-        if (evt.key === "-") dir = -1;
-        
-        evt.preventDefault();
-        evt.stopPropagation();
+        if (evt !== null && !evt.ctrlKey && action !== null) return;
+        if (evt?.key === "=" || action === "ZoomIn") dir = 1;
+        if (evt?.key === "-" || action === "ZoomOut") dir = -1;
+
+        if (evt !== null) {
+            evt.preventDefault();
+            evt.stopPropagation();
+        }
 
         setImg((prev) => {
             const aspectRatio = prev.w / prev.h;
@@ -487,67 +489,82 @@ export default function FieldMacros() {
     }
 
     /** Left click */
-    const addPointDriveSegment = (evt: React.MouseEvent<Element> | null, format: Format, position: Coordinate, setPath: React.Dispatch<SetStateAction<Path>>) => {
+    const addPointDriveSegment = (evt: React.MouseEvent<Element> | null, format: Format, position: Coordinate, setPath: React.Dispatch<SetStateAction<Path>>, path: Path) => {
         if (evt !== null && !(!evt.ctrlKey && !evt.altKey && evt.button === 0)) return;
         const formatDef = fileFormatStore.getState().formatDef;
         if (formatDef.segments["pointDrive"]?.castTo) return;
+        if (path.segments.length === 0) return addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath);
         addSegment(createSegment(formatDef, format, "pointDrive", { x: position.x, y: position.y, angle: null }), setPath);
     }
 
     /** Ctrl + Left click */
-    const addPoseDriveSegment = (evt: React.MouseEvent<Element> | null, format: Format, position: Pose, setPath: React.Dispatch<SetStateAction<Path>>) => {
+    const addPoseDriveSegment = (evt: React.MouseEvent<Element> | null, format: Format, position: Pose, setPath: React.Dispatch<SetStateAction<Path>>, path: Path) => {
         if (evt !== null && !(evt.ctrlKey && !evt.altKey && evt.button === 0)) return;
         const formatDef = fileFormatStore.getState().formatDef;
         if (formatDef.segments["poseDrive"]?.castTo) return;
+        if (path.segments.length === 0) return addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath);
         addSegment(createSegment(formatDef, format, "poseDrive", position), setPath);
     }
 
     /** Alt + Left click */
-    const addDistanceSegment = (evt: React.MouseEvent<Element> | null, format: Format, position: Pose, setPath: React.Dispatch<SetStateAction<Path>>) => {
+    const addDistanceSegment = (evt: React.MouseEvent<Element> | null, format: Format, position: Pose, setPath: React.Dispatch<SetStateAction<Path>>, path: Path) => {
         if (evt !== null && !(!evt.ctrlKey && evt.altKey && evt.button === 0)) return;
         const formatDef = fileFormatStore.getState().formatDef;
         if (formatDef.segments["distanceDrive"]?.castTo) return;
+        if (path.segments.length === 0) return addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath);
         addSegment(createSegment(formatDef, format, "distanceDrive", position), setPath);
     }
 
     /** Ctrl + Alt + Left click */
-    const addStrafeSegment = (evt: React.MouseEvent<Element> | null, format: Format, position: Pose, setPath: React.Dispatch<SetStateAction<Path>>) => {
+    const addStrafeSegment = (evt: React.MouseEvent<Element> | null, format: Format, position: Pose, setPath: React.Dispatch<SetStateAction<Path>>, path: Path) => {
         if (evt !== null && !(evt.ctrlKey && evt.altKey && evt.button === 0)) return;
         const formatDef = fileFormatStore.getState().formatDef;
         if (formatDef.segments["strafeDrive"]?.castTo) return;
+        if (path.segments.length === 0) return addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath);
         addSegment(createSegment(formatDef, format, "strafeDrive", position), setPath);
     }
 
     /** Right click */
-    const addPointTurnSegment = (evt: React.MouseEvent<Element> | null, format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
+    const addPointTurnSegment = (evt: React.MouseEvent<Element> | null, format: Format, setPath: React.Dispatch<SetStateAction<Path>>, path: Path) => {
         if (evt !== null && !(!evt.ctrlKey && !evt.altKey && !evt.shiftKey && evt.button === 2)) return;
         const formatDef = fileFormatStore.getState().formatDef;
         if (formatDef.segments["pointTurn"]?.castTo) return;
+        if (path.segments.length === 0) return addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath);
         addSegment(createSegment(formatDef, format, "pointTurn", { x: null, y: null, angle: 0 }), setPath);
     }
 
     /** Ctrl + Right click */
-    const addAngleTurnSegment = (evt: React.MouseEvent<Element> | null, format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
+    const addAngleTurnSegment = (evt: React.MouseEvent<Element> | null, format: Format, setPath: React.Dispatch<SetStateAction<Path>>, path: Path) => {
         if (evt !== null && !(evt.ctrlKey && !evt.altKey && !evt.shiftKey && evt.button === 2)) return;
         const formatDef = fileFormatStore.getState().formatDef;
         if (formatDef.segments["angleTurn"]?.castTo) return;
+        if (path.segments.length === 0) return addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath);
         addSegment(createSegment(formatDef, format, "angleTurn", { x: null, y: null, angle: 0 }), setPath);
     }
 
     /** Alt + Right click */
-    const addPointSwingSegment = (evt: React.MouseEvent<Element> | null, format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
+    const addPointSwingSegment = (evt: React.MouseEvent<Element> | null, format: Format, setPath: React.Dispatch<SetStateAction<Path>>, path: Path) => {
         if (evt !== null && !(!evt.ctrlKey && evt.altKey && evt.button === 2)) return;
         const formatDef = fileFormatStore.getState().formatDef;
         if (formatDef.segments["pointSwing"]?.castTo) return;
+        if (path.segments.length === 0) return addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath);
         addSegment(createSegment(formatDef, format, "pointSwing", { x: null, y: null, angle: 0 }), setPath);
     }
 
     /** Ctrl + Alt + Right click */
-    const addAngleSwingSegment = (evt: React.MouseEvent<Element> | null, format: Format, setPath: React.Dispatch<SetStateAction<Path>>) => {
+    const addAngleSwingSegment = (evt: React.MouseEvent<Element> | null, format: Format, setPath: React.Dispatch<SetStateAction<Path>>, path: Path) => {
         if (evt !== null && !(evt.ctrlKey && evt.altKey && evt.button === 2)) return;
         const formatDef = fileFormatStore.getState().formatDef;
         if (formatDef.segments["angleSwing"]?.castTo) return;
+        if (path.segments.length === 0) return addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath);
         addSegment(createSegment(formatDef, format, "angleSwing", { x: null, y: null, angle: 0 }), setPath);
+    }
+
+    const addWaitSegment = (format: Format, setPath: React.Dispatch<SetStateAction<Path>>, path: Path) => {
+        const formatDef = fileFormatStore.getState().formatDef;
+        if (formatDef.segments["wait"]?.castTo) return;
+        if (path.segments.length === 0) return addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath);
+        addSegment(createSegment(formatDef, format, "wait", { x: null, y: null, angle: null }), setPath);
     }
 
     return {
@@ -572,6 +589,7 @@ export default function FieldMacros() {
         addAngleSwingSegment,
         addPointSwingSegment,
         addStrafeSegment,
+        addWaitSegment,
         addDistanceSegment,
         addStartSegment,
     };

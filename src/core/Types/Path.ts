@@ -68,6 +68,15 @@ export function resolveHeading(
     }
 
     const anchorIdx = getBackwardsSnapIdx(path, idx - 1);
+
+    if (anchorIdx !== null && anchorIdx > 0) {
+        const anchorSeg = path.segments[anchorIdx];
+        if (anchorSeg.kind === "distanceDrive" || anchorSeg.kind === "strafeDrive") {
+            const anchorAnchorPose = getBackwardsSnapPose(path, anchorIdx - 1);
+            if (anchorAnchorPose) return resolveHeading(path, anchorIdx, anchorAnchorPose, offset);
+        }
+    }
+
     const approachPose = anchorIdx !== null && anchorIdx > 0
         ? getBackwardsSnapPose(path, anchorIdx - 1)
         : null;

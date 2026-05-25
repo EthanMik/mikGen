@@ -4,6 +4,9 @@ import { usePath, useFileFormat, fileFormatStore, type FileFormat } from "../../
 import { defaultRobotConstants } from "../../core/Robot";
 import { saveSnapshot, undoHistory } from "../../core/Undo/UndoHistory";
 import { FORMAT_REGISTRY, mergeFormatDef, type FormatDef } from "../../simulation/FormatDefinition";
+import MenuButtonTemplate from "../Util/MenuButtonTemplate";
+import { MenuKeybindButton } from "../Util/KeybindButton";
+import Section from "../Util/Section";
 
 const FILE_VERSION = "mikGen v1.0.0";
 
@@ -22,31 +25,31 @@ function deserializeFile(content: string): FileFormat {
 }
 
 export default function FileButton() {
-    const menuRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const renameResolveRef = useRef<((name: string | null) => void) | null>(null);
     const fileHandleRef = useRef<FileSystemFileHandle | null>(null);
+    const underlineRef = useRef<((val: boolean) => void) | undefined>(undefined);
 
-    const [ isOpen, setOpen ] = useState(false);
-    const [ popupOpen, setPopupOpen ] = useState(false);
-    const [ path, setPath ] = usePath();
-    const [ fileFormat ] = useFileFormat();
+    const [popupOpen, setPopupOpen] = useState(false);
+    const [path, setPath] = usePath();
+    const [fileFormat] = useFileFormat();
     const { format, field } = fileFormat;
-    const [ isSaved, setIsSaved ] = useState(true);
+    const [isSaved, setIsSaved] = useState(true);
     const skipSave = useRef(true);
 
     const historyLength = undoHistory.useSelector(h => h.length);
-
     const fileText = fileFormat;
+    const [label, setLabel] = useState("");
 
-    const [ label, setLabel ] = useState("");
+    useEffect(() => {
+        underlineRef.current?.(!isSaved);
+    }, [isSaved]);
 
     const getFileName = (fileName = ""): string => {
         const pathName = fileName === "" ? path.name : fileName;
         if (pathName === "" || pathName === null || pathName === undefined) {
             return format.slice(0, 3) + "Path";
         }
-
         return pathName;
     }
 
@@ -56,17 +59,13 @@ export default function FileButton() {
             return;
         }
         setIsSaved(false);
-    }, [historyLength])
+    }, [historyLength]);
 
     const updatePathName = (name: string) => {
-        setPath(prev => ({
-            ...prev,
-            name: name
-        }));
-
+        setPath(prev => ({ ...prev, name }));
         renameResolveRef.current?.(name);
         renameResolveRef.current = null;
-    } 
+    };
 
     const requestFileName = () => {
         setPopupOpen(true);
@@ -82,18 +81,12 @@ export default function FileButton() {
         }
     }, [popupOpen]);
 
-    const handleToggleMenu = () => {
-        setOpen((prev) => !prev)
-    }
-
     const handleNewFile = () => {
-        if (!isSaved) {
-            handleSaveAs();
-        }
+        if (!isSaved) handleSaveAs();
 
         const newFileFormat = {
-            format: format,
-            field: field,
+            format,
+            field,
             formatDef: FORMAT_REGISTRY[format as keyof typeof FORMAT_REGISTRY],
             path: { segments: [], name: "" },
             robot: defaultRobotConstants,
@@ -102,15 +95,11 @@ export default function FileButton() {
         fileFormatStore.setState(newFileFormat);
         saveSnapshot();
         fileHandleRef.current = null;
-        setOpen(false);
         setIsSaved(true);
-    }
+    };
 
     const handleOpenFile = async () => {
-        setOpen(false);
-        
         if (!('showOpenFilePicker' in window)) {
-            console.error('File System Access API not supported');
             fileInputRef.current?.click();
             return;
         }
@@ -119,24 +108,9 @@ export default function FileButton() {
             // @ts-expect-error showOpenFilePicker not in all TS DOM libs
             const [handle] = await window.showOpenFilePicker({
                 types: [
-                    {
-                        description: 'Text Files',
-                        accept: {
-                            'text/plain': ['.txt'],
-                        },
-                    },
-                    {
-                        description: 'JSON Files',
-                        accept: {
-                            'application/json': ['.json'],
-                        },
-                    },
-                    {
-                        description: 'CSV Files',
-                        accept: {
-                            'text/csv': ['.csv'],
-                        },
-                    },
+                    { description: 'Text Files', accept: { 'text/plain': ['.txt'] } },
+                    { description: 'JSON Files', accept: { 'application/json': ['.json'] } },
+                    { description: 'CSV Files', accept: { 'text/csv': ['.csv'] } },
                 ],
                 multiple: false,
             });
@@ -145,28 +119,18 @@ export default function FileButton() {
 
             const file = await handle.getFile();
             const content = await file.text();
-            
             const fileName = handle.name.replace(/\.[^/.]+$/, "");
             const parsed = deserializeFile(content);
 
-            const newFileFormat = {
-                ...parsed,
-                path: {
-                    ...parsed.path,
-                    name: fileName
-                }
-            };
-            fileFormatStore.setState(newFileFormat);
+            fileFormatStore.setState({ ...parsed, path: { ...parsed.path, name: fileName } });
             saveSnapshot();
             setIsSaved(true);
-
         } catch (error) {
             if ((error as Error).name !== 'AbortError') {
                 console.error('Error opening file:', error);
             }
         }
-        
-    }
+    };
 
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -176,37 +140,26 @@ export default function FileButton() {
             reader.onload = (e) => {
                 const content = e.target?.result as string;
                 const parsed = deserializeFile(content);
-
-                const newFileFormat = {
+                fileFormatStore.setState({
                     ...parsed,
                     formatDef: mergeFormatDef(FORMAT_REGISTRY[parsed.format] as FormatDef<typeof parsed.format>, parsed.formatDef),
-                    path: {
-                        ...parsed.path,
-                        name: fileName
-                    }
-                };
-                fileFormatStore.setState(newFileFormat);
+                    path: { ...parsed.path, name: fileName },
+                });
                 saveSnapshot();
             };
             reader.readAsText(file);
-
             fileHandleRef.current = null;
         }
-        
         event.target.value = '';
         setIsSaved(true);
         skipSave.current = true;
-    }
+    };
 
     const handleSave = async () => {
-        setOpen(false);
-        
         if (!('showSaveFilePicker' in window)) {
-            console.error('File System Access API not supported');
             handleDownload();
             return;
         }
-
         try {
             if (fileHandleRef.current) {
                 const writable = await fileHandleRef.current.createWritable();
@@ -219,48 +172,30 @@ export default function FileButton() {
         } catch (error) {
             console.error('Error saving file:', error);
         }
-    }
+    };
 
     const handleSaveAs = async () => {
-        setOpen(false);
         setLabel("Save As:");
         if (!('showSaveFilePicker' in window)) {
-            console.error('File System Access API not supported');
             handleDownloadAs();
             return;
         }
-
         try {
             const name = await requestFileName();
             if (name === null || name === "") return;
-            
+
             // @ts-expect-error showSaveFilePicker not in all TS DOM libs
             const handle = await window.showSaveFilePicker({
                 suggestedName: `${name}.txt`,
                 types: [
-                    {
-                        description: 'Text Files',
-                        accept: {
-                            'text/plain': ['.txt'],
-                        },
-                    },
-                    {
-                        description: 'JSON Files',
-                        accept: {
-                            'application/json': ['.json'],
-                        },
-                    },
+                    { description: 'Text Files', accept: { 'text/plain': ['.txt'] } },
+                    { description: 'JSON Files', accept: { 'application/json': ['.json'] } },
                 ],
             });
 
             fileHandleRef.current = handle;
-
             const savedFileName = handle.name.replace(/\.[^/.]+$/, "");
-
-            setPath(prev => ({
-                ...prev,
-                name: savedFileName
-            }));
+            setPath(prev => ({ ...prev, name: savedFileName }));
 
             const writable = await handle.createWritable();
             await writable.write(serializeFile(fileText));
@@ -271,7 +206,7 @@ export default function FileButton() {
                 console.error('Error saving file:', error);
             }
         }
-    }
+    };
 
     const downloadText = (content: string, filename: string) => {
         const blob = new Blob([content], { type: "text/plain" });
@@ -284,35 +219,17 @@ export default function FileButton() {
     };
 
     const handleDownload = () => {
-        downloadText(serializeFile(fileText), `${getFileName()}.txt`)
-        setOpen(false);
+        downloadText(serializeFile(fileText), `${getFileName()}.txt`);
         setIsSaved(true);
-    }
+    };
 
     const handleDownloadAs = async () => {
-        setOpen(false);
         setLabel("Download As:");
         const name = await requestFileName();
         if (name === null) return;
-
         downloadText(serializeFile(fileText), `${getFileName(name)}.txt`);
         setIsSaved(true);
-    }
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                setOpen(false);
-            }
-        }
-
-        document.addEventListener("mousedown", handleClickOutside)
-
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside)
-        }
-
-    }, []);
+    };
 
     const handleNewFileRef = useRef(handleNewFile);
     const handleOpenFileRef = useRef(handleOpenFile);
@@ -332,8 +249,8 @@ export default function FileButton() {
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
-        if (event.ctrlKey && event.key === 'p') {
-            event.preventDefault();
+            if (event.ctrlKey && event.key === 'p') {
+                event.preventDefault();
                 handleNewFileRef.current();
             } else if (event.ctrlKey && event.key === 'o') {
                 event.preventDefault();
@@ -351,30 +268,20 @@ export default function FileButton() {
                 event.preventDefault();
                 handleDownloadRef.current();
             }
-        }
+        };
 
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, []);
 
     return (
-        <div
-            ref={menuRef}
-            className={`relative ${
-                isOpen ? "bg-medgray_hover" : "bg-none"
-            } hover:bg-medgray_hover rounded-sm`}
-        >
-            <button onClick={handleToggleMenu} className="px-2 py-1 cursor-pointer">
-                <span className={`text-[20px] ${!isSaved ? "underline" : ""}`}>File</span>
-            </button>
-
-        {popupOpen && <FileRenamePopup 
-            label={label}
-            open={popupOpen}
-            setOpen={setPopupOpen}
-            onEnter={updatePathName}
-        />}
-
+        <>
+            {popupOpen && <FileRenamePopup
+                label={label}
+                open={popupOpen}
+                setOpen={setPopupOpen}
+                onEnter={updatePathName}
+            />}
             <input
                 ref={fileInputRef}
                 type="file"
@@ -382,65 +289,17 @@ export default function FileButton() {
                 style={{ display: "none" }}
                 onChange={handleFileSelect}
             />
-
-            {isOpen && (
-                <div className="absolute shadow-xs mt-1 shadow-black left-0 top-full w-55 z-40
-                    rounded-sm bg-medgray_hover min-h-2">
-                    <div className="flex flex-col mt-2 pl-3 pr-3 mb-2 gap-2">
-                        <div className="flex flex-col">
-
-                            <button 
-                                onClick={handleNewFile}
-                                className="flex pr-1 pl-2 py-0.5 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
-                                <span className="text-[16px]">New File</span>
-                                <span className="text-lightgray text-[14px]">Ctrl+P</span>
-                            </button>
-                            
-                            <div className="mt-1 border-t border-gray-500/40 flex flex-row items-center justify-between h-[4px]"></div>
-
-                            <button 
-                                onClick={handleOpenFile}
-                                className="flex pr-1 pl-2 py-0.5 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
-                                <span className="text-[16px]">Open File</span>
-                                <span className="text-lightgray text-[14px]">Ctrl+O</span>
-                            </button>
-
-                            <div className="mt-1 border-t border-gray-500/40 flex flex-row items-center justify-between h-[4px]"></div>
-
-                            <button
-                                onClick={handleSave}
-                                className="flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
-                                <span className="text-[16px]">Save</span>
-                                <span className="text-lightgray text-[14px]">Ctrl+S</span>
-                            </button>
-
-                            <button
-                                onClick={handleSaveAs} 
-                                className="flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
-                                <span className="text-[16px]">Save As</span>
-                                <span className="text-lightgray text-[14px]">Shift+Ctrl+S</span>
-                            </button>
-
-                            <div className="mt-1 border-t border-gray-500/40 flex flex-row items-center justify-between h-[4px]"></div>
-
-                            <button
-                                onClick={handleDownload}
-                                className="flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
-                                <span className="text-[16px]">Download</span>
-                                <span className="text-lightgray text-[14px]">Ctrl+D</span>
-                            </button>
-
-                            <button 
-                                onClick={handleDownloadAs} 
-                                className="flex pr-1 py-0.5 pl-2 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
-                                <span className="text-[16px]">Download As</span>
-                                <span className="text-lightgray text-[14px]">Shift+Ctrl+D</span>
-                            </button>
-                        </div>
-        
-                    </div>
-                </div>
-            )}
-        </div>
-    )
+            <MenuButtonTemplate title="File" underlineRef={underlineRef}>
+                <MenuKeybindButton name="New File" keybind="Ctrl+P" callback={handleNewFile} />
+                <Section />
+                <MenuKeybindButton name="Open File" keybind="Ctrl+O" callback={handleOpenFile} />
+                <Section />
+                <MenuKeybindButton name="Save" keybind="Ctrl+S" callback={handleSave} />
+                <MenuKeybindButton name="Save As" keybind="Ctrl+⇧S" callback={handleSaveAs} />
+                <Section />
+                <MenuKeybindButton name="Download" keybind="Ctrl+D" callback={handleDownload} />
+                <MenuKeybindButton name="Download As" keybind="Ctrl+⇧D" callback={handleDownloadAs} />
+            </MenuButtonTemplate>
+        </>
+    );
 }

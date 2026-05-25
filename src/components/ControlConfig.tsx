@@ -6,6 +6,7 @@ import { normalizeDeg } from "../core/Util";
 import { useFormat, usePath } from "../hooks/useFileFormat";
 
 import NumberInput from "./Util/NumberInput";
+import Tooltip from "./Util/Tooltip";
 
 type MirrorDirection = "x" | "y";
 
@@ -208,8 +209,7 @@ export default function ControlConfig() {
     return (
         <div className="flex flex-row items-center justify-center gap-4 bg-medgray w-[500px] h-[65px] rounded-lg">
             { selectedSegment !== "distanceDrive" && selectedSegment !== "strafeDrive" &&
-                <>
-                    <div className="flex items-center gap-2">
+                <div className={`flex items-center flex-row gap-2 ${(selectedSegment === "angleSwing" || selectedSegment === "pointSwing" || selectedSegment === "angleTurn" || selectedSegment === "pointTurn" || selectedSegment === "wait") ? "opacity-50 pointer-events-none" : ""}`}>
                         <span style={{ fontSize: 20 }}>X</span>
                         <NumberInput
                             width={80}
@@ -223,8 +223,6 @@ export default function ControlConfig() {
                             units="in"
                             addToHistory={() => { saveSnapshot(); }}
                         />
-                    </div>
-                    <div className="flex items-center gap-2">
                         <span style={{ fontSize: 20 }}>Y</span>
                         <NumberInput
                             width={80}
@@ -238,8 +236,7 @@ export default function ControlConfig() {
                             units="in"
                             addToHistory={() => { saveSnapshot(); }}
                         />
-                    </div>
-                </>
+                </div>
             }
 
             { (selectedSegment === "distanceDrive" || selectedSegment === "strafeDrive") &&
@@ -263,7 +260,7 @@ export default function ControlConfig() {
                 </>
             }
 
-            <div className="flex items-center gap-2">
+            <div className={`flex items-center gap-2 ${selectedSegment === "wait" ? "opacity-50 pointer-events-none" : ""}`}>
                 <span style={{ fontSize: 20 }}>θ</span>
                 <NumberInput
                     width={80}
@@ -279,9 +276,13 @@ export default function ControlConfig() {
                 />
             </div>
 
-            <div className="flex items-center flex-row gap-[15px]">
-                <MirrorControl mirrorDirection="x" src={flipHorizontal}/>
-                <MirrorControl mirrorDirection="y" src={flipVertical}/>
+            <div className={`flex items-center flex-row gap-[15px] ${selectedSegment === "wait" ? "opacity-50 pointer-events-none" : ""}`}>
+                <Tooltip label="Mirror Horizontally">
+                    <MirrorControl mirrorDirection="x" src={flipHorizontal}/>
+                </Tooltip>
+                <Tooltip label="Mirror Vertically">
+                    <MirrorControl mirrorDirection="y" src={flipVertical}/>
+                </Tooltip>
             </div>
         </div>
     );

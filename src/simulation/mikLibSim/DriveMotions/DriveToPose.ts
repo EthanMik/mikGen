@@ -64,8 +64,8 @@ export function drive_to_pose(robot: Robot, dt: number, x: number, y: number, an
     const line_settled = is_line_settled(x, y, angle, robot.getX(), robot.getY(), drive_p.exit_error);
     const carrot_settled = is_line_settled(x, y, angle, carrot_X, carrot_Y, drive_p.exit_error);
     crossed_line = line_settled === carrot_settled;
-
-    if (!crossed_line && prev_crossed_line && settling && drive_p.min_voltage > 0) {
+    
+    if (!(crossed_line == prev_crossed_line) && settling && drive_p.min_voltage > 0) {
         reset_drive_to_pose();
         return true;
     }

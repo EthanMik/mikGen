@@ -12,6 +12,6 @@ export function saveSnapshot() {
     const current = undoHistory.getState();
     undoHistory.setState([...current, snapshot].slice(-MAX_UNDO_HISTORY));
     redoHistory.setState([]);
-    console.log(snapshot);
+    // console.log(snapshot);
     localStorage.setItem("appState", JSON.stringify(snapshot));
 }

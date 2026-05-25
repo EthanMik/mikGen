@@ -1,18 +1,21 @@
 Live Progress Txt
 
 Bugs:
-
+- when holding down shift and pressing a segment it drags it instead
+- when box selecting, after multiple segments are selected, trying to do a second box select fails
 
 Todo:
 - instead of commands add a help button that provides path examples
 - add example paths
-- make logo
+- add help button
+- add view options for split screen
 
 Planned:
 - tooltip when hovering over svg buttons
 - google analytics
+- file directory view for easy selecting
+- visually see when you can and cant undo
 
-Deciding:
 
 Docs:
 - A better way to plan VEX Autonoumous - EthanMik Channel
