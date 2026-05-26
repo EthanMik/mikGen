@@ -7,7 +7,6 @@ import { NumberInputButton } from "../Config/RobotButton";
 import { DEFAULT_THEMES } from "../Field/FieldUtils";
 import { ConfigKeybindButton } from "../Util/KeybindButton";
 import Section from "../Util/Section";
-import Tooltip from "../Util/Tooltip";
 
 type ColorButtonProps = {
     callback: () => void;

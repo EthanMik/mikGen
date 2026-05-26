@@ -3,13 +3,13 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react-swc'
 import { VitePWA } from 'vite-plugin-pwa'
 
-export default defineConfig(({ command }) => ({
+export default defineConfig(() => ({
   plugins: [
     react(),
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      base: command === 'serve' ? '/' : '/mikGen/',
+      base: '/',
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff,woff2}'],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
@@ -17,7 +17,7 @@ export default defineConfig(({ command }) => ({
       manifest: {
         name: 'mikGen',
         short_name: 'mikGen',
-        start_url: command === 'serve' ? '/' : '/mikGen/',
+        start_url: '/',
         display: 'standalone',
         background_color: '#000000',
         theme_color: '#000000',
@@ -31,7 +31,7 @@ export default defineConfig(({ command }) => ({
       },
     }),
   ],
-  base: command === 'serve' ? '/' : '/mikGen/',
+  base: '/',
   build: {
     minify: false,
     sourcemap: true,

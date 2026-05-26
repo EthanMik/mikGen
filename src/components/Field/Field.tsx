@@ -11,6 +11,7 @@ import { PathSimMacros } from "../../macros/PathSimMacros";
 import FieldMacros from "../../macros/FieldMacros";
 import { useRobotPose } from "../../hooks/useRobotPose";
 import { DEFAULT_THEMES, getPressedPositionInch, pointerToSvg } from "./FieldUtils";
+import HoverButton from "../util/HoverButton";
 import { useBoxSelect } from "./useBoxSelect";
 import { useMagnetSnap } from "./useMagnetSnap";
 import RobotLayer from "./RobotLayer";
@@ -21,7 +22,7 @@ import { resolveHeading, getBackwardsSnapPose, type Path } from "../../core/Type
 import { useSettings } from "../../hooks/useSettings";
 import { useFieldImg } from "../../hooks/useFieldImg";
 
-export default function Field() {
+export default function Field({ showRightPanel = true }: { showRightPanel?: boolean }) {
 	const [img, setImg] = useFieldImg();
 	const [fieldKey] = useField();
 
@@ -531,31 +532,12 @@ export default function Field() {
 					</>
 				)}
 			</svg>
-			{(img.x !== 0 || img.y !== 0 || img.w !== FIELD_IMG_DIMENSIONS.w || img.h !== FIELD_IMG_DIMENSIONS.h) && (
-				<button
+			{showRightPanel && (img.x !== 0 || img.y !== 0 || img.w !== FIELD_IMG_DIMENSIONS.w || img.h !== FIELD_IMG_DIMENSIONS.h) && (
+				<HoverButton
+					src={homeButton}
 					onClick={() => fieldZoomKeyboard(null, setImg, "ZoomReset")}
-					className="
-						absolute top-3 right-129
-						flex
-						opacity-50
-						rounded-sm
-						items-center
-						justify-center
-						w-[25px]
-						h-[25px]
-						bg-medgray
-						z-10
-						cursor-pointer
-						transition
-            			"
-					>
-					<img
-						className="
-							w-[15px]
-							h-[15px]"
-						src={homeButton}>
-					</img>
-				</button>
+					className="absolute top-3 right-129 z-10 w-[25px] h-[25px]"
+				/>
 			)}
 		</div>
 	);

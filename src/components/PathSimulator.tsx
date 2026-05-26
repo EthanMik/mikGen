@@ -62,7 +62,7 @@ export default function PathSimulator() {
     const segmentGeoKey = useMemo(() =>
         path.segments.map(s => {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { selected, hovered, locked, visible, disabled, groupId, ...rest } = s;
+            const { selected, locked, visible, disabled, groupId, ...rest } = s;
             return JSON.stringify(rest);
         }).join('|'),
         [path.segments]

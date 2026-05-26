@@ -156,7 +156,7 @@ function parseSegmentLine<F extends Format>(
 
     return {
         id: makeId(10),
-        selected: false, hovered: false, disabled: false, locked: false, visible: true,
+        selected: false, disabled: false, locked: false, visible: true,
         format,
         kind,
         pose: { x, y, angle },
