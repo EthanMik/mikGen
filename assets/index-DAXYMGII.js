@@ -8745,10 +8745,10 @@ function requireReactDomClient_production() {
       var tag = node.tag;
       if ((0 === tag || 11 === tag || 15 === tag) && node.flags & 16384 && (tag = node.updateQueue, null !== tag && (tag = tag.stores, null !== tag)))
         for (var i = 0; i < tag.length; i++) {
-          var check = tag[i], getSnapshot = check.getSnapshot;
-          check = check.value;
+          var check2 = tag[i], getSnapshot = check2.getSnapshot;
+          check2 = check2.value;
           try {
-            if (!objectIs(getSnapshot(), check)) return false;
+            if (!objectIs(getSnapshot(), check2)) return false;
           } catch (error) {
             return false;
           }
@@ -12624,6 +12624,10 @@ function createStore(initial2) {
     return reactExports.useSyncExternalStore(subscribe, getSnap, getSnap);
   };
   return { getState, setState, subscribe, useStore, useSelector };
+}
+const viewModeStore = createStore("automatic");
+function useViewMode() {
+  return [viewModeStore.useStore(), viewModeStore.setState];
 }
 const ccw = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_301_13)'%3e%3cpath%20d='M1.21931%202.13826C1.89274%202.13826%202.43862%202.68416%202.43862%203.35757V5.31611C3.165%204.05176%204.17638%202.97141%205.40345%202.15761C6.94433%201.13569%208.73971%200.59552%2010.5955%200.59552C11.8646%200.59552%2013.0964%200.844329%2014.2566%201.33507C15.3766%201.80879%2016.3822%202.48673%2017.2455%203.35002C18.1088%204.21332%2018.7867%205.21896%2019.2605%206.33898C19.7512%207.4992%2020%208.73096%2020%2010C20%2011.2691%2019.7512%2012.5008%2019.2604%2013.661C18.7867%2014.7811%2018.1088%2015.7867%2017.2455%2016.65C16.3822%2017.5133%2015.3765%2018.1912%2014.2565%2018.6649C13.0963%2019.1557%2011.8646%2019.4045%2010.5955%2019.4045C9.51175%2019.4045%208.44882%2019.2214%207.43621%2018.8603C6.45763%2018.5114%205.54814%2018.0045%204.73299%2017.354C3.92588%2016.7098%203.23407%2015.9431%202.67677%2015.0752C2.10908%2014.191%201.69688%2013.226%201.45174%2012.2071C1.29421%2011.5524%201.69719%2010.8939%202.35194%2010.7363C3.00672%2010.5788%203.66515%2010.9819%203.82269%2011.6366C4.18195%2013.1297%205.04546%2014.4833%206.2542%2015.448C6.85805%2015.9299%207.53129%2016.3052%208.25526%2016.5633C9.00427%2016.8304%209.79164%2016.9659%2010.5955%2016.9659C12.4561%2016.9659%2014.2055%2016.2413%2015.5211%2014.9256C16.8368%2013.6099%2017.5614%2011.8606%2017.5614%209.99995C17.5614%208.13933%2016.8368%206.39%2015.5211%205.07433C14.2054%203.75866%2012.4561%203.03407%2010.5955%203.03407C9.22063%203.03407%207.89133%203.43372%206.75126%204.18981C5.76887%204.84137%204.97311%205.72282%204.42863%206.75724H5.77625C6.44968%206.75724%206.99556%207.30314%206.99556%207.97655C6.99556%208.64993%206.44968%209.19586%205.77625%209.19586H1.21931C0.545879%209.19586%201.06012e-07%208.64993%201.06012e-07%207.97655V3.35757C1.06012e-07%202.68416%200.545926%202.13826%201.21931%202.13826Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_301_13'%3e%3crect%20width='20'%20height='20'%20fill='white'%20transform='matrix(-1%200%200%201%2020%200)'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
 const cw = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_301_6)'%3e%3cpath%20d='M18.7807%202.13826C18.1073%202.13826%2017.5614%202.68416%2017.5614%203.35757V5.31611C16.835%204.05176%2015.8236%202.97141%2014.5966%202.15761C13.0557%201.13569%2011.2603%200.59552%209.40448%200.59552C8.13537%200.59552%206.90364%200.844329%205.74344%201.33507C4.62339%201.80879%203.6178%202.48673%202.75448%203.35002C1.89121%204.21332%201.21327%205.21896%200.739529%206.33898C0.248832%207.4992%200%208.73096%200%2010C0%2011.2691%200.248832%2012.5008%200.739552%2013.661C1.21327%2014.7811%201.89123%2015.7867%202.75452%2016.65C3.61782%2017.5133%204.62346%2018.1912%205.74346%2018.6649C6.90366%2019.1557%208.1354%2019.4045%209.4045%2019.4045C10.4882%2019.4045%2011.5512%2019.2214%2012.5638%2018.8603C13.5424%2018.5114%2014.4519%2018.0045%2015.267%2017.354C16.0741%2016.7098%2016.7659%2015.9431%2017.3232%2015.0752C17.8909%2014.191%2018.3031%2013.226%2018.5483%2012.2071C18.7058%2011.5524%2018.3028%2010.8939%2017.6481%2010.7363C16.9933%2010.5788%2016.3348%2010.9819%2016.1773%2011.6366C15.818%2013.1297%2014.9545%2014.4833%2013.7458%2015.448C13.142%2015.9299%2012.4687%2016.3052%2011.7447%2016.5633C10.9957%2016.8304%2010.2084%2016.9659%209.4045%2016.9659C7.54386%2016.9659%205.79453%2016.2413%204.47888%2014.9256C3.16321%2013.6099%202.43862%2011.8606%202.43862%209.99995C2.43862%208.13933%203.16319%206.39%204.47888%205.07433C5.79458%203.75866%207.54386%203.03407%209.4045%203.03407C10.7794%203.03407%2012.1087%203.43372%2013.2487%204.18981C14.2311%204.84137%2015.0269%205.72282%2015.5714%206.75724H14.2237C13.5503%206.75724%2013.0044%207.30314%2013.0044%207.97655C13.0044%208.64993%2013.5503%209.19586%2014.2237%209.19586H18.7807C19.4541%209.19586%2020%208.64993%2020%207.97655V3.35757C20%202.68416%2019.4541%202.13826%2018.7807%202.13826Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_301_6'%3e%3crect%20width='20'%20height='20'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
@@ -20407,6 +20411,53 @@ function FieldButton() {
     )) }, section.name) : /* @__PURE__ */ jsxRuntimeExports.jsx(Section, { name: section.name }, section.name)
   ) });
 }
+const check = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='3%209%2018%205'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20d='M4%2012.6111L8.92308%2017.5L20%206.5'%20stroke='%23ffffff'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/g%3e%3c/svg%3e";
+function MenuCheckButton({
+  name,
+  checked,
+  setChecked
+}) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "button",
+    {
+      onClick: () => setChecked(true),
+      className: `flex pr-2 pl-2 py-0.5 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm `,
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `text-[14px]`, children: name }),
+        checked && /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "img",
+          {
+            src: check,
+            className: "w-3 h-3"
+          }
+        )
+      ]
+    }
+  );
+}
+function ConfigCheckButton({
+  name,
+  checked,
+  setChecked
+}) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "button",
+    {
+      className: `flex items-center justify-between px-2 py-1 bg-medgray hover:brightness-92 cursor-pointer rounded-sm ${checked ? "bg-medlightgray" : ""}`,
+      onClick: () => setChecked(true),
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: name }),
+        checked && /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "img",
+          {
+            src: check,
+            className: "w-3 h-3"
+          }
+        )
+      ]
+    }
+  );
+}
 const FORMATS = [
   { name: "mikLib v2.2.0", format: "mikLib" },
   { name: "LemLib v0.5.6", format: "LemLib" },
@@ -20422,34 +20473,22 @@ function FormatButton() {
     if (changed) saveSnapshot();
     prevFormatRef.current = newFormat;
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigButtonTemplate, { title: "Format", children: FORMATS.map((c) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    "button",
-    {
-      className: `flex items-center justify-between px-2 py-1 bg-medgray hover:brightness-92 cursor-pointer rounded-sm ${format === c.format ? "bg-medlightgray" : ""}`,
-      onClick: () => handleClickItem(c.format),
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: c.name }),
-        format === c.format && /* @__PURE__ */ jsxRuntimeExports.jsx("svg", { width: "15", height: "12", viewBox: "0 0 15 12", fill: "none", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "path",
-          {
-            d: "M1 6.5L5.66752 10.7433C6.11058 11.1461 6.8059 11.0718 7.15393 10.5846L14 1",
-            stroke: "white",
-            strokeWidth: "2",
-            strokeLinecap: "round"
-          }
-        ) })
-      ]
-    },
-    c.format
-  )) });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigButtonTemplate, { title: "Format", children: FORMATS.map((c) => /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigCheckButton, { checked: format === c.format, setChecked: () => handleClickItem(c.format), name: c.name }, c.format)) });
 }
 const useFieldImg = createSharedState(FIELD_IMG_DIMENSIONS);
 function ViewButton() {
   const [, setImg] = useFieldImg();
+  const [viewMode, setViewMode] = useViewMode();
   const {
     fieldZoomKeyboard
   } = FieldMacros();
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(MenuButtonTemplate, { title: "View", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckButton, { name: "Auto Adjust", checked: viewMode === "automatic", setChecked: () => setViewMode("automatic") }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckButton, { name: "Standard View", checked: viewMode === "standard", setChecked: () => setViewMode("standard") }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckButton, { name: "Collapsed Config", checked: viewMode === "collapsed-config", setChecked: () => setViewMode("collapsed-config") }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckButton, { name: "Collapsed List", checked: viewMode === "collapsed-list", setChecked: () => setViewMode("collapsed-list") }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckButton, { name: "Fully Collapsed", checked: viewMode === "fully-collapsed", setChecked: () => setViewMode("fully-collapsed") }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
     /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Zoom In", keybind: "Ctrl+=", callback: () => fieldZoomKeyboard(null, setImg, "ZoomIn") }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Zoom Out", keybind: "Ctrl+-", callback: () => fieldZoomKeyboard(null, setImg, "ZoomOut") }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Reset Zoom", keybind: "Ctrl+0", callback: () => fieldZoomKeyboard(null, setImg, "ZoomReset") })
@@ -20979,7 +21018,7 @@ function ControlsLayer({ path, img, radius, format, colors, onPointerDown }) {
     })
   ] });
 }
-function Field({ showRightPanel = true }) {
+function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) {
   const [img, setImg] = useFieldImg();
   const [fieldKey] = useField();
   const svgRef = reactExports.useRef(null);
@@ -21372,8 +21411,8 @@ function Field({ showRightPanel = true }) {
       "svg",
       {
         ref: svgRef,
-        viewBox: `${0} ${0} ${FIELD_IMG_DIMENSIONS.w} ${FIELD_IMG_DIMENSIONS.h}`,
-        width: FIELD_IMG_DIMENSIONS.w,
+        viewBox: `${-Math.floor((canvasWidth - FIELD_IMG_DIMENSIONS.w) / 2)} 0 ${canvasWidth} ${FIELD_IMG_DIMENSIONS.h}`,
+        width: canvasWidth,
         height: FIELD_IMG_DIMENSIONS.h,
         className: `${drag.dragging ? "cursor-grabbing" : middleMouseDown ? "cursor-grab" : isBoxSelecting ? "cursor-crosshair" : "cursor-default"}`,
         onContextMenu: (e) => {
@@ -21435,9 +21474,9 @@ function Field({ showRightPanel = true }) {
             snapInfo.snapYpx !== null && /* @__PURE__ */ jsxRuntimeExports.jsx(
               "line",
               {
-                x1: 0,
+                x1: -Math.floor((canvasWidth - FIELD_IMG_DIMENSIONS.w) / 2),
                 y1: snapInfo.snapYpx,
-                x2: FIELD_IMG_DIMENSIONS.w,
+                x2: Math.ceil(canvasWidth - (canvasWidth - FIELD_IMG_DIMENSIONS.w) / 2),
                 y2: snapInfo.snapYpx,
                 stroke: toRGBA("#ff0000", 0.9),
                 strokeWidth: 1.5,
@@ -21490,9 +21529,13 @@ function App() {
   const [scale, setScale] = reactExports.useState(1);
   const [showConfig, setShowConfig] = reactExports.useState(true);
   const [showRightPanel, setShowRightPanel] = reactExports.useState(true);
+  const [canvasWidth, setCanvasWidth] = reactExports.useState(FIELD_IMG_DIMENSIONS.w);
+  const fullyCollapsed = !showConfig && !showRightPanel;
   const [configPopout, setConfigPopout] = reactExports.useState(false);
   const [pathConfigPopout, setPathConfigPopout] = reactExports.useState(false);
   const [controlConfigPopout, setControlConfigPopout] = reactExports.useState(false);
+  const computeRef = reactExports.useRef(() => {
+  });
   reactExports.useEffect(() => {
     if (showConfig) setConfigPopout(false);
   }, [showConfig]);
@@ -21507,25 +21550,37 @@ function App() {
     const content = contentRef.current;
     if (!viewport || !content) return;
     const compute = () => {
+      const mode = viewModeStore.getState();
       const prev = content.style.transform;
       content.style.transform = "scale(1)";
-      content.style.transformOrigin = "top left";
       const vw = viewport.clientWidth;
       const vh = viewport.clientHeight;
       const fw = fieldRef.current?.scrollWidth ?? 0;
       const rw = rightPanelRef.current?.scrollWidth ?? 0;
       if (fw > 0) cachedFieldW.current = fw;
       if (rw > 0) cachedRightW.current = rw;
-      setShowConfig(vw - 16 > cachedFieldW.current + cachedRightW.current);
-      setShowRightPanel(vw - 16 > cachedFieldW.current + 250);
+      const autoConfig = vw - 16 > cachedFieldW.current + cachedRightW.current;
+      const autoRight = vw - 16 > cachedFieldW.current + 250;
+      const nextShowConfig = mode === "standard" ? true : mode === "collapsed-config" || mode === "fully-collapsed" ? false : autoConfig;
+      const nextShowRight = mode === "standard" ? true : mode === "collapsed-list" || mode === "fully-collapsed" ? false : autoRight;
+      setShowConfig(nextShowConfig);
+      setShowRightPanel(nextShowRight);
       const cw2 = content.scrollWidth;
       const ch = content.scrollHeight;
       content.style.transform = prev;
       if (cw2 <= 0 || ch <= 0) return;
       const padding = 16;
-      const s = Math.min((vw - padding) / cw2, (vh - padding) / ch);
-      setScale(clamp(s, 0.75, 2));
+      const fullyCollapsedNext = !nextShowConfig && !nextShowRight;
+      if (fullyCollapsedNext) {
+        const s = clamp((vh - padding) / ch, 0.75, 2);
+        setScale(s);
+        setCanvasWidth(Math.round(vw / s));
+      } else {
+        setScale(clamp(Math.min((vw - padding) / cw2, (vh - padding) / ch), 0.75, 2));
+        setCanvasWidth(FIELD_IMG_DIMENSIONS.w);
+      }
     };
+    computeRef.current = compute;
     compute();
     const ro = new ResizeObserver(compute);
     ro.observe(viewport);
@@ -21536,7 +21591,10 @@ function App() {
       window.removeEventListener("resize", compute);
     };
   }, []);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(ScaleContext.Provider, { value: scale, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { ref: viewportRef, className: "w-screen h-screen overflow-hidden", children: [
+  reactExports.useEffect(() => {
+    return viewModeStore.subscribe(() => computeRef.current());
+  }, []);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(ScaleContext.Provider, { value: scale, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { ref: viewportRef, className: `w-screen h-screen overflow-hidden${fullyCollapsed ? " flex items-center justify-center" : ""}`, children: [
     !showConfig && /* @__PURE__ */ jsxRuntimeExports.jsx(
       HoverButton,
       {
@@ -21598,13 +21656,13 @@ function App() {
       "div",
       {
         ref: contentRef,
-        style: { transform: `scale(${scale})`, transformOrigin: "top left" },
-        className: "inline-flex w-max h-max origin-top-left",
+        style: { transform: `scale(${scale})`, transformOrigin: fullyCollapsed ? "center" : "top left" },
+        className: "inline-flex w-max h-max",
         children: [
           showConfig && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "pt-[10px] ml-[10px]", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Config, {}) }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "inline-flex", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { ref: fieldRef, className: "flex flex-col gap-[10px] ml-[4px] pt-[10px]", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Field, { showRightPanel }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { ref: fieldRef, className: `flex flex-col gap-[10px] ml-[4px] pt-[10px]${fullyCollapsed ? " items-center" : ""}`, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Field, { showRightPanel, canvasWidth }),
               /* @__PURE__ */ jsxRuntimeExports.jsx(PathSimulator, {})
             ] }),
             showRightPanel && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { ref: rightPanelRef, className: "flex flex-col gap-[10px] pt-[10px] pl-[10px]", children: [
@@ -21621,4 +21679,4 @@ registerSW({ immediate: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-Dg_KgmeD.js.map
+//# sourceMappingURL=index-DAXYMGII.js.map
