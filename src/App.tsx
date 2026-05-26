@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { viewModeStore } from "./hooks/useViewMode";
 import "./App.css";
 import PathConfig from "./components/PathMenu/PathConfig";
 import PathSimulator from "./components/PathSimulator";
@@ -35,9 +36,12 @@ export default function App() {
   const [scale, setScale] = useState(1);
   const [showConfig, setShowConfig] = useState(true);
   const [showRightPanel, setShowRightPanel] = useState(true);
+  const [canvasWidth, setCanvasWidth] = useState(FIELD_IMG_DIMENSIONS.w);
+  const fullyCollapsed = !showConfig && !showRightPanel;
   const [configPopout, setConfigPopout] = useState(false);
   const [pathConfigPopout, setPathConfigPopout] = useState(false);
   const [controlConfigPopout, setControlConfigPopout] = useState(false);
+  const computeRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     if (showConfig) setConfigPopout(false);
@@ -53,9 +57,9 @@ export default function App() {
     if (!viewport || !content) return;
 
     const compute = () => {
+      const mode = viewModeStore.getState();
       const prev = content.style.transform;
       content.style.transform = "scale(1)";
-      content.style.transformOrigin = "top left";
 
       const vw = viewport.clientWidth;
       const vh = viewport.clientHeight;
@@ -65,8 +69,12 @@ export default function App() {
       if (fw > 0) cachedFieldW.current = fw;
       if (rw > 0) cachedRightW.current = rw;
 
-      setShowConfig(vw - 16 > cachedFieldW.current + cachedRightW.current);
-      setShowRightPanel(vw - 16 > cachedFieldW.current + 250);
+      const autoConfig = vw - 16 > cachedFieldW.current + cachedRightW.current;
+      const autoRight = vw - 16 > cachedFieldW.current + 250;
+      const nextShowConfig = mode === "standard" ? true : (mode === "collapsed-config" || mode === "fully-collapsed" ? false : autoConfig);
+      const nextShowRight = mode === "standard" ? true : (mode === "collapsed-list" || mode === "fully-collapsed" ? false : autoRight);
+      setShowConfig(nextShowConfig);
+      setShowRightPanel(nextShowRight);
 
       const cw = content.scrollWidth;
       const ch = content.scrollHeight;
@@ -76,11 +84,19 @@ export default function App() {
       if (cw <= 0 || ch <= 0) return;
 
       const padding = 16;
-      const s = Math.min((vw - padding) / cw, (vh - padding) / ch);
+      const fullyCollapsedNext = !nextShowConfig && !nextShowRight;
 
-      setScale(clamp(s, 0.75, 2));
+      if (fullyCollapsedNext) {
+        const s = clamp((vh - padding) / ch, 0.75, 2);
+        setScale(s);
+        setCanvasWidth(Math.round(vw / s));
+      } else {
+        setScale(clamp(Math.min((vw - padding) / cw, (vh - padding) / ch), 0.75, 2));
+        setCanvasWidth(FIELD_IMG_DIMENSIONS.w);
+      }
     };
 
+    computeRef.current = compute;
     compute();
 
     const ro = new ResizeObserver(compute);
@@ -94,9 +110,13 @@ export default function App() {
     };
   }, []);
 
+  useEffect(() => {
+    return viewModeStore.subscribe(() => computeRef.current());
+  }, []);
+
   return (
     <ScaleContext.Provider value={scale}>
-      <div ref={viewportRef} className="w-screen h-screen overflow-hidden">
+      <div ref={viewportRef} className={`w-screen h-screen overflow-hidden${fullyCollapsed ? " flex items-center justify-center" : ""}`}>
 
         {!showConfig && (
           <HoverButton
@@ -150,24 +170,21 @@ export default function App() {
             </div>
           </>
         )}
-
         <div
           ref={contentRef}
-          style={{ transform: `scale(${scale})`, transformOrigin: "top left" }}
-          className="inline-flex w-max h-max origin-top-left"
+          style={{ transform: `scale(${scale})`, transformOrigin: fullyCollapsed ? "center" : "top left" }}
+          className="inline-flex w-max h-max"
         >
           {showConfig && (
             <div className="pt-[10px] ml-[10px]">
               <Config />
             </div>
           )}
-
           <div className="inline-flex">
-            <div ref={fieldRef} className="flex flex-col gap-[10px] ml-[4px] pt-[10px]">
-              <Field showRightPanel={showRightPanel} />
+            <div ref={fieldRef} className={`flex flex-col gap-[10px] ml-[4px] pt-[10px]${fullyCollapsed ? " items-center" : ""}`}>
+              <Field showRightPanel={showRightPanel} canvasWidth={canvasWidth} />
               <PathSimulator />
             </div>
-
             {showRightPanel && (
               <div ref={rightPanelRef} className="flex flex-col gap-[10px] pt-[10px] pl-[10px]">
                 <PathConfig />

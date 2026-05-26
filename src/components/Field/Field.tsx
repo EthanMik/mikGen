@@ -22,7 +22,7 @@ import { resolveHeading, getBackwardsSnapPose, type Path } from "../../core/Type
 import { useSettings } from "../../hooks/useSettings";
 import { useFieldImg } from "../../hooks/useFieldImg";
 
-export default function Field({ showRightPanel = true }: { showRightPanel?: boolean }) {
+export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }: { showRightPanel?: boolean; canvasWidth?: number }) {
 	const [img, setImg] = useFieldImg();
 	const [fieldKey] = useField();
 
@@ -456,8 +456,8 @@ export default function Field({ showRightPanel = true }: { showRightPanel?: bool
 			/>
 			<svg
 				ref={svgRef}
-				viewBox={`${0} ${0} ${FIELD_IMG_DIMENSIONS.w} ${FIELD_IMG_DIMENSIONS.h}`}
-				width={FIELD_IMG_DIMENSIONS.w}
+				viewBox={`${-Math.floor((canvasWidth - FIELD_IMG_DIMENSIONS.w) / 2)} 0 ${canvasWidth} ${FIELD_IMG_DIMENSIONS.h}`}
+				width={canvasWidth}
 				height={FIELD_IMG_DIMENSIONS.h}
 				className={`${drag.dragging ? "cursor-grabbing" : middleMouseDown ? "cursor-grab" : isBoxSelecting ? "cursor-crosshair" : "cursor-default"}`}
 				onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
@@ -513,8 +513,8 @@ export default function Field({ showRightPanel = true }: { showRightPanel?: bool
 					<>
 						{snapInfo.snapYpx !== null && (
 							<line
-								x1={0} y1={snapInfo.snapYpx}
-								x2={FIELD_IMG_DIMENSIONS.w} y2={snapInfo.snapYpx}
+								x1={-Math.floor((canvasWidth - FIELD_IMG_DIMENSIONS.w) / 2)} y1={snapInfo.snapYpx}
+								x2={Math.ceil(canvasWidth - (canvasWidth - FIELD_IMG_DIMENSIONS.w) / 2)} y2={snapInfo.snapYpx}
 								stroke={toRGBA("#ff0000", 0.9)}
 								strokeWidth={1.5}
 								pointerEvents="none"
