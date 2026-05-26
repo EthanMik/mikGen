@@ -12484,7 +12484,7 @@ function requireClient() {
 var clientExports = requireClient();
 const scriptRel = "modulepreload";
 const assetsURL = function(dep) {
-  return "/mikGen/" + dep;
+  return "/" + dep;
 };
 const seen = {};
 const __vitePreload = function preload(baseModule, deps, importerUrl) {
@@ -12558,7 +12558,7 @@ function registerSW(options = {}) {
         const { Workbox } = await import("./workbox-window.prod.es5-BAA1jQbh.js");
         return { Workbox };
       }, true ? [] : void 0).then(({ Workbox }) => {
-        return new Workbox("/mikGen/sw.js", { scope: "/mikGen/", type: "classic" });
+        return new Workbox("/sw.js", { scope: "/", type: "classic" });
       }).catch((e) => {
         onRegisterError?.(e);
         return void 0;
@@ -12584,7 +12584,7 @@ function registerSW(options = {}) {
       }
       wb.register({ immediate }).then((r) => {
         if (onRegisteredSW)
-          onRegisteredSW("/mikGen/sw.js", r);
+          onRegisteredSW("/sw.js", r);
         else
           onRegistered?.(r);
       }).catch((e) => {
@@ -15863,17 +15863,17 @@ function loadValidatedAppState() {
   }
 }
 const VALIDATED_APP_STATE = loadValidatedAppState();
-const pushbackVEXUMatchField = "/mikGen/assets/pushback-match-BE3uYq7F.png";
-const pushbackSkillsField = "/mikGen/assets/pushback-skills-Efz9rFPV.png";
-const pushbackV5MatchField = "/mikGen/assets/pushback-matchv5-DmG8OjtY.png";
-const overrideVEXUMatchField = "/mikGen/assets/VURC-Override-H2H-TopDownHighlighted-TileColor66_71@0.1-CDgzjcdL.png";
-const overrideV5MatchField = "/mikGen/assets/V5RC-Override-H2H-TopDownHighlighted-TileColor66_71@0.1-B9rUnxPL.png";
-const overrideV5SkillsField = "/mikGen/assets/V5RC-Override-Skills-TopDownHighlighted-TileColor66_71@0.1-CA_Bfnio.png";
-const highstakesVEXUMatchField = "/mikGen/assets/VURC-HighStakes-H2H-TopDownHighlighted-TileColor66_71@4.0-khyeGDAg.png";
-const highstakesVEXUSkillsField = "/mikGen/assets/VURC-HighStakes-Skills-TopDownHighlighted-TileColor66_71@4.0-CR-xx8Hg.png";
-const highstakesV5MatchField = "/mikGen/assets/V5RC-HighStakes-H2H-TopDownHighlighted-TileColor66_71@4.0-nPCijn3u.png";
-const highstakesV5SkillsField = "/mikGen/assets/V5RC-HighStakes-Skills-TopDownHighlighted-TileColor66_71@4.0-DT0jEjfK.png";
-const emptyField = "/mikGen/assets/empty-field-DoV3rtqm.png";
+const pushbackVEXUMatchField = "/assets/pushback-match-BE3uYq7F.png";
+const pushbackSkillsField = "/assets/pushback-skills-Efz9rFPV.png";
+const pushbackV5MatchField = "/assets/pushback-matchv5-DmG8OjtY.png";
+const overrideVEXUMatchField = "/assets/VURC-Override-H2H-TopDownHighlighted-TileColor66_71@0.1-CDgzjcdL.png";
+const overrideV5MatchField = "/assets/V5RC-Override-H2H-TopDownHighlighted-TileColor66_71@0.1-B9rUnxPL.png";
+const overrideV5SkillsField = "/assets/V5RC-Override-Skills-TopDownHighlighted-TileColor66_71@0.1-CA_Bfnio.png";
+const highstakesVEXUMatchField = "/assets/VURC-HighStakes-H2H-TopDownHighlighted-TileColor66_71@4.0-khyeGDAg.png";
+const highstakesVEXUSkillsField = "/assets/VURC-HighStakes-Skills-TopDownHighlighted-TileColor66_71@4.0-CR-xx8Hg.png";
+const highstakesV5MatchField = "/assets/V5RC-HighStakes-H2H-TopDownHighlighted-TileColor66_71@4.0-nPCijn3u.png";
+const highstakesV5SkillsField = "/assets/V5RC-HighStakes-Skills-TopDownHighlighted-TileColor66_71@4.0-DT0jEjfK.png";
+const emptyField = "/assets/empty-field-DoV3rtqm.png";
 const fileFormatStore = createStore(VALIDATED_APP_STATE);
 function useFileFormat() {
   return [fileFormatStore.useStore(), fileFormatStore.setState];
@@ -21527,4 +21527,4 @@ registerSW({ immediate: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-B517Z81O.js.map
+//# sourceMappingURL=index-dIqEQYZU.js.map
