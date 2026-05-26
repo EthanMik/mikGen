@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { viewModeStore } from "./hooks/useViewMode";
+import { fileOpLock } from "./core/FileOpLock";
 import "./App.css";
 import PathConfig from "./components/PathMenu/PathConfig";
 import PathSimulator from "./components/PathSimulator";
@@ -73,8 +74,10 @@ export default function App() {
       const autoRight = vw - 16 > cachedFieldW.current + 250;
       const nextShowConfig = mode === "standard" ? true : (mode === "collapsed-config" || mode === "fully-collapsed" ? false : autoConfig);
       const nextShowRight = mode === "standard" ? true : (mode === "collapsed-list" || mode === "fully-collapsed" ? false : autoRight);
-      setShowConfig(nextShowConfig);
-      setShowRightPanel(nextShowRight);
+      if (!fileOpLock.isActive()) {
+        setShowConfig(nextShowConfig);
+        setShowRightPanel(nextShowRight);
+      }
 
       const cw = content.scrollWidth;
       const ch = content.scrollHeight;

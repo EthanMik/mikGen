@@ -27,7 +27,7 @@ function evaluate(expr: string): number {
       expr[i] === '-' &&
       (tokens.length === 0 || ['+', '-', '*', '/'].includes(tokens[tokens.length - 1]));
 
-    if (isUnary || /\d/.test(expr[i])) {
+    if (isUnary || /[\d.]/.test(expr[i])) {
       let num = isUnary ? '-' : '';
       if (isUnary) i++;
       while (i < expr.length && /[\d.]/.test(expr[i])) num += expr[i++];

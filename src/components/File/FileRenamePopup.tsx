@@ -4,6 +4,7 @@ import enter from "../../assets/enter.svg";
 import cross from "../../assets/cross.svg"
 import type { SetStateAction } from "react";
 import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 type FileRenamePopupProps = {
     onEnter: (text: string) => void;
@@ -72,12 +73,12 @@ export default function FileRenamePopup({
         setOpen(false);
     }
 
-    return (    
+    return (
         <React.Fragment>
-            { open && 
-                <div 
+            { open && createPortal(
+                <div
                     className="
-                        fixed inset-0 z-30
+                        fixed inset-0 z-[60]
                         bg-black/10 backdrop-blur-[7px]
                         grid place-items-center
                         overflow-x-hidden"
@@ -138,8 +139,8 @@ export default function FileRenamePopup({
                             </div>
                         </div>
                     </div>
-                </div>
-            }
+                </div>,
+            document.body)}
         </React.Fragment>
     );
 }

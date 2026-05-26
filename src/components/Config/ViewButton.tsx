@@ -15,12 +15,12 @@ export default function ViewButton() {
     } = FieldMacros();
 
     return (
-        <MenuButtonTemplate title="View">
+        <MenuButtonTemplate title="View" width={40}>
             <MenuCheckButton name="Auto Adjust" checked={viewMode === "automatic"} setChecked={() => setViewMode("automatic")}/>
             <MenuCheckButton name="Standard View" checked={viewMode === "standard"} setChecked={() => setViewMode("standard")}/>
             <MenuCheckButton name="Collapsed Config" checked={viewMode === "collapsed-config"} setChecked={() => setViewMode("collapsed-config")}/>
             <MenuCheckButton name="Collapsed List" checked={viewMode === "collapsed-list"} setChecked={() => setViewMode("collapsed-list")}/>
-            <MenuCheckButton name="Fully Collapsed" checked={viewMode === "fully-collapsed"} setChecked={() => setViewMode("fully-collapsed")}/>
+            <MenuCheckButton name="Collapse All" checked={viewMode === "fully-collapsed"} setChecked={() => setViewMode("fully-collapsed")}/>
             <Section />
             <MenuKeybindButton name={"Zoom In"} keybind="Ctrl+=" callback={() => fieldZoomKeyboard(null, setImg, "ZoomIn")} />
             <MenuKeybindButton name={"Zoom Out"} keybind="Ctrl+-" callback={() => fieldZoomKeyboard(null, setImg, "ZoomOut")} />

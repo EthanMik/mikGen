@@ -8,7 +8,6 @@ Todo:
 - instead of commands add a help button that provides path examples
 - add example paths
 - add help button
-- add view options for split screen
 
 Planned:
 - google analytics

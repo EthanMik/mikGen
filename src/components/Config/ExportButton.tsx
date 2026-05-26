@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
+import { fileOpLock } from "../../core/FileOpLock";
 import ConfigButtonTemplate from "./ConfigButtonTemplate";
-import CheckboxButton from "../Util/CheckboxButton";
-import download from "../../assets/download.svg"
+import { ConfigCheckboxButton } from "../Util/CheckboxButton";
+import download from "../../assets/download.svg";
 import { fileFormatStore, usePath } from "../../hooks/useFileFormat";
 import { convertPathToString, templateToRegex } from "../../simulation/Conversion";
 import type { FormatDef, Format, SegmentDef, SegmentKind } from "../../simulation/FormatDefinition";
@@ -10,10 +11,10 @@ import type { Path } from "../../core/Types/Path";
 function spliceGeneratedBlock(fileContent: string, generated: string, path: Path): { content: string; message: string } {
     const marker = "[" + path.name + "]";
     const begin = fileContent.indexOf(marker);
-    if (begin === -1) return { content: "", message: `No start marker found: ${marker}` };
+    if (begin === -1) return { content: "", message: `No start marker found. Add this comment to your file:\n// ${marker}\n// your code here\n// ${marker}` };
 
     const end = fileContent.indexOf(marker, begin + marker.length);
-    if (end === -1) return { content: "", message: `No end marker found: ${marker}` };
+    if (end === -1) return { content: "", message: `No end marker found. Add a closing marker after the start:\n// ${marker}` };
 
     const openLineStart = fileContent.lastIndexOf('\n', begin - 1) + 1;
     const indent = fileContent.slice(openLineStart, begin).match(/^(\s*)/)?.[1] ?? '';
@@ -47,10 +48,10 @@ function lcsIndices(a: string[], b: string[]): [number, number][] {
 function flexReplaceGeneratedBlock(fileContent: string, formatDef: FormatDef<Format>, path: Path): { content: string; message: string } {
     const marker = "[" + path.name + "]";
     const begin = fileContent.indexOf(marker);
-    if (begin === -1) return { content: "", message: `No start marker found: ${marker}` };
+    if (begin === -1) return { content: "", message: `No start marker found. Add this comment to your file:\n// ${marker}\n// your code here\n// ${marker}` };
 
     const end = fileContent.indexOf(marker, begin + marker.length);
-    if (end === -1) return { content: "", message: `No end marker found: ${marker}` };
+    if (end === -1) return { content: "", message: `No end marker found. Add a closing marker after the start:\n// ${marker}` };
 
     const blockStart = fileContent.indexOf('\n', begin + marker.length) + 1;
     const closingLineStart = fileContent.lastIndexOf('\n', end - 1) + 1;
@@ -172,10 +173,10 @@ function flexReplaceGeneratedBlock(fileContent: string, formatDef: FormatDef<For
 function replaceGeneratedBlock(fileContent: string, formatDef: FormatDef<Format>, path: Path): { content: string; message: string } {
     const marker = "[" + path.name + "]";
     const begin = fileContent.indexOf(marker);
-    if (begin === -1) return { content: "", message: `No start marker found: ${marker}` };
+    if (begin === -1) return { content: "", message: `No start marker found. Add this comment to your file:\n// ${marker}\n// your code here\n// ${marker}` };
 
     const end = fileContent.indexOf(marker, begin + marker.length);
-    if (end === -1) return { content: "", message: `No end marker found: ${marker}` };
+    if (end === -1) return { content: "", message: `No end marker found. Add a closing marker after the start:\n// ${marker}` };
 
     const blockStart = fileContent.indexOf('\n', begin + marker.length) + 1;
     const lineStart = fileContent.lastIndexOf('\n', end - 1) + 1;
@@ -273,6 +274,7 @@ function DragAndDrop({ onHandle }: DragAndDropProps) {
     };
 
     const handleClick = async () => {
+        fileOpLock.acquire();
         try {
             const picker = (window as unknown as { showOpenFilePicker: (o: object) => Promise<FileSystemFileHandle[]> }).showOpenFilePicker;
             const [handle] = await picker({
@@ -283,6 +285,8 @@ function DragAndDrop({ onHandle }: DragAndDropProps) {
             setUnsupportedBroswer(false);
         } catch {
             setUnsupportedBroswer(true);
+        } finally {
+            fileOpLock.release();
         }
     };
 
@@ -328,7 +332,7 @@ function ErrorConsole({ lines }: { lines: string[] }) {
     return (
         <div
             ref={containerRef}
-            className="h-15 bg-blackgray rounded-sm px-2 py-1 overflow-y-auto font-mono text-[9px]"
+            className="h-18 bg-blackgray rounded-sm px-2 py-1 overflow-y-auto font-mono text-[9px]"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
             <div
@@ -443,8 +447,8 @@ export default function ExportButton() {
                     <div className="pt-2 pb-2">
                         <ErrorConsole lines={consoleLines} />
                     </div>
-                    <CheckboxButton name="Merge" checked={mergeMode} setChecked={toggleMergeMode} />
-                    <CheckboxButton name="Replace" checked={replaceMode} setChecked={toggleReplaceMode} />
+                    <ConfigCheckboxButton name="Merge" label="Toggles Merge Mode (Read Console)" checked={mergeMode} setChecked={toggleMergeMode} />
+                    <ConfigCheckboxButton name="Replace" label="Toggles Replace Mode (Read Console)" checked={replaceMode} setChecked={toggleReplaceMode} />
                 </div>
             ) : (
                 <DragAndDrop onHandle={setHandle} />

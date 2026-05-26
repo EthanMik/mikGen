@@ -3,13 +3,15 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 type MenuButtonTemplateProps = {
     title: string;
     children: ReactNode;
+    width?: number;
     onOpen?: () => void;
     onClose?: () => void;
     flashRef?: { current: (() => void) | undefined };
     underlineRef?: { current: ((val: boolean) => void) | undefined };
+    closeOnClick?: boolean;
 }
 
-export default function MenuButtonTemplate({ title, children, onOpen, onClose, flashRef, underlineRef }: MenuButtonTemplateProps) {
+export default function MenuButtonTemplate({ title, children, onOpen, onClose, width, flashRef, underlineRef, closeOnClick = true }: MenuButtonTemplateProps) {
     const [isOpen, setOpen] = useState(false);
     const [flash, setFlash] = useState(false);
     const [underline, setUnderline] = useState(false);
@@ -90,8 +92,8 @@ export default function MenuButtonTemplate({ title, children, onOpen, onClose, f
 
             {isOpen && (
                 <div
-                    className="absolute left-0 top-full mt-1 z-40 w-45 rounded-sm bg-medgray_hover shadow-xs shadow-black"
-                    onClick={() => { setOpen(false); onCloseRef.current?.(); }}
+                    className={`absolute left-0 top-full mt-1 z-40 w-42 rounded-sm bg-medgray_hover shadow-xs shadow-black`}
+                    onClick={() => { if (closeOnClick) { setOpen(false); onCloseRef.current?.(); } }}
                 >
                     <div className="flex flex-col mt-2 px-1 mb-2 gap-0.5">
                         {children}

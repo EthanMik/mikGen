@@ -8,7 +8,18 @@ type CheckboxButtonProps = {
     setChecked: (state: boolean) => void;
 };
 
-export default function CheckboxButton({ name, checked, setChecked, label }: CheckboxButtonProps) {
+export function ConfigCheckboxButton({ name, checked, setChecked, label }: CheckboxButtonProps) {
+    return (
+        <div className="flex flex-row pr-2 pl-2 py-0.5 items-center justify-between rounded-sm">
+            <span className="text-[14px]">{name}</span>
+            <Tooltip label={label ?? ""}>
+                <Checkbox checked={checked} setChecked={setChecked} size={18} />
+            </Tooltip>
+        </div>
+    );
+}
+
+export function MenuCheckboxButton({ name, checked, setChecked, label }: CheckboxButtonProps) {
     return (
         <div className="flex flex-row pr-2 pl-2 py-0.5 items-center justify-between rounded-sm">
             <span className="text-[14px]">{name}</span>

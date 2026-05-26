@@ -41,7 +41,7 @@ export const DEFAULT_FORMAT: FileFormat = {
     format: "mikLib",
     field: DEFAULT_FIELD_KEY,
     formatDef: FORMAT_REGISTRY["mikLib"] as FormatDef<Format>,
-    path: { segments: [], name: "" },
+    path: { segments: [], name: "mikLib Path" },
     robot: defaultRobotConstants,
 }
 

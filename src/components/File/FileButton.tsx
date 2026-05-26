@@ -3,6 +3,7 @@ import FileRenamePopup from "./FileRenamePopup";
 import { usePath, useFileFormat, fileFormatStore, type FileFormat, DEFAULT_FORMAT } from "../../hooks/useFileFormat";
 import { defaultRobotConstants } from "../../core/Robot";
 import { saveSnapshot, undoHistory } from "../../core/Undo/UndoHistory";
+import { fileOpLock } from "../../core/FileOpLock";
 import { FORMAT_REGISTRY, mergeFormatDef, stripFormatDefForSave, getDefaultConstants, type Format, type FormatDef, type SegmentKind } from "../../simulation/FormatDefinition";
 import MenuButtonTemplate from "../Util/MenuButtonTemplate";
 import { MenuKeybindButton } from "../Util/KeybindButton";
@@ -145,6 +146,7 @@ export default function FileButton() {
             return;
         }
 
+        fileOpLock.acquire();
         try {
             // @ts-expect-error showOpenFilePicker not in all TS DOM libs
             const [handle] = await window.showOpenFilePicker({
@@ -174,6 +176,8 @@ export default function FileButton() {
             if ((error as Error).name !== 'AbortError') {
                 console.error('Error opening file:', error);
             }
+        } finally {
+            fileOpLock.release();
         }
     };
 
@@ -225,6 +229,7 @@ export default function FileButton() {
             handleDownloadAs();
             return;
         }
+        fileOpLock.acquire();
         try {
             const name = await requestFileName();
             if (name === null || name === "") return;
@@ -250,6 +255,8 @@ export default function FileButton() {
             if ((error as Error).name !== 'AbortError') {
                 console.error('Error saving file:', error);
             }
+        } finally {
+            fileOpLock.release();
         }
     };
 

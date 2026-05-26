@@ -17,14 +17,15 @@ export default function Config({ fillHeight = false }: ConfigProps) {
                 <FileButton />
                 <EditButton />
                 <ViewButton />
+                <SettingsButton />
             </div>
-            <div className={`w-[180px] ${fillHeight ? "flex-1" : "h-[685px]"} flex flex-col overflow-y-auto scrollbar-thin rounded-sm`}>
+            <div className={`w-[180px] ${fillHeight ? "flex-1" : "h-[685px]"} flex flex-col overflow-y-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none] rounded-sm`}>
+                
                 <AddSegmentButton />
                 <RobotButton/>
                 <FieldButton/>
                 <FormatButton />
                 <ExportButton />
-                <SettingsButton />
                 {/* <HelpButton /> */}
             </div>
         </div>

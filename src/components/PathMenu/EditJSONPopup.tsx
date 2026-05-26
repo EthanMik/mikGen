@@ -5,6 +5,7 @@ import TextInput from "../Util/TextInput";
 import cross from "../../assets/cross.svg"
 import type { SetStateAction } from "react";
 import React, { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
 
 type EditJSONPopupProps = {
@@ -84,12 +85,12 @@ export default function EditJSONPopup({
         setOpen(false);
     }
 
-    return (    
+    return (
         <React.Fragment>
-            { open && 
-                <div 
+            { open && createPortal(
+                <div
                     className="
-                        fixed inset-0 z-30
+                        fixed inset-0 z-[60]
                         bg-black/10 backdrop-blur-[7px]
                         grid place-items-center
                         overflow-x-hidden"
@@ -150,8 +151,8 @@ export default function EditJSONPopup({
                             <span className="pt-2 text-[12px]">Editing these templates may affect pasting behavior and create bugs; variables are placed inside $&#123;&#125;</span>
                         </div>
                     </div>
-                </div>
-            }
+                </div>,
+            document.body)}
         </React.Fragment>
     );
 }
