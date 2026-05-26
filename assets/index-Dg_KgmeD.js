@@ -19958,15 +19958,15 @@ function EditButton() {
 }
 const download = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M16%2011L12%2015M12%2015L8%2011M12%2015V3M21%2015V17C21%2018.1046%2020.1046%2019%2019%2019H5C3.89543%2019%203%2018.1046%203%2017V15'%20stroke='%23ffffff'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e";
 function spliceGeneratedBlock(fileContent, generated, path) {
-  const marker = "[" + path.name + "]";
-  const begin = fileContent.indexOf(marker);
-  if (begin === -1) return { content: "", message: `No start marker found: ${marker}` };
-  const end = fileContent.indexOf(marker, begin + marker.length);
-  if (end === -1) return { content: "", message: `No end marker found: ${marker}` };
+  const marker2 = "[" + path.name + "]";
+  const begin = fileContent.indexOf(marker2);
+  if (begin === -1) return { content: "", message: `No start marker found: ${marker2}` };
+  const end = fileContent.indexOf(marker2, begin + marker2.length);
+  if (end === -1) return { content: "", message: `No end marker found: ${marker2}` };
   const openLineStart = fileContent.lastIndexOf("\n", begin - 1) + 1;
   const indent = fileContent.slice(openLineStart, begin).match(/^(\s*)/)?.[1] ?? "";
   const indented = generated.split("\n").map((line) => line ? indent + line : line).join("\n");
-  const before = fileContent.slice(0, begin + marker.length);
+  const before = fileContent.slice(0, begin + marker2.length);
   const startLine = (before.match(/\n/g) ?? []).length + 2;
   const endLine = startLine + indented.split("\n").length - 2;
   const lineStart = fileContent.lastIndexOf("\n", end - 1) + 1;
@@ -19993,12 +19993,12 @@ function lcsIndices(a, b) {
   return pairs;
 }
 function flexReplaceGeneratedBlock(fileContent, formatDef, path) {
-  const marker = "[" + path.name + "]";
-  const begin = fileContent.indexOf(marker);
-  if (begin === -1) return { content: "", message: `No start marker found: ${marker}` };
-  const end = fileContent.indexOf(marker, begin + marker.length);
-  if (end === -1) return { content: "", message: `No end marker found: ${marker}` };
-  const blockStart = fileContent.indexOf("\n", begin + marker.length) + 1;
+  const marker2 = "[" + path.name + "]";
+  const begin = fileContent.indexOf(marker2);
+  if (begin === -1) return { content: "", message: `No start marker found: ${marker2}` };
+  const end = fileContent.indexOf(marker2, begin + marker2.length);
+  if (end === -1) return { content: "", message: `No end marker found: ${marker2}` };
+  const blockStart = fileContent.indexOf("\n", begin + marker2.length) + 1;
   const closingLineStart = fileContent.lastIndexOf("\n", end - 1) + 1;
   const endMarkerIndent = fileContent.slice(closingLineStart, fileContent.indexOf("\n", closingLineStart)).match(/^(\s*)/)?.[1] ?? "";
   const beforeEndMarker = fileContent.slice(closingLineStart, end);
@@ -20006,11 +20006,11 @@ function flexReplaceGeneratedBlock(fileContent, formatDef, path) {
   const codeOnClosingLine = (commentPrefix ? beforeEndMarker.slice(0, beforeEndMarker.length - commentPrefix[0].length) : beforeEndMarker).trimEnd();
   const block = codeOnClosingLine ? fileContent.slice(blockStart, closingLineStart) + codeOnClosingLine + "\n" : fileContent.slice(blockStart, closingLineStart);
   const after = codeOnClosingLine && commentPrefix ? "\n" + endMarkerIndent + fileContent.slice(closingLineStart + beforeEndMarker.lastIndexOf("//")) : fileContent.slice(closingLineStart);
-  const lines = block.split("\n");
+  const lines2 = block.split("\n");
   const lineToFileSeg = /* @__PURE__ */ new Map();
   const fileKinds = [];
-  for (let i = 0; i < lines.length; i++) {
-    const trimmed = lines[i].trim();
+  for (let i = 0; i < lines2.length; i++) {
+    const trimmed = lines2[i].trim();
     if (!trimmed) continue;
     for (const [kind, segDef] of Object.entries(formatDef.segments)) {
       if (!segDef || segDef.castTo || !segDef.toStringTemplate) continue;
@@ -20049,13 +20049,13 @@ function flexReplaceGeneratedBlock(fileContent, formatDef, path) {
   const newSegLines = convertPathToString(formatDef, path, false).split("\n").filter(Boolean);
   const newLines = [];
   let replacedCount = 0, insertedCount = 0, deletedCount = 0;
-  for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+  for (let lineIdx = 0; lineIdx < lines2.length; lineIdx++) {
     const fileSeg = lineToFileSeg.get(lineIdx);
     if (fileSeg === void 0) {
-      newLines.push(lines[lineIdx]);
+      newLines.push(lines2[lineIdx]);
       continue;
     }
-    const indent = lines[lineIdx].match(/^(\s*)/)?.[1] ?? "";
+    const indent = lines2[lineIdx].match(/^(\s*)/)?.[1] ?? "";
     if (!fileToWeb.has(fileSeg)) {
       deletedCount++;
       continue;
@@ -20069,12 +20069,12 @@ function flexReplaceGeneratedBlock(fileContent, formatDef, path) {
     }
     const seg = webSegs[wi];
     if (seg.visible && (!anySelected || seg.selected)) {
-      const trailingMarker = lines[lineIdx].match(/(\/\/\s*\[.*?\])$/)?.[1];
+      const trailingMarker = lines2[lineIdx].match(/(\/\/\s*\[.*?\])$/)?.[1];
       newLines.push(indent + newSegLines[wi]);
       if (trailingMarker) newLines.push(indent + trailingMarker);
       replacedCount++;
     } else {
-      newLines.push(lines[lineIdx]);
+      newLines.push(lines2[lineIdx]);
     }
   }
   let insertedAtEnd = 0;
@@ -20085,7 +20085,7 @@ function flexReplaceGeneratedBlock(fileContent, formatDef, path) {
     insertedCount++;
     insertedAtEnd++;
   }
-  const before = fileContent.slice(0, begin + marker.length);
+  const before = fileContent.slice(0, begin + marker2.length);
   const parts = [
     replacedCount && `replaced ${replacedCount}`,
     insertedCount && `inserted ${insertedCount}`,
@@ -20100,20 +20100,20 @@ ${joined}${separator}${after}`,
   };
 }
 function replaceGeneratedBlock(fileContent, formatDef, path) {
-  const marker = "[" + path.name + "]";
-  const begin = fileContent.indexOf(marker);
-  if (begin === -1) return { content: "", message: `No start marker found: ${marker}` };
-  const end = fileContent.indexOf(marker, begin + marker.length);
-  if (end === -1) return { content: "", message: `No end marker found: ${marker}` };
-  const blockStart = fileContent.indexOf("\n", begin + marker.length) + 1;
+  const marker2 = "[" + path.name + "]";
+  const begin = fileContent.indexOf(marker2);
+  if (begin === -1) return { content: "", message: `No start marker found: ${marker2}` };
+  const end = fileContent.indexOf(marker2, begin + marker2.length);
+  if (end === -1) return { content: "", message: `No end marker found: ${marker2}` };
+  const blockStart = fileContent.indexOf("\n", begin + marker2.length) + 1;
   const lineStart = fileContent.lastIndexOf("\n", end - 1) + 1;
   const block = fileContent.slice(blockStart, lineStart);
-  const lines = block.split("\n");
+  const lines2 = block.split("\n");
   const blockLineOffset = (fileContent.slice(0, blockStart).match(/\n/g) ?? []).length + 1;
   const matchedIndices = [];
   const fileKinds = [];
-  for (let i = 0; i < lines.length; i++) {
-    const trimmed = lines[i].trim();
+  for (let i = 0; i < lines2.length; i++) {
+    const trimmed = lines2[i].trim();
     if (!trimmed) continue;
     for (const [kind, segDef] of Object.entries(formatDef.segments)) {
       if (!segDef || segDef.castTo || !segDef.toStringTemplate) continue;
@@ -20141,17 +20141,17 @@ function replaceGeneratedBlock(fileContent, formatDef, path) {
   }
   const anySelected = webSegs.some((seg) => seg.selected);
   const newSegLines = convertPathToString(formatDef, path, false).split("\n").filter(Boolean);
-  const newLines = [...lines];
+  const newLines = [...lines2];
   let replacedCount = 0;
   for (let i = 0; i < matchedIndices.length; i++) {
     const seg = webSegs[i];
     if (!seg.visible) continue;
     if (anySelected && !seg.selected) continue;
-    const indent = lines[matchedIndices[i]].match(/^(\s*)/)?.[1] ?? "";
+    const indent = lines2[matchedIndices[i]].match(/^(\s*)/)?.[1] ?? "";
     newLines[matchedIndices[i]] = indent + newSegLines[i];
     replacedCount++;
   }
-  const before = fileContent.slice(0, begin + marker.length);
+  const before = fileContent.slice(0, begin + marker2.length);
   const after = fileContent.slice(lineStart);
   return {
     content: `${before}
@@ -20220,14 +20220,14 @@ function DragAndDrop({ onHandle }) {
     unsupportedBroswer && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[8px] mt-1 opacity-50", children: "Your browser does not support writing to files. Please use a compatible browser like Chrome or Edge." })
   ] });
 }
-function ErrorConsole({ lines }) {
+function ErrorConsole({ lines: lines2 }) {
   const containerRef = reactExports.useRef(null);
   const contentRef = reactExports.useRef(null);
   reactExports.useEffect(() => {
-    if (contentRef.current) contentRef.current.textContent = lines.join("\n");
+    if (contentRef.current) contentRef.current.textContent = lines2.join("\n");
     const el = containerRef.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [lines]);
+  }, [lines2]);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
@@ -20455,14 +20455,14 @@ function ViewButton() {
     /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Reset Zoom", keybind: "Ctrl+0", callback: () => fieldZoomKeyboard(null, setImg, "ZoomReset") })
   ] });
 }
-function Config() {
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex pr-[6px] flex-col gap-2", children: [
+function Config({ fillHeight = false }) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `flex pr-[6px] flex-col gap-2 ${fillHeight ? "h-full" : ""}`, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "w-[180px] flex bg-medgray rounded-sm pt-1 pr-1 pl-1 pb-1 gap-1", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(FileButton, {}),
       /* @__PURE__ */ jsxRuntimeExports.jsx(EditButton, {}),
       /* @__PURE__ */ jsxRuntimeExports.jsx(ViewButton, {})
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "w-[180px] h-[685px] flex flex-col overflow-y-auto scrollbar-thin rounded-sm", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `w-[180px] ${fillHeight ? "flex-1" : "h-[685px]"} flex flex-col overflow-y-auto scrollbar-thin rounded-sm`, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(AddSegmentButton, {}),
       /* @__PURE__ */ jsxRuntimeExports.jsx(RobotButton, {}),
       /* @__PURE__ */ jsxRuntimeExports.jsx(FieldButton, {}),
@@ -20473,6 +20473,16 @@ function Config() {
   ] });
 }
 const homeButton = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M19.7118%209.29261L10.7101%200.295697C10.6171%200.202001%2010.5065%200.127632%2010.3846%200.0768805C10.2628%200.0261293%2010.132%200%2010%200C9.86796%200%209.73723%200.0261293%209.61535%200.0768805C9.49347%200.127632%209.38285%200.202001%209.28987%200.295697L0.288239%209.29261C0.149456%209.43319%200.0554425%209.6117%200.0180616%209.80562C-0.0193193%209.99954%200.00160719%2010.2002%200.0782005%2010.3822C0.153234%2010.5648%200.280655%2010.7211%200.444405%2010.8314C0.608155%2010.9417%200.800906%2011.001%200.998368%2011.002H1.99855V18.2995C2.01678%2018.7671%202.21961%2019.2085%202.56264%2019.527C2.90567%2019.8454%203.36096%2020.0152%203.82888%2019.9989H6.49937C6.76463%2019.9989%207.01903%2019.8936%207.2066%2019.7061C7.39417%2019.5187%207.49955%2019.2644%207.49955%2018.9993V14.101C7.49955%2013.8358%207.60492%2013.5816%207.79249%2013.3941C7.98006%2013.2066%208.23446%2013.1013%208.49973%2013.1013H11.5003C11.7655%2013.1013%2012.0199%2013.2066%2012.2075%2013.3941C12.3951%2013.5816%2012.5005%2013.8358%2012.5005%2014.101V18.9993C12.5005%2019.2644%2012.6058%2019.5187%2012.7934%2019.7061C12.981%2019.8936%2013.2354%2019.9989%2013.5006%2019.9989H16.1711C16.639%2020.0152%2017.0943%2019.8454%2017.4374%2019.527C17.7804%2019.2085%2017.9832%2018.7671%2018.0015%2018.2995V11.002H19.0016C19.1991%2011.001%2019.3918%2010.9417%2019.5556%2010.8314C19.7193%2010.7211%2019.8468%2010.5648%2019.9218%2010.3822C19.9984%2010.2002%2020.0193%209.99954%2019.9819%209.80562C19.9446%209.6117%2019.8505%209.43319%2019.7118%209.29261Z'%20fill='white'/%3e%3c/svg%3e";
+function HoverButton({ src, onClick, className = "", imgClassName = "w-[15px] h-[15px]" }) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "button",
+    {
+      className: `flex items-center justify-center bg-medgray rounded-sm cursor-pointer transition opacity-50 hover:opacity-100 ${className}`,
+      onClick,
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: imgClassName, src })
+    }
+  );
+}
 const DRAG_THRESHOLD = 5;
 function useBoxSelect() {
   const [boxSelectRect, setBoxSelectRect] = reactExports.useState(null);
@@ -20969,7 +20979,7 @@ function ControlsLayer({ path, img, radius, format, colors, onPointerDown }) {
     })
   ] });
 }
-function Field() {
+function Field({ showRightPanel = true }) {
   const [img, setImg] = useFieldImg();
   const [fieldKey] = useField();
   const svgRef = reactExports.useRef(null);
@@ -21450,23 +21460,20 @@ function Field() {
         ]
       }
     ),
-    (img.x !== 0 || img.y !== 0 || img.w !== FIELD_IMG_DIMENSIONS.w || img.h !== FIELD_IMG_DIMENSIONS.h) && /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "button",
+    showRightPanel && (img.x !== 0 || img.y !== 0 || img.w !== FIELD_IMG_DIMENSIONS.w || img.h !== FIELD_IMG_DIMENSIONS.h) && /* @__PURE__ */ jsxRuntimeExports.jsx(
+      HoverButton,
       {
+        src: homeButton,
         onClick: () => fieldZoomKeyboard(null, setImg, "ZoomReset"),
-        className: "\n						absolute top-3 right-129\n						flex\n						opacity-50\n						rounded-sm\n						items-center\n						justify-center\n						w-[25px]\n						h-[25px]\n						bg-medgray\n						z-10\n						cursor-pointer\n						transition\n            			",
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "img",
-          {
-            className: "\n							w-[15px]\n							h-[15px]",
-            src: homeButton
-          }
-        )
+        className: "absolute top-3 right-129 z-10 w-[25px] h-[25px]"
       }
     )
   ] });
 }
 const ScaleContext = reactExports.createContext(1);
+const threeDots = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2016%2016'%20xmlns='http://www.w3.org/2000/svg'%20fill='%23ffffff'%20class='bi%20bi-three-dots-vertical'%3e%3cpath%20d='M9.5%2013a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200zm0-5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200zm0-5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200z'/%3e%3c/svg%3e";
+const lines = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2016%2016'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M1%205H15V7H1V5Z'%20fill='%23FFFFFF'/%3e%3cpath%20d='M1%209H15V11H1V9Z'%20fill='%23FFFFFF'/%3e%3cpath%20d='M1%2013H15V15H1V13Z'%20fill='%23FFFFFF'/%3e%3cpath%20d='M1%201H15V3H1V1Z'%20fill='%23FFFFFF'/%3e%3c/svg%3e";
+const marker = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20version='1.1'%20id='_x32_'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='800px'%20height='800px'%20viewBox='0%200%20512%20512'%20xml:space='preserve'%20fill='%23ffffff'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cstyle%20type='text/css'%3e%20.st0{fill:%23ffffff;}%20%3c/style%3e%3cg%3e%3cpath%20class='st0'%20d='M405.969,62.123c-82.828-82.828-217.109-82.828-299.938,0c-82.813,82.813-82.813,217.109,0,299.922%20L256,511.998l149.969-149.953C488.781,279.232,488.781,144.936,405.969,62.123z%20M256,293.201%20c-44.797,0-81.125-36.313-81.125-81.109c0-44.813,36.328-81.125,81.125-81.125s81.125,36.313,81.125,81.125%20C337.125,256.889,300.797,293.201,256,293.201z'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e";
 function App() {
   const pathName = fileFormatStore.useSelector((s) => s.path.name);
   reactExports.useEffect(() => {
@@ -21474,7 +21481,27 @@ function App() {
   }, [pathName]);
   const viewportRef = reactExports.useRef(null);
   const contentRef = reactExports.useRef(null);
+  const fieldRef = reactExports.useRef(null);
+  const rightPanelRef = reactExports.useRef(null);
+  const cachedFieldW = reactExports.useRef(0);
+  const cachedRightW = reactExports.useRef(0);
+  const [img, setImg] = useFieldImg();
+  const isFieldPanned = img.x !== 0 || img.y !== 0 || img.w !== FIELD_IMG_DIMENSIONS.w || img.h !== FIELD_IMG_DIMENSIONS.h;
   const [scale, setScale] = reactExports.useState(1);
+  const [showConfig, setShowConfig] = reactExports.useState(true);
+  const [showRightPanel, setShowRightPanel] = reactExports.useState(true);
+  const [configPopout, setConfigPopout] = reactExports.useState(false);
+  const [pathConfigPopout, setPathConfigPopout] = reactExports.useState(false);
+  const [controlConfigPopout, setControlConfigPopout] = reactExports.useState(false);
+  reactExports.useEffect(() => {
+    if (showConfig) setConfigPopout(false);
+  }, [showConfig]);
+  reactExports.useEffect(() => {
+    if (showRightPanel) {
+      setPathConfigPopout(false);
+      setControlConfigPopout(false);
+    }
+  }, [showRightPanel]);
   reactExports.useLayoutEffect(() => {
     const viewport = viewportRef.current;
     const content = contentRef.current;
@@ -21485,6 +21512,12 @@ function App() {
       content.style.transformOrigin = "top left";
       const vw = viewport.clientWidth;
       const vh = viewport.clientHeight;
+      const fw = fieldRef.current?.scrollWidth ?? 0;
+      const rw = rightPanelRef.current?.scrollWidth ?? 0;
+      if (fw > 0) cachedFieldW.current = fw;
+      if (rw > 0) cachedRightW.current = rw;
+      setShowConfig(vw - 16 > cachedFieldW.current + cachedRightW.current);
+      setShowRightPanel(vw - 16 > cachedFieldW.current + 250);
       const cw2 = content.scrollWidth;
       const ch = content.scrollHeight;
       content.style.transform = prev;
@@ -21503,28 +21536,89 @@ function App() {
       window.removeEventListener("resize", compute);
     };
   }, []);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(ScaleContext.Provider, { value: scale, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { ref: viewportRef, className: "w-screen h-screen overflow-hidden", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    "div",
-    {
-      ref: contentRef,
-      style: { transform: `scale(${scale})`, transformOrigin: "top left" },
-      className: "inline-flex w-max h-max origin-top-left",
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "pt-[10px] ml-[10px]", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Config, {}) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-[10px] ml-[4px] pt-[10px]", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Field, {}),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(PathSimulator, {})
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-[10px] pt-[10px] pl-[10px]", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(PathConfig, {}),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(ControlConfig, {})
-        ] })
-      ]
-    }
-  ) }) });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(ScaleContext.Provider, { value: scale, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { ref: viewportRef, className: "w-screen h-screen overflow-hidden", children: [
+    !showConfig && /* @__PURE__ */ jsxRuntimeExports.jsx(
+      HoverButton,
+      {
+        src: threeDots,
+        onClick: () => setConfigPopout((v) => !v),
+        className: "fixed top-[10px] left-[10px] z-50 w-[33px] h-[33px]",
+        imgClassName: "w-5 h-5"
+      }
+    ),
+    !showConfig && /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "div",
+      {
+        className: `fixed top-[52px] left-[10px] z-50 flex flex-col ${configPopout ? "" : "hidden"}`,
+        style: { transform: "scale(0.85)", transformOrigin: "top left", height: "calc((100vh - 62px) / 0.85)" },
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx(Config, { fillHeight: true })
+      }
+    ),
+    !showRightPanel && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        HoverButton,
+        {
+          src: lines,
+          onClick: () => setPathConfigPopout((v) => !v),
+          className: "fixed top-[10px] right-[10px] z-50 w-[33px] h-[33px]",
+          imgClassName: "w-5 h-5"
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        HoverButton,
+        {
+          src: marker,
+          onClick: () => setControlConfigPopout((v) => !v),
+          className: "fixed top-[50px] right-[10px] z-50 w-[33px] h-[33px]",
+          imgClassName: "w-5 h-5"
+        }
+      ),
+      isFieldPanned && /* @__PURE__ */ jsxRuntimeExports.jsx(
+        HoverButton,
+        {
+          src: homeButton,
+          onClick: () => setImg(FIELD_IMG_DIMENSIONS),
+          className: "fixed top-[90px] right-[10px] z-50 w-[33px] h-[33px]",
+          imgClassName: "w-5 h-5"
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "div",
+        {
+          className: "fixed right-[10px] z-50 flex flex-col gap-2",
+          style: { top: isFieldPanned ? "130px" : "97px", transform: "scale(0.85)", transformOrigin: "top right" },
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: pathConfigPopout ? "" : "hidden", children: /* @__PURE__ */ jsxRuntimeExports.jsx(PathConfig, {}) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: controlConfigPopout ? "" : "hidden", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ControlConfig, {}) })
+          ]
+        }
+      )
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "div",
+      {
+        ref: contentRef,
+        style: { transform: `scale(${scale})`, transformOrigin: "top left" },
+        className: "inline-flex w-max h-max origin-top-left",
+        children: [
+          showConfig && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "pt-[10px] ml-[10px]", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Config, {}) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "inline-flex", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { ref: fieldRef, className: "flex flex-col gap-[10px] ml-[4px] pt-[10px]", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Field, { showRightPanel }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(PathSimulator, {})
+            ] }),
+            showRightPanel && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { ref: rightPanelRef, className: "flex flex-col gap-[10px] pt-[10px] pl-[10px]", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(PathConfig, {}),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(ControlConfig, {})
+            ] })
+          ] })
+        ]
+      }
+    )
+  ] }) });
 }
 registerSW({ immediate: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-dIqEQYZU.js.map
+//# sourceMappingURL=index-Dg_KgmeD.js.map
