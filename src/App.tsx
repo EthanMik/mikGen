@@ -1,6 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { viewModeStore } from "./hooks/useViewMode";
-import { fileOpLock } from "./core/FileOpLock";
 import "./App.css";
 import PathConfig from "./components/PathMenu/PathConfig";
 import PathSimulator from "./components/PathSimulator";
@@ -16,6 +15,7 @@ import threeDots from "./assets/three-dots.svg";
 import lines from "./assets/lines.svg";
 import marker from "./assets/marker.svg";
 import homeButton from "./assets/home.svg";
+import { fileOpLock } from "./core/FileUtils";
 
 export default function App() {
   const pathName = fileFormatStore.useSelector(s => s.path.name);

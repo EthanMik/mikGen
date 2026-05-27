@@ -6,12 +6,14 @@ const MAX_UNDO_HISTORY = 300;
 
 export const undoHistory = createStore<FileFormat[]>([fileFormatStore.getState()]);
 export const redoHistory = createStore<FileFormat[]>([]);
+export const fileUndosStore = createStore(0);
 
 export function saveSnapshot() {
     const snapshot = fileFormatStore.getState();
     const current = undoHistory.getState();
     undoHistory.setState([...current, snapshot].slice(-MAX_UNDO_HISTORY));
     redoHistory.setState([]);
-    // console.log(snapshot);
+    fileUndosStore.setState(n => n + 1);
+    console.log(fileUndosStore.getState());
     localStorage.setItem("appState", JSON.stringify(snapshot));
 }

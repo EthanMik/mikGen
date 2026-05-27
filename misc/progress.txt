@@ -13,7 +13,7 @@ Planned:
 - google analytics
 - file directory view for easy selecting
 - visually see when you can and cant undo
-
+- load last 3 undos under local
 
 Docs:
 - A better way to plan VEX Autonoumous - EthanMik Channel

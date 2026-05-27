@@ -1,16 +1,25 @@
 import { useRef, useState, type ReactNode, useEffect } from "react";
 import downArrow from "../../assets/down-arrow.svg";
+import Tooltip from "../Util/Tooltip";
+
+type IconButton = {
+    icon: string,
+    onClick: () => void;
+    visible: boolean;
+    tooltip?: string;
+}
 
 type ConfigButtonTemplateProps = {
     title: string;
     children: ReactNode;
     onOpen?: () => void;
     onClose?: () => void;
+    iconButtons?: IconButton[];
     flashRef?: { current: (() => void) | undefined };
     underlineRef?: { current: ((val: boolean) => void) | undefined };
 }
 
-export default function ConfigButtonTemplate({ title, children, onOpen, onClose, flashRef, underlineRef }: ConfigButtonTemplateProps) {
+export default function ConfigButtonTemplate({ title, children, onOpen, onClose, flashRef, underlineRef, iconButtons }: ConfigButtonTemplateProps) {
     const [isOpen, setOpen] = useState(false);
     const [flash, setFlash] = useState(false);
     const [underline, setUnderline] = useState(false);
@@ -78,10 +87,33 @@ export default function ConfigButtonTemplate({ title, children, onOpen, onClose,
                     ${flash ? "bg-medlightgray ease-out duration-100" : ""}`}
             >
                 <span className={`text-[16px] ${underline ? "underline" : ""}`}>{title}</span>
-                <img
-                    className={`w-[12px] h-[12px] transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-                    src={downArrow}
-                />
+                <div className="flex flex-row gap-2.5 items-center">
+                    {iconButtons?.map((i) => (
+                        <>
+                            {i.visible && 
+                            <Tooltip label={i.tooltip}>
+                                <button
+                                    className="hover:opacity-60 active:scale-90 transition-transform cursor-pointer"
+                                    onClick={(e) => {
+                                        if (i.onClick) i.onClick()
+                                        e.stopPropagation();
+                                    }}
+                                >
+                                    <img
+                                        src={i.icon}
+                                        className="w-[13px] h-[13px]"
+                                    >
+                                    </img>
+                                </button>
+                            </Tooltip>}
+                        </>
+                    ))}
+                    <img
+                        className={`w-[12px] h-[12px] transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                        src={downArrow}
+                    />
+
+                </div>
             </button>
 
             <div className={`grid transition-[grid-template-rows] duration-200 ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"} 

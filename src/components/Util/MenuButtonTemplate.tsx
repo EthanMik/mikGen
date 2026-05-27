@@ -11,7 +11,7 @@ type MenuButtonTemplateProps = {
     closeOnClick?: boolean;
 }
 
-export default function MenuButtonTemplate({ title, children, onOpen, onClose, width, flashRef, underlineRef, closeOnClick = true }: MenuButtonTemplateProps) {
+export default function MenuButtonTemplate({ title, children, onOpen, onClose, flashRef, underlineRef, closeOnClick = true }: MenuButtonTemplateProps) {
     const [isOpen, setOpen] = useState(false);
     const [flash, setFlash] = useState(false);
     const [underline, setUnderline] = useState(false);

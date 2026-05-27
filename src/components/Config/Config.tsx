@@ -4,6 +4,7 @@ import AddSegmentButton from "./AddSegmentButton";
 import EditButton from "./EditButton";
 import ExportButton from "./ExportButton";
 import FieldButton from "./FieldButton";
+import FolderButton from "./FolderButton";
 import FormatButton from "./FormatButton";
 import RobotButton from "./RobotButton";
 import ViewButton from "./ViewButton";
@@ -20,7 +21,7 @@ export default function Config({ fillHeight = false }: ConfigProps) {
                 <SettingsButton />
             </div>
             <div className={`w-[180px] ${fillHeight ? "flex-1" : "h-[685px]"} flex flex-col overflow-y-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none] rounded-sm`}>
-                
+                <FolderButton fileName="file"/>
                 <AddSegmentButton />
                 <RobotButton/>
                 <FieldButton/>

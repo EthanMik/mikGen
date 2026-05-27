@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { fileOpLock } from "../../core/FileOpLock";
 import ConfigButtonTemplate from "./ConfigButtonTemplate";
 import { ConfigCheckboxButton } from "../Util/CheckboxButton";
 import download from "../../assets/download.svg";
@@ -7,6 +6,7 @@ import { fileFormatStore, usePath } from "../../hooks/useFileFormat";
 import { convertPathToString, templateToRegex } from "../../simulation/Conversion";
 import type { FormatDef, Format, SegmentDef, SegmentKind } from "../../simulation/FormatDefinition";
 import type { Path } from "../../core/Types/Path";
+import { fileOpLock } from "../../core/FileUtils";
 
 function spliceGeneratedBlock(fileContent: string, generated: string, path: Path): { content: string; message: string } {
     const marker = "[" + path.name + "]";
