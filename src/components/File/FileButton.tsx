@@ -3,23 +3,15 @@ import FileRenamePopup from "./FileRenamePopup";
 import { usePath, useFileFormat, fileFormatStore, type FileFormat } from "../../hooks/useFileFormat";
 import { defaultRobotConstants } from "../../core/Robot";
 import { saveSnapshot, undoHistory, fileUndosStore } from "../../core/Undo/UndoHistory";
-import { FORMAT_REGISTRY, mergeFormatDef, stripFormatDefForSave, type FormatDef } from "../../simulation/FormatDefinition";
-import { deserializeFile, loadFromHandle, fileSaveStore, fileOpLock } from "../../core/FileUtils";
+import { FORMAT_REGISTRY, mergeFormatDef, type FormatDef } from "../../simulation/FormatDefinition";
+import { deserializeFile, loadFromHandle, fileSaveStore, fileOpLock, fileHandleStore, dirHandleStore, serializeFile } from "../../core/FileUtils";
 import MenuButtonTemplate from "../Util/MenuButtonTemplate";
 import { MenuKeybindButton } from "../Util/KeybindButton";
 import Section from "../Util/Section";
 
-const FILE_VERSION = "mikGen v1.0.0";
-
-function serializeFile(fileFormat: FileFormat): string {
-    const stripped = { ...fileFormat, formatDef: stripFormatDefForSave(fileFormat.formatDef) };
-    return FILE_VERSION + "\n" + JSON.stringify(stripped);
-}
-
 export default function FileButton() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const renameResolveRef = useRef<((name: string | null) => void) | null>(null);
-    const fileHandleRef = useRef<FileSystemFileHandle | null>(null);
     const underlineRef = useRef<((val: boolean) => void) | undefined>(undefined);
 
     const [popupOpen, setPopupOpen] = useState(false);
@@ -52,6 +44,14 @@ export default function FileButton() {
         }
         setIsSaved(false);
     }, [historyLength]);
+
+    // Reset isSaved when an external load (e.g. FolderButton) updates the file handle
+    useEffect(() => {
+        return fileHandleStore.subscribe(() => {
+            skipSave.current = true;
+            setIsSaved(true);
+        });
+    }, []);
 
     const updatePathName = (name: string) => {
         setPath(prev => ({ ...prev, name }));
@@ -87,7 +87,7 @@ export default function FileButton() {
         fileFormatStore.setState(newFileFormat);
         saveSnapshot();
         fileUndosStore.setState(0);
-        fileHandleRef.current = null;
+        fileHandleStore.setState(null);
         setIsSaved(true);
     };
 
@@ -109,12 +109,28 @@ export default function FileButton() {
                 multiple: false,
             });
 
-            fileHandleRef.current = handle;
             await loadFromHandle(handle);
             setIsSaved(true);
         } catch (error) {
             if ((error as Error).name !== 'AbortError') {
                 console.error('Error opening file:', error);
+            }
+        } finally {
+            fileOpLock.release();
+        }
+    };
+
+    const handleOpenFolder = async () => {
+        if (!('showDirectoryPicker' in window)) return;
+        if (fileOpLock.isActive()) return;
+        fileOpLock.acquire();
+        try {
+            // @ts-expect-error showDirectoryPicker not in all TS DOM libs
+            const handle = await window.showDirectoryPicker({ mode: "read" });
+            dirHandleStore.setState(handle);
+        } catch (error) {
+            if ((error as Error).name !== 'AbortError') {
+                console.error('Error opening folder:', error);
             }
         } finally {
             fileOpLock.release();
@@ -144,10 +160,10 @@ export default function FileButton() {
                 fileUndosStore.setState(0);
             };
             reader.readAsText(file);
-            fileHandleRef.current = null;
+            fileHandleStore.setState(null);
         }
         event.target.value = '';
-        fileHandleRef.current = null;
+        fileHandleStore.setState(null);
         setIsSaved(true);
         skipSave.current = true;
     };
@@ -158,11 +174,13 @@ export default function FileButton() {
             return;
         }
         try {
-            if (fileHandleRef.current) {
-                const writable = await fileHandleRef.current.createWritable();
+            const handle = fileHandleStore.getState();
+            if (handle) {
+                const writable = await handle.createWritable();
                 await writable.write(serializeFile(fileText));
                 await writable.close();
                 setIsSaved(true);
+                fileUndosStore.setState(0);
                 fileSaveStore.setState(n => n + 1);
             } else {
                 await handleSaveAs();
@@ -192,7 +210,7 @@ export default function FileButton() {
                 ],
             });
 
-            fileHandleRef.current = handle;
+            fileHandleStore.setState(handle);
             const savedFileName = handle.name.replace(/\.[^/.]+$/, "");
             setPath(prev => ({ ...prev, name: savedFileName }));
 
@@ -200,6 +218,7 @@ export default function FileButton() {
             await writable.write(serializeFile(fileText));
             await writable.close();
             setIsSaved(true);
+            fileUndosStore.setState(0);
             fileSaveStore.setState(n => n + 1);
         } catch (error) {
             if ((error as Error).name !== 'AbortError') {
@@ -235,6 +254,7 @@ export default function FileButton() {
 
     const handleNewFileRef = useRef(handleNewFile);
     const handleOpenFileRef = useRef(handleOpenFile);
+    const handleOpenFolderRef = useRef(handleOpenFolder);
     const handleSaveRef = useRef(handleSave);
     const handleSaveAsRef = useRef(handleSaveAs);
     const handleDownloadRef = useRef(handleDownload);
@@ -243,6 +263,7 @@ export default function FileButton() {
     useEffect(() => {
         handleNewFileRef.current = handleNewFile;
         handleOpenFileRef.current = handleOpenFile;
+        handleOpenFolderRef.current = handleOpenFolder;
         handleSaveRef.current = handleSave;
         handleSaveAsRef.current = handleSaveAs;
         handleDownloadRef.current = handleDownload;
@@ -257,6 +278,9 @@ export default function FileButton() {
             } else if (event.ctrlKey && event.key === 'o') {
                 event.preventDefault();
                 handleOpenFileRef.current();
+            } else if (event.ctrlKey && event.shiftKey && event.key === 'O') {
+                event.preventDefault();
+                handleOpenFolderRef.current();
             } else if (event.ctrlKey && event.shiftKey && event.key === 'S') {
                 event.preventDefault();
                 handleSaveAsRef.current();
@@ -295,6 +319,7 @@ export default function FileButton() {
                 <MenuKeybindButton name="New File" keybind="Ctrl+P" callback={handleNewFile} />
                 <Section />
                 <MenuKeybindButton name="Open File" keybind="Ctrl+O" callback={handleOpenFile} />
+                <MenuKeybindButton name="Open Folder" keybind="Ctrl+⇧O" callback={handleOpenFolder} />
                 <Section />
                 <MenuKeybindButton name="Save" keybind="Ctrl+S" callback={handleSave} />
                 <MenuKeybindButton name="Save As" keybind="Ctrl+⇧S" callback={handleSaveAs} />

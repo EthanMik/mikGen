@@ -63,7 +63,7 @@ export default function PathConfigHeader({ name, isOpen, setOpen, isTelemetryOpe
                     autoFocus
                 />
             ) : (
-                <span className="block text-[20px] cursor-text" onClick={startEditing}>
+                <span className="block text-[20px] cursor-text truncate min-w-0" onClick={startEditing}>
                     {name}
                 </span>
             )}

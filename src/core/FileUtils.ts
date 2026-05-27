@@ -1,6 +1,6 @@
 import { fileFormatStore, type FileFormat, DEFAULT_FORMAT } from "../hooks/useFileFormat";
 import { createStore } from "./Store";
-import { FORMAT_REGISTRY, mergeFormatDef, getDefaultConstants, type Format, type FormatDef, type SegmentKind } from "../simulation/FormatDefinition";
+import { FORMAT_REGISTRY, mergeFormatDef, getDefaultConstants, stripFormatDefForSave, type Format, type FormatDef, type SegmentKind } from "../simulation/FormatDefinition";
 import { saveSnapshot, fileUndosStore } from "./Undo/UndoHistory";
 import type { Path } from "./Types/Path";
 
@@ -13,9 +13,15 @@ export const fileOpLock = {
 };
 
 export const fileSaveStore = createStore(0);
+export const fileHandleStore = createStore<FileSystemFileHandle | null>(null);
+export const dirHandleStore = createStore<FileSystemDirectoryHandle | null>(null);
 
+export const FILE_VERSION = "mikGen v1.0.0";
 
-const FILE_VERSION = "mikGen v1.0.0";
+export function serializeFile(fileFormat: FileFormat): string {
+    const stripped = { ...fileFormat, formatDef: stripFormatDefForSave(fileFormat.formatDef) };
+    return FILE_VERSION + "\n" + JSON.stringify(stripped);
+}
 
 function handleFileConversion(content: string): FileFormat {
     let raw: unknown;
@@ -64,7 +70,20 @@ export function deserializeFile(content: string): FileFormat {
 
 export async function loadFromHandle(handle: FileSystemFileHandle): Promise<void> {
     if (fileUndosStore.getState() > 1) {
-        if (!window.confirm("You have unsaved changes. Discard and load new file?")) return;
+        const currentHandle = fileHandleStore.getState();
+        if (currentHandle) {
+            const choice = window.confirm("You have unsaved changes. Save before loading?");
+            if (choice) {
+                const writable = await currentHandle.createWritable();
+                await writable.write(serializeFile(fileFormatStore.getState()));
+                await writable.close();
+                fileSaveStore.setState(n => n + 1);
+            } else if (!window.confirm("Discard unsaved changes and load new file?")) {
+                return;
+            }
+        } else {
+            if (!window.confirm("You have unsaved changes. Discard and load new file?")) return;
+        }
     }
     const file = await handle.getFile();
     const content = await file.text();
@@ -77,6 +96,7 @@ export async function loadFromHandle(handle: FileSystemFileHandle): Promise<void
     });
     saveSnapshot();
     fileUndosStore.setState(0);
+    fileHandleStore.setState(handle);
 }
 
 export async function loadFileFromEvent(event: React.ChangeEvent<HTMLInputElement>): Promise<void> {

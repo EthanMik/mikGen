@@ -12,7 +12,7 @@ export function MenuKeybindButton({ callback, name, keybind, textSize }: Keybind
         <button
             onClick={callback}
             className="flex pr-1 pl-2 py-0.5 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
-            <span className={`text-[${textSize || 14}px]`}>{name}</span>
+            <span className={`text-[${textSize || 14}px] truncate min-w-0`}>{name}</span>
             <span className={`text-lightgray text-[${textSize || 14}px] font-sans flex items-center gap-0`}>{keybind}</span>
         </button>
     );
@@ -23,7 +23,7 @@ export function ConfigKeybindButton({ callback, name, keybind, textSize }: Keybi
         <button
             onClick={callback}
             className="flex w-full pr-1 pl-2 py-0.5 items-center justify-between bg-medgray hover:brightness-92 cursor-pointer rounded-sm">
-            <span className={`text-[${textSize || 14}px]`}>{name}</span>
+            <span className={`text-[${textSize || 14}px] truncate min-w-0`}>{name}</span>
             <span className={`text-lightgray text-[${textSize || 14}px] font-sans flex items-center gap-0`}>{keybind}</span>
         </button>
     );

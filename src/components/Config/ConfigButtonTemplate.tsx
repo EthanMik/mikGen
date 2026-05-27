@@ -86,8 +86,8 @@ export default function ConfigButtonTemplate({ title, children, onOpen, onClose,
                     gap-[12px] px-2 py-2 cursor-pointer bg-medgray [.config-open+div_&]:rounded-t-sm [*:last-child:not(.config-open)>&]:rounded-b-sm
                     ${flash ? "bg-medlightgray ease-out duration-100" : ""}`}
             >
-                <span className={`text-[16px] ${underline ? "underline" : ""}`}>{title}</span>
-                <div className="flex flex-row gap-2.5 items-center">
+                <span className={`text-[16px] truncate min-w-0 ${underline ? "underline" : ""}`}>{title}</span>
+                <div className="flex flex-row gap-2.5 items-center shrink-0">
                     {iconButtons?.map((i) => (
                         <>
                             {i.visible && 

@@ -1,3 +1,4 @@
+import { dirHandleStore } from "../../core/FileUtils";
 import FileButton from "../File/FileButton";
 import SettingsButton from "../Settings/SettingsButton";
 import AddSegmentButton from "./AddSegmentButton";
@@ -12,6 +13,7 @@ import ViewButton from "./ViewButton";
 type ConfigProps = { fillHeight?: boolean };
 
 export default function Config({ fillHeight = false }: ConfigProps) {
+    const dirHandle = dirHandleStore.useStore();
     return (
         <div className={`flex pr-[6px] flex-col gap-2 ${fillHeight ? "h-full" : ""}`}>
             <div className="w-[180px] flex bg-medgray rounded-sm pt-1 pr-1 pl-1 pb-1 gap-1">
@@ -21,7 +23,7 @@ export default function Config({ fillHeight = false }: ConfigProps) {
                 <SettingsButton />
             </div>
             <div className={`w-[180px] ${fillHeight ? "flex-1" : "h-[685px]"} flex flex-col overflow-y-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none] rounded-sm`}>
-                <FolderButton fileName="file"/>
+                {dirHandle !== null && <FolderButton fileName=""/>}
                 <AddSegmentButton />
                 <RobotButton/>
                 <FieldButton/>
