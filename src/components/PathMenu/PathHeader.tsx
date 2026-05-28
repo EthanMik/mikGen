@@ -51,7 +51,7 @@ export default function PathConfigHeader({ name, isOpen, setOpen, isTelemetryOpe
     };
 
     return (
-        <div className="w-full flex flex-row items-center justify-between">
+        <div className="w-full flex flex-row items-center justify-between truncate min-w-4">
             {editing ? (
                 <input
                     ref={inputRef}
@@ -63,7 +63,7 @@ export default function PathConfigHeader({ name, isOpen, setOpen, isTelemetryOpe
                     autoFocus
                 />
             ) : (
-                <span className="block text-[20px] cursor-text truncate min-w-0" onClick={startEditing}>
+                <span className="block text-[20px] cursor-text" onClick={startEditing}>
                     {name}
                 </span>
             )}

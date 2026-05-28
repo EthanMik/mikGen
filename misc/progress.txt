@@ -11,14 +11,13 @@ Todo:
 
 Planned:
 - google analytics
-- file directory view for easy selecting
 - visually see when you can and cant undo
 - load last 3 undos under local
 
 Docs:
 - A better way to plan VEX Autonoumous - EthanMik Channel
 - Readthedocs.io showing all the keybinds
-
+- have a dropdown for the file view
 
 lemlib notes
 - issues with either PID / mtp and boomerang

@@ -4,7 +4,7 @@ import { usePath, useFileFormat, fileFormatStore, type FileFormat } from "../../
 import { defaultRobotConstants } from "../../core/Robot";
 import { saveSnapshot, undoHistory, fileUndosStore } from "../../core/Undo/UndoHistory";
 import { FORMAT_REGISTRY, mergeFormatDef, type FormatDef } from "../../simulation/FormatDefinition";
-import { deserializeFile, loadFromHandle, fileSaveStore, fileOpLock, fileHandleStore, dirHandleStore, serializeFile } from "../../core/FileUtils";
+import { deserializeFile, loadFromHandle, fileSaveStore, fileHandleStore, dirHandleStore, serializeFile } from "../../core/FileUtils";
 import MenuButtonTemplate from "../Util/MenuButtonTemplate";
 import { MenuKeybindButton } from "../Util/KeybindButton";
 import Section from "../Util/Section";
@@ -97,7 +97,6 @@ export default function FileButton() {
             return;
         }
 
-        fileOpLock.acquire();
         try {
             // @ts-expect-error showOpenFilePicker not in all TS DOM libs
             const [handle] = await window.showOpenFilePicker({
@@ -115,15 +114,11 @@ export default function FileButton() {
             if ((error as Error).name !== 'AbortError') {
                 console.error('Error opening file:', error);
             }
-        } finally {
-            fileOpLock.release();
         }
     };
 
     const handleOpenFolder = async () => {
         if (!('showDirectoryPicker' in window)) return;
-        if (fileOpLock.isActive()) return;
-        fileOpLock.acquire();
         try {
             // @ts-expect-error showDirectoryPicker not in all TS DOM libs
             const handle = await window.showDirectoryPicker({ mode: "read" });
@@ -132,8 +127,6 @@ export default function FileButton() {
             if ((error as Error).name !== 'AbortError') {
                 console.error('Error opening folder:', error);
             }
-        } finally {
-            fileOpLock.release();
         }
     };
 
@@ -196,7 +189,6 @@ export default function FileButton() {
             handleDownloadAs();
             return;
         }
-        fileOpLock.acquire();
         try {
             const name = await requestFileName();
             if (name === null || name === "") return;
@@ -224,8 +216,6 @@ export default function FileButton() {
             if ((error as Error).name !== 'AbortError') {
                 console.error('Error saving file:', error);
             }
-        } finally {
-            fileOpLock.release();
         }
     };
 
@@ -315,11 +305,11 @@ export default function FileButton() {
                 style={{ display: "none" }}
                 onChange={handleFileSelect}
             />
-            <MenuButtonTemplate title="File" underlineRef={underlineRef}>
+            <MenuButtonTemplate title="File" underlineRef={underlineRef} width={44}>
                 <MenuKeybindButton name="New File" keybind="Ctrl+P" callback={handleNewFile} />
                 <Section />
                 <MenuKeybindButton name="Open File" keybind="Ctrl+O" callback={handleOpenFile} />
-                <MenuKeybindButton name="Open Folder" keybind="Ctrl+⇧O" callback={handleOpenFolder} />
+                {'showDirectoryPicker' in window && <MenuKeybindButton name="Open Folder" keybind="Ctrl+⇧O" callback={handleOpenFolder} />}
                 <Section />
                 <MenuKeybindButton name="Save" keybind="Ctrl+S" callback={handleSave} />
                 <MenuKeybindButton name="Save As" keybind="Ctrl+⇧S" callback={handleSaveAs} />

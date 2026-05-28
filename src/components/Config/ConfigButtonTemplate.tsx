@@ -11,6 +11,7 @@ type IconButton = {
 
 type ConfigButtonTemplateProps = {
     title: string;
+    tooltip?: string;
     children: ReactNode;
     onOpen?: () => void;
     onClose?: () => void;
@@ -19,7 +20,7 @@ type ConfigButtonTemplateProps = {
     underlineRef?: { current: ((val: boolean) => void) | undefined };
 }
 
-export default function ConfigButtonTemplate({ title, children, onOpen, onClose, flashRef, underlineRef, iconButtons }: ConfigButtonTemplateProps) {
+export default function ConfigButtonTemplate({ title, tooltip, children, onOpen, onClose, flashRef, underlineRef, iconButtons }: ConfigButtonTemplateProps) {
     const [isOpen, setOpen] = useState(false);
     const [flash, setFlash] = useState(false);
     const [underline, setUnderline] = useState(false);
@@ -80,6 +81,7 @@ export default function ConfigButtonTemplate({ title, children, onOpen, onClose,
             onContextMenu={e => { e.preventDefault(); e.stopPropagation(); }}
             onMouseDown={e => { if (e.button === 2) { e.preventDefault(); e.stopPropagation(); } }}
         >
+            <Tooltip label={tooltip} placement="right">
             <button
                 onClick={handleToggle}
                 className={`flex flex-row items-center justify-between
@@ -115,8 +117,9 @@ export default function ConfigButtonTemplate({ title, children, onOpen, onClose,
 
                 </div>
             </button>
+            </Tooltip>
 
-            <div className={`grid transition-[grid-template-rows] duration-200 ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"} 
+            <div className={`grid transition-[grid-template-rows] duration-200 ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}
             ${isOpen ? "mb-2" : ""}`}>
                 <div className="overflow-hidden">
                     <div className={`relative flex flex-col gap-1 bg-medgray px-2 py-2 ${isOpen ? "rounded-b-sm" : ""}`}>

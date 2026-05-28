@@ -15,7 +15,6 @@ import threeDots from "./assets/three-dots.svg";
 import lines from "./assets/lines.svg";
 import marker from "./assets/marker.svg";
 import homeButton from "./assets/home.svg";
-import { fileOpLock } from "./core/FileUtils";
 
 export default function App() {
   const pathName = fileFormatStore.useSelector(s => s.path.name);
@@ -74,10 +73,8 @@ export default function App() {
       const autoRight = vw - 16 > cachedFieldW.current + 250;
       const nextShowConfig = mode === "standard" ? true : (mode === "collapsed-config" || mode === "fully-collapsed" ? false : autoConfig);
       const nextShowRight = mode === "standard" ? true : (mode === "collapsed-list" || mode === "fully-collapsed" ? false : autoRight);
-      if (!fileOpLock.isActive()) {
-        setShowConfig(nextShowConfig);
-        setShowRightPanel(nextShowRight);
-      }
+      setShowConfig(nextShowConfig);
+      setShowRightPanel(nextShowRight);
 
       const cw = content.scrollWidth;
       const ch = content.scrollHeight;
@@ -87,6 +84,7 @@ export default function App() {
       if (cw <= 0 || ch <= 0) return;
 
       const padding = 16;
+      const CONFIG_W = 196;
       const fullyCollapsedNext = !nextShowConfig && !nextShowRight;
 
       if (fullyCollapsedNext) {
@@ -94,7 +92,8 @@ export default function App() {
         setScale(s);
         setCanvasWidth(Math.round(vw / s));
       } else {
-        setScale(clamp(Math.min((vw - padding) / cw, (vh - padding) / ch), 0.75, 2));
+        const totalCw = (nextShowConfig ? CONFIG_W : 0) + cw;
+        setScale(clamp(Math.min((vw - padding) / totalCw, (vh - padding) / ch), 0.75, 2));
         setCanvasWidth(FIELD_IMG_DIMENSIONS.w);
       }
     };
@@ -121,22 +120,24 @@ export default function App() {
     <ScaleContext.Provider value={scale}>
       <div ref={viewportRef} className={`w-screen h-screen overflow-hidden${fullyCollapsed ? " flex items-center justify-center" : ""}`}>
 
-        {!showConfig && (
-          <HoverButton
-            src={threeDots}
-            onClick={() => setConfigPopout(v => !v)}
-            className="fixed top-[10px] left-[10px] z-50 w-[33px] h-[33px]"
-            imgClassName="w-5 h-5"
-          />
-        )}
-        {!showConfig && (
-          <div
-            className={`fixed top-[52px] left-[10px] z-50 flex flex-col ${configPopout ? "" : "hidden"}`}
-            style={{ transform: "scale(0.85)", transformOrigin: "top left", height: "calc((100vh - 62px) / 0.85)" }}
-          >
-            <Config fillHeight />
-          </div>
-        )}
+        <HoverButton
+          src={threeDots}
+          onClick={() => setConfigPopout(v => !v)}
+          className={`fixed top-[10px] left-[10px] z-50 w-[33px] h-[33px]${showConfig ? " hidden" : ""}`}
+          imgClassName="w-5 h-5"
+        />
+        <div
+          className="fixed flex flex-col"
+          style={
+            !showConfig && !configPopout
+              ? { display: "none" }
+              : showConfig
+              ? { top: "10px", left: "10px", transform: `scale(${scale})`, transformOrigin: "top left", zIndex: 10 }
+              : { top: "52px", left: "10px", transform: "scale(0.85)", transformOrigin: "top left", height: "calc((100vh - 62px) / 0.85)", zIndex: 50 }
+          }
+        >
+          <Config fillHeight={!showConfig} />
+        </div>
 
         {!showRightPanel && (
           <>
@@ -175,14 +176,9 @@ export default function App() {
         )}
         <div
           ref={contentRef}
-          style={{ transform: `scale(${scale})`, transformOrigin: fullyCollapsed ? "center" : "top left" }}
+          style={{ transform: `scale(${scale})`, transformOrigin: fullyCollapsed ? "center" : "top left", marginLeft: showConfig ? `${10 + 196 * scale}px` : undefined }}
           className="inline-flex w-max h-max"
         >
-          {showConfig && (
-            <div className="pt-[10px] ml-[10px]">
-              <Config />
-            </div>
-          )}
           <div className="inline-flex">
             <div ref={fieldRef} className={`flex flex-col gap-[10px] ml-[4px] pt-[10px]${fullyCollapsed ? " items-center" : ""}`}>
               <Field showRightPanel={showRightPanel} canvasWidth={canvasWidth} />

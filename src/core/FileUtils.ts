@@ -4,14 +4,6 @@ import { FORMAT_REGISTRY, mergeFormatDef, getDefaultConstants, stripFormatDefFor
 import { saveSnapshot, fileUndosStore } from "./Undo/UndoHistory";
 import type { Path } from "./Types/Path";
 
-let active = false;
-
-export const fileOpLock = {
-    acquire() { active = true; },
-    release() { active = false; },
-    isActive() { return active; },
-};
-
 export const fileSaveStore = createStore(0);
 export const fileHandleStore = createStore<FileSystemFileHandle | null>(null);
 export const dirHandleStore = createStore<FileSystemDirectoryHandle | null>(null);

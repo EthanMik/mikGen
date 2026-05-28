@@ -63,7 +63,7 @@ export default function SettingsButton() {
                 onEnter={() => { }}
             />}
 
-            <MenuButtonTemplate title="Settings" closeOnClick={false}>
+            <MenuButtonTemplate title="Settings" closeOnClick={false} width={40}>
                 <div className="flex flex-col gap-1.5">
                     <MenuCheckboxButton name="Robot Outlines" label="Displays end positions when sim is off" checked={settings.ghostRobots} setChecked={set("ghostRobots")} />
                     <MenuCheckboxButton name="Robot Position" label="Displays robots's actual position" checked={settings.robotPosition} setChecked={set("robotPosition")} />

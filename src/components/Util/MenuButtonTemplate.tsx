@@ -11,7 +11,7 @@ type MenuButtonTemplateProps = {
     closeOnClick?: boolean;
 }
 
-export default function MenuButtonTemplate({ title, children, onOpen, onClose, flashRef, underlineRef, closeOnClick = true }: MenuButtonTemplateProps) {
+export default function MenuButtonTemplate({ title, children, onOpen, onClose, flashRef, underlineRef, width, closeOnClick = true }: MenuButtonTemplateProps) {
     const [isOpen, setOpen] = useState(false);
     const [flash, setFlash] = useState(false);
     const [underline, setUnderline] = useState(false);
@@ -92,7 +92,8 @@ export default function MenuButtonTemplate({ title, children, onOpen, onClose, f
 
             {isOpen && (
                 <div
-                    className={`absolute left-0 top-full mt-1 z-40 w-42 rounded-sm bg-medgray_hover shadow-xs shadow-black`}
+                    className={`absolute left-0 top-full mt-1 z-40 rounded-sm bg-medgray_hover shadow-xs shadow-black`}
+                    style={width !== undefined ? {width: width * 4} : undefined}
                     onClick={() => { if (closeOnClick) { setOpen(false); onCloseRef.current?.(); } }}
                 >
                     <div className="flex flex-col mt-2 px-1 mb-2 gap-0.5">

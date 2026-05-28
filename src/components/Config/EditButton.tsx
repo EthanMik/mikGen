@@ -40,13 +40,13 @@ export default function EditButton() {
 
     return (
         <>
-            <MenuButtonTemplate title="Edit" flashRef={flashRef}>
+            <MenuButtonTemplate title="Edit" flashRef={flashRef} width={44}>
                 <MenuKeybindButton name={"Undo"} keybind={"Ctrl+Z"} callback={() => undo(null)} />
                 <MenuKeybindButton name={"Redo"} keybind={"Ctrl+Y"} callback={() => redo(null)} />
                 <Section />
 
                 <MenuKeybindButton name={"Cut"} keybind={"Ctrl+X"} callback={() => cut(null, pathRef.current, setPath)} />
-                <MenuKeybindButton name={"Copy"} keybind={"Ctrl+C"} callback={() => copy(null, pathRef.current, triggerFlash)} />
+                <MenuKeybindButton name={"Copy/Export"} keybind={"Ctrl+C"} callback={() => copy(null, pathRef.current, triggerFlash)} />
                 <MenuKeybindButton name={"Copy All"} keybind={"Ctrl+⇧C"} callback={() => copy(null, pathRef.current, triggerFlash, true)} />
                 <MenuKeybindButton name={"Paste"} keybind={"Ctrl+V"} callback={() => paste(null, setPath)} />
                 <MenuKeybindButton name={"Delete"} keybind={"⌫"} callback={() => deleteControl(null, setPath)} />

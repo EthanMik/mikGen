@@ -1,12 +1,39 @@
 import { useEffect, useRef, useState } from "react";
 import ConfigButtonTemplate from "./ConfigButtonTemplate";
 import { ConfigCheckboxButton } from "../Util/CheckboxButton";
-import download from "../../assets/download.svg";
+import Tooltip from "../Util/Tooltip";
 import { fileFormatStore, usePath } from "../../hooks/useFileFormat";
 import { convertPathToString, templateToRegex } from "../../simulation/Conversion";
 import type { FormatDef, Format, SegmentDef, SegmentKind } from "../../simulation/FormatDefinition";
 import type { Path } from "../../core/Types/Path";
-import { fileOpLock } from "../../core/FileUtils";
+import fileIcon from "../../assets/file.svg";
+import folderIcon from "../../assets/folder.svg";
+import back from "../../assets/back.svg";
+import refresh from "../../assets/cw.svg";
+
+// ─── export-dir helpers ───────────────────────────────────────────────────────
+
+type Entry = {
+    name: string;
+    kind: "file" | "directory";
+    handle: FileSystemFileHandle | FileSystemDirectoryHandle;
+};
+
+async function readExportDirEntries(handle: FileSystemDirectoryHandle): Promise<Entry[]> {
+    const result: Entry[] = [];
+    for await (const [name, h] of handle.entries()) {
+        const kind = h.kind as "file" | "directory";
+        if (kind === "file" && !name.endsWith(".cpp")) continue;
+        result.push({ name, kind, handle: h });
+    }
+    result.sort((a, b) => {
+        if (a.kind !== b.kind) return a.kind === "directory" ? -1 : 1;
+        return a.name.localeCompare(b.name);
+    });
+    return result;
+}
+
+// ─── export-block functions ───────────────────────────────────────────────────
 
 function spliceGeneratedBlock(fileContent: string, generated: string, path: Path): { content: string; message: string } {
     const marker = "[" + path.name + "]";
@@ -184,7 +211,6 @@ function replaceGeneratedBlock(fileContent: string, formatDef: FormatDef<Format>
     const lines = block.split('\n');
     const blockLineOffset = (fileContent.slice(0, blockStart).match(/\n/g) ?? []).length + 1;
 
-    // Find which lines match a segment template and record their index and kind
     const matchedIndices: number[] = [];
     const fileKinds: SegmentKind[] = [];
     for (let i = 0; i < lines.length; i++) {
@@ -239,28 +265,19 @@ function replaceGeneratedBlock(fileContent: string, formatDef: FormatDef<Format>
     };
 }
 
+// ─── DragAndDrop ──────────────────────────────────────────────────────────────
+
 type DragAndDropProps = {
     onHandle: (handle: FileSystemFileHandle) => void;
+    onDirHandle: (handle: FileSystemDirectoryHandle) => void;
 }
 
-function DragAndDrop({ onHandle }: DragAndDropProps) {
+function DragAndDrop({ onHandle, onDirHandle }: DragAndDropProps) {
     const [isDragging, setIsDragging] = useState(false);
-    const inputRef = useRef<HTMLInputElement>(null);
-    const [unsupportedBroswer, setUnsupportedBroswer] = useState(false);
 
-    const handleDragOver = (e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-    };
-
-    const handleDragEnter = (e: React.DragEvent) => {
-        e.preventDefault();
-        if (e.dataTransfer.items.length > 0) setIsDragging(true);
-    };
-
-    const handleDragLeave = (e: React.DragEvent) => {
-        if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false);
-    };
+    const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); };
+    const handleDragEnter = (e: React.DragEvent) => { e.preventDefault(); if (e.dataTransfer.items.length > 0) setIsDragging(true); };
+    const handleDragLeave = (e: React.DragEvent) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false); };
 
     const handleDrop = async (e: React.DragEvent) => {
         e.preventDefault();
@@ -270,54 +287,65 @@ function DragAndDrop({ onHandle }: DragAndDropProps) {
         const handle = await (item as DataTransferItem & {
             getAsFileSystemHandle?: () => Promise<FileSystemHandle | null>
         }).getAsFileSystemHandle?.();
-        if (handle && handle.kind === "file") onHandle(handle as FileSystemFileHandle);
+        if (!handle) return;
+        if (handle.kind === "directory") onDirHandle(handle as FileSystemDirectoryHandle);
+        else if (handle.kind === "file") onHandle(handle as FileSystemFileHandle);
     };
 
-    const handleClick = async () => {
-        fileOpLock.acquire();
+    const handleFileClick = async (e: React.MouseEvent) => {
+        e.stopPropagation();
         try {
-            const picker = (window as unknown as { showOpenFilePicker: (o: object) => Promise<FileSystemFileHandle[]> }).showOpenFilePicker;
-            const [handle] = await picker({
+            // @ts-expect-error showOpenFilePicker not in all TS DOM libs
+            const [handle] = await window.showOpenFilePicker({
                 types: [{ description: "C++ Source", accept: { "text/plain": [".cpp"] } }],
                 multiple: false,
             });
             if (handle) onHandle(handle);
-            setUnsupportedBroswer(false);
         } catch {
-            setUnsupportedBroswer(true);
-        } finally {
-            fileOpLock.release();
+            // ignore abort
         }
     };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        e.target.value = "";
+    const handleFolderClick = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        try {
+            // @ts-expect-error showDirectoryPicker not in all TS DOM libs
+            const handle = await window.showDirectoryPicker({ mode: "readwrite" });
+            onDirHandle(handle);
+        } catch {
+            // ignore abort
+        }
     };
 
     return (
-        <>
-            <span className="text-[7.5px] mb-1 opacity-50">Segments can be also be exported by Ctrl+C</span>
+        <div
+            className={`h-12 outline-1 outline-dashed flex items-stretch rounded-sm transition-colors duration-100
+                ${isDragging ? "outline-white" : "outline-lightgray"}`}
+            onDragOver={handleDragOver}
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+        >
             <div
-                className={`h-12 outline-1 pt-2.5 pb-1.5 outline-dashed flex items-center justify-between flex-col rounded-sm cursor-pointer transition-colors duration-100
-                    ${isDragging ? "outline-white" : "outline-lightgray"}`}
-                onDragOver={handleDragOver}
-                onDragEnter={handleDragEnter}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={handleClick}
+                onClick={handleFileClick}
+                className="flex-1 flex flex-col items-center justify-center gap-1 cursor-pointer hover:opacity-60 py-1"
             >
-                <input ref={inputRef} type="file" accept=".cpp" className="hidden" onChange={handleInputChange} />
-                <img src={download} className="w-4 h-4" />
-                <span className="text-[8px]">Choose .cpp file or drag it here</span>
+                <img src={fileIcon} className="w-3.5 h-3.5" />
+                <span className="text-[8px]">.cpp file</span>
             </div>
-            {unsupportedBroswer && (
-                <span className="text-[8px] mt-1 opacity-50">
-                    Your browser does not support writing to files. Please use a compatible browser like Chrome or Edge.
-                </span>
-            )}
-        </>
+            <div className="w-px bg-lightgray opacity-20 self-stretch my-2" />
+            <div
+                onClick={handleFolderClick}
+                className="flex-1 flex flex-col items-center justify-center gap-1 cursor-pointer hover:opacity-60 py-1"
+            >
+                <img src={folderIcon} className="w-3.5 h-3.5" />
+                <span className="text-[8px]">folder</span>
+            </div>
+        </div>
     );
 }
+
+// ─── ErrorConsole ─────────────────────────────────────────────────────────────
 
 function ErrorConsole({ lines }: { lines: string[] }) {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -347,14 +375,50 @@ function ErrorConsole({ lines }: { lines: string[] }) {
     );
 }
 
+// ─── ExportButton ─────────────────────────────────────────────────────────────
+
 export default function ExportButton() {
     const [handle, setHandle] = useState<FileSystemFileHandle | null>(null);
+    const [currentExportDir, setCurrentExportDir] = useState<FileSystemDirectoryHandle | null>(null);
+    const [exportDirHistory, setExportDirHistory] = useState<FileSystemDirectoryHandle[]>([]);
+    const [exportDirEntries, setExportDirEntries] = useState<Entry[]>([]);
     const [consoleLines, setConsoleLines] = useState<string[]>([]);
     const [mergeMode, setMergeMode] = useState(true);
     const [replaceMode, setReplaceMode] = useState(false);
     const [path,] = usePath();
 
+    const mode = handle ? "writeInterface" : currentExportDir ? "folderView" : "default";
+
     const log = (text: string) => setConsoleLines(prev => [...prev, text]);
+
+    const handleDirChosen = async (dirHandle: FileSystemDirectoryHandle) => {
+        setCurrentExportDir(dirHandle);
+        setExportDirHistory([]);
+        setExportDirEntries(await readExportDirEntries(dirHandle));
+    };
+
+    const openExportSubDir = async (h: FileSystemDirectoryHandle) => {
+        if (currentExportDir) setExportDirHistory(prev => [...prev, currentExportDir]);
+        setCurrentExportDir(h);
+        setExportDirEntries(await readExportDirEntries(h));
+    };
+
+    const goExportBack = async () => {
+        const prev = exportDirHistory[exportDirHistory.length - 1];
+        if (!prev) {
+            setCurrentExportDir(null);
+            setExportDirHistory([]);
+            setExportDirEntries([]);
+            return;
+        }
+        setExportDirHistory(h => h.slice(0, -1));
+        setCurrentExportDir(prev);
+        setExportDirEntries(await readExportDirEntries(prev));
+    };
+
+    const refreshExportDir = () => {
+        if (currentExportDir) readExportDirEntries(currentExportDir).then(setExportDirEntries);
+    };
 
     const toggleMergeMode = () => {
         const next = !mergeMode;
@@ -388,10 +452,7 @@ export default function ExportButton() {
             const result = replaceMode
                 ? replaceGeneratedBlock(content, formatDef, path)
                 : flexReplaceGeneratedBlock(content, formatDef, path);
-            if (!result.content) {
-                log(result.message);
-                return;
-            }
+            if (!result.content) { log(result.message); return; }
             const writable = await handle.createWritable();
             await writable.write(result.content);
             await writable.close();
@@ -407,15 +468,10 @@ export default function ExportButton() {
             log("Writing to file...");
             const { formatDef, path } = fileFormatStore.getState();
             const generated = convertPathToString(formatDef, path, false);
-
             const file = await handle.getFile();
             const content = await file.text();
             const result = spliceGeneratedBlock(content, generated, path);
-            if (!result.content) {
-                log(result.message);
-                return;
-            }
-
+            if (!result.content) { log(result.message); return; }
             const writable = await handle.createWritable();
             await writable.write(result.content);
             await writable.close();
@@ -425,33 +481,77 @@ export default function ExportButton() {
         }
     };
 
+    const writeRef = useRef<() => void>(() => {});
+    useEffect(() => {
+        writeRef.current = replaceMode || mergeMode ? replaceInFile : writeToFile;
+    });
+
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            if (e.ctrlKey && e.key === 'e') { e.preventDefault(); writeRef.current(); }
+        };
+        document.addEventListener('keydown', handler);
+        return () => document.removeEventListener('keydown', handler);
+    }, []);
+
+    const backButton = { icon: back, visible: true, onClick: goExportBack, tooltip: "Go Back" };
+    const refreshButton = { icon: refresh, visible: true, onClick: refreshExportDir, tooltip: "Refresh Folder" };
+
     return (
-        <ConfigButtonTemplate title="Export">
-            {handle ? (
+        <ConfigButtonTemplate
+            title="Export"
+            iconButtons={mode === "folderView" ? [backButton, refreshButton] : []}
+        >
+            {mode === "default" && (
+                <>
+                    <span className="text-[7.5px] mb-1 opacity-50">Segments can be also be exported by Ctrl+C</span>
+                    <DragAndDrop onHandle={setHandle} onDirHandle={handleDirChosen} />
+                </>
+            )}
+
+            {mode === "folderView" && (
+                exportDirEntries.length === 0
+                    ? <span className="text-[12px] opacity-40 px-1">Empty folder</span>
+                    : exportDirEntries.map(entry => (
+                        <button
+                            key={entry.name}
+                            className="flex flex-row px-2 py-0.5 items-center justify-between cursor-pointer rounded-sm w-full text-left hover:bg-medlightgray"
+                            onClick={() => entry.kind === "directory"
+                                ? openExportSubDir(entry.handle as FileSystemDirectoryHandle)
+                                : setHandle(entry.handle as FileSystemFileHandle)
+                            }
+                        >
+                            <span className="text-[13px] truncate min-w-0">{entry.name}</span>
+                            <img src={entry.kind === "file" ? fileIcon : folderIcon} className="w-3.5 h-3.5 shrink-0 ml-1" />
+                        </button>
+                    ))
+            )}
+
+            {mode === "writeInterface" && handle && (
                 <div className="flex flex-col gap-0.5">
                     <div className="flex flex-row items-center gap-2">
                         <button
-                            onClick={() => { setHandle(null); }}
+                            onClick={() => setHandle(null)}
                             className="text-[10px] opacity-70 cursor-pointer hover:opacity-100 truncate"
                             title={handle.name}
                         >
                             {handle.name}
                         </button>
                     </div>
-                    <button
-                        className="w-full flex items-center justify-center px-2 py-1 brightness-120 bg-medgray hover:brightness-95 cursor-pointer rounded-sm"
-                        onClick={replaceMode || mergeMode ? replaceInFile : writeToFile}
-                    >
-                        <span className="text-[14px]">Write</span>
-                    </button>
+                    <Tooltip label="Export Path  Ctrl+E" placement="right">
+                        <button
+                            className="w-full flex items-center justify-center px-2 py-1 brightness-120 bg-medgray hover:brightness-95 cursor-pointer rounded-sm"
+                            onClick={replaceMode || mergeMode ? replaceInFile : writeToFile}
+                        >
+                            <span className="text-[14px]">Write</span>
+                        </button>
+                    </Tooltip>
                     <div className="pt-2 pb-2">
                         <ErrorConsole lines={consoleLines} />
                     </div>
                     <ConfigCheckboxButton name="Merge" label="Toggles Merge Mode (Read Console)" checked={mergeMode} setChecked={toggleMergeMode} />
                     <ConfigCheckboxButton name="Replace" label="Toggles Replace Mode (Read Console)" checked={replaceMode} setChecked={toggleReplaceMode} />
                 </div>
-            ) : (
-                <DragAndDrop onHandle={setHandle} />
             )}
         </ConfigButtonTemplate>
     );

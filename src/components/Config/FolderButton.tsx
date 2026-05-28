@@ -15,7 +15,6 @@ type Entry = {
 
 async function readDirEntries(handle: FileSystemDirectoryHandle): Promise<Entry[]> {
     const result: Entry[] = [];
-    // @ts-expect-error entries() not in all TS DOM libs
     for await (const [name, h] of handle.entries()) {
         const kind = h.kind as "file" | "directory";
         if (kind === "file") {
