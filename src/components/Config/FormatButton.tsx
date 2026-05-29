@@ -13,8 +13,8 @@ type PathFormats = {
 const FORMATS: PathFormats[] = [
     { name: "mikLib v2.2.0", format: "mikLib" },
     { name: "LemLib v0.5.6", format: "LemLib" },
-    { name: "ReveilLib v2.1.0", format: "ReveilLib" },
-    { name: "JAR-Template", format: "JAR-Template" },
+    // { name: "ReveilLib v2.1.0", format: "ReveilLib" },
+    // { name: "JAR-Template", format: "JAR-Template" },
 ];
 
 export default function FormatButton() {

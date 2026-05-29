@@ -51,7 +51,7 @@ export default function PathConfigHeader({ name, isOpen, setOpen, isTelemetryOpe
     };
 
     return (
-        <div className="w-full flex flex-row items-center justify-between truncate min-w-4">
+        <div className="w-full flex flex-row items-center justify-between min-w-0">
             {editing ? (
                 <input
                     ref={inputRef}
@@ -59,15 +59,15 @@ export default function PathConfigHeader({ name, isOpen, setOpen, isTelemetryOpe
                     onChange={e => setDraft(e.target.value)}
                     onBlur={commit}
                     onKeyDown={handleKeyDown}
-                    className="text-[20px] bg-blackgray outline-none rounded-lg px-2 w-40"
+                    className="text-[20px] bg-blackgray outline-none rounded-lg px-2 w-40 min-w-0"
                     autoFocus
                 />
             ) : (
-                <span className="block text-[20px] cursor-text" onClick={startEditing}>
+                <span className="block text-[20px] cursor-text truncate min-w-0" onClick={startEditing}>
                     {name}
                 </span>
             )}
-            <div className="flex flex-row gap-[10px] items-center">
+            <div className="flex flex-row gap-[10px] items-center shrink-0">
 
                 <Tooltip label="Hide Path" placement="bottom" >
                     <button className="cursor-pointer"
