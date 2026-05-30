@@ -6,6 +6,7 @@ import { normalizeDeg } from "./Util";
 export const SIM_CONSTANTS = {
     seconds: 99,
     dt: 1/60, // Sim is run at 60 hertz
+    dt_ms: 1/60 * 1000,
 };
 
 export interface SegmentTelemetry {

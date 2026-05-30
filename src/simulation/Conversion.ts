@@ -49,6 +49,11 @@ export function convertPathToString<F extends Format, Segs extends Partial<Recor
             line = line.replace(new RegExp(`\\$\\{${key}\\}`, 'g'), String(mergedK[key]));
         }
 
+        line = line.replace(/\$\{(\d+):(\w+)\}/g, (_, idxStr, key) => {
+            const group = k[Number(idxStr)] as unknown as Record<string, unknown> | undefined;
+            return group && key in group ? String(group[key]) : '';
+        });
+
         if (kBuilderStr === "") {
             line = line.replace(/,\s*\$\{kBuilder\}/g, "").replace(/\$\{kBuilder\}/g, "");
         } else {

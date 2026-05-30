@@ -463,6 +463,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 				onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
 				onPointerDown={(e) => {
 					if (e.button === 1) {
+						e.preventDefault();
 						setMiddleMouseDown(true);
 					}
 					handleFieldPointerDown(e);

@@ -8,6 +8,7 @@ import type { Pose } from "../core/Types/Pose";
 import { holonomicDef } from "./HolonomicSim/HolonomicConstants";
 import { fileFormatStore } from "../hooks/useFileFormat";
 import type { Segment } from "../core/Types/Segment";
+import { JarTemplateDef, type JarConstants } from "./JarSim/JarConstants";
 
 export type Format =
     "mikLib"
@@ -32,11 +33,21 @@ export type SegmentKind =
 export type FormatConstants = {
     mikLib: mikConstants;
     ReveilLib: ReveilLibConstants;
-    "JAR-Template": mikConstants;
+    "JAR-Template": JarConstants;
     LemLib: LemConstants;
     "Holonomic": mikConstants;
     "RW-Template": mikConstants;
 };
+
+export const FORMAT_REGISTRY = {
+    LemLib: LemLibDef,
+    mikLib: mikLibDef,
+    ReveilLib: reveilLibDef,
+    "JAR-Template": JarTemplateDef,
+    "RW-Template": LemLibDef,
+    Holonomic: holonomicDef,
+} as unknown as { [F in Format]: FormatDef<F> };
+
 
 export type FormatDef<F extends Format, Segs extends Partial<Record<SegmentKind, SegmentDef<F>>> = Partial<Record<SegmentKind, SegmentDef<F>>>> = {
     constants: SegmentConstants<F>;
@@ -115,15 +126,6 @@ export type SegmentFactory<F extends Format = Format> = (
 export type ConstantValue = number | boolean | string;
 export type ConstantsRecord = Record<string, ConstantValue>;
 
-export const FORMAT_REGISTRY = {
-    LemLib: LemLibDef,
-    mikLib: mikLibDef,
-    ReveilLib: reveilLibDef,
-    "JAR-Template": LemLibDef,
-    "RW-Template": LemLibDef,
-    Holonomic: holonomicDef,
-} as unknown as { [F in Format]: FormatDef<F> };
-
 export function mergeFormatDef(registry: FormatDef<Format>, saved: unknown): FormatDef<Format> {
     if (!saved || typeof saved !== 'object') return registry;
     const s = saved as Record<string, unknown>;
@@ -194,6 +196,7 @@ export function changeFormat(newFormat: Format) {
         formatDef: newFormatDef,
         path: {
             ...prev.path,
+            name: newFormatDef.formatPathName,
             segments: prev.path.segments.map(s => {
                 const newSegDef = newFormatDef.segments[s.kind];
                 const castKind = newSegDef?.castTo ?? s.kind;
