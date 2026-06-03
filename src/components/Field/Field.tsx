@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { Coordinate } from "../../core/Types/Coordinate";
 import homeButton from "../../assets/home.svg";
 import { type Segment } from "../../core/Types/Segment";
@@ -18,7 +18,7 @@ import RobotLayer from "./RobotLayer";
 import PathLayer from "./PathLayer";
 import ControlsLayer from "./ControlsLayer";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
-import { resolveHeading, getBackwardsSnapPose, type Path } from "../../core/Types/Path";
+import { resolveHeading, getBackwardsSnapPose, distanceToPosition, getSegmentDistance, type Path } from "../../core/Types/Path";
 import { useSettings } from "../../hooks/useSettings";
 import { useFieldImg } from "../../hooks/useFieldImg";
 
@@ -33,6 +33,52 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 
 	const [path, setPath] = usePath();
 	pathRef.current = path;
+
+	// Key built from non-distance segment poses only. When it changes, reposition all distance segments.
+	const nonDistancePoseKey = useMemo(() =>
+		path.segments
+			.filter(s => s.kind !== "distanceDrive" && s.kind !== "strafeDrive")
+			.map(s => `${s.id}:${s.pose.x},${s.pose.y},${s.pose.angle}`)
+			.join('|'),
+		[path.segments]
+	);
+
+	useEffect(() => {
+		setPath(prev => {
+			const segments = [...prev.segments];
+			let changed = false;
+
+			for (let segIdx = 0; segIdx < segments.length; segIdx++) {
+				const c = segments[segIdx];
+				if (c.kind !== "distanceDrive" && c.kind !== "strafeDrive") continue;
+
+				const prevSegKind = segments[segIdx - 1]?.kind;
+				const afterTurn = prevSegKind === "pointSwing" || prevSegKind === "pointTurn";
+				const currentPath = { ...prev, segments };
+
+				if (afterTurn) {
+					const anchorPose = getBackwardsSnapPose(currentPath, segIdx - 1);
+					if (!anchorPose || anchorPose.x === null || anchorPose.y === null) continue;
+					const newDist = Math.hypot((c.pose.x ?? 0) - anchorPose.x, (c.pose.y ?? 0) - anchorPose.y);
+					if (Math.abs(newDist - c.distance) > 0.001) {
+						segments[segIdx] = { ...c, distance: newDist };
+						changed = true;
+					}
+					continue;
+				}
+
+				const newPos = distanceToPosition(currentPath, segIdx, c.distance, c.kind === "strafeDrive" ? 90 : 0);
+				if (!newPos) continue;
+				if (Math.abs(newPos.x - (c.pose.x ?? 0)) > 0.001 || Math.abs(newPos.y - (c.pose.y ?? 0)) > 0.001) {
+					segments[segIdx] = { ...c, pose: { ...c.pose, x: newPos.x, y: newPos.y } };
+					changed = true;
+				}
+			}
+
+			return changed ? { ...prev, segments } : prev;
+		});
+	}, [nonDistancePoseKey, setPath]);
+
 	const [pose] = usePose();
 	const [robotPose] = useRobotPose();
 	const robot = fileFormatStore.useSelector(s => s.robot);
@@ -243,51 +289,15 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		if (dx !== 0 || dy !== 0) dragDidMove.current = true;
 
 		setPath(prev => {
-			const next: Segment[] = prev.segments.map((c, segIdx) => {
+			// First pass: move all non-distance segments by delta
+			const firstPass: Segment[] = prev.segments.map((c) => {
+				if (c.kind === "distanceDrive" || c.kind === "strafeDrive") return c;
 				if (!c.selected || c.locked) return c;
 
 				const startPos = dragStartPositions.current[c.id];
 				if (!startPos) return c;
 				const sx = startPos.x;
 				const sy = startPos.y;
-
-				const prevSeg = path.segments[segIdx - 1]?.kind;
-				if ((c.kind === "distanceDrive" || c.kind === "strafeDrive") && prevSeg !== "pointSwing" && prevSeg !== "pointTurn") {
-					const anchorPose = getBackwardsSnapPose(prev, segIdx - 1);
-					if (!anchorPose || anchorPose.x === null || anchorPose.y === null) {
-						return { ...c, pose: { ...c.pose, x: sx === null ? null : sx + dx, y: sy === null ? null : sy + dy } };
-					}
-
-					const resolved = resolveHeading(prev, segIdx, anchorPose, c.kind === "strafeDrive" ? 90 : 0);
-
-					let hx: number, hy: number;
-					if (resolved) {
-						hx = resolved.heading.x / resolved.headingMag;
-						hy = resolved.heading.y / resolved.headingMag;
-					} else {
-						const ofsX = (sx ?? 0) - anchorPose.x;
-						const ofsY = (sy ?? 0) - anchorPose.y;
-						const mag = Math.sqrt(ofsX * ofsX + ofsY * ofsY);
-						if (mag === 0) return c;
-						hx = ofsX / mag;
-						hy = ofsY / mag;
-					}
-
-					const fromAnchorX = effectivePosInch.x - anchorPose.x;
-					const fromAnchorY = effectivePosInch.y - anchorPose.y;
-					let t = fromAnchorX * hx + fromAnchorY * hy;
-
-					let newX = anchorPose.x + t * hx;
-					let newY = anchorPose.y + t * hy;
-
-					if (ctrlHeld) {
-						newX = Math.round(newX * snapValue) / snapValue;
-						newY = Math.round(newY * snapValue) / snapValue;
-						t = (newX - anchorPose.x) * hx + (newY - anchorPose.y) * hy;
-					}
-
-					return { ...c, pose: { ...c.pose, x: newX, y: newY }, distance: t };
-				}
 
 				let newX = sx === null ? null : sx + dx;
 				let newY = sy === null ? null : sy + dy;
@@ -299,6 +309,95 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 
 				return { ...c, pose: { ...c.pose, x: newX, y: newY } };
 			});
+
+			// Second pass: update distance/strafe segments
+			const next: Segment[] = [...firstPass];
+			for (let segIdx = 0; segIdx < firstPass.length; segIdx++) {
+				const c = firstPass[segIdx];
+				if (c.kind !== "distanceDrive" && c.kind !== "strafeDrive") continue;
+
+				const anchorPose = getBackwardsSnapPose({ ...prev, segments: next }, segIdx - 1);
+				const prevSegKind = next[segIdx - 1]?.kind;
+				const afterTurn = prevSegKind === "pointSwing" || prevSegKind === "pointTurn";
+
+				if (afterTurn) {
+					// After a point turn the turn always faces the next point, so the segment moves freely
+					if (!anchorPose || anchorPose.x === null || anchorPose.y === null) continue;
+
+					if (c.selected && !c.locked) {
+						// Use delta from drag-start position so multi-select moves all segments uniformly
+						const startPos = dragStartPositions.current[c.id];
+						let newX = startPos?.x == null ? (c.pose.x ?? 0) : startPos.x + dx;
+						let newY = startPos?.y == null ? (c.pose.y ?? 0) : startPos.y + dy;
+						if (ctrlHeld) {
+							newX = Math.round(newX * snapValue) / snapValue;
+							newY = Math.round(newY * snapValue) / snapValue;
+						}
+						const t = Math.hypot(newX - anchorPose.x, newY - anchorPose.y);
+						next[segIdx] = { ...c, pose: { ...c.pose, x: newX, y: newY }, distance: t };
+					} else {
+						// Not selected: keep absolute position, update distance to new Euclidean from moved anchor
+						const newDist = Math.hypot((c.pose.x ?? 0) - anchorPose.x, (c.pose.y ?? 0) - anchorPose.y);
+						next[segIdx] = { ...c, distance: newDist };
+					}
+					continue;
+				}
+
+				if (c.selected && !c.locked) {
+					// Selected: project mouse onto heading and update distance
+					const startPos = dragStartPositions.current[c.id];
+					if (!anchorPose || anchorPose.x === null || anchorPose.y === null) {
+						if (startPos) {
+							let newX = startPos.x === null ? null : startPos.x + dx;
+							let newY = startPos.y === null ? null : startPos.y + dy;
+							if (ctrlHeld) {
+								if (newX !== null) newX = Math.round(newX * snapValue) / snapValue;
+								if (newY !== null) newY = Math.round(newY * snapValue) / snapValue;
+							}
+							next[segIdx] = { ...c, pose: { ...c.pose, x: newX, y: newY } };
+						}
+						continue;
+					}
+
+					const resolved = resolveHeading({ ...prev, segments: next }, segIdx, anchorPose, c.kind === "strafeDrive" ? 90 : 0);
+
+					let hx: number, hy: number;
+					if (resolved) {
+						hx = resolved.heading.x / resolved.headingMag;
+						hy = resolved.heading.y / resolved.headingMag;
+					} else {
+						const ofsX = (startPos?.x ?? 0) - anchorPose.x;
+						const ofsY = (startPos?.y ?? 0) - anchorPose.y;
+						const mag = Math.sqrt(ofsX * ofsX + ofsY * ofsY);
+						if (mag === 0) continue;
+						hx = ofsX / mag;
+						hy = ofsY / mag;
+					}
+
+					const segEffX = startPos?.x == null ? effectivePosInch.x : startPos.x + dx;
+					const segEffY = startPos?.y == null ? effectivePosInch.y : startPos.y + dy;
+					const fromAnchorX = segEffX - anchorPose.x;
+					const fromAnchorY = segEffY - anchorPose.y;
+					let t = fromAnchorX * hx + fromAnchorY * hy;
+					let newX = anchorPose.x + t * hx;
+					let newY = anchorPose.y + t * hy;
+
+					if (ctrlHeld) {
+						newX = Math.round(newX * snapValue) / snapValue;
+						newY = Math.round(newY * snapValue) / snapValue;
+						t = (newX - anchorPose.x) * hx + (newY - anchorPose.y) * hy;
+					}
+
+					next[segIdx] = { ...c, pose: { ...c.pose, x: newX, y: newY }, distance: t };
+					continue;
+				}
+
+				// Not selected: recompute position from geometric distance (using original poses) and updated anchor
+				const geomDist = getSegmentDistance(prev, segIdx, c.kind === "strafeDrive" ? 90 : 0) ?? c.distance;
+				const newPos = distanceToPosition({ ...prev, segments: next }, segIdx, geomDist, c.kind === "strafeDrive" ? 90 : 0);
+				if (!newPos) continue;
+				next[segIdx] = { ...c, pose: { ...c.pose, x: newPos.x, y: newPos.y }, distance: geomDist };
+			}
 
 			return { ...prev, segments: next };
 		});

@@ -98,9 +98,9 @@ const lateralSettingsFields: Fields = [
     { key: "kd", label: "kD", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
     { key: "antiWindup", label: "Anti Windup", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 2 } },
     { key: "smallError", label: "Small Error", units: "in", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 2 } },
-    { key: "smallErrorTimeout", label: "Sml Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+    { key: "smallErrorTimeout", label: "Small Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
     { key: "largeError", label: "Large Error", units: "in", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 2 } },
-    { key: "largeErrorTimeout", label: "Lge Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+    { key: "largeErrorTimeout", label: "Large Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
     { key: "slew", label: "Slew", units: "", input: { bounds: [0, 127], stepSize: 1, roundTo: 1 } },
 ];
 
@@ -110,9 +110,9 @@ const angularSettingsFields: Fields = [
     { key: "kd", label: "kD", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
     { key: "antiWindup", label: "Anti Windup", units: "deg", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 2 } },
     { key: "smallError", label: "Small Error", units: "in", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 2 } },
-    { key: "smallErrorTimeout", label: "Sml Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+    { key: "smallErrorTimeout", label: "Small Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
     { key: "largeError", label: "Large Error", units: "in", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 2 } },
-    { key: "largeErrorTimeout", label: "Lge Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+    { key: "largeErrorTimeout", label: "Large Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
     { key: "slew", label: "Slew", units: "", input: { bounds: [0, 127], stepSize: 1, roundTo: 1 } },
 ];
 

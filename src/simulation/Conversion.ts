@@ -6,6 +6,7 @@ import type { Segment } from "../core/Types/Segment";
 import type { Format } from "./FormatDefinition";
 import type { FormatDef, SegmentConstants, SegmentDef, SegmentKind, SimFn } from "./FormatDefinition";
 import { angle_error } from "./mikLibSim/Util";
+import { createStore } from "../core/Store";
 
 export function convertPathToString<F extends Format, Segs extends Partial<Record<SegmentKind, SegmentDef<F>>>>(formatDef: FormatDef<F, Segs>, path: Path, selected = false): string {
     let pathString = '';
@@ -171,10 +172,7 @@ function parseSegmentLine<F extends Format>(
     };
 }
 
-const DEBUG = false;
-const LOG_SEGMENT_START_AND_END = DEBUG;
-const LOG_ROBOT_STATE = DEBUG;
-const LOG_SIMULATION_NUMBER = DEBUG;
+export const debugStore = createStore<boolean>(false);
 
 SIM_CONSTANTS.seconds = 99;
 let currentPathTime = -2 / 60;
@@ -182,8 +180,8 @@ let simComputed = 0;
 
 export function convertPathToSim<F extends Format, Segs extends Partial<Record<SegmentKind, SegmentDef<F>>>>(formatDef: FormatDef<F, Segs>, path: Path): SimFn[] {
     const auton: SimFn[] = [];
-    currentPathTime = -2 / 60;
     DEBUG_printSimulationStart();
+    currentPathTime = -2 / 60;
 
     for (let idx = 0; idx < path.segments.length; idx++) {
         const seg = path.segments[idx];
@@ -308,23 +306,23 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
 }
 
 function DEBUG_printSegmentStart<F extends Format>(idx: number, formatDef: FormatDef<F>, kind: SegmentKind) {
-    if (!LOG_SEGMENT_START_AND_END) return;
+    if (!debugStore.getState()) return;
     console.log(`%cStarting ${formatDef.segments[kind]?.name} ${idx}`, "color: lime; font-weight: bold");
 }
 
 function DEBUG_printSegmentEnd<F extends Format>(idx: number, formatDef: FormatDef<F>, kind: SegmentKind) {
-    if (!LOG_SEGMENT_START_AND_END) return;
+    if (!debugStore.getState()) return;
     console.log(`%cEnding ${formatDef.segments[kind]?.name} ${idx}`, "color: #ff6b6b; font-weight: bold");
 }
 
 function DEBUG_printRobotState(robot: Robot, dt: number) {
-    if (!LOG_ROBOT_STATE) return;
+    if (!debugStore.getState()) return;
     currentPathTime += dt;
     console.log(`%cx: ${robot.getX().toFixed(2)}, y: ${robot.getY().toFixed(2)}, θ: ${robot.getAngle().toFixed(2)} dt: ${currentPathTime.toFixed(2)}s`, "color: cyan");
 }
 
 function DEBUG_printSimulationStart() {
-    if (!LOG_SIMULATION_NUMBER) return;
+    if (!debugStore.getState()) return;
     simComputed += 1;
     console.log(`%cSTARTING SIMULATION COMPUTE #${simComputed}`, "color: violet; font-weight: bold");
 }

@@ -15,6 +15,7 @@ const FORMATS: PathFormats[] = [
     { name: "LemLib v0.5.6", format: "LemLib" },
     // { name: "ReveilLib v2.1.0", format: "ReveilLib" },
     { name: "JAR-Template", format: "JAR-Template" },
+    { name: "EZ-Template v3.2.2", format: "EZ-Template" },
 ];
 
 export default function FormatButton() {

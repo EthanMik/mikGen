@@ -4,6 +4,7 @@ export class PID {
     private time_spent_settled = 0;
     private time_spent_running = 0;
     private exiting = false;
+    public derivative = 0;
 
     constructor(
         public kp: number,
@@ -28,6 +29,8 @@ export class PID {
 
         const output = this.kp * error + this.ki * this.accumulated_error + this.kd * (error - this.previous_error);
 
+        this.derivative = error - this.previous_error;
+        
         this.previous_error = error;
 
         if(Math.abs(error) < this.settle_error) {

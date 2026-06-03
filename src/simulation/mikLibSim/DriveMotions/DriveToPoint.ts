@@ -46,6 +46,8 @@ export function drive_to_point(robot: Robot, dt: number, x: number, y: number, p
     
     }
 
+    console.log(drivePID.derivative)
+
     const line_settled = is_line_settled(x, y, desired_heading, robot.getX(), robot.getY(), drive_p.exit_error);
     if (!(line_settled === prev_line_settled) && drive_p.min_voltage > 0) {
         reset_drive_to_point();

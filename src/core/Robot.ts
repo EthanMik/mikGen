@@ -59,6 +59,7 @@ export class Robot {
 
     private lateralFriction: number = 0;
     private timeout: number = 0;
+    private rotation: number = 0;
 
     constructor(
         private x: number,
@@ -80,6 +81,7 @@ export class Robot {
         public lateralTau: number,
         public angularTau: number,
     ) {
+        this.rotation = angle;
         if (isOmnis) {
             this.lateralFriction = 10;
         } else {
@@ -101,6 +103,7 @@ export class Robot {
         return this.y - this.cogOffsetX * Math.sin(theta) + this.cogOffsetY * Math.cos(theta);
     }
     getAngle() { return this.angle; }
+    getRotation() { return this.rotation; }
 
     getPose(): Pose { return { x: this.x, y: this.y, angle: this.angle } } 
 
@@ -206,6 +209,7 @@ export class Robot {
         const prev_orientation_rad = toRad(this.angle);
         const orientation_rad = prev_orientation_rad + orientation_delta_rad;
         this.setAngle(toDeg(orientation_rad));
+        this.rotation += toDeg(orientation_delta_rad);
 
         let local_X_position: number;
         let local_Y_position: number;
@@ -245,6 +249,7 @@ export class Robot {
     // x, y are the CoG offset point position; converts to kinematic center internally
     public setPose(x: number, y: number, angle: number) {
         this.angle = angle;
+        this.rotation = angle;
         const θ = toRad(angle);
         this.x = x - (this.cogOffsetX * Math.cos(θ) + this.cogOffsetY * Math.sin(θ));
         this.y = y - (-this.cogOffsetX * Math.sin(θ) + this.cogOffsetY * Math.cos(θ));

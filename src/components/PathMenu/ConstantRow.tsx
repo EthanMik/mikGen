@@ -46,16 +46,16 @@ export default function ConstantRow({
             ${selected ? "bg-medlightgray" : ""}`}
         >
             <button
-                className={`w-[100px] text-left ${labelColor} ${onToggleSelect ? "cursor-pointer" : "cursor-default"}`}
+                className={`w-[200px] text-left text-[15px] ${labelColor} ${onToggleSelect ? "cursor-pointer" : "cursor-default"}`}
                 onClick={onToggleSelect}
             >
                 {label}
             </button>
             <NumberInput
-                width={55}
-                height={30}
+                width={48}
+                height={28}
                 fontSize={16}
-                value={typeof value === 'number' ? value : null}
+                value={typeof value === 'number' ? value : typeof value === 'boolean' ? (value ? 1 : 0) : null}
                 setValue={onChange}
                 units={units}
                 bounds={input?.bounds ?? [0, 100]}

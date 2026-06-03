@@ -7,6 +7,7 @@ import Section from "../Util/Section";
 import MenuButtonTemplate from "../Util/MenuButtonTemplate";
 import { MenuCheckboxButton } from "../Util/CheckboxButton";
 import { NumberInputButton } from "../Util/NumberInputButton";
+import { DEBUG, debugStore } from "../../simulation/Conversion";
 
 type ColorButtonProps = {
     callback: () => void;
@@ -41,6 +42,7 @@ function ColorButton({ callback, name, primary, secondary, textSize }: ColorButt
 export default function SettingsButton() {
     const [settings, setSettings] = useSettings();
     const [popup, setPopup] = useState(false);
+    const debug = debugStore.useStore();
 
     useEffect(() => {
         localStorage.setItem("settings", JSON.stringify(settings));
@@ -69,6 +71,7 @@ export default function SettingsButton() {
                     <MenuCheckboxButton name="Robot Position" label="Displays robots's actual position" checked={settings.robotPosition} setChecked={set("robotPosition")} />
                     <MenuCheckboxButton name="Precise Path" label="Displays robots exact path taken" checked={settings.precisePath} setChecked={set("precisePath")} />
                     <MenuCheckboxButton name="Numbered Path" label="Displays number labels for notebook screenshots" checked={settings.numberedPath} setChecked={set("numberedPath")} />
+                    <MenuCheckboxButton name="Position Logs" label="Prints robot position to console" checked={debug} setChecked={(state: boolean) => { debugStore.setState(state); }} />
 
                     <Section />
 

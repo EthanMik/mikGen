@@ -65,7 +65,7 @@ function lcsIndices(a: string[], b: string[]): [number, number][] {
     const pairs: [number, number][] = [];
     let i = m, j = n;
     while (i > 0 && j > 0) {
-        if (a[i - 1] === b[j - 1]) { pairs.unshift([i - 1, j - 1]); i--; j--; }
+        if (a[i - 1] === b[j - 1] && dp[i][j] > dp[i][j - 1]) { pairs.unshift([i - 1, j - 1]); i--; j--; }
         else if (dp[i - 1][j] > dp[i][j - 1]) i--;
         else j--;
     }
@@ -127,17 +127,20 @@ function flexReplaceGeneratedBlock(fileContent: string, formatDef: FormatDef<For
     const fileToWeb = new Map(alignment);
     const webToFile = new Map(alignment.map(([fi, wi]): [number, number] => [wi, fi]));
 
-    const insertBefore = new Map<number, number[]>();
-    const insertAtEnd: number[] = [];
+    // insertAfter[fi] = new web segs to place after fi's segment block (including its trailing non-seg lines)
+    const insertAfter = new Map<number, number[]>();
+    const insertAtStart: number[] = [];
     for (let wi = 0; wi < webSegs.length; wi++) {
         if (webToFile.has(wi)) continue;
-        const nextPair = alignment.find(([, lwi]) => lwi > wi);
-        if (nextPair) {
-            const fi = nextPair[0];
-            if (!insertBefore.has(fi)) insertBefore.set(fi, []);
-            insertBefore.get(fi)!.push(wi);
+        let prevFi = -1;
+        for (const [fi, lwi] of alignment) {
+            if (lwi < wi) prevFi = fi;
+        }
+        if (prevFi >= 0) {
+            if (!insertAfter.has(prevFi)) insertAfter.set(prevFi, []);
+            insertAfter.get(prevFi)!.push(wi);
         } else {
-            insertAtEnd.push(wi);
+            insertAtStart.push(wi);
         }
     }
 
@@ -146,6 +149,8 @@ function flexReplaceGeneratedBlock(fileContent: string, formatDef: FormatDef<For
 
     const newLines: string[] = [];
     let replacedCount = 0, insertedCount = 0, deletedCount = 0;
+    let pendingWis: number[] = [...insertAtStart];
+    let insertedAtEnd = 0;
 
     for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
         const fileSeg = lineToFileSeg.get(lineIdx);
@@ -153,16 +158,22 @@ function flexReplaceGeneratedBlock(fileContent: string, formatDef: FormatDef<For
 
         const indent = lines[lineIdx].match(/^(\s*)/)?.[1] ?? '';
 
-        if (!fileToWeb.has(fileSeg)) { deletedCount++; continue; }
+        if (!fileToWeb.has(fileSeg)) {
+            // Unmatched file segment: keep or delete, but do NOT flush pending
+            if (anySelected) { newLines.push(lines[lineIdx]); } else { deletedCount++; }
+            continue;
+        }
 
-        const wi = fileToWeb.get(fileSeg)!;
-        for (const insertWi of insertBefore.get(fileSeg) ?? []) {
+        // Only flush pending when hitting a matched segment (after its preceding trailing non-seg content)
+        for (const insertWi of pendingWis) {
             const seg = webSegs[insertWi];
             if (!seg.visible || (anySelected && !seg.selected)) continue;
             newLines.push(indent + newSegLines[insertWi]);
             insertedCount++;
         }
+        pendingWis = [];
 
+        const wi = fileToWeb.get(fileSeg)!;
         const seg = webSegs[wi];
         if (seg.visible && (!anySelected || seg.selected)) {
             const trailingMarker = lines[lineIdx].match(/(\/\/\s*\[.*?\])$/)?.[1];
@@ -172,10 +183,12 @@ function flexReplaceGeneratedBlock(fileContent: string, formatDef: FormatDef<For
         } else {
             newLines.push(lines[lineIdx]);
         }
+
+        pendingWis = insertAfter.get(fileSeg) ?? [];
     }
 
-    let insertedAtEnd = 0;
-    for (const wi of insertAtEnd) {
+    // Flush remaining pending after all trailing non-seg content in the block
+    for (const wi of pendingWis) {
         const seg = webSegs[wi];
         if (!seg.visible || (anySelected && !seg.selected)) continue;
         newLines.push(endMarkerIndent + newSegLines[wi]);

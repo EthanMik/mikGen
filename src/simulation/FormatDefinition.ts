@@ -9,6 +9,7 @@ import { holonomicDef } from "./HolonomicSim/HolonomicConstants";
 import { fileFormatStore } from "../hooks/useFileFormat";
 import type { Segment } from "../core/Types/Segment";
 import { JarTemplateDef, type JarConstants } from "./JarSim/JarConstants";
+import { EZTemplateDef, type EZconstants } from "./EZSim/EZConstants";
 
 export type Format =
     "mikLib"
@@ -17,6 +18,7 @@ export type Format =
     | "LemLib"
     | "RW-Template"
     | "Holonomic"
+    | "EZ-Template"
 
 export type SegmentKind =
     | "pointDrive"
@@ -37,6 +39,7 @@ export type FormatConstants = {
     LemLib: LemConstants;
     "Holonomic": mikConstants;
     "RW-Template": mikConstants;
+    "EZ-Template": EZconstants;
 };
 
 export const FORMAT_REGISTRY = {
@@ -46,6 +49,8 @@ export const FORMAT_REGISTRY = {
     "JAR-Template": JarTemplateDef,
     "RW-Template": LemLibDef,
     Holonomic: holonomicDef,
+    "EZ-Template": EZTemplateDef,
+
 } as unknown as { [F in Format]: FormatDef<F> };
 
 
