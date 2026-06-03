@@ -10,9 +10,10 @@ import rightswing from "../../assets/rightswing.svg";
 import stop from "../../assets/stop_speed.svg"
 import slow from "../../assets/slow_speed.svg"
 import fast from "../../assets/fast_speed.svg"
-import { pid_drive_set } from "./set_drive_pid";
-import { pid_turn_set } from "./set_turn_pid";
-import { pid_odom_turn_set } from "./set_odom_turn_pid";
+import { pid_drive_set } from "./DriveMotions/set_drive_pid";
+import { pid_turn_set } from "./DriveMotions/set_turn_pid";
+import { pid_odom_turn_set } from "./DriveMotions/set_odom_turn_pid";
+import { pid_swing_set } from "./DriveMotions/set_swing_pid";
 
 export interface EZconstants {
     speed: number,
@@ -231,26 +232,34 @@ const odomTurnConstants: EZconstants = {
 
 type Fields = NumberInputGroup<"EZ-Template">["fields"];
 
-const exitConditions: Fields = [
-    { key: "chain_constant", units: "in", label: "Chain Constant", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
-    { key: "small_error", units: "in", label: "Small Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
-    { key: "small_exit_time", units: "ms", label: "Small Exit Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
-    { key: "big_error", units: "in", label: "Big Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
-    { key: "big_exit_time", units: "ms", label: "Big Exit Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
-    { key: "velocity_exit_time", units: "ms", label: "Velocity Exit Time", input: { bounds: [0, 9999], stepSize: 100, roundTo: 0 } },
-];
+type Type = "TURN" | "DRIVE";
 
-const pidSettings: Fields = [
-    { key: "p", label: "P", units: "", input: { bounds: [0, 999], stepSize: 0.1, roundTo: 5 } },
-    { key: "i", label: "I", units: "", input: { bounds: [0, 999], stepSize: 0.01, roundTo: 5 } },
-    { key: "d", label: "D", units: "", input: { bounds: [0, 999], stepSize: 0.1, roundTo: 5 } },
-    { key: "start_i", units: "in", label: "Start_i", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
-];
+const exitConditions = (type: Type): Fields => {
+    const distUnit = type === "TURN" ? "deg" : "in";
+    return [
+        { key: "chain_constant", units: distUnit, label: "Chain Constant", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
+        { key: "small_error", units: distUnit, label: "Small Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
+        { key: "small_exit_time", units: "ms", label: "Small Exit Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+        { key: "big_error", units: distUnit, label: "Big Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
+        { key: "big_exit_time", units: "ms", label: "Big Exit Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+        { key: "velocity_exit_time", units: "ms", label: "Velocity Exit Time", input: { bounds: [0, 9999], stepSize: 100, roundTo: 0 } },
+    ];
+};
 
-const pidSlewSettings: Fields = [
-    ...pidSettings,
+const pidSettings = (type: Type): Fields => {
+    const distUnit = type === "TURN" ? "deg" : "in";
+    return [
+        { key: "p", label: "P", units: "", input: { bounds: [0, 999], stepSize: 0.1, roundTo: 5 } },
+        { key: "i", label: "I", units: "", input: { bounds: [0, 999], stepSize: 0.01, roundTo: 5 } },
+        { key: "d", label: "D", units: "", input: { bounds: [0, 999], stepSize: 0.1, roundTo: 5 } },
+        { key: "start_i", units: distUnit, label: "Start i", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
+    ];
+};
+
+const pidSlewSettings = (type: Type): Fields => [
+    ...pidSettings(type),
     { key: "speed", units: "", label: "Max Speed", input: { bounds: [0, 127], stepSize: 10, roundTo: 1 } },
-    { key: "slew_distance", units: "in", label: "Slew Distance", input: { bounds: [0, 100], stepSize: .1, roundTo: 2 } },
+    { key: "slew_distance", units: type === "TURN" ? "deg" : "in", label: "Slew Distance", input: { bounds: [0, 100], stepSize: .1, roundTo: 2 } },
     { key: "slew_min_speed", units: "", label: "Slew Min Speed", input: { bounds: [0, 127], stepSize: 1, roundTo: 1 } },
     { key: "slew", units: "", label: "Slew Enabled 0-1", input: { bounds: [0, 1], stepSize: 1, roundTo: 0 } },
 ];
@@ -358,9 +367,9 @@ export const EZTemplateDef = {
                 { constantsIdx: 0, ...waitButton }
             ],
             numberInputs: [
-                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...exitConditions] },
-                { constantsIdx: 0, headerName: "Drive Constants", fields: [...pidSlewSettings] },
-                { constantsIdx: 1, headerName: "Heading Constants", fields: [...pidSettings] },
+                { constantsIdx: 0, headerName: "Exit Conditions", fields: exitConditions("DRIVE") },
+                { constantsIdx: 0, headerName: "Drive Constants", fields: pidSlewSettings("DRIVE") },
+                { constantsIdx: 1, headerName: "Heading Constants", fields: pidSettings("DRIVE") },
             ],
         },
 
@@ -392,8 +401,8 @@ export const EZTemplateDef = {
                 { constantsIdx: 0, ...turnDirectionButton }
             ],
             numberInputs: [
-                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...exitConditions] },
-                { constantsIdx: 0, headerName: "Turn Constants", fields: [...pidSlewSettings] },
+                { constantsIdx: 0, headerName: "Exit Conditions", fields: exitConditions("TURN") },
+                { constantsIdx: 0, headerName: "Turn Constants", fields: pidSlewSettings("TURN") },
             ],
         },
 
@@ -408,44 +417,30 @@ export const EZTemplateDef = {
                 { constantsIdx: 0, ...turnDirectionButton }
             ],
             numberInputs: [
-                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...exitConditions] },
-                { constantsIdx: 0, headerName: "Turn Constants", fields: [...pidSlewSettings] },
+                { constantsIdx: 0, headerName: "Exit Conditions", fields: exitConditions("TURN") },
+                { constantsIdx: 0, headerName: "Turn Constants", fields: pidSlewSettings("TURN") },
             ],
         },
 
         angleSwing: {
-            castTo: "distanceDrive"
-
-            // name: "Swing to Angle",
-            // defaults: [kMikSwing],
-            // toStringTemplate: "chassis.${swing_direction}_swing_to_angle(${angle}, ${kBuilder});",
-            // simFn: (robot, dt, _x, _y, angle, constants) => swing_to_angle(robot, dt, angle ?? 0, constants),
-            // slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
-            // cycleButtons: [
-            //     { constantsIdx: 0, ...swingDirectionButton },
-            //     { constantsIdx: 0, ...turnDirectionButton },
-            // ],
-            // numberInputs: [
-            //     { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
-            //     { constantsIdx: 0, headerName: "Swing Constants", fields: [...mikPIDConstantsSettings] },
-            // ],
+            name: "Swing",
+            defaults: [swingConstants],
+            toStringTemplate: "chassis.set_swing_pid(${angle});",
+            simFn: (robot, dt, _x, _y, angle, constants) => pid_swing_set(robot, dt, angle ?? 0, constants),
+            slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
+            cycleButtons: [
+                { constantsIdx: 0, ...swingDirectionButton },
+                { constantsIdx: 0, ...waitButton },
+                { constantsIdx: 0, ...turnDirectionButton }
+            ],
+            numberInputs: [
+                { constantsIdx: 0, headerName: "Exit Conditions", fields: exitConditions("TURN") },
+                { constantsIdx: 0, headerName: "Swing Constants", fields: pidSlewSettings("TURN") },
+            ],
         },
 
         pointSwing: {
-            castTo: "distanceDrive"
-            // name: "Swing to Point",
-            // defaults: [kMikSwing],
-            // toStringTemplate: "chassis.${swing_direction}_swing_to_point(${x}, ${y}, ${kBuilder});",
-            // simFn: (robot, dt, x, y, angle, constants) => swing_to_point(robot, dt, x, y, angle ?? 0, constants),
-            // slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
-            // cycleButtons: [
-            //     { constantsIdx: 0, ...swingDirectionButton },
-            //     { constantsIdx: 0, ...turnDirectionButton },
-            // ],
-            // numberInputs: [
-            //     { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
-            //     { constantsIdx: 0, headerName: "Swing Constants", fields: [...mikPIDConstantsSettings] },
-            // ],
+            castTo: "angleSwing"
         },
 
         strafeDrive: {

@@ -1,6 +1,6 @@
-import type { Robot } from "../../core/Robot";
-import { toDeg } from "../../core/Util";
-import type { EZconstants } from "./EZConstants";
+import type { Robot } from "../../../core/Robot";
+import { toDeg } from "../../../core/Util";
+import type { EZconstants } from "../EZConstants";
 import { pid_turn_set } from "./set_turn_pid";
 
 let turn_start = true;

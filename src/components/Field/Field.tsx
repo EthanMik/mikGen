@@ -18,7 +18,7 @@ import RobotLayer from "./RobotLayer";
 import PathLayer from "./PathLayer";
 import ControlsLayer from "./ControlsLayer";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
-import { resolveHeading, getBackwardsSnapPose, distanceToPosition, getSegmentDistance, type Path } from "../../core/Types/Path";
+import { resolveHeading, getBackwardsSnapPose, getBackwardsSnapIdx, distanceToPosition, getSegmentDistance, type Path } from "../../core/Types/Path";
 import { useSettings } from "../../hooks/useSettings";
 import { useFieldImg } from "../../hooks/useFieldImg";
 
@@ -101,6 +101,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 	const dragStartPointerInch = useRef<Coordinate | null>(null);
 	const dragStartPositions = useRef<Record<string, { x: number | null; y: number | null }>>({});
 	const shiftPendingSelectRef = useRef<string | null>(null);
+	const pendingTurnCycleRef = useRef<string | null>(null);
 
 	const [middleMouseDown, setMiddleMouseDown] = useState(false)
 	const fieldDragRef = useRef<Coordinate>({ x: 0, y: 0 });
@@ -406,6 +407,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 	const endDrag = () => {
 		clearSnap();
 		shiftPendingSelectRef.current = null;
+		pendingTurnCycleRef.current = null;
 		setDrag({ dragging: false, lastPos: { x: 0, y: 0 } });
 		dragHistoryActive.current = false;
 
@@ -467,7 +469,32 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 			if (evt.shiftKey) {
 				shiftPendingSelectRef.current = controlId;
 			} else {
-				selectSegment(controlId, false);
+				const clickedIdx = path.segments.findIndex(s => s.id === controlId);
+
+				const turnsOnTop: string[] = [];
+				for (let i = clickedIdx + 1; i < path.segments.length; i++) {
+					const s = path.segments[i];
+					if (s.pose.x !== null && s.pose.y !== null) break;
+					if (["pointTurn", "angleTurn", "pointSwing", "angleSwing"].includes(s.kind) && getBackwardsSnapIdx(path, i) === clickedIdx) {
+						turnsOnTop.push(s.id);
+					}
+				}
+
+				if (turnsOnTop.length > 0) {
+					const cycle = [controlId, ...turnsOnTop];
+					const selectedCount = path.segments.filter(s => s.selected).length;
+					const currentCycleIdx = selectedCount === 1
+						? cycle.findIndex(id => path.segments.some(s => s.id === id && s.selected))
+						: -1;
+
+					if (currentCycleIdx >= 0) {
+						pendingTurnCycleRef.current = cycle[(currentCycleIdx + 1) % cycle.length];
+					} else {
+						selectSegment(controlId, false);
+					}
+				} else {
+					selectSegment(controlId, false);
+				}
 			}
 		}
 
@@ -497,7 +524,6 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 
 		if (isBareLeftClick) {
 			const selectedCount = path.segments.filter((c) => c.selected).length;
-			if (selectedCount > 1) { endSelection(); return; }
 			if (selectedCount >= 1) endSelection();
 			const pos = getPressedPositionInch(evt, svgRef.current, img);
 			if (path.segments.length <= 0) {
@@ -537,6 +563,9 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		if (shiftPendingSelectRef.current !== null && !dragDidMove.current) {
 			selectSegment(shiftPendingSelectRef.current, true);
 		}
+		if (pendingTurnCycleRef.current !== null && !dragDidMove.current) {
+			selectSegment(pendingTurnCycleRef.current, false);
+		}
 		endDrag();
 		finalizeBoxSelect(img, path, setPath, (startInch) => {
 			if (path.segments.length > 0) {
@@ -546,7 +575,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 	};
 
 	return (
-		<div tabIndex={0} onMouseLeave={() => { endDrag(); cancelBoxSelect(); }}>
+		<div tabIndex={0} className="select-none" onMouseLeave={() => { endDrag(); cancelBoxSelect(); }}>
 			<input
 				ref={hiddenInputRef}
 				data-paste-proxy=""

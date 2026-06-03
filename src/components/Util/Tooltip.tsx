@@ -43,7 +43,7 @@ export default function Tooltip({ label, placement = "top", keybind = false, chi
     const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties | null>(null);
     const [visible, setVisible] = useState(false);
 
-    const openDelay = speed === "slow" ? 600 : 400;
+    const openDelay = speed === "slow" ? 600 : 100;
 
     function handleMouseEnter() {
         clearTimeout(hideTimer.current);

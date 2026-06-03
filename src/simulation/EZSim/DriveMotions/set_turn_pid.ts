@@ -1,10 +1,10 @@
-import type { Robot } from "../../core/Robot";
-import { clamp } from "../JarSim/util";
-import { ez_wait } from "./exit_conditions";
-import type { EZconstants } from "./EZConstants";
-import { PID } from "./PID";
-import { slew } from "./slew";
-import { new_turn_target_compute } from "./util";
+import type { Robot } from "../../../core/Robot";
+import { clamp } from "../../JarSim/util";
+import { ez_wait } from "../exit_conditions";
+import type { EZconstants } from "../EZConstants";
+import { PID } from "../PID";
+import { slew } from "../slew";
+import { new_turn_target_compute } from "../util";
 
 let turn_start = true;
 let sensor_start = 0;

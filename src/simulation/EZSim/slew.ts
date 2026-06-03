@@ -14,7 +14,7 @@ export class slew {
     ) {}   
 
     public initialize(enabled: boolean, maximum_speed: number, target: number, current: number) {
-        this.is_enabled = maximum_speed < this.min_speed ? false : enabled;
+        this.is_enabled = (maximum_speed < this.min_speed || this.sign === 0) ? false : enabled;
         this.max_speed = maximum_speed;
 
         this.sign = Math.sign(target - current);
