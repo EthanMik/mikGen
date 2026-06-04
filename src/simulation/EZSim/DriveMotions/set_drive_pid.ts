@@ -13,6 +13,8 @@ let slew_both: slew;
 let start_x: number = 0;
 let start_y: number = 0;
 
+export function resetDrivePid() { drive_start = true; }
+
 export function pid_drive_set(robot: Robot, dt: number, target: number, p: EZconstants[]) {
     const drive_p = p[0];
     const heading_p = p[1];
@@ -29,6 +31,7 @@ export function pid_drive_set(robot: Robot, dt: number, target: number, p: EZcon
 
         drivePID.target_set(target);
         headingPID.target_set(robot.getRotation());
+        headingPID.sensor_set(robot.getRotation());
 
         slew_both.initialize(drive_p.slew, drive_p.speed, target, 0);
 

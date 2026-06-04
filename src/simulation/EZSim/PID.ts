@@ -27,6 +27,7 @@ export class PID {
 
     public target_set(input: number) { this.target = input; }
     public target_get() { return this.target; }
+    public sensor_set(input: number) { this.prev_current = input; }
 
     public compute_error(err: number, current: number) {
         this.error = err;

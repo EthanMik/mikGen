@@ -22,17 +22,18 @@ let prev_x = 0;
 let prev_y = 0;
 let new_current_fake = 0;
 let chain_applied = false;
-let timeout = 0;
 
 function compute_carrot(current: pose, dir: number, drive_p: EZconstants): pose {
     const dist = distance_to_point(final_target, current);
     if (dist < drive_p.lookahead / 2.0) {
         return { x: final_target.x, y: final_target.y, theta: final_target.theta };
     }
-    const h = Math.min(dist * drive_p.dlead, drive_p.boomerang_distance) * dir;
+    const h = Math.min(dist * drive_p.lead, drive_p.boomerang_distance) * dir;
     const base = vector_off_point(-h, final_target);
     return { x: base.x, y: base.y, theta: final_target.theta };
 }
+
+export function resetBoomerangSet() { boomerang_start = true; }
 
 export function pid_odom_boomerang_set(robot: Robot, dt: number, x: number, y: number, angle: number, p: EZconstants[]) {
     const drive_p = p[0];
@@ -41,7 +42,6 @@ export function pid_odom_boomerang_set(robot: Robot, dt: number, x: number, y: n
     const dir = drive_p.drive_directions === "rev" ? -1 : 1;
 
     if (boomerang_start) {
-        timeout = 0;
         boomerang_start = false;
         start_x = robot.getX();
         start_y = robot.getY();
@@ -124,8 +124,7 @@ export function pid_odom_boomerang_set(robot: Robot, dt: number, x: number, y: n
 
     const output = boomerang_exit(drive_p, odom_pose_get());
 
-    timeout += SIM_CONSTANTS.dt_ms;
-    if (output || timeout > 3000) {
+    if (output) {
         boomerang_start = true;
         return true;
     }

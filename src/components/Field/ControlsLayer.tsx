@@ -9,6 +9,7 @@ import type { LemConstants } from "../../simulation/LemLibSim/LemConstants";
 import type { mikConstants } from "../../simulation/mikLibSim/MikConstants";
 import type { FieldColors } from "./FieldUtils";
 import type { JarConstants } from "../../simulation/JarSim/JarConstants";
+import type { EZconstants } from "../../simulation/EZSim/EZConstants";
 
 const VISUAL = {
 	node: {
@@ -162,7 +163,8 @@ export default function ControlsLayer({ path, img, radius, format, colors, onPoi
 
 								const curveLeft = (format === "mikLib" && (control.constants[0] as mikConstants).swing_direction == "left") ||
 									(format === "LemLib" && (control.constants[0] as LemConstants).lockedSide === "DriveSide::RIGHT") ||
-									(format === "JAR-Template" && (control.constants[0] as JarConstants).swing_direction === "left")
+									(format === "JAR-Template" && (control.constants[0] as JarConstants).swing_direction === "left") || 
+									(format === "EZ-Template" && (control.constants[0] as EZconstants).swing === "LEFT_SWING") 
 								const rInner = Math.max(0, r - (thickness * VISUAL.swingIndicator.innerRadiusOffsetFactor));
 								const basePx = toPX({ x: snapPose.x, y: snapPose.y }, FIELD_REAL_DIMENSIONS, img);
 

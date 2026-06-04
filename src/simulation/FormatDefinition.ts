@@ -69,6 +69,7 @@ export type SegmentDef<F extends Format = Format> = {
     name?: string;
     castTo?: SegmentKind
     simFn?: SegmentFactory<F>;
+    simReset?: () => void;
     cycleButtons?: CycleButtonField<F>[];
     numberInputs?: NumberInputGroup<F>[];
     slider?: SliderField<F>;
@@ -140,6 +141,7 @@ export function mergeFormatDef(registry: FormatDef<Format>, saved: unknown): For
         if (reg) segs[k as SegmentKind] = {
             ...reg, ...(v as object),
             simFn: reg.simFn,
+            simReset: reg.simReset,
             cycleButtons: reg.cycleButtons,
             numberInputs: reg.numberInputs,
             slider: reg.slider,
@@ -148,7 +150,7 @@ export function mergeFormatDef(registry: FormatDef<Format>, saved: unknown): For
     return { ...registry, ...s, kBuilder: registry.kBuilder, kParser: registry.kParser, segments: segs } as FormatDef<Format>;
 }
 
-const SEGMENT_UI_KEYS = new Set(['simFn', 'cycleButtons', 'numberInputs', 'slider']);
+const SEGMENT_UI_KEYS = new Set(['simFn', 'simReset', 'cycleButtons', 'numberInputs', 'slider']);
 const FORMAT_FN_KEYS = new Set(['kBuilder', 'kParser']);
 
 export function stripFormatDefForSave(formatDef: FormatDef<Format>): object {

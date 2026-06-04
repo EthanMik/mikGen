@@ -50,9 +50,9 @@ export const kLemLinear: LemConstants = {
     timeout: 5000,
     horizontalDrift: 2,
 
-    kp: 10,
+    kp: 12,
     ki: 0,
-    kd: 3,
+    kd: 100,
     antiWindup: 3,
     smallError: 1,
     smallErrorTimeout: 100,

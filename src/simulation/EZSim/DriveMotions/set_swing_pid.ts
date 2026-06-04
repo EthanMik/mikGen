@@ -12,6 +12,8 @@ let chain_target_start = 0;
 let swingPID: PID;
 let slew_swing: slew;
 
+export function resetSwingPid() { swing_start = true; }
+
 export function pid_swing_set(robot: Robot, dt: number, target: number, p: EZconstants[]) {
     const swing_p = p[0];
 
@@ -26,6 +28,7 @@ export function pid_swing_set(robot: Robot, dt: number, target: number, p: EZcon
         slew_swing = new slew(swing_p.slew_min_speed, swing_p.slew_distance);
 
         swingPID.target_set(target);
+        swingPID.sensor_set(sensor_start);
 
         slew_swing.initialize(swing_p.slew, swing_p.speed, target, sensor_start);
 
@@ -50,11 +53,11 @@ export function pid_swing_set(robot: Robot, dt: number, target: number, p: EZcon
         opposite_output = swing_p.opposite_speed > 0 ? -(swing_p.opposite_speed * scale) : 0;
         robot.tankDrive(opposite_output / 127, -swing_out / 127, dt);        
     }
-
+    
     const output = wait(swing_p.wait, swingPID, robot.getRotation() - sensor_start, chain_target_start, swing_p.chain_constant);
     if (output) {
         swing_start = true;
-        return output;
+        return true;
     }
     return output;
 }

@@ -12,6 +12,8 @@ let chain_target_start = 0;
 let turnPID: PID;
 let slew_turn: slew;
 
+export function resetTurnPid() { turn_start = true; }
+
 export function pid_turn_set(robot: Robot, dt: number, target: number, p: EZconstants[]) {
     const turn_p = p[0];
 
@@ -26,6 +28,7 @@ export function pid_turn_set(robot: Robot, dt: number, target: number, p: EZcons
         slew_turn = new slew(turn_p.slew_min_speed, turn_p.slew_distance);
 
         turnPID.target_set(target);
+        turnPID.sensor_set(sensor_start);
 
         slew_turn.initialize(turn_p.slew, turn_p.speed, target, sensor_start);
 

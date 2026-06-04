@@ -10,12 +10,12 @@ import rightswing from "../../assets/rightswing.svg";
 import stop from "../../assets/stop_speed.svg"
 import slow from "../../assets/slow_speed.svg"
 import fast from "../../assets/fast_speed.svg"
-import { pid_drive_set } from "./DriveMotions/set_drive_pid";
-import { pid_turn_set } from "./DriveMotions/set_turn_pid";
-import { pid_odom_turn_set } from "./DriveMotions/set_odom_turn_pid";
-import { pid_swing_set } from "./DriveMotions/set_swing_pid";
-import { pid_odom_set } from "./DriveMotions/pid_odom_set";
-import { pid_odom_boomerang_set } from "./DriveMotions/pid_odom_boomerang_set";
+import { pid_drive_set, resetDrivePid } from "./DriveMotions/set_drive_pid";
+import { pid_turn_set, resetTurnPid } from "./DriveMotions/set_turn_pid";
+import { pid_odom_turn_set, resetOdomTurnPid } from "./DriveMotions/set_odom_turn_pid";
+import { pid_swing_set, resetSwingPid } from "./DriveMotions/set_swing_pid";
+import { pid_odom_set, resetOdomSet } from "./DriveMotions/pid_odom_set";
+import { pid_odom_boomerang_set, resetBoomerangSet } from "./DriveMotions/pid_odom_boomerang_set";
 
 export interface EZconstants {
     speed: number,
@@ -41,7 +41,7 @@ export interface EZconstants {
 
     // Other
     odom_turn_bias: number,
-    dlead: number,
+    lead: number,
     boomerang_distance: number,
     lookahead: number,
 
@@ -57,7 +57,7 @@ const driveConstants: EZconstants = {
     chain_constant: 3,
     opposite_speed: 0,
 
-    p: 20,
+    p: 10,
     i: 0,
     d: 100,
     start_i: 0,
@@ -72,7 +72,7 @@ const driveConstants: EZconstants = {
     slew_min_speed: 70,
 
     odom_turn_bias: 0.9,
-    dlead: 0.625,
+    lead: 0.625,
     boomerang_distance: 16,
     lookahead: 7,
 
@@ -170,9 +170,9 @@ const exitConditions = (type: Type): Fields => {
 const pidSettings = (type: Type): Fields => {
     const distUnit = type === "TURN" ? "deg" : "in";
     return [
-        { key: "p", label: "P", units: "", input: { bounds: [0, 999], stepSize: 0.1, roundTo: 5 } },
-        { key: "i", label: "I", units: "", input: { bounds: [0, 999], stepSize: 0.01, roundTo: 5 } },
-        { key: "d", label: "D", units: "", input: { bounds: [0, 999], stepSize: 0.1, roundTo: 5 } },
+        { key: "p", label: "P", units: "", input: { bounds: [0, 999], stepSize: .5, roundTo: 5 } },
+        { key: "i", label: "I", units: "", input: { bounds: [0, 999], stepSize: 0.1, roundTo: 5 } },
+        { key: "d", label: "D", units: "", input: { bounds: [0, 999], stepSize: .5, roundTo: 5 } },
         { key: "start_i", units: distUnit, label: "Start i", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
     ];
 };
@@ -198,9 +198,9 @@ const driveDirectionButton: CycleButton = {
 const turnDirectionButton: CycleButton = {
     key: "angle_behavior",
     keyValues: [
+        { srcImg: slowest, value: "longest" },
         { srcImg: cw, value: "cw" },
         { srcImg: ccw, value: "ccw" },
-        { srcImg: slowest, value: "longest" },
         { srcImg: fastest, value: "shortest" },
     ],
 };
@@ -232,7 +232,7 @@ export const EZTemplateDef = {
         start: {
             name: "Start",
             defaults: [driveConstants],
-            toStringTemplate: "chassis.set_coordinates(${x}, ${y}, ${angle});",
+            toStringTemplate: "chassis.odom_xyt_set(${x}_in, ${y}_in, ${angle}_deg);",
             simFn: (robot, _dt, x, y, angle) => robot.setPose(x, y, angle ?? 0),
             cycleButtons: [],
             numberInputs: [],
@@ -254,8 +254,9 @@ export const EZTemplateDef = {
         distanceDrive: {
             name: "Drive",
             defaults: [driveConstants, headingConstants],
-            toStringTemplate: "chassis.set_drive_pid(${distance});",
+            toStringTemplate: "chassis.set_drive_pid(${distance}_in, ${speed}, ${slew});\nchassis.pid_${0:wait}();",
             simFn: (robot, dt, distance, _y, _angle, constants) => pid_drive_set(robot, dt, distance, constants),
+            simReset: () => resetDrivePid(),
             slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
             cycleButtons: [
                 { constantsIdx: 0, ...waitButton }
@@ -269,13 +270,13 @@ export const EZTemplateDef = {
         poseDrive: {
             name: "Odom Boomerang",
             defaults: [driveConstants, boomerangConstants],
-            toStringTemplate: "chassis.set_drive_pid(${distance});",
+            toStringTemplate: "chassis.pid_odom_set({{${x}_in, ${y}_in, ${angle}_deg}, ${drive_directions}, ${speed}}, ${slew});\nchassis.pid_${0:wait}();",
             simFn: (robot, dt, x, y, angle, constants) => pid_odom_boomerang_set(robot, dt, x, y, angle ?? 0, constants),
+            simReset: () => resetBoomerangSet(),
             slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
             cycleButtons: [
                 { constantsIdx: 0, ...waitButton },
                 { constantsIdx: 0, ...driveDirectionButton },
-
             ],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Exit Conditions", fields: exitConditions("DRIVE"), },
@@ -283,7 +284,7 @@ export const EZTemplateDef = {
                     constantsIdx: 0, headerName: "Drive Constants", fields: [
                         ...pidSlewSettings("DRIVE"),
                         { key: "odom_turn_bias", label: "Turn Bias", units: "", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } },
-                        { key: "dlead", label: "Lead", units: "", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 3 } },
+                        { key: "lead", label: "Lead", units: "", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 3 } },
                         { key: "boomerang_distance", label: "Distance", units: "in", input: { bounds: [0, 100], stepSize: 1, roundTo: 1 } },
                         { key: "lookahead", label: "Lookahead", units: "in", input: { bounds: [0, 100], stepSize: 1, roundTo: 1 } },
 
@@ -296,13 +297,13 @@ export const EZTemplateDef = {
         pointDrive: {
             name: "Odom Drive",
             defaults: [driveConstants, angularConstants],
-            toStringTemplate: "chassis.set_drive_pid(${distance});",
+            toStringTemplate: "chassis.pid_odom_set({{${x}_in, ${y}_in}, ${drive_directions}, ${speed}}, ${slew});\nchassis.pid_${0:wait}();",
             simFn: (robot, dt, x, y, _angle, constants) => pid_odom_set(robot, dt, x, y, constants),
+            simReset: () => resetOdomSet(),
             slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
             cycleButtons: [
                 { constantsIdx: 0, ...waitButton },
                 { constantsIdx: 0, ...driveDirectionButton },
-
             ],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Exit Conditions", fields: exitConditions("DRIVE") },
@@ -319,8 +320,9 @@ export const EZTemplateDef = {
         pointTurn: {
             name: "Odom Turn",
             defaults: [turnConstants],
-            toStringTemplate: "chassis.set_turn_pid(${x}, ${y});",
+            toStringTemplate: "chassis.pid_turn_set({${x}_in, ${y}_in}, ${drive_directions}, ${speed}, ${angle_behavior}, ${slew});\nchassis.pid_${0:wait}();",
             simFn: (robot, dt, x, y, _angle, constants) => pid_odom_turn_set(robot, dt, x, y, constants),
+            simReset: () => resetOdomTurnPid(),
             slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
             cycleButtons: [
                 { constantsIdx: 0, ...waitButton },
@@ -336,8 +338,9 @@ export const EZTemplateDef = {
         angleTurn: {
             name: "Turn",
             defaults: [turnConstants],
-            toStringTemplate: "chassis.set_turn_pid(${angle});",
+            toStringTemplate: "chassis.pid_turn_set(${angle}_deg, ${speed}, ${angle_behavior}, ${slew});\nchassis.pid_${0:wait}();",
             simFn: (robot, dt, _x, _y, angle, constants) => pid_turn_set(robot, dt, angle ?? 0, constants),
+            simReset: () => resetTurnPid(),
             slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
             cycleButtons: [
                 { constantsIdx: 0, ...waitButton },
@@ -352,8 +355,9 @@ export const EZTemplateDef = {
         angleSwing: {
             name: "Swing",
             defaults: [swingConstants],
-            toStringTemplate: "chassis.set_swing_pid(${angle});",
+            toStringTemplate: "chassis.pid_swing_set(${swing}, ${angle}_deg, ${speed}, ${opposite_speed}, ${angle_behavior}, ${slew});\nchassis.pid_${0:wait}();",
             simFn: (robot, dt, _x, _y, angle, constants) => pid_swing_set(robot, dt, angle ?? 0, constants),
+            simReset: () => resetSwingPid(),
             slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
             cycleButtons: [
                 { constantsIdx: 0, ...swingDirectionButton },
@@ -362,7 +366,12 @@ export const EZTemplateDef = {
             ],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Exit Conditions", fields: exitConditions("TURN") },
-                { constantsIdx: 0, headerName: "Swing Constants", fields: pidSlewSettings("TURN") },
+                {
+                    constantsIdx: 0, headerName: "Swing Constants", fields: [
+                        ...pidSlewSettings("TURN"),
+                        { key: "opposite_speed", units: "", label: "Opposite Speed", input: { bounds: [0, 127], stepSize: 10, roundTo: 1 } },
+                    ]
+                },
             ],
         },
 

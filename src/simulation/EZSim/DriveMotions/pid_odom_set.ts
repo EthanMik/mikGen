@@ -1,4 +1,3 @@
-import { SIM_CONSTANTS } from "../../../core/ComputePathSim";
 import type { Robot } from "../../../core/Robot";
 import { toRad } from "../../../core/Util";
 import type { EZconstants } from "../EZConstants";
@@ -22,7 +21,7 @@ let prev_y = 0;
 let new_current_fake = 0;
 let chain_applied = false;
 
-let timeout = 0;
+export function resetOdomSet() { ptp_start = true; }
 
 export function pid_odom_set(robot: Robot, dt: number, x: number, y: number, p: EZconstants[]) {
     const drive_p = p[0];
@@ -30,7 +29,6 @@ export function pid_odom_set(robot: Robot, dt: number, x: number, y: number, p: 
     const odom_pose_get = (): pose => ({ x: robot.getX(), y: robot.getY(), theta: robot.getRotation() });
 
     if (ptp_start) {
-        timeout = 0;
         ptp_start = false;
         start_x = robot.getX();
         start_y = robot.getY();
@@ -102,8 +100,7 @@ export function pid_odom_set(robot: Robot, dt: number, x: number, y: number, p: 
 
     const output = odom_exit(drive_p, odom_pose_get());
 
-    timeout += SIM_CONSTANTS.dt_ms;
-    if (output || timeout > 3000) {
+    if (output) {
         ptp_start = true;
         return true;
     }

@@ -74,15 +74,26 @@ export function convertStringToPath<F extends Format>(
 ): Segment[] {
     const segments: Segment[] = [];
 
-    for (const rawLine of pathString.split('\n')) {
-        const line = rawLine.trim().replace(/\(\s+/g, '(').replace(/\s+\)/g, ')');
-        if (!line) continue;
+    const lines = pathString.split('\n').map(l => l.trim().replace(/\(\s+/g, '(').replace(/\s+\)/g, ')'));
 
+    let i = 0;
+    while (i < lines.length) {
+        if (!lines[i]) { i++; continue; }
+
+        let matched = false;
         for (const [kind, segDef] of Object.entries(formatDef.segments) as [SegmentKind, SegmentDef<F>][]) {
             if (!segDef || segDef.castTo || !segDef.toStringTemplate) continue;
-            const seg = parseSegmentLine(line, kind, segDef, formatDef, format);
-            if (seg) { segments.push(seg); break; }
+            const templateLineCount = segDef.toStringTemplate.split('\n').length;
+            const chunk = lines.slice(i, i + templateLineCount).join('\n');
+            const seg = parseSegmentLine(chunk, kind, segDef, formatDef, format);
+            if (seg) {
+                segments.push(seg);
+                i += templateLineCount;
+                matched = true;
+                break;
+            }
         }
+        if (!matched) i++;
     }
 
     const tempPath: Path = { name: "", segments };
@@ -199,6 +210,7 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
         const resolvedSimDef = segDef.castTo ? (formatDef.segments[segDef.castTo] ?? segDef) : segDef;
         if (!resolvedSimDef.simFn) continue;
         const simFn = resolvedSimDef.simFn;
+        const simReset = resolvedSimDef.simReset;
 
         let started = false;
         let targetDist = 0;
@@ -217,6 +229,7 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
                 auton.push(
                     (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
                         if (!started) {
+                            simReset?.();
                             DEBUG_printSegmentStart(idx, formatDef, kind);
                             targetDist = 999;
                             started = true;
@@ -234,6 +247,7 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
                 auton.push(
                     (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
                         if (!started) {
+                            simReset?.();
                             DEBUG_printSegmentStart(idx, formatDef, kind);
                             targetDist = Math.hypot(x - robot.getX(), y - robot.getY());
                             started = true;
@@ -251,6 +265,7 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
                 auton.push(
                     (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
                         if (!started) {
+                            simReset?.();
                             DEBUG_printSegmentStart(idx, formatDef, kind);
                             const targetAngle = toDeg(Math.atan2(turn_pos.x - robot.getX(), turn_pos.y - robot.getY())) + angle;
                             targetDist = Math.abs(angle_error(targetAngle - robot.getAngle(), "fastest")!);
@@ -269,6 +284,7 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
                 auton.push(
                     (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
                         if (!started) {
+                            simReset?.();
                             DEBUG_printSegmentStart(idx, formatDef, kind);
                             targetDist = Math.abs(angle_error(angle - robot.getAngle(), "fastest")!);
                             started = true;
@@ -287,6 +303,7 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
                 auton.push(
                     (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
                         if (!started) {
+                            simReset?.();
                             DEBUG_printSegmentStart(idx, formatDef, kind);
                             targetDist = Math.abs(segDistance);
                             started = true;
