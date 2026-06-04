@@ -100,14 +100,18 @@ function flexReplaceGeneratedBlock(fileContent: string, formatDef: FormatDef<For
 
     const lineToFileSeg = new Map<number, number>();
     const fileKinds: string[] = [];
+    const fileContinuationLines = new Set<number>();
     for (let i = 0; i < lines.length; i++) {
         const trimmed = lines[i].trim();
-        if (!trimmed) continue;
+        if (!trimmed || fileContinuationLines.has(i)) continue;
         for (const [kind, segDef] of Object.entries(formatDef.segments) as [SegmentKind, SegmentDef<Format>][]) {
             if (!segDef || segDef.castTo || !segDef.toStringTemplate) continue;
-            if (templateToRegex(segDef.toStringTemplate).regex.test(trimmed)) {
+            const templateLineCount = segDef.toStringTemplate.split('\n').length;
+            const chunk = lines.slice(i, i + templateLineCount).map(l => l.trim()).join('\n');
+            if (templateToRegex(segDef.toStringTemplate).regex.test(chunk)) {
                 lineToFileSeg.set(i, fileKinds.length);
                 fileKinds.push(kind);
+                for (let j = 1; j < templateLineCount; j++) fileContinuationLines.add(i + j);
                 break;
             }
         }
@@ -145,7 +149,19 @@ function flexReplaceGeneratedBlock(fileContent: string, formatDef: FormatDef<For
     }
 
     const anySelected = webSegs.some(seg => seg.selected);
-    const newSegLines = convertPathToString(formatDef, path, false).split('\n').filter(Boolean);
+
+    // Build per-segment string arrays so multi-line templates (e.g. drive + pid_wait) stay together
+    const allGenLines = convertPathToString(formatDef, path, false).split('\n').filter(Boolean);
+    let genOffset = 0;
+    const newSegStrings = webSegs.map(seg => {
+        const k = seg.kind as SegmentKind;
+        const def = formatDef.segments[k];
+        const resolved = def?.castTo ? (formatDef.segments[def.castTo] ?? def) : def;
+        const lineCount = resolved?.toStringTemplate?.split('\n').length ?? 1;
+        const segLines = allGenLines.slice(genOffset, genOffset + lineCount);
+        genOffset += lineCount;
+        return segLines;
+    });
 
     const newLines: string[] = [];
     let replacedCount = 0, insertedCount = 0, deletedCount = 0;
@@ -153,6 +169,9 @@ function flexReplaceGeneratedBlock(fileContent: string, formatDef: FormatDef<For
     let insertedAtEnd = 0;
 
     for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+        // Skip continuation lines belonging to an already-processed multi-line segment
+        if (fileContinuationLines.has(lineIdx)) continue;
+
         const fileSeg = lineToFileSeg.get(lineIdx);
         if (fileSeg === undefined) { newLines.push(lines[lineIdx]); continue; }
 
@@ -168,7 +187,7 @@ function flexReplaceGeneratedBlock(fileContent: string, formatDef: FormatDef<For
         for (const insertWi of pendingWis) {
             const seg = webSegs[insertWi];
             if (!seg.visible || (anySelected && !seg.selected)) continue;
-            newLines.push(indent + newSegLines[insertWi]);
+            for (const subLine of newSegStrings[insertWi]) newLines.push(indent + subLine);
             insertedCount++;
         }
         pendingWis = [];
@@ -177,11 +196,15 @@ function flexReplaceGeneratedBlock(fileContent: string, formatDef: FormatDef<For
         const seg = webSegs[wi];
         if (seg.visible && (!anySelected || seg.selected)) {
             const trailingMarker = lines[lineIdx].match(/(\/\/\s*\[.*?\])$/)?.[1];
-            newLines.push(indent + newSegLines[wi]);
+            for (const subLine of newSegStrings[wi]) newLines.push(indent + subLine);
             if (trailingMarker) newLines.push(indent + trailingMarker);
             replacedCount++;
         } else {
-            newLines.push(lines[lineIdx]);
+            // Keep the original segment lines (anchor + continuations) unchanged
+            const k = fileKinds[fileSeg] as SegmentKind;
+            const segDef = formatDef.segments[k];
+            const templateLineCount = segDef?.toStringTemplate?.split('\n').length ?? 1;
+            for (let j = 0; j < templateLineCount; j++) newLines.push(lines[lineIdx + j]);
         }
 
         pendingWis = insertAfter.get(fileSeg) ?? [];
@@ -191,7 +214,7 @@ function flexReplaceGeneratedBlock(fileContent: string, formatDef: FormatDef<For
     for (const wi of pendingWis) {
         const seg = webSegs[wi];
         if (!seg.visible || (anySelected && !seg.selected)) continue;
-        newLines.push(endMarkerIndent + newSegLines[wi]);
+        for (const subLine of newSegStrings[wi]) newLines.push(endMarkerIndent + subLine);
         insertedCount++;
         insertedAtEnd++;
     }

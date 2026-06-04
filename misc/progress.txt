@@ -3,29 +3,18 @@ Live Progress Txt
 Bugs:
 
 Todo:
-- instead of commands add a help button that provides path examples
 - add example paths
 - add help button
-
-Planned:
 - google analytics
+
+Later:
 - visually see when you can and cant undo
 - load last 3 undos under local
+- have a dropdown for the file view
+- Bezier path following + velocity editing 
 
 Docs:
 - A better way to plan VEX Autonoumous - EthanMik Channel
 - Readthedocs.io showing all the keybinds
-- have a dropdown for the file view
-
-lemlib notes
-- issues with either PID / mtp and boomerang
-
-rw notes
-- heading correction is separate
-
-Formats Left: 
-- Jar
-- rw
-- EZ bruh
 
 
