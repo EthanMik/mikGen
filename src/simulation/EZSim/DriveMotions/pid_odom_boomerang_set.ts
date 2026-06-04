@@ -1,5 +1,4 @@
 import { absolute_angle_to_point, distance_to_point, find_point_to_face, is_past_target, new_turn_target_compute, vector_off_point, type pose } from "../util";
-import { SIM_CONSTANTS } from "../../../core/ComputePathSim";
 import type { Robot } from "../../../core/Robot";
 import { toRad } from "../../../core/Util";
 import type { EZconstants } from "../EZConstants";

@@ -15,8 +15,6 @@ import threeDots from "./assets/three-dots.svg";
 import lines from "./assets/lines.svg";
 import marker from "./assets/marker.svg";
 import homeButton from "./assets/home.svg";
-import { convertStringToPath, parseSegmentLine, templateToRegex } from "./simulation/Conversion";
-import { mikLibDef } from "./simulation/mikLibSim/MikConstants";
 
 export default function App() {
   const pathName = fileFormatStore.useSelector(s => s.path.name);

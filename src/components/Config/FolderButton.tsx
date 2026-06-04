@@ -21,7 +21,7 @@ async function readDirEntries(handle: FileSystemDirectoryHandle): Promise<Entry[
             const ext = name.slice(name.lastIndexOf("."));
             if (!(ext === ".txt")) continue;
         }
-        result.push({ name, kind, handle: h });
+        result.push({ name, kind, handle: h as FileSystemFileHandle | FileSystemDirectoryHandle });
     }
     result.sort((a, b) => {
         if (a.kind !== b.kind) return a.kind === "directory" ? -1 : 1;

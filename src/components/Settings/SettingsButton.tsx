@@ -7,7 +7,7 @@ import Section from "../Util/Section";
 import MenuButtonTemplate from "../Util/MenuButtonTemplate";
 import { MenuCheckboxButton } from "../Util/CheckboxButton";
 import { NumberInputButton } from "../Util/NumberInputButton";
-import { DEBUG, debugStore } from "../../simulation/Conversion";
+import { debugStore } from "../../simulation/Conversion";
 
 type ColorButtonProps = {
     callback: () => void;

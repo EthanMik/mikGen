@@ -24,7 +24,7 @@ async function readExportDirEntries(handle: FileSystemDirectoryHandle): Promise<
     for await (const [name, h] of handle.entries()) {
         const kind = h.kind as "file" | "directory";
         if (kind === "file" && !name.endsWith(".cpp")) continue;
-        result.push({ name, kind, handle: h });
+        result.push({ name, kind, handle: h as FileSystemFileHandle | FileSystemDirectoryHandle });
     }
     result.sort((a, b) => {
         if (a.kind !== b.kind) return a.kind === "directory" ? -1 : 1;
