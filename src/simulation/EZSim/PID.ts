@@ -28,10 +28,14 @@ export class PID {
     public target_set(input: number) { this.target = input; }
     public target_get() { return this.target; }
 
-    public compute(current: number): number {
-        this.error = this.target - current;
+    public compute_error(err: number, current: number) {
+        this.error = err;
         this.cur = current;
 
+        return this.raw_compute();
+    }
+
+    public raw_compute() {
         this.derivative = this.cur - this.prev_current;
 
         if (this.ki !== 0) {
@@ -46,6 +50,10 @@ export class PID {
         this.prev_current = this.cur;
 
         return this.output;
+    }
+
+    public compute(current: number): number {
+        return this.compute_error(this.target - current, current);
     }
 
     public timers_reset() {

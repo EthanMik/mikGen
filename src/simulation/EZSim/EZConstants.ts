@@ -14,6 +14,7 @@ import { pid_drive_set } from "./DriveMotions/set_drive_pid";
 import { pid_turn_set } from "./DriveMotions/set_turn_pid";
 import { pid_odom_turn_set } from "./DriveMotions/set_odom_turn_pid";
 import { pid_swing_set } from "./DriveMotions/set_swing_pid";
+import { pid_odom_set } from "./DriveMotions/pid_odom_set";
 
 export interface EZconstants {
     speed: number,
@@ -374,19 +375,21 @@ export const EZTemplateDef = {
         },
 
         pointDrive: {
-            castTo: "distanceDrive"
+            name: "Odom Drive",
+            defaults: [driveConstants, headingConstants],
+            toStringTemplate: "chassis.set_drive_pid(${distance});",
+            simFn: (robot, dt, x, y, _angle, constants) => pid_odom_set(robot, dt, x, y, constants),
+            slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
+            cycleButtons: [
+                { constantsIdx: 0, ...waitButton },
+                { constantsIdx: 0, ...driveDirectionButton },
 
-            // name: "Drive to Point",
-            // defaults: [kMikDrive, kMikHeading],
-            // toStringTemplate: "chassis.drive_to_point(${x}, ${y}, ${kBuilder});",
-            // simFn: (robot, dt, x, y, _angle, constants) => drive_to_point(robot, dt, x, y, constants),
-            // slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
-            // cycleButtons: [],
-            // numberInputs: [
-            //     { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
-            //     { constantsIdx: 0, headerName: "Drive Constants", fields: [...mikPIDConstantsSettings] },
-            //     { constantsIdx: 1, headerName: "Heading Constants", fields: [...mikPIDConstantsSettings] },
-            // ],
+            ],
+            numberInputs: [
+                { constantsIdx: 0, headerName: "Exit Conditions", fields: exitConditions("DRIVE") },
+                { constantsIdx: 0, headerName: "Drive Constants", fields: pidSlewSettings("DRIVE") },
+                { constantsIdx: 1, headerName: "Heading Constants", fields: pidSettings("DRIVE") },
+            ],
         },
 
         pointTurn: {

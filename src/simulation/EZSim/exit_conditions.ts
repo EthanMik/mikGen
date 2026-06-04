@@ -1,3 +1,4 @@
+import { roundOff } from "../../core/Util";
 import type { EZconstants } from "./EZConstants";
 import type { PID } from "./PID";
 
@@ -14,6 +15,7 @@ function pid_wait(pid: PID): boolean {
 }
 
 function pid_wait_quick(pid: PID, current_dist: number, chain_target_start: number): boolean {
+    console.log(roundOff(chain_target_start, 2), roundOff(current_dist, 2), roundOff(chain_target_start - current_dist, 2), roundOff(chain_target_start, 2));
     if (Math.sign(chain_target_start - current_dist) !== Math.sign(chain_target_start)) {
         pid.timers_reset();
         return true;

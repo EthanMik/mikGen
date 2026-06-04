@@ -1,10 +1,6 @@
 Live Progress Txt
 
 Bugs:
-- when holding down shift and pressing a segment it drags it instead
-- when box selecting, after multiple segments are selected, trying to do a second box select fails
-- Distance drive segments do not snap accordingly, created some weird behavior
-- distance drive breaks when dragging it with another segment
 
 Todo:
 - instead of commands add a help button that provides path examples
