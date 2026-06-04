@@ -406,7 +406,7 @@ export default function FieldMacros() {
 
         let dir = 0;
 
-        if (evt !== null && !evt.ctrlKey && action !== null) return;
+        if (evt !== null && !evt.ctrlKey && action === null) return;
         if (evt?.key === "=" || action === "ZoomIn") dir = 1;
         if (evt?.key === "-" || action === "ZoomOut") dir = -1;
 

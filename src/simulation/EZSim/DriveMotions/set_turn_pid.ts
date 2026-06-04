@@ -1,6 +1,6 @@
 import type { Robot } from "../../../core/Robot";
 import { clamp } from "../../JarSim/util";
-import { ez_wait } from "../exit_conditions";
+import { wait } from "../exit_conditions";
 import type { EZconstants } from "../EZConstants";
 import { PID } from "../PID";
 import { slew } from "../slew";
@@ -43,7 +43,7 @@ export function pid_turn_set(robot: Robot, dt: number, target: number, p: EZcons
     robot.tankDrive(gyro_out / 127, -gyro_out / 127, dt);
 
 
-    const output = ez_wait(turn_p.wait, turnPID, robot.getRotation() - sensor_start, chain_target_start, turn_p.chain_constant);
+    const output = wait(turn_p.wait, turnPID, robot.getRotation() - sensor_start, chain_target_start, turn_p.chain_constant);
     if (output) {
         turn_start = true;
         return output;

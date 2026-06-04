@@ -1,6 +1,6 @@
 import type { Robot } from "../../../core/Robot";
 import { toRad } from "../../../core/Util";
-import { ez_wait } from "../exit_conditions";
+import { wait } from "../exit_conditions";
 import type { EZconstants } from "../EZConstants";
 import { PID } from "../PID";
 import { slew } from "../slew";
@@ -57,7 +57,7 @@ export function pid_drive_set(robot: Robot, dt: number, target: number, p: EZcon
     robot.tankDrive(l_out / 127, r_out / 127, dt);
 
 
-    const output = ez_wait(drive_p.wait, drivePID, current_dist, target, drive_p.chain_constant);
+    const output = wait(drive_p.wait, drivePID, current_dist, target, drive_p.chain_constant);
     if (output) {
         drive_start = true;
         return output;

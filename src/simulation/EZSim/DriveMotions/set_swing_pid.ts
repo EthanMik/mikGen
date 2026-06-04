@@ -1,6 +1,6 @@
 import type { Robot } from "../../../core/Robot";
 import { clamp } from "../../JarSim/util";
-import { ez_wait } from "../exit_conditions";
+import { wait } from "../exit_conditions";
 import type { EZconstants } from "../EZConstants";
 import { PID } from "../PID";
 import { slew } from "../slew";
@@ -51,7 +51,7 @@ export function pid_swing_set(robot: Robot, dt: number, target: number, p: EZcon
         robot.tankDrive(opposite_output / 127, -swing_out / 127, dt);        
     }
 
-    const output = ez_wait(swing_p.wait, swingPID, robot.getRotation() - sensor_start, chain_target_start, swing_p.chain_constant);
+    const output = wait(swing_p.wait, swingPID, robot.getRotation() - sensor_start, chain_target_start, swing_p.chain_constant);
     if (output) {
         swing_start = true;
         return output;

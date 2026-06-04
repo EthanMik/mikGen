@@ -34,17 +34,12 @@ export function vector_off_point(added: number, icurrent: pose): pose {
 
 export function find_point_to_face(current: pose, target: pose, dir: EZconstants["drive_directions"]) {
     if (dir == "rev") {
-        const new_target: pose = target;
-        new_target.x -= current.x;
-        new_target.y -= current.y;
-
-        new_target.x *= -1;
-        new_target.y *= -1;
-
-        new_target.x += current.x;
-        new_target.y += current.y;
-
-        target = new_target;
+        // Rotate target 180 degrees around current without mutating the caller's object
+        target = {
+            x: -(target.x - current.x) + current.x,
+            y: -(target.y - current.y) + current.y,
+            theta: target.theta,
+        };
     }
 
     const tx_cx = target.x - current.x;

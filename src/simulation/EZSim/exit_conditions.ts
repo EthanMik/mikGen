@@ -2,7 +2,7 @@ import { roundOff } from "../../core/Util";
 import type { EZconstants } from "./EZConstants";
 import type { PID } from "./PID";
 
-export function ez_wait(mode: EZconstants["wait"], pid: PID, current_dist: number, chain_target_start: number, chain_constant: number) {
+export function wait(mode: EZconstants["wait"], pid: PID, current_dist: number, chain_target_start: number, chain_constant: number) {
     switch (mode) {
         case "wait": return pid_wait(pid);
         case "wait_quick": return pid_wait_quick(pid, current_dist, chain_target_start);
@@ -41,3 +41,4 @@ function pid_wait_quick_chain(pid: PID, current_dist: number, chain_target_start
 
     return false;
 }
+
