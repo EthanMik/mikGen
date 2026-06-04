@@ -12630,7 +12630,7 @@ function useViewMode() {
   return [viewModeStore.useStore(), viewModeStore.setState];
 }
 const ccw = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_301_13)'%3e%3cpath%20d='M1.21931%202.13826C1.89274%202.13826%202.43862%202.68416%202.43862%203.35757V5.31611C3.165%204.05176%204.17638%202.97141%205.40345%202.15761C6.94433%201.13569%208.73971%200.59552%2010.5955%200.59552C11.8646%200.59552%2013.0964%200.844329%2014.2566%201.33507C15.3766%201.80879%2016.3822%202.48673%2017.2455%203.35002C18.1088%204.21332%2018.7867%205.21896%2019.2605%206.33898C19.7512%207.4992%2020%208.73096%2020%2010C20%2011.2691%2019.7512%2012.5008%2019.2604%2013.661C18.7867%2014.7811%2018.1088%2015.7867%2017.2455%2016.65C16.3822%2017.5133%2015.3765%2018.1912%2014.2565%2018.6649C13.0963%2019.1557%2011.8646%2019.4045%2010.5955%2019.4045C9.51175%2019.4045%208.44882%2019.2214%207.43621%2018.8603C6.45763%2018.5114%205.54814%2018.0045%204.73299%2017.354C3.92588%2016.7098%203.23407%2015.9431%202.67677%2015.0752C2.10908%2014.191%201.69688%2013.226%201.45174%2012.2071C1.29421%2011.5524%201.69719%2010.8939%202.35194%2010.7363C3.00672%2010.5788%203.66515%2010.9819%203.82269%2011.6366C4.18195%2013.1297%205.04546%2014.4833%206.2542%2015.448C6.85805%2015.9299%207.53129%2016.3052%208.25526%2016.5633C9.00427%2016.8304%209.79164%2016.9659%2010.5955%2016.9659C12.4561%2016.9659%2014.2055%2016.2413%2015.5211%2014.9256C16.8368%2013.6099%2017.5614%2011.8606%2017.5614%209.99995C17.5614%208.13933%2016.8368%206.39%2015.5211%205.07433C14.2054%203.75866%2012.4561%203.03407%2010.5955%203.03407C9.22063%203.03407%207.89133%203.43372%206.75126%204.18981C5.76887%204.84137%204.97311%205.72282%204.42863%206.75724H5.77625C6.44968%206.75724%206.99556%207.30314%206.99556%207.97655C6.99556%208.64993%206.44968%209.19586%205.77625%209.19586H1.21931C0.545879%209.19586%201.06012e-07%208.64993%201.06012e-07%207.97655V3.35757C1.06012e-07%202.68416%200.545926%202.13826%201.21931%202.13826Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_301_13'%3e%3crect%20width='20'%20height='20'%20fill='white'%20transform='matrix(-1%200%200%201%2020%200)'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
-const cw = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_301_6)'%3e%3cpath%20d='M18.7807%202.13826C18.1073%202.13826%2017.5614%202.68416%2017.5614%203.35757V5.31611C16.835%204.05176%2015.8236%202.97141%2014.5966%202.15761C13.0557%201.13569%2011.2603%200.59552%209.40448%200.59552C8.13537%200.59552%206.90364%200.844329%205.74344%201.33507C4.62339%201.80879%203.6178%202.48673%202.75448%203.35002C1.89121%204.21332%201.21327%205.21896%200.739529%206.33898C0.248832%207.4992%200%208.73096%200%2010C0%2011.2691%200.248832%2012.5008%200.739552%2013.661C1.21327%2014.7811%201.89123%2015.7867%202.75452%2016.65C3.61782%2017.5133%204.62346%2018.1912%205.74346%2018.6649C6.90366%2019.1557%208.1354%2019.4045%209.4045%2019.4045C10.4882%2019.4045%2011.5512%2019.2214%2012.5638%2018.8603C13.5424%2018.5114%2014.4519%2018.0045%2015.267%2017.354C16.0741%2016.7098%2016.7659%2015.9431%2017.3232%2015.0752C17.8909%2014.191%2018.3031%2013.226%2018.5483%2012.2071C18.7058%2011.5524%2018.3028%2010.8939%2017.6481%2010.7363C16.9933%2010.5788%2016.3348%2010.9819%2016.1773%2011.6366C15.818%2013.1297%2014.9545%2014.4833%2013.7458%2015.448C13.142%2015.9299%2012.4687%2016.3052%2011.7447%2016.5633C10.9957%2016.8304%2010.2084%2016.9659%209.4045%2016.9659C7.54386%2016.9659%205.79453%2016.2413%204.47888%2014.9256C3.16321%2013.6099%202.43862%2011.8606%202.43862%209.99995C2.43862%208.13933%203.16319%206.39%204.47888%205.07433C5.79458%203.75866%207.54386%203.03407%209.4045%203.03407C10.7794%203.03407%2012.1087%203.43372%2013.2487%204.18981C14.2311%204.84137%2015.0269%205.72282%2015.5714%206.75724H14.2237C13.5503%206.75724%2013.0044%207.30314%2013.0044%207.97655C13.0044%208.64993%2013.5503%209.19586%2014.2237%209.19586H18.7807C19.4541%209.19586%2020%208.64993%2020%207.97655V3.35757C20%202.68416%2019.4541%202.13826%2018.7807%202.13826Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_301_6'%3e%3crect%20width='20'%20height='20'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
+const refresh = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_301_6)'%3e%3cpath%20d='M18.7807%202.13826C18.1073%202.13826%2017.5614%202.68416%2017.5614%203.35757V5.31611C16.835%204.05176%2015.8236%202.97141%2014.5966%202.15761C13.0557%201.13569%2011.2603%200.59552%209.40448%200.59552C8.13537%200.59552%206.90364%200.844329%205.74344%201.33507C4.62339%201.80879%203.6178%202.48673%202.75448%203.35002C1.89121%204.21332%201.21327%205.21896%200.739529%206.33898C0.248832%207.4992%200%208.73096%200%2010C0%2011.2691%200.248832%2012.5008%200.739552%2013.661C1.21327%2014.7811%201.89123%2015.7867%202.75452%2016.65C3.61782%2017.5133%204.62346%2018.1912%205.74346%2018.6649C6.90366%2019.1557%208.1354%2019.4045%209.4045%2019.4045C10.4882%2019.4045%2011.5512%2019.2214%2012.5638%2018.8603C13.5424%2018.5114%2014.4519%2018.0045%2015.267%2017.354C16.0741%2016.7098%2016.7659%2015.9431%2017.3232%2015.0752C17.8909%2014.191%2018.3031%2013.226%2018.5483%2012.2071C18.7058%2011.5524%2018.3028%2010.8939%2017.6481%2010.7363C16.9933%2010.5788%2016.3348%2010.9819%2016.1773%2011.6366C15.818%2013.1297%2014.9545%2014.4833%2013.7458%2015.448C13.142%2015.9299%2012.4687%2016.3052%2011.7447%2016.5633C10.9957%2016.8304%2010.2084%2016.9659%209.4045%2016.9659C7.54386%2016.9659%205.79453%2016.2413%204.47888%2014.9256C3.16321%2013.6099%202.43862%2011.8606%202.43862%209.99995C2.43862%208.13933%203.16319%206.39%204.47888%205.07433C5.79458%203.75866%207.54386%203.03407%209.4045%203.03407C10.7794%203.03407%2012.1087%203.43372%2013.2487%204.18981C14.2311%204.84137%2015.0269%205.72282%2015.5714%206.75724H14.2237C13.5503%206.75724%2013.0044%207.30314%2013.0044%207.97655C13.0044%208.64993%2013.5503%209.19586%2014.2237%209.19586H18.7807C19.4541%209.19586%2020%208.64993%2020%207.97655V3.35757C20%202.68416%2019.4541%202.13826%2018.7807%202.13826Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_301_6'%3e%3crect%20width='20'%20height='20'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
 const cwccw = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M5.453%209.24096C6.08872%209.24096%206.60408%208.72561%206.60408%208.08988C6.60408%207.45416%206.08872%206.93881%205.453%206.93881H4.17772C4.62934%206.08515%205.26881%205.32864%206.04444%204.7442C7.19062%203.8805%208.55757%203.424%209.99747%203.424C10.7563%203.424%2011.4997%203.55184%2012.2067%203.80398C12.8902%204.04768%2013.5258%204.40195%2014.0958%204.85692C15.2369%205.76761%2016.0521%207.04543%2016.3913%208.45505C16.5182%208.98264%2016.9897%209.33712%2017.5095%209.33708C17.5985%209.33708%2017.6892%209.32662%2017.7797%209.30487C18.3977%209.15615%2018.7783%208.53453%2018.6295%207.91646C18.398%206.95455%2018.0089%206.0436%2017.473%205.20886C16.9469%204.38947%2016.2938%203.66568%2015.5319%203.05758C14.7623%202.44341%2013.9038%201.96498%2012.9799%201.63556C12.024%201.29468%2011.0205%201.12183%209.99745%201.12183C9.01765%201.12183%208.05448%201.28065%207.13454%201.59385C6.24507%201.89671%205.41216%202.33804%204.659%202.90558C3.91471%203.46642%203.26565%204.13722%202.72991%204.89937C2.57683%205.11713%202.4344%205.3411%202.30213%205.57039V3.72931C2.30213%203.09358%201.78677%202.57823%201.15105%202.57823C0.515331%202.57823%200%203.09361%200%203.72933V8.08991C0%208.72563%200.515353%209.24098%201.15107%209.24098L5.453%209.24096Z'%20fill='white'/%3e%3cpath%20d='M18.8489%2010.7591H14.5469C13.9112%2010.7591%2013.3959%2011.2745%2013.3959%2011.9102C13.3959%2012.5459%2013.9112%2013.0613%2014.5469%2013.0613H15.8192C15.3052%2014.0378%2014.554%2014.87%2013.6265%2015.485C12.551%2016.1983%2011.2971%2016.5756%2010.0001%2016.5761C9.24206%2016.5758%208.49954%2016.448%207.7932%2016.1961C7.10975%2015.9524%206.47418%2015.5982%205.9041%2015.1432C4.76302%2014.2325%203.94782%2012.9547%203.60866%2011.5451C3.45996%2010.927%202.83838%2010.5465%202.22024%2010.6952C1.60217%2010.8439%201.22168%2011.4656%201.3704%2012.0836C1.60184%2013.0455%201.99095%2013.9565%202.52691%2014.7912C3.05301%2015.6106%203.7061%2016.3344%204.46804%2016.9425C5.23757%2017.5567%206.09617%2018.0351%207.01999%2018.3645C7.97323%2018.7044%208.97368%2018.8772%209.99379%2018.8781C9.99502%2018.8781%209.99618%2018.8782%209.99743%2018.8782C9.99835%2018.8782%209.99925%2018.8782%2010.0002%2018.8782C10.001%2018.8782%2010.0017%2018.8782%2010.0025%2018.8782C10.0034%2018.8782%2010.0044%2018.8782%2010.0053%2018.8782C11.7545%2018.8767%2013.4465%2018.3669%2014.8989%2017.4036C16.0573%2016.6354%2017.0121%2015.6154%2017.6978%2014.4218V16.2708C17.6978%2016.9065%2018.2132%2017.4219%2018.8489%2017.4219C19.4846%2017.4219%2020%2016.9065%2020%2016.2708V11.9102C20%2011.2745%2019.4846%2010.7591%2018.8489%2010.7591Z'%20fill='white'/%3e%3c/svg%3e";
 const fwd = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_304_10)'%3e%3cpath%20d='M16.1753%208.37015L16.8962%209.09093L0.909059%209.09093C0.406998%209.09093%20-3.20384e-05%209.49796%20-3.20384e-05%2010C-3.20384e-05%2010.5021%200.406998%2010.9091%200.909059%2010.9091L16.8962%2010.9091L16.1753%2011.63C15.9978%2011.8075%2015.909%2012.0401%2015.909%2012.2728C15.909%2012.5054%2015.9977%2012.7381%2016.1753%2012.9156C16.5303%2013.2706%2017.1059%2013.2706%2017.4609%2012.9156L19.7337%2010.6429C20.0887%2010.2879%2020.0887%209.71227%2019.7337%209.35724L17.4609%207.08451C17.1059%206.72948%2016.5303%206.72948%2016.1753%207.08451C15.8203%207.43948%2015.8203%208.01512%2016.1753%208.37015Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_304_10'%3e%3crect%20width='20'%20height='20'%20fill='white'%20transform='matrix(0%201%20-1%200%2020%200)'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
 const rev = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_304_8)'%3e%3cpath%20d='M3.8247%2011.6299L3.10385%2010.9091L19.0909%2010.9091C19.593%2010.9091%2020%2010.502%2020%209.99997C20%209.49791%2019.593%209.09088%2019.0909%209.09088H3.10385L3.8247%208.37004C4.00221%208.19252%204.091%207.95985%204.091%207.72725C4.091%207.49458%204.00227%207.26191%203.8247%207.0844C3.46967%206.72937%202.89409%206.72937%202.53906%207.0844L0.266334%209.35713C-0.0886965%209.7121%20-0.0886965%2010.2877%200.266334%2010.6428L2.53906%2012.9155C2.89409%2013.2705%203.46967%2013.2705%203.8247%2012.9155C4.17973%2012.5605%204.17973%2011.9849%203.8247%2011.6299Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_304_8'%3e%3crect%20width='20'%20height='20'%20fill='white'%20transform='matrix(0%20-1%201%200%200%2020)'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
@@ -12772,7 +12772,7 @@ class LemTimer {
     this.paused = false;
   }
 }
-function slew(target2, current, maxChange) {
+function slew$1(target2, current, maxChange) {
   let change = target2 - current;
   if (maxChange === 0) return target2;
   if (change > maxChange) change = maxChange;
@@ -12828,7 +12828,7 @@ let close$1;
 let prevLateralOut$1;
 let prevAngularOut;
 let prevSide;
-let target$1;
+let target$2;
 let start$d = true;
 function resetMoveToPoint() {
   start$d = true;
@@ -12847,8 +12847,8 @@ function moveToPoint(robot, dt, x, y, k) {
     prevLateralOut$1 = 0;
     prevAngularOut = 0;
     prevSide = null;
-    target$1 = new LemPose(x, y);
-    target$1.theta = lastPose.angle(target$1);
+    target$2 = new LemPose(x, y);
+    target$2.theta = lastPose.angle(target$2);
     start$d = false;
   }
   timer$5.update(dt);
@@ -12860,13 +12860,13 @@ function moveToPoint(robot, dt, x, y, k) {
   const params = kLateral;
   const pose = toLemPose(robot.getPose(), true, true);
   lastPose = pose;
-  const distTarget = pose.distance(target$1);
+  const distTarget = pose.distance(target$2);
   let effectiveMaxSpeed = params.maxSpeed;
   if (distTarget < 7.5 && close$1 == false) {
     close$1 = true;
     effectiveMaxSpeed = Math.max(Math.abs(prevLateralOut$1), 60);
   }
-  const side = (pose.y - target$1.y) * -Math.sin(target$1.theta) <= (pose.x - target$1.x) * Math.cos(target$1.theta) + params.earlyExitRange;
+  const side = (pose.y - target$2.y) * -Math.sin(target$2.theta) <= (pose.x - target$2.x) * Math.cos(target$2.theta) + params.earlyExitRange;
   if (prevSide == null) prevSide = side;
   const sameSide = side == prevSide;
   if (!sameSide && params.minSpeed != 0) {
@@ -12875,17 +12875,17 @@ function moveToPoint(robot, dt, x, y, k) {
   }
   prevSide = side;
   const adjustedRobotTheta = kLateral.forwards ? pose.theta : pose.theta + Math.PI;
-  const angularError = angleError(adjustedRobotTheta, pose.angle(target$1));
-  const lateralError = pose.distance(target$1) * Math.cos(angleError(pose.theta, pose.angle(target$1)));
+  const angularError = angleError(adjustedRobotTheta, pose.angle(target$2));
+  const lateralError = pose.distance(target$2) * Math.cos(angleError(pose.theta, pose.angle(target$2)));
   lateralSmallExit$1.update(lateralError, dt);
   lateralLargeExit$1.update(lateralError, dt);
   let lateralOut = lateralPID$1.update(lateralError);
   let angularOut = angularPID$5.update(toDeg(angularError));
   if (close$1) angularOut = 0;
   angularOut = clamp(angularOut, -effectiveMaxSpeed, effectiveMaxSpeed);
-  angularOut = slew(angularOut, prevAngularOut, kAngular.slew);
+  angularOut = slew$1(angularOut, prevAngularOut, kAngular.slew);
   lateralOut = clamp(lateralOut, -effectiveMaxSpeed, effectiveMaxSpeed);
-  if (!close$1) lateralOut = slew(lateralOut, prevLateralOut$1, kLateral.slew);
+  if (!close$1) lateralOut = slew$1(lateralOut, prevLateralOut$1, kLateral.slew);
   if (kLateral.forwards && !close$1) lateralOut = Math.max(lateralOut, 0);
   else if (!kLateral.forwards && !close$1) lateralOut = Math.min(lateralOut, 0);
   if (kLateral.forwards && lateralOut < Math.abs(params.minSpeed) && lateralOut > 0) lateralOut = Math.abs(params.minSpeed);
@@ -12914,7 +12914,7 @@ let close;
 let lateralSettled;
 let prevLateralOut;
 let prevSameSide;
-let target;
+let target$1;
 let start$c = true;
 function resetMoveToPose() {
   start$c = true;
@@ -12934,8 +12934,8 @@ function moveToPose(robot, dt, x, y, angle, k) {
     lateralSettled = false;
     prevLateralOut = 0;
     prevSameSide = false;
-    target = new LemPose(x, y, Math.PI / 2 - toRad(angle));
-    if (!kLateral.forwards) target.theta = (target.theta + Math.PI) % (2 * Math.PI);
+    target$1 = new LemPose(x, y, Math.PI / 2 - toRad(angle));
+    if (!kLateral.forwards) target$1.theta = (target$1.theta + Math.PI) % (2 * Math.PI);
     start$c = false;
   }
   timer$4.update(dt);
@@ -12946,17 +12946,17 @@ function moveToPose(robot, dt, x, y, angle, k) {
   }
   const params = kLateral;
   const pose = toLemPose(robot.getPose(), true, true);
-  const distTarget = pose.distance(target);
+  const distTarget = pose.distance(target$1);
   let effectiveMaxSpeed = params.maxSpeed;
   if (distTarget < 7.5 && !close) {
     close = true;
     effectiveMaxSpeed = Math.max(Math.abs(prevLateralOut), 60);
   }
   if (lateralLargeExit.getExit() && lateralSmallExit.getExit()) lateralSettled = true;
-  let carrot = target.sub(new LemPose(Math.cos(target.theta), Math.sin(target.theta)).mulScalar(params.lead * distTarget));
-  if (close) carrot = target;
-  const robotSide = (pose.y - target.y) * -Math.sin(target.theta) <= (pose.x - target.x) * Math.cos(target.theta) + params.earlyExitRange;
-  const carrotSide = (carrot.y - target.y) * -Math.sin(target.theta) <= (carrot.x - target.x) * Math.cos(target.theta) + params.earlyExitRange;
+  let carrot = target$1.sub(new LemPose(Math.cos(target$1.theta), Math.sin(target$1.theta)).mulScalar(params.lead * distTarget));
+  if (close) carrot = target$1;
+  const robotSide = (pose.y - target$1.y) * -Math.sin(target$1.theta) <= (pose.x - target$1.x) * Math.cos(target$1.theta) + params.earlyExitRange;
+  const carrotSide = (carrot.y - target$1.y) * -Math.sin(target$1.theta) <= (carrot.x - target$1.x) * Math.cos(target$1.theta) + params.earlyExitRange;
   const sameSide = robotSide === carrotSide;
   if (!sameSide && prevSameSide && close && params.minSpeed !== 0) {
     resetMoveToPose();
@@ -12964,7 +12964,7 @@ function moveToPose(robot, dt, x, y, angle, k) {
   }
   prevSameSide = sameSide;
   const adjustedRobotTheta = params.forwards ? pose.theta : pose.theta + Math.PI;
-  const angularError = close ? angleError(adjustedRobotTheta, target.theta) : angleError(adjustedRobotTheta, pose.angle(carrot));
+  const angularError = close ? angleError(adjustedRobotTheta, target$1.theta) : angleError(adjustedRobotTheta, pose.angle(carrot));
   let lateralError = pose.distance(carrot);
   if (close) lateralError *= Math.cos(angleError(pose.theta, pose.angle(carrot)));
   else lateralError *= Math.sign(Math.cos(angleError(pose.theta, pose.angle(carrot))));
@@ -12976,7 +12976,7 @@ function moveToPose(robot, dt, x, y, angle, k) {
   let angularOut = angularPID$4.update(toDeg(angularError));
   angularOut = clamp(angularOut, -effectiveMaxSpeed, effectiveMaxSpeed);
   lateralOut = clamp(lateralOut, -effectiveMaxSpeed, effectiveMaxSpeed);
-  if (!close) lateralOut = slew(lateralOut, prevLateralOut, params.slew);
+  if (!close) lateralOut = slew$1(lateralOut, prevLateralOut, params.slew);
   const radius = 1 / Math.abs(getCurvature(pose, carrot));
   const horizontalDrift = params.horizontalDrift !== 0 ? params.horizontalDrift : 2;
   const maxSlipSpeed = Math.sqrt(horizontalDrift * radius * 9.8);
@@ -13052,7 +13052,7 @@ function swingToHeading(robot, dt, angle, k) {
   angularSmallExit$3.update(deltaTheta, dt);
   if (motorPower > params.maxSpeed) motorPower = params.maxSpeed;
   else if (motorPower < -params.maxSpeed) motorPower = -params.maxSpeed;
-  if (Math.abs(deltaTheta) > 20) motorPower = slew(motorPower, prevMotorPower$3, params.slew);
+  if (Math.abs(deltaTheta) > 20) motorPower = slew$1(motorPower, prevMotorPower$3, params.slew);
   if (motorPower < 0 && motorPower > -Math.abs(params.minSpeed)) motorPower = -Math.abs(params.minSpeed);
   else if (motorPower > 0 && motorPower < Math.abs(params.minSpeed)) motorPower = Math.abs(params.minSpeed);
   prevMotorPower$3 = motorPower;
@@ -13119,7 +13119,7 @@ function swingToPoint(robot, dt, x, y, k) {
   angularSmallExit$2.update(deltaTheta, dt);
   if (motorPower > params.maxSpeed) motorPower = params.maxSpeed;
   else if (motorPower < -params.maxSpeed) motorPower = -params.maxSpeed;
-  if (Math.abs(deltaTheta) > 20) motorPower = slew(motorPower, prevMotorPower$2, params.slew);
+  if (Math.abs(deltaTheta) > 20) motorPower = slew$1(motorPower, prevMotorPower$2, params.slew);
   if (motorPower < 0 && motorPower > -Math.abs(params.minSpeed)) motorPower = -Math.abs(params.minSpeed);
   else if (motorPower > 0 && motorPower < Math.abs(params.minSpeed)) motorPower = Math.abs(params.minSpeed);
   prevMotorPower$2 = motorPower;
@@ -13184,7 +13184,7 @@ function turnToHeading(robot, dt, angle, k) {
   angularSmallExit$1.update(deltaTheta, dt);
   if (motorPower > params.maxSpeed) motorPower = params.maxSpeed;
   else if (motorPower < -params.maxSpeed) motorPower = -params.maxSpeed;
-  if (Math.abs(deltaTheta) > 20) motorPower = slew(motorPower, prevMotorPower$1, params.slew);
+  if (Math.abs(deltaTheta) > 20) motorPower = slew$1(motorPower, prevMotorPower$1, params.slew);
   if (motorPower < 0 && motorPower > -Math.abs(params.minSpeed)) motorPower = -Math.abs(params.minSpeed);
   else if (motorPower > 0 && motorPower < Math.abs(params.minSpeed)) motorPower = Math.abs(params.minSpeed);
   prevMotorPower$1 = motorPower;
@@ -13247,7 +13247,7 @@ function turnToPoint(robot, dt, x, y, k) {
   angularSmallExit.update(deltaTheta, dt);
   if (motorPower > params.maxSpeed) motorPower = params.maxSpeed;
   else if (motorPower < -params.maxSpeed) motorPower = -params.maxSpeed;
-  if (Math.abs(deltaTheta) > 20) motorPower = slew(motorPower, prevMotorPower, params.slew);
+  if (Math.abs(deltaTheta) > 20) motorPower = slew$1(motorPower, prevMotorPower, params.slew);
   if (motorPower < 0 && motorPower > -Math.abs(params.minSpeed)) motorPower = -Math.abs(params.minSpeed);
   else if (motorPower > 0 && motorPower < Math.abs(params.minSpeed)) motorPower = Math.abs(params.minSpeed);
   prevMotorPower = motorPower;
@@ -13264,9 +13264,9 @@ const kLemLinear = {
   earlyExitRange: 0,
   timeout: 5e3,
   horizontalDrift: 2,
-  kp: 10,
+  kp: 12,
   ki: 0,
-  kd: 3,
+  kd: 100,
   antiWindup: 3,
   smallError: 1,
   smallErrorTimeout: 100,
@@ -13306,9 +13306,9 @@ const lateralSettingsFields = [
   { key: "kd", label: "kD", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
   { key: "antiWindup", label: "Anti Windup", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 2 } },
   { key: "smallError", label: "Small Error", units: "in", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 2 } },
-  { key: "smallErrorTimeout", label: "Sml Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+  { key: "smallErrorTimeout", label: "Small Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
   { key: "largeError", label: "Large Error", units: "in", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 2 } },
-  { key: "largeErrorTimeout", label: "Lge Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+  { key: "largeErrorTimeout", label: "Large Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
   { key: "slew", label: "Slew", units: "", input: { bounds: [0, 127], stepSize: 1, roundTo: 1 } }
 ];
 const angularSettingsFields = [
@@ -13317,9 +13317,9 @@ const angularSettingsFields = [
   { key: "kd", label: "kD", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
   { key: "antiWindup", label: "Anti Windup", units: "deg", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 2 } },
   { key: "smallError", label: "Small Error", units: "in", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 2 } },
-  { key: "smallErrorTimeout", label: "Sml Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+  { key: "smallErrorTimeout", label: "Small Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
   { key: "largeError", label: "Large Error", units: "in", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 2 } },
-  { key: "largeErrorTimeout", label: "Lge Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+  { key: "largeErrorTimeout", label: "Large Timeout", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
   { key: "slew", label: "Slew", units: "", input: { bounds: [0, 127], stepSize: 1, roundTo: 1 } }
 ];
 const forwardsButton = {
@@ -13332,7 +13332,7 @@ const forwardsButton = {
 const directionButton = {
   key: "direction",
   keyValues: [
-    { srcImg: cw, value: "AngularDirection::CW_CLOCKWISE" },
+    { srcImg: refresh, value: "AngularDirection::CW_CLOCKWISE" },
     { srcImg: ccw, value: "AngularDirection::CCW_COUNTERCLOCKWISE" },
     { srcImg: cwccw, value: "AngularDirection::AUTO" }
   ]
@@ -13535,8 +13535,8 @@ function kLemParser(kDefault, kBuilderStr, kind) {
   const poseOverride = isTurn ? { angle: constants[0].forwards ? 0 : 180 } : void 0;
   return [constants, poseOverride];
 }
-const fastest = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_296_2)'%3e%3cpath%20d='M20%204.96211C20%204.32319%2019.4821%203.80524%2018.8431%203.80524L3.96293%203.80524L4.88155%202.87553C5.10433%202.65007%205.2155%202.35622%205.2155%202.06246C5.2155%201.76408%205.10076%201.46578%204.87173%201.2395C4.41724%200.790433%203.68478%200.794817%203.23571%201.2493L0.334011%204.18602C0.119979%204.40263%206.10352e-05%204.6948%206.10352e-05%204.99911C6.10352e-05%205.0014%206.10352e-05%205.00376%208.30708e-05%205.00603C0.00193407%205.31283%200.125554%205.60637%200.343839%205.82201L3.24109%208.68473C3.69557%209.13379%204.42804%209.12941%204.8771%208.67492C5.32621%208.22041%205.3218%207.48795%204.8673%207.03888L3.93629%206.11896L18.8432%206.11896C19.4821%206.11898%2020%205.60104%2020%204.96211Z'%20fill='white'/%3e%3cpath%20d='M6.10352e-05%2013.0379C6.10352e-05%2013.6768%200.518009%2014.1948%201.15693%2014.1948H16.0638L15.1328%2015.1147C14.6783%2015.5637%2014.6739%2016.2962%2015.123%2016.7507C15.5721%2017.2052%2016.3045%2017.2096%2016.759%2016.7605L19.6562%2013.8978C19.8745%2013.6822%2019.9982%2013.3887%2020%2013.0819C20%2013.0796%2020%2013.0772%2020%2013.0749C20%2012.7706%2019.8801%2012.4784%2019.6661%2012.2618L16.7643%209.32506C16.3153%208.87057%2015.5828%208.86619%2015.1283%209.31525C14.6738%209.76431%2014.6694%2010.4968%2015.1185%2010.9513L16.0371%2011.881H1.15693C0.518009%2011.881%206.10352e-05%2012.399%206.10352e-05%2013.0379Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_296_2'%3e%3crect%20width='20'%20height='20'%20fill='white'%20transform='matrix(0%20-1%201%200%200%2020)'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
-class PID {
+const fastest$1 = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_296_2)'%3e%3cpath%20d='M20%204.96211C20%204.32319%2019.4821%203.80524%2018.8431%203.80524L3.96293%203.80524L4.88155%202.87553C5.10433%202.65007%205.2155%202.35622%205.2155%202.06246C5.2155%201.76408%205.10076%201.46578%204.87173%201.2395C4.41724%200.790433%203.68478%200.794817%203.23571%201.2493L0.334011%204.18602C0.119979%204.40263%206.10352e-05%204.6948%206.10352e-05%204.99911C6.10352e-05%205.0014%206.10352e-05%205.00376%208.30708e-05%205.00603C0.00193407%205.31283%200.125554%205.60637%200.343839%205.82201L3.24109%208.68473C3.69557%209.13379%204.42804%209.12941%204.8771%208.67492C5.32621%208.22041%205.3218%207.48795%204.8673%207.03888L3.93629%206.11896L18.8432%206.11896C19.4821%206.11898%2020%205.60104%2020%204.96211Z'%20fill='white'/%3e%3cpath%20d='M6.10352e-05%2013.0379C6.10352e-05%2013.6768%200.518009%2014.1948%201.15693%2014.1948H16.0638L15.1328%2015.1147C14.6783%2015.5637%2014.6739%2016.2962%2015.123%2016.7507C15.5721%2017.2052%2016.3045%2017.2096%2016.759%2016.7605L19.6562%2013.8978C19.8745%2013.6822%2019.9982%2013.3887%2020%2013.0819C20%2013.0796%2020%2013.0772%2020%2013.0749C20%2012.7706%2019.8801%2012.4784%2019.6661%2012.2618L16.7643%209.32506C16.3153%208.87057%2015.5828%208.86619%2015.1283%209.31525C14.6738%209.76431%2014.6694%2010.4968%2015.1185%2010.9513L16.0371%2011.881H1.15693C0.518009%2011.881%206.10352e-05%2012.399%206.10352e-05%2013.0379Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_296_2'%3e%3crect%20width='20'%20height='20'%20fill='white'%20transform='matrix(0%20-1%201%200%200%2020)'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
+let PID$2 = class PID {
   constructor(kp, ki, kd, starti, settle_time, settle_error, timeout, exit_error) {
     this.kp = kp;
     this.ki = ki;
@@ -13552,6 +13552,7 @@ class PID {
   time_spent_settled = 0;
   time_spent_running = 0;
   exiting = false;
+  derivative = 0;
   compute(error) {
     if (Math.abs(error) < this.starti) {
       this.accumulated_error += error;
@@ -13560,6 +13561,7 @@ class PID {
       this.accumulated_error = 0;
     }
     const output = this.kp * error + this.ki * this.accumulated_error + this.kd * (error - this.previous_error);
+    this.derivative = error - this.previous_error;
     this.previous_error = error;
     if (Math.abs(error) < this.settle_error) {
       this.time_spent_settled += 1 / 60 * 1e3;
@@ -13592,9 +13594,9 @@ class PID {
     this.time_spent_running = 0;
     this.time_spent_settled = 0;
   }
-}
+};
 function angle_error(error, direction) {
-  if (direction === "fastest") return reduce_negative_180_to_180(error);
+  if (direction === "fastest") return reduce_negative_180_to_180$1(error);
   switch (direction) {
     case "cw":
       return error < 0 ? error + 360 : error;
@@ -13602,7 +13604,7 @@ function angle_error(error, direction) {
       return error > 0 ? error - 360 : error;
   }
 }
-function reduce_negative_180_to_180(angle) {
+function reduce_negative_180_to_180$1(angle) {
   while (!(angle >= -180 && angle < 180)) {
     if (angle < -180) {
       angle += 360;
@@ -13613,7 +13615,7 @@ function reduce_negative_180_to_180(angle) {
   }
   return angle;
 }
-function reduce_negative_90_to_90(angle) {
+function reduce_negative_90_to_90$1(angle) {
   while (!(angle >= -90 && angle < 90)) {
     if (angle < -90) {
       angle += 180;
@@ -13624,7 +13626,7 @@ function reduce_negative_90_to_90(angle) {
   }
   return angle;
 }
-function is_line_settled(desired_X, desired_Y, desired_angle_deg, current_X, current_Y, exit_error) {
+function is_line_settled$1(desired_X, desired_Y, desired_angle_deg, current_X, current_Y, exit_error) {
   return (desired_Y - current_Y) * Math.cos(toRad(desired_angle_deg)) <= -(desired_X - current_X) * Math.sin(toRad(desired_angle_deg)) + exit_error;
 }
 function slew_scaling(drive_output, prev_drive_output2, slew2, scale = true) {
@@ -13655,21 +13657,21 @@ function overturn_scaling(drive_output, heading_output, max_speed) {
   }
   return drive_output;
 }
-function left_voltage_scaling(drive_output, heading_output) {
+function left_voltage_scaling$1(drive_output, heading_output) {
   const ratio = Math.max(Math.abs(drive_output + heading_output), Math.abs(drive_output - heading_output)) / 12;
   if (ratio > 1) {
     return (drive_output + heading_output) / ratio;
   }
   return drive_output + heading_output;
 }
-function right_voltage_scaling(drive_output, heading_output) {
+function right_voltage_scaling$1(drive_output, heading_output) {
   const ratio = Math.max(Math.abs(drive_output + heading_output), Math.abs(drive_output - heading_output)) / 12;
   if (ratio > 1) {
     return (drive_output - heading_output) / ratio;
   }
   return drive_output - heading_output;
 }
-function clamp_min_voltage(drive_output, drive_min_voltage) {
+function clamp_min_voltage$1(drive_output, drive_min_voltage) {
   if (drive_output < 0 && drive_output > -drive_min_voltage) {
     return -drive_min_voltage;
   }
@@ -13686,12 +13688,12 @@ let prev_drive_output$4 = 0;
 let settling = false;
 let reverse = false;
 let drive_max_speed = 0;
-let drivePID$4;
-let headingPID$3;
+let drivePID$5;
+let headingPID$4;
 let start$7 = true;
-function reset_drive_to_pose() {
-  drivePID$4.reset();
-  headingPID$3.reset();
+function reset_drive_to_pose$1() {
+  drivePID$5.reset();
+  headingPID$4.reset();
   crossed_line = false;
   prev_crossed_line = false;
   prev_drive_output$4 = 0;
@@ -13699,21 +13701,21 @@ function reset_drive_to_pose() {
   reverse = false;
   start$7 = true;
 }
-function drive_to_pose(robot, dt, x, y, angle, p) {
+function drive_to_pose$1(robot, dt, x, y, angle, p) {
   const drive_p = p[0];
   const heading_p = p[1];
   if (start$7) {
-    drivePID$4 = new PID(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
-    headingPID$3 = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
+    drivePID$5 = new PID$2(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
+    headingPID$4 = new PID$2(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
     drive_max_speed = drive_p.max_voltage;
-    const rawHeadingError = reduce_negative_180_to_180(toDeg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle());
+    const rawHeadingError = reduce_negative_180_to_180$1(toDeg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle());
     reverse = drive_p.drive_direction === "reversed";
     if (drive_p.drive_direction === "fastest") reverse = Math.abs(rawHeadingError) > 100;
     start$7 = false;
-    prev_crossed_line = is_line_settled(x, y, angle, robot.getX(), robot.getY(), drive_p.exit_error);
+    prev_crossed_line = is_line_settled$1(x, y, angle, robot.getX(), robot.getY(), drive_p.exit_error);
   }
-  if (drivePID$4.isSettled()) {
-    reset_drive_to_pose();
+  if (drivePID$5.isSettled()) {
+    reset_drive_to_pose$1();
     return true;
   }
   if (reverse) angle = normalizeDeg(angle + 180);
@@ -13724,29 +13726,29 @@ function drive_to_pose(robot, dt, x, y, angle, p) {
     settling = true;
     drive_max_speed = Math.max(Math.abs(prev_drive_output$4), BOOMERANG_MIN_VOLTAGE);
   }
-  const line_settled = is_line_settled(x, y, angle, robot.getX(), robot.getY(), drive_p.exit_error);
-  const carrot_settled = is_line_settled(x, y, angle, carrot_X, carrot_Y, drive_p.exit_error);
+  const line_settled = is_line_settled$1(x, y, angle, robot.getX(), robot.getY(), drive_p.exit_error);
+  const carrot_settled = is_line_settled$1(x, y, angle, carrot_X, carrot_Y, drive_p.exit_error);
   crossed_line = line_settled === carrot_settled;
   if (!(crossed_line == prev_crossed_line) && settling && drive_p.min_voltage > 0) {
-    reset_drive_to_pose();
+    reset_drive_to_pose$1();
     return true;
   }
   prev_crossed_line = crossed_line;
   let drive_error = Math.hypot(carrot_X - robot.getX(), carrot_Y - robot.getY());
   let current_angle = robot.getAngle();
   if (reverse) current_angle = current_angle + 180;
-  let heading_error = reduce_negative_180_to_180(toDeg(Math.atan2(carrot_X - robot.getX(), carrot_Y - robot.getY())) - current_angle);
+  let heading_error = reduce_negative_180_to_180$1(toDeg(Math.atan2(carrot_X - robot.getX(), carrot_Y - robot.getY())) - current_angle);
   if (settling) {
     drive_error = target_distance;
-    heading_error = reduce_negative_180_to_180(angle - current_angle);
-    drive_error *= Math.cos(toRad(reduce_negative_180_to_180(toDeg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle())));
+    heading_error = reduce_negative_180_to_180$1(angle - current_angle);
+    drive_error *= Math.cos(toRad(reduce_negative_180_to_180$1(toDeg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle())));
     carrot_X = x;
     carrot_Y = y;
   } else {
-    drive_error *= Math.sign(Math.cos(toRad(reduce_negative_180_to_180(toDeg(Math.atan2(carrot_X - robot.getX(), carrot_Y - robot.getY())) - robot.getAngle()))));
+    drive_error *= Math.sign(Math.cos(toRad(reduce_negative_180_to_180$1(toDeg(Math.atan2(carrot_X - robot.getX(), carrot_Y - robot.getY())) - robot.getAngle()))));
   }
-  let drive_output = drivePID$4.compute(drive_error);
-  let heading_output = headingPID$3.compute(heading_error);
+  let drive_output = drivePID$5.compute(drive_error);
+  let heading_output = headingPID$4.compute(heading_error);
   heading_output = clamp(heading_output, -heading_p.max_voltage, heading_p.max_voltage);
   drive_output = clamp(drive_output, -drive_max_speed, drive_max_speed);
   drive_output = slew_scaling(drive_output, prev_drive_output$4, drive_p.slew * (dt / 0.01), !settling);
@@ -13754,11 +13756,11 @@ function drive_to_pose(robot, dt, x, y, angle, p) {
   drive_output = overturn_scaling(drive_output, heading_output, drive_max_speed);
   if (!reverse && !settling) drive_output = Math.max(drive_output, 0);
   else if (reverse && !settling) drive_output = Math.min(drive_output, 0);
-  drive_output = clamp_min_voltage(drive_output, drive_p.min_voltage);
+  drive_output = clamp_min_voltage$1(drive_output, drive_p.min_voltage);
   prev_drive_output$4 = drive_output;
   robot.tankDrive(
-    left_voltage_scaling(drive_output, heading_output) / 12,
-    right_voltage_scaling(drive_output, heading_output) / 12,
+    left_voltage_scaling$1(drive_output, heading_output) / 12,
+    right_voltage_scaling$1(drive_output, heading_output) / 12,
     dt
   );
   return false;
@@ -13767,42 +13769,42 @@ let driveDistanceStartX$1 = 0;
 let driveDistanceStartY$1 = 0;
 let prev_drive_output$3 = 0;
 let prev_heading_output$2 = 0;
-let drivePID$3;
-let headingPID$2;
+let drivePID$4;
+let headingPID$3;
 let start$6 = true;
 function restart_drive_distance() {
   driveDistanceStartX$1 = 0;
   driveDistanceStartY$1 = 0;
   prev_drive_output$3 = 0;
   prev_heading_output$2 = 0;
-  drivePID$3.reset();
-  headingPID$2.reset();
+  drivePID$4.reset();
+  headingPID$3.reset();
   start$6 = true;
 }
-function drive_distance(robot, dt, distance, heading, p) {
+function drive_distance$1(robot, dt, distance, heading, p) {
   const drive_p = p[0];
   const heading_p = p[1];
+  if (heading === null) heading = robot.getAngle();
   if (start$6) {
     driveDistanceStartX$1 = robot.getX();
     driveDistanceStartY$1 = robot.getY();
-    drivePID$3 = new PID(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, drive_p.min_voltage > 0 ? drive_p.exit_error : 0);
-    headingPID$2 = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
+    drivePID$4 = new PID$2(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, drive_p.min_voltage > 0 ? drive_p.exit_error : 0);
+    headingPID$3 = new PID$2(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
     start$6 = false;
   }
-  if (heading === null) heading = robot.getAngle();
   const dx = robot.getX() - driveDistanceStartX$1;
   const dy = robot.getY() - driveDistanceStartY$1;
   const traveled = dx * Math.sin(toRad(heading)) + dy * Math.cos(toRad(heading));
   const drive_error = distance - traveled;
-  const heading_error = reduce_negative_180_to_180(heading - robot.getAngle());
-  let drive_output = drivePID$3.compute(drive_error);
-  let heading_output = headingPID$2.compute(heading_error);
+  const heading_error = reduce_negative_180_to_180$1(heading - robot.getAngle());
+  let drive_output = drivePID$4.compute(drive_error);
+  let heading_output = headingPID$3.compute(heading_error);
   drive_output = clamp(drive_output, -drive_p.max_voltage, drive_p.max_voltage);
   heading_output = clamp(heading_output, -heading_p.max_voltage, heading_p.max_voltage);
   drive_output = slew_scaling(drive_output, prev_drive_output$3 ?? 0, drive_p.slew * (dt / 0.01), Math.abs(drive_error) > drive_p.settle_error);
   heading_output = slew_scaling(heading_output, prev_heading_output$2 ?? 0, heading_p.slew * (dt / 0.01));
-  drive_output = clamp_min_voltage(drive_output, drive_p.min_voltage);
-  if (drivePID$3.isSettled()) {
+  drive_output = clamp_min_voltage$1(drive_output, drive_p.min_voltage);
+  if (drivePID$4.isSettled()) {
     restart_drive_distance();
     return true;
   }
@@ -13818,12 +13820,12 @@ let prev_drive_output$2 = 0;
 let prev_heading_output$1 = 0;
 let heading_locked = false;
 let locked_heading = 0;
-let drivePID$2;
-let headingPID$1;
+let drivePID$3;
+let headingPID$2;
 let start$5 = true;
-function reset_drive_to_point() {
-  drivePID$2.reset();
-  headingPID$1.reset();
+function reset_drive_to_point$1() {
+  drivePID$3.reset();
+  headingPID$2.reset();
   desired_heading = 0;
   prev_line_settled$1 = false;
   prev_drive_output$2 = 0;
@@ -13832,29 +13834,30 @@ function reset_drive_to_point() {
   locked_heading = 0;
   start$5 = true;
 }
-function drive_to_point(robot, dt, x, y, p) {
+function drive_to_point$1(robot, dt, x, y, p) {
   const drive_p = p[0];
   const heading_p = p[1];
   if (start$5) {
-    drivePID$2 = new PID(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
-    headingPID$1 = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
+    drivePID$3 = new PID$2(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
+    headingPID$2 = new PID$2(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
     desired_heading = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
     start$5 = false;
   }
-  if (drivePID$2.isSettled()) {
-    reset_drive_to_point();
+  if (drivePID$3.isSettled()) {
+    reset_drive_to_point$1();
     return true;
   }
-  const line_settled = is_line_settled(x, y, desired_heading, robot.getX(), robot.getY(), drive_p.exit_error);
+  console.log(drivePID$3.derivative);
+  const line_settled = is_line_settled$1(x, y, desired_heading, robot.getX(), robot.getY(), drive_p.exit_error);
   if (!(line_settled === prev_line_settled$1) && drive_p.min_voltage > 0) {
-    reset_drive_to_point();
+    reset_drive_to_point$1();
     return true;
   }
   prev_line_settled$1 = line_settled;
   desired_heading = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
   const drive_error = Math.hypot(x - robot.getX(), y - robot.getY());
-  let heading_error = reduce_negative_180_to_180(desired_heading - robot.getAngle());
-  let drive_output = drivePID$2.compute(drive_error);
+  let heading_error = reduce_negative_180_to_180$1(desired_heading - robot.getAngle());
+  let drive_output = drivePID$3.compute(drive_error);
   const heading_scale_factor = Math.cos(toRad(heading_error));
   drive_output *= heading_scale_factor;
   if (drive_error < DRIVE_LARGE_SETTLE_ERROR) {
@@ -13862,19 +13865,19 @@ function drive_to_point(robot, dt, x, y, p) {
       locked_heading = desired_heading;
       heading_locked = true;
     }
-    heading_error = reduce_negative_180_to_180(locked_heading - robot.getAngle());
+    heading_error = reduce_negative_180_to_180$1(locked_heading - robot.getAngle());
   }
-  heading_error = reduce_negative_90_to_90(heading_error);
-  let heading_output = headingPID$1.compute(heading_error);
+  heading_error = reduce_negative_90_to_90$1(heading_error);
+  let heading_output = headingPID$2.compute(heading_error);
   drive_output = clamp(drive_output, -Math.abs(heading_scale_factor) * drive_p.max_voltage, Math.abs(heading_scale_factor) * drive_p.max_voltage);
   heading_output = clamp(heading_output, -heading_p.max_voltage, heading_p.max_voltage);
   drive_output = slew_scaling(drive_output, prev_drive_output$2, drive_p.slew * (dt / 0.01), !heading_locked);
   heading_output = slew_scaling(heading_output, prev_heading_output$1, heading_p.slew * (dt / 0.01));
-  drive_output = clamp_min_voltage(drive_output, drive_p.min_voltage);
+  drive_output = clamp_min_voltage$1(drive_output, drive_p.min_voltage);
   prev_drive_output$2 = drive_output;
   prev_heading_output$1 = heading_output;
-  const leftVoltage = left_voltage_scaling(drive_output, heading_output) / 12;
-  const rightVoltage = right_voltage_scaling(drive_output, heading_output) / 12;
+  const leftVoltage = left_voltage_scaling$1(drive_output, heading_output) / 12;
+  const rightVoltage = right_voltage_scaling$1(drive_output, heading_output) / 12;
   robot.tankDrive(leftVoltage, rightVoltage, dt);
   return false;
 }
@@ -13882,17 +13885,17 @@ let crossed$2 = false;
 let prev_error$2 = 0;
 let prev_raw_error$2 = 0;
 let prev_output$2 = 0;
-let turnPID$2;
+let turnPID$3;
 let start$4 = true;
-function reset_turn_to_point() {
+function reset_turn_to_point$1() {
   crossed$2 = false;
   prev_error$2 = 0;
   prev_output$2 = 0;
   prev_raw_error$2 = 0;
-  turnPID$2.reset();
+  turnPID$3.reset();
   start$4 = true;
 }
-function turn_to_point(robot, dt, x, y, offset, p) {
+function turn_to_point$1(robot, dt, x, y, offset, p) {
   const turn_p = p[0];
   const angle = toDeg(Math.atan2(x - robot.getX(), y - robot.getY())) + offset;
   const raw_error = angle_error(angle - robot.getAngle(), "fastest");
@@ -13900,7 +13903,7 @@ function turn_to_point(robot, dt, x, y, offset, p) {
   if (start$4) {
     prev_error$2 = error;
     prev_raw_error$2 = raw_error;
-    turnPID$2 = new PID(turn_p.kp, turn_p.ki, turn_p.kd, turn_p.starti, turn_p.settle_time, turn_p.settle_error, turn_p.timeout, turn_p.min_voltage > 0 ? turn_p.exit_error : 0);
+    turnPID$3 = new PID$2(turn_p.kp, turn_p.ki, turn_p.kd, turn_p.starti, turn_p.settle_time, turn_p.settle_error, turn_p.timeout, turn_p.min_voltage > 0 ? turn_p.exit_error : 0);
     start$4 = false;
   }
   if (Math.sign(raw_error) != Math.sign(prev_raw_error$2)) {
@@ -13913,18 +13916,18 @@ function turn_to_point(robot, dt, x, y, offset, p) {
     error = angle_error(angle - robot.getAngle(), turn_p.turn_direction);
   }
   if (turn_p.min_voltage != 0 && crossed$2 && Math.sign(error) != Math.sign(prev_error$2)) {
-    reset_turn_to_point();
+    reset_turn_to_point$1();
     return true;
   }
   prev_error$2 = error;
-  let output = turnPID$2.compute(error);
-  if (turnPID$2.isSettled()) {
-    reset_turn_to_point();
+  let output = turnPID$3.compute(error);
+  if (turnPID$3.isSettled()) {
+    reset_turn_to_point$1();
     return true;
   }
   output = clamp(output, -turn_p.max_voltage, turn_p.max_voltage);
   output = slew_scaling(output, prev_output$2 ?? 0, turn_p.slew * (dt / 0.01), Math.abs(error) > 15);
-  output = clamp_min_voltage(output, turn_p.min_voltage);
+  output = clamp_min_voltage$1(output, turn_p.min_voltage);
   prev_output$2 = output;
   robot.tankDrive(output / 12, -output / 12, dt);
   return false;
@@ -13933,24 +13936,24 @@ let crossed$1 = false;
 let prev_error$1 = 0;
 let prev_raw_error$1 = 0;
 let prev_output$1 = 0;
-let turnPID$1;
+let turnPID$2;
 let start$3 = true;
-function reset_turn_to_angle() {
+function reset_turn_to_angle$1() {
   crossed$1 = false;
   prev_error$1 = 0;
   prev_raw_error$1 = 0;
   prev_output$1 = 0;
-  turnPID$1.reset();
+  turnPID$2.reset();
   start$3 = true;
 }
-function turn_to_angle(robot, dt, angle, p) {
+function turn_to_angle$1(robot, dt, angle, p) {
   const turn_p = p[0];
   const raw_error = angle_error(angle - robot.getAngle(), "fastest");
   let error = angle_error(angle - robot.getAngle(), turn_p.turn_direction);
   if (start$3) {
     prev_error$1 = error;
     prev_raw_error$1 = raw_error;
-    turnPID$1 = new PID(turn_p.kp, turn_p.ki, turn_p.kd, turn_p.starti, turn_p.settle_time, turn_p.settle_error, turn_p.timeout, turn_p.min_voltage > 0 ? turn_p.exit_error : 0);
+    turnPID$2 = new PID$2(turn_p.kp, turn_p.ki, turn_p.kd, turn_p.starti, turn_p.settle_time, turn_p.settle_error, turn_p.timeout, turn_p.min_voltage > 0 ? turn_p.exit_error : 0);
     start$3 = false;
   }
   if (Math.sign(raw_error) != Math.sign(prev_raw_error$1)) {
@@ -13963,18 +13966,18 @@ function turn_to_angle(robot, dt, angle, p) {
     error = angle_error(angle - robot.getAngle(), turn_p.turn_direction);
   }
   if (turn_p.min_voltage != 0 && crossed$1 && Math.sign(error) != Math.sign(prev_error$1)) {
-    reset_turn_to_angle();
+    reset_turn_to_angle$1();
     return true;
   }
   prev_error$1 = error;
-  let output = turnPID$1.compute(error);
-  if (turnPID$1.isSettled()) {
-    reset_turn_to_angle();
+  let output = turnPID$2.compute(error);
+  if (turnPID$2.isSettled()) {
+    reset_turn_to_angle$1();
     return true;
   }
   output = clamp(output, -turn_p.max_voltage, turn_p.max_voltage);
   output = slew_scaling(output, prev_output$1 ?? 0, turn_p.slew * (dt / 0.01), Math.abs(error) > turn_p.starti);
-  output = clamp_min_voltage(output, turn_p.min_voltage);
+  output = clamp_min_voltage$1(output, turn_p.min_voltage);
   prev_output$1 = output;
   robot.tankDrive(output / 12, -output / 12, dt);
   return false;
@@ -13983,24 +13986,24 @@ let crossed = false;
 let prev_error = 0;
 let prev_raw_error = 0;
 let prev_output = 0;
-let swingPID;
+let swingPID$1;
 let start$2 = true;
 function reset_swing_to_angle() {
   crossed = false;
   prev_error = 0;
   prev_raw_error = 0;
   prev_output = 0;
-  swingPID.reset();
+  swingPID$1.reset();
   start$2 = true;
 }
-function swing_to_angle(robot, dt, angle, p) {
+function swing_to_angle$1(robot, dt, angle, p) {
   const turn_p = p[0];
   const raw_error = angle_error(angle - robot.getAngle(), "fastest");
   let error = angle_error(angle - robot.getAngle(), turn_p.turn_direction);
   if (start$2) {
     prev_error = error;
     prev_raw_error = raw_error;
-    swingPID = new PID(turn_p.kp, turn_p.ki, turn_p.kd, turn_p.starti, turn_p.settle_time, turn_p.settle_error, turn_p.timeout, turn_p.min_voltage > 0 ? turn_p.exit_error : 0);
+    swingPID$1 = new PID$2(turn_p.kp, turn_p.ki, turn_p.kd, turn_p.starti, turn_p.settle_time, turn_p.settle_error, turn_p.timeout, turn_p.min_voltage > 0 ? turn_p.exit_error : 0);
     start$2 = false;
   }
   if (Math.sign(raw_error) != Math.sign(prev_raw_error)) {
@@ -14017,14 +14020,14 @@ function swing_to_angle(robot, dt, angle, p) {
     return true;
   }
   prev_error = error;
-  let output = swingPID.compute(error);
-  if (swingPID.isSettled()) {
+  let output = swingPID$1.compute(error);
+  if (swingPID$1.isSettled()) {
     reset_swing_to_angle();
     return true;
   }
   output = clamp(output, -turn_p.max_voltage, turn_p.max_voltage);
   output = slew_scaling(output, prev_output ?? 0, turn_p.slew * (dt / 0.01), Math.abs(error) > turn_p.starti);
-  output = clamp_min_voltage(output, turn_p.min_voltage);
+  output = clamp_min_voltage$1(output, turn_p.min_voltage);
   prev_output = output;
   const scale = output / turn_p.max_voltage;
   if (turn_p.swing_direction === "left") {
@@ -14037,14 +14040,14 @@ function swing_to_angle(robot, dt, angle, p) {
 let initialAngle = null;
 function swing_to_point(robot, dt, x, y, offset, swing_p) {
   if (initialAngle === null) {
-    initialAngle = reduce_negative_180_to_180(
+    initialAngle = reduce_negative_180_to_180$1(
       toDeg(Math.atan2(
         x - robot.getX(),
         y - robot.getY()
       )) + offset
     );
   }
-  const out = swing_to_angle(robot, dt, initialAngle, swing_p);
+  const out = swing_to_angle$1(robot, dt, initialAngle, swing_p);
   if (out) {
     initialAngle = null;
     return true;
@@ -14146,23 +14149,23 @@ const mikPIDConstantsSettings = [
   { key: "starti", units: "in", label: "Starti", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
   { key: "slew", units: "volt/10ms", label: "Slew", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 2 } }
 ];
-const driveDirectionButton = {
+const driveDirectionButton$1 = {
   key: "drive_direction",
   keyValues: [
-    { srcImg: fastest, value: "fastest" },
+    { srcImg: fastest$1, value: "fastest" },
     { srcImg: fwd, value: "forwards" },
     { srcImg: rev, value: "reversed" }
   ]
 };
-const turnDirectionButton = {
+const turnDirectionButton$1 = {
   key: "turn_direction",
   keyValues: [
-    { srcImg: cw, value: "cw" },
+    { srcImg: refresh, value: "cw" },
     { srcImg: ccw, value: "ccw" },
     { srcImg: cwccw, value: "fastest" }
   ]
 };
-const swingDirectionButton = {
+const swingDirectionButton$2 = {
   key: "swing_direction",
   keyValues: [
     { srcImg: rightswing, value: "right" },
@@ -14203,10 +14206,10 @@ const mikLibDef = {
       name: "Drive to Pose",
       defaults: [kMikDrive, kMikHeading],
       toStringTemplate: "chassis.drive_to_pose(${x}, ${y}, ${angle}, ${kBuilder});",
-      simFn: (robot, dt, x, y, angle, constants) => drive_to_pose(robot, dt, x, y, angle ?? 0, constants),
+      simFn: (robot, dt, x, y, angle, constants) => drive_to_pose$1(robot, dt, x, y, angle ?? 0, constants),
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [
-        { constantsIdx: 0, ...driveDirectionButton }
+        { constantsIdx: 0, ...driveDirectionButton$1 }
       ],
       numberInputs: [
         {
@@ -14230,7 +14233,7 @@ const mikLibDef = {
       name: "Drive to Distance",
       defaults: [kMikDrive, kMikHeading],
       toStringTemplate: "chassis.drive_distance(${distance}, ${kBuilder});",
-      simFn: (robot, dt, distance, _y, angle, constants) => drive_distance(robot, dt, distance, angle, constants),
+      simFn: (robot, dt, distance, _y, angle, constants) => drive_distance$1(robot, dt, distance, angle, constants),
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [],
       numberInputs: [
@@ -14243,7 +14246,7 @@ const mikLibDef = {
       name: "Drive to Point",
       defaults: [kMikDrive, kMikHeading],
       toStringTemplate: "chassis.drive_to_point(${x}, ${y}, ${kBuilder});",
-      simFn: (robot, dt, x, y, _angle, constants) => drive_to_point(robot, dt, x, y, constants),
+      simFn: (robot, dt, x, y, _angle, constants) => drive_to_point$1(robot, dt, x, y, constants),
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [],
       numberInputs: [
@@ -14256,10 +14259,10 @@ const mikLibDef = {
       name: "Turn to Point",
       defaults: [kMikTurn],
       toStringTemplate: "chassis.turn_to_point(${x}, ${y}, ${kBuilder});",
-      simFn: (robot, dt, x, y, angle, constants) => turn_to_point(robot, dt, x, y, angle ?? 0, constants),
+      simFn: (robot, dt, x, y, angle, constants) => turn_to_point$1(robot, dt, x, y, angle ?? 0, constants),
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [
-        { constantsIdx: 0, ...turnDirectionButton }
+        { constantsIdx: 0, ...turnDirectionButton$1 }
       ],
       numberInputs: [
         { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
@@ -14270,10 +14273,10 @@ const mikLibDef = {
       name: "Turn to Angle",
       defaults: [kMikTurn],
       toStringTemplate: "chassis.turn_to_angle(${angle}, ${kBuilder});",
-      simFn: (robot, dt, _x, _y, angle, constants) => turn_to_angle(robot, dt, angle ?? 0, constants),
+      simFn: (robot, dt, _x, _y, angle, constants) => turn_to_angle$1(robot, dt, angle ?? 0, constants),
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [
-        { constantsIdx: 0, ...turnDirectionButton }
+        { constantsIdx: 0, ...turnDirectionButton$1 }
       ],
       numberInputs: [
         { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
@@ -14284,11 +14287,11 @@ const mikLibDef = {
       name: "Swing to Angle",
       defaults: [kMikSwing],
       toStringTemplate: "chassis.${swing_direction}_swing_to_angle(${angle}, ${kBuilder});",
-      simFn: (robot, dt, _x, _y, angle, constants) => swing_to_angle(robot, dt, angle ?? 0, constants),
+      simFn: (robot, dt, _x, _y, angle, constants) => swing_to_angle$1(robot, dt, angle ?? 0, constants),
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [
-        { constantsIdx: 0, ...swingDirectionButton },
-        { constantsIdx: 0, ...turnDirectionButton }
+        { constantsIdx: 0, ...swingDirectionButton$2 },
+        { constantsIdx: 0, ...turnDirectionButton$1 }
       ],
       numberInputs: [
         { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
@@ -14302,8 +14305,8 @@ const mikLibDef = {
       simFn: (robot, dt, x, y, angle, constants) => swing_to_point(robot, dt, x, y, angle ?? 0, constants),
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [
-        { constantsIdx: 0, ...swingDirectionButton },
-        { constantsIdx: 0, ...turnDirectionButton }
+        { constantsIdx: 0, ...swingDirectionButton$2 },
+        { constantsIdx: 0, ...turnDirectionButton$1 }
       ],
       numberInputs: [
         { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
@@ -14629,7 +14632,7 @@ let boomerangDirection = 1;
 let boomerangClose = false;
 let boomerangFrozenCarrot = null;
 let boomerangLastStatus = "DRIVE";
-let stop$1 = null;
+let stop$2 = null;
 let correction = null;
 let brakeElapsed$1 = null;
 function cleanupBoomerangSegment() {
@@ -14638,8 +14641,8 @@ function cleanupBoomerangSegment() {
   boomerangClose = false;
   boomerangStartPoint = null;
   brakeElapsed$1 = null;
-  stop$1?.reset();
-  stop$1 = null;
+  stop$2?.reset();
+  stop$2 = null;
 }
 function boomerangSegment(robot, dt, x, y, angle, k) {
   const constants = k[0];
@@ -14650,8 +14653,8 @@ function boomerangSegment(robot, dt, x, y, angle, k) {
   x = revTargetPos.x;
   y = revTargetPos.y;
   const revRobotPos = toRevCoordinate(robot.getX(), robot.getY());
-  if (stop$1 === null || correction === null) {
-    stop$1 = new SimpleStop(
+  if (stop$2 === null || correction === null) {
+    stop$2 = new SimpleStop(
       constants.stopHarshThreshold ?? 0,
       constants.stopCoastThreshold ?? 0,
       constants.stopCoastPower ?? 0,
@@ -14692,7 +14695,7 @@ function boomerangSegment(robot, dt, x, y, angle, k) {
   let newState;
   let carrotPoint;
   if (boomerangClose) {
-    newState = stop$1.getStopState(
+    newState = stop$2.getStopState(
       currentState,
       targetPoint,
       boomerangFrozenCarrot ?? currentPose,
@@ -14734,7 +14737,7 @@ function boomerangSegment(robot, dt, x, y, angle, k) {
     carrotPoint
   );
   if (newState == "COAST") {
-    let power = stop$1.getCoastPower();
+    let power = stop$2.getCoastPower();
     const left = pows[0];
     const right = pows[1];
     if (left + right < 0) power *= -1;
@@ -14754,14 +14757,14 @@ function boomerangSegment(robot, dt, x, y, angle, k) {
 }
 let pilonsSegmentStartPoint = null;
 let pilonsSegmentLastStatus = "DRIVE";
-let stop = null;
+let stop$1 = null;
 let brakeElapsed = null;
 function cleanupPilonsSegment() {
   pilonsSegmentLastStatus = "DRIVE";
   pilonsSegmentStartPoint = null;
   brakeElapsed = null;
-  stop?.reset();
-  stop = null;
+  stop$1?.reset();
+  stop$1 = null;
 }
 function pilonsSegment(robot, dt, x, y, k) {
   const constants = k[0];
@@ -14771,8 +14774,8 @@ function pilonsSegment(robot, dt, x, y, k) {
   const dropEarly = constants.dropEarly ?? 0;
   const speed = constants.maxSpeed ?? 0;
   const correction2 = new PilonsCorrection(constants.kCorrection ?? 0, constants.maxError ?? 0);
-  if (stop === null) {
-    stop = new SimpleStop(constants.stopHarshThreshold ?? 0, constants.stopCoastThreshold ?? 0, constants.stopCoastPower ?? 0, constants.stopTimeout);
+  if (stop$1 === null) {
+    stop$1 = new SimpleStop(constants.stopHarshThreshold ?? 0, constants.stopCoastThreshold ?? 0, constants.stopCoastPower ?? 0, constants.stopTimeout);
   }
   if (pilonsSegmentStartPoint === null) {
     const revRobotPos2 = toRevCoordinate(robot.getX(), robot.getY());
@@ -14783,7 +14786,7 @@ function pilonsSegment(robot, dt, x, y, k) {
   const currentState = { x: revRobotPos.x, y: revRobotPos.y, angle: wrapDeg180(robot.getAngle()), xVel: revRobotVel.xVel, yVel: revRobotVel.yVel };
   const targetPoint = { x, y, angle: 0 };
   const startPoint = { ...pilonsSegmentStartPoint };
-  const newState = stop.getStopState(currentState, targetPoint, startPoint, dropEarly, dt);
+  const newState = stop$1.getStopState(currentState, targetPoint, startPoint, dropEarly, dt);
   if (pilonsSegmentLastStatus == "EXIT" || newState == "EXIT") {
     robot.tankDrive(0, 0, dt);
     cleanupPilonsSegment();
@@ -14802,7 +14805,7 @@ function pilonsSegment(robot, dt, x, y, k) {
   }
   const pows = getConstantMotionPower(speed, startPoint, targetPoint);
   if (newState == "COAST") {
-    let power = stop.getCoastPower();
+    let power = stop$1.getCoastPower();
     const left = pows[0];
     const right = pows[1];
     if (left + right < 0) power *= -1;
@@ -15109,15 +15112,15 @@ function kRevParser(kDefault, kBuilderStr) {
   }
   return [constants];
 }
-let drivePID$1;
-let turnPID;
+let drivePID$2;
+let turnPID$1;
 let prev_drive_output$1 = 0;
 let prev_turn_output = 0;
 let prev_line_settled = false;
 let start$1 = true;
 function reset_holonomic_to_pose() {
-  drivePID$1.reset();
-  turnPID.reset();
+  drivePID$2.reset();
+  turnPID$1.reset();
   prev_line_settled = false;
   start$1 = true;
 }
@@ -15125,31 +15128,31 @@ function holonomic_to_pose(robot, dt, x, y, angle, p) {
   const drive_p = p[0];
   const heading_p = p[1];
   if (start$1) {
-    drivePID$1 = new PID(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
-    turnPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, drive_p.timeout, 0);
+    drivePID$2 = new PID$2(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
+    turnPID$1 = new PID$2(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, drive_p.timeout, 0);
     start$1 = false;
   }
-  if (drivePID$1.isSettled() && turnPID.isSettled()) {
+  if (drivePID$2.isSettled() && turnPID$1.isSettled()) {
     reset_holonomic_to_pose();
     return true;
   }
   const desired_heading2 = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
-  const line_settled = is_line_settled(x, y, desired_heading2, robot.getX(), robot.getY(), drive_p.exit_error);
+  const line_settled = is_line_settled$1(x, y, desired_heading2, robot.getX(), robot.getY(), drive_p.exit_error);
   if (!(line_settled === prev_line_settled) && drive_p.min_voltage > 0) {
     reset_holonomic_to_pose();
     return true;
   }
   prev_line_settled = line_settled;
   const drive_error = Math.hypot(x - robot.getX(), y - robot.getY());
-  const turn_error = reduce_negative_180_to_180(angle - robot.getAngle());
-  let drive_output = drivePID$1.compute(drive_error);
-  let turn_output = turnPID.compute(turn_error);
+  const turn_error = reduce_negative_180_to_180$1(angle - robot.getAngle());
+  let drive_output = drivePID$2.compute(drive_error);
+  let turn_output = turnPID$1.compute(turn_error);
   drive_output = clamp(drive_output, -drive_p.max_voltage, drive_p.max_voltage);
   turn_output = clamp(turn_output, -heading_p.max_voltage, heading_p.max_voltage);
   drive_output = slew_scaling(drive_output, prev_drive_output$1, drive_p.slew * (dt / 0.01), Math.abs(drive_error) > drive_p.settle_error);
   turn_output = slew_scaling(turn_output, prev_turn_output, heading_p.slew * (dt / 0.01));
-  drive_output = clamp_min_voltage(drive_output, drive_p.min_voltage);
-  turn_output = clamp_min_voltage(turn_output, heading_p.min_voltage);
+  drive_output = clamp_min_voltage$1(drive_output, drive_p.min_voltage);
+  turn_output = clamp_min_voltage$1(turn_output, heading_p.min_voltage);
   const heading_error = Math.atan2(y - robot.getY(), x - robot.getX());
   const left_front_output = (drive_output * Math.cos(toRad(robot.getAngle()) + heading_error - Math.PI / 4) + turn_output) / 12;
   const left_back_output = (drive_output * Math.cos(-toRad(robot.getAngle()) - heading_error + 3 * Math.PI / 4) + turn_output) / 12;
@@ -15164,16 +15167,16 @@ let driveDistanceStartX = 0;
 let driveDistanceStartY = 0;
 let prev_drive_output = 0;
 let prev_heading_output = 0;
-let drivePID;
-let headingPID;
+let drivePID$1;
+let headingPID$1;
 let start = true;
 function reset_strafe_distance() {
   driveDistanceStartX = 0;
   driveDistanceStartY = 0;
   prev_drive_output = 0;
   prev_heading_output = 0;
-  drivePID.reset();
-  headingPID.reset();
+  drivePID$1.reset();
+  headingPID$1.reset();
   start = true;
 }
 function strafe_distance(robot, dt, distance, heading, p) {
@@ -15183,23 +15186,23 @@ function strafe_distance(robot, dt, distance, heading, p) {
   if (start) {
     driveDistanceStartX = robot.getX();
     driveDistanceStartY = robot.getY();
-    drivePID = new PID(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, drive_p.min_voltage > 0 ? drive_p.exit_error : 0);
-    headingPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
+    drivePID$1 = new PID$2(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, drive_p.min_voltage > 0 ? drive_p.exit_error : 0);
+    headingPID$1 = new PID$2(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
     start = false;
   }
   const dx = robot.getX() - driveDistanceStartX;
   const dy = robot.getY() - driveDistanceStartY;
   const traveled = dx * Math.cos(toRad(heading)) - dy * Math.sin(toRad(heading));
   const drive_error = distance - traveled;
-  const heading_error = reduce_negative_180_to_180(heading - robot.getAngle());
-  let drive_output = drivePID.compute(drive_error);
-  let heading_output = headingPID.compute(heading_error);
+  const heading_error = reduce_negative_180_to_180$1(heading - robot.getAngle());
+  let drive_output = drivePID$1.compute(drive_error);
+  let heading_output = headingPID$1.compute(heading_error);
   drive_output = clamp(drive_output, -drive_p.max_voltage, drive_p.max_voltage);
   heading_output = clamp(heading_output, -heading_p.max_voltage, heading_p.max_voltage);
   drive_output = slew_scaling(drive_output, prev_drive_output ?? 0, drive_p.slew * (dt / 0.01), Math.abs(drive_error) > drive_p.settle_error);
   heading_output = slew_scaling(heading_output, prev_heading_output ?? 0, heading_p.slew * (dt / 0.01));
-  drive_output = clamp_min_voltage(drive_output, drive_p.min_voltage);
-  if (drivePID.isSettled()) {
+  drive_output = clamp_min_voltage$1(drive_output, drive_p.min_voltage);
+  if (drivePID$1.isSettled()) {
     reset_strafe_distance();
     return true;
   }
@@ -15271,13 +15274,1828 @@ const holonomicDef = {
     }
   }
 };
+const SIM_CONSTANTS = {
+  seconds: 99,
+  dt: 1 / 60,
+  // Sim is run at 60 hertz
+  dt_ms: 1 / 60 * 1e3
+};
+const pathTelemetry = createStore([]);
+const activeSimSegmentStore = createStore(-1);
+const simJumpStore = createStore(null);
+const computedPathStore = createStore({
+  totalTime: 0,
+  trajectory: [],
+  endTrajectory: [],
+  segmentTrajectorys: [],
+  segmentCumulativeDists: [],
+  timeOffset: 0
+});
+function precomputePath(robot, auton) {
+  const simLengthSeconds = SIM_CONSTANTS.seconds;
+  let autoIdx = 0;
+  const trajectory = [];
+  const endTrajectory = [];
+  const segmentTrajectory = [];
+  const segmentTrajectorys = [];
+  const segmentKinds = [];
+  const segmentTargetDists = [];
+  const dt = SIM_CONSTANTS.dt;
+  let t = 0;
+  let safetyIter = 0;
+  const maxIter = 60 * simLengthSeconds;
+  while (safetyIter < maxIter) {
+    if (autoIdx < auton.length) {
+      const [done, kind, targetDist] = auton[autoIdx](robot, dt);
+      if (done) {
+        endTrajectory.push({
+          x: robot.getX(),
+          y: robot.getY(),
+          angle: robot.getAngle()
+        });
+        segmentTrajectorys.push([...segmentTrajectory]);
+        segmentKinds.push(kind);
+        segmentTargetDists.push(targetDist);
+        segmentTrajectory.length = 0;
+        autoIdx++;
+      }
+    }
+    if (autoIdx >= auton.length) break;
+    segmentTrajectory.push({
+      t,
+      x: robot.getX(),
+      y: robot.getY(),
+      angle: robot.getAngle()
+    });
+    trajectory.push({
+      t,
+      x: robot.getX(),
+      y: robot.getY(),
+      angle: robot.getAngle()
+    });
+    t += dt;
+    safetyIter++;
+  }
+  const turnKinds = /* @__PURE__ */ new Set(["pointTurn", "angleTurn", "angleSwing", "pointSwing"]);
+  function shortAngleDiff(a, b) {
+    let d = normalizeDeg(b - a);
+    if (d > 180) d -= 360;
+    return Math.abs(d);
+  }
+  const segmentCumulativeDists = [];
+  const telemetry = segmentTrajectorys.map((seg, i) => {
+    const kind = segmentKinds[i];
+    const isTurn = turnKinds.has(kind);
+    const totalDistance = segmentTargetDists[i] ?? 0;
+    if (seg.length === 0) {
+      segmentCumulativeDists.push([]);
+      return { totalTime: 0, totalDistance, progressRaw: 0, progressPercent: 0, units: isTurn ? "deg" : "in" };
+    }
+    const totalTime = seg[seg.length - 1].t - seg[0].t;
+    const cumDist = [0];
+    for (let j = 1; j < seg.length; j++) {
+      let step;
+      if (isTurn) {
+        step = shortAngleDiff(seg[j - 1].angle, seg[j].angle);
+      } else {
+        const dx = seg[j].x - seg[j - 1].x;
+        const dy = seg[j].y - seg[j - 1].y;
+        step = Math.sqrt(dx * dx + dy * dy);
+      }
+      cumDist.push(cumDist[j - 1] + step);
+    }
+    segmentCumulativeDists.push(cumDist);
+    const progressRaw = cumDist[cumDist.length - 1];
+    const progressPercent = totalDistance > 0 ? Math.min(progressRaw / totalDistance * 100, 100) : 100;
+    return {
+      totalTime,
+      totalDistance,
+      progressRaw,
+      progressPercent,
+      units: isTurn ? "deg" : "in"
+    };
+  });
+  pathTelemetry.setState(telemetry);
+  return { totalTime: t, trajectory, endTrajectory, segmentTrajectorys, segmentCumulativeDists, timeOffset: 0 };
+}
+let PID$1 = class PID2 {
+  constructor(error, kp, ki, kd, starti, settle_error = 0, settle_time = 0, timeout = 0) {
+    this.error = error;
+    this.kp = kp;
+    this.ki = ki;
+    this.kd = kd;
+    this.starti = starti;
+    this.settle_error = settle_error;
+    this.settle_time = settle_time;
+    this.timeout = timeout;
+  }
+  accumulated_error = 0;
+  previous_error = 0;
+  time_spent_settled = 0;
+  time_spent_running = 0;
+  compute(error) {
+    if (Math.abs(error) < this.starti) {
+      this.accumulated_error += error;
+    }
+    if (error > 0 && this.previous_error < 0 || error < 0 && this.previous_error > 0) {
+      this.accumulated_error = 0;
+    }
+    const output = this.kp * error + this.ki * this.accumulated_error + this.kd * (error - this.previous_error);
+    this.previous_error = error;
+    if (Math.abs(error) < this.settle_error) {
+      this.time_spent_settled += SIM_CONSTANTS.dt_ms;
+    } else {
+      this.time_spent_settled = 0;
+    }
+    this.time_spent_running += SIM_CONSTANTS.dt_ms;
+    return output;
+  }
+  is_settled() {
+    if (this.timeout !== 0 && this.time_spent_running > this.timeout) {
+      return true;
+    }
+    if (this.time_spent_settled > this.settle_time) {
+      return true;
+    }
+    return false;
+  }
+};
+function reduce_negative_180_to_180(angle) {
+  while (!(angle >= -180 && angle < 180)) {
+    if (angle < -180) angle += 360;
+    if (angle >= 180) angle -= 360;
+  }
+  return angle;
+}
+function reduce_negative_90_to_90(angle) {
+  while (!(angle >= -90 && angle < 90)) {
+    if (angle < -90) angle += 180;
+    if (angle >= 90) angle -= 180;
+  }
+  return angle;
+}
+function to_rad(angle_deg) {
+  return angle_deg * (Math.PI / 180);
+}
+function to_deg(angle_rad) {
+  return angle_rad * (180 / Math.PI);
+}
+function clamp$1(input, min, max) {
+  return Math.min(Math.max(input, min), max);
+}
+function is_line_settled(desired_X, desired_Y, desired_angle_deg, current_X, current_Y) {
+  return (desired_Y - current_Y) * Math.cos(to_rad(desired_angle_deg)) <= -(desired_X - current_X) * Math.sin(to_rad(desired_angle_deg));
+}
+function left_voltage_scaling(drive_output, heading_output) {
+  const ratio = Math.max(Math.abs(drive_output + heading_output), Math.abs(drive_output - heading_output)) / 12;
+  return ratio > 1 ? (drive_output + heading_output) / ratio : drive_output + heading_output;
+}
+function right_voltage_scaling(drive_output, heading_output) {
+  const ratio = Math.max(Math.abs(drive_output + heading_output), Math.abs(drive_output - heading_output)) / 12;
+  return ratio > 1 ? (drive_output - heading_output) / ratio : drive_output - heading_output;
+}
+function clamp_min_voltage(drive_output, drive_min_voltage) {
+  if (drive_output < 0 && drive_output > -drive_min_voltage) return -drive_min_voltage;
+  if (drive_output > 0 && drive_output < drive_min_voltage) return drive_min_voltage;
+  return drive_output;
+}
+let turnPID_ta;
+let start_ta = true;
+function reset_turn_to_angle() {
+  start_ta = true;
+}
+function turn_to_angle(robot, dt, angle, constants) {
+  const turn = constants[0];
+  if (start_ta) {
+    turnPID_ta = new PID$1(reduce_negative_180_to_180(angle - robot.getAngle()), turn.kp, turn.ki, turn.kd, turn.starti, turn.settle_error, turn.settle_time, turn.timeout);
+    start_ta = false;
+  }
+  if (turnPID_ta.is_settled()) {
+    reset_turn_to_angle();
+    return true;
+  }
+  const error = reduce_negative_180_to_180(angle - robot.getAngle());
+  let output = turnPID_ta.compute(error);
+  output = clamp$1(output, -turn.max_voltage, turn.max_voltage);
+  robot.tankDrive(output / 12, -output / 12, dt);
+  return false;
+}
+let drivePID_dd;
+let headingPID_dd;
+let startX_dd = 0;
+let startY_dd = 0;
+let start_dd = true;
+function reset_drive_distance() {
+  start_dd = true;
+}
+function drive_distance(robot, dt, distance, heading, constants) {
+  const drive = constants[0];
+  const heading_c = constants[1];
+  if (heading === null) heading = robot.getAngle();
+  if (start_dd) {
+    startX_dd = robot.getX();
+    startY_dd = robot.getY();
+    drivePID_dd = new PID$1(distance, drive.kp, drive.ki, drive.kd, drive.starti, drive.settle_error, drive.settle_time, drive.timeout);
+    headingPID_dd = new PID$1(reduce_negative_180_to_180(heading - robot.getAngle()), heading_c.kp, heading_c.ki, heading_c.kd, heading_c.starti);
+    start_dd = false;
+  }
+  if (drivePID_dd.is_settled()) {
+    reset_drive_distance();
+    return true;
+  }
+  const dx = robot.getX() - startX_dd;
+  const dy = robot.getY() - startY_dd;
+  const dist_traveled = dx * Math.sin(to_rad(heading)) + dy * Math.cos(to_rad(heading));
+  const drive_error = distance - dist_traveled;
+  const heading_error = reduce_negative_180_to_180(heading - robot.getAngle());
+  let drive_output = drivePID_dd.compute(drive_error);
+  let heading_output = headingPID_dd.compute(heading_error);
+  drive_output = clamp$1(drive_output, -drive.max_voltage, drive.max_voltage);
+  heading_output = clamp$1(heading_output, -heading_c.max_voltage, heading_c.max_voltage);
+  robot.tankDrive(
+    left_voltage_scaling(drive_output, heading_output) / 12,
+    right_voltage_scaling(drive_output, heading_output) / 12,
+    dt
+  );
+  return false;
+}
+let swingPID_s;
+let start_s = true;
+function reset_swing() {
+  start_s = true;
+}
+function swing_to_angle(robot, dt, angle, constants) {
+  const swing = constants[0];
+  if (start_s) {
+    swingPID_s = new PID$1(reduce_negative_180_to_180(angle - robot.getAngle()), swing.kp, swing.ki, swing.kd, swing.starti, swing.settle_error, swing.settle_time, swing.timeout);
+    start_s = false;
+  }
+  if (swingPID_s.is_settled()) {
+    reset_swing();
+    return true;
+  }
+  const error = reduce_negative_180_to_180(angle - robot.getAngle());
+  let output = swingPID_s.compute(error);
+  output = clamp$1(output, -swing.max_voltage, swing.max_voltage);
+  if (swing.swing_direction === "left") {
+    robot.tankDrive(output / 12, 0, dt);
+  } else {
+    robot.tankDrive(0, -output / 12, dt);
+  }
+  return false;
+}
+let drivePID_dtp;
+let headingPID_dtp;
+let start_angle_dtp = 0;
+let prev_line_settled_dtp = false;
+let start_dtp = true;
+function reset_drive_to_point() {
+  start_dtp = true;
+}
+function drive_to_point(robot, dt, x, y, constants) {
+  const drive = constants[0];
+  const heading_c = constants[1];
+  if (start_dtp) {
+    start_angle_dtp = to_deg(Math.atan2(x - robot.getX(), y - robot.getY()));
+    drivePID_dtp = new PID$1(Math.hypot(x - robot.getX(), y - robot.getY()), drive.kp, drive.ki, drive.kd, drive.starti, drive.settle_error, drive.settle_time, drive.timeout);
+    headingPID_dtp = new PID$1(start_angle_dtp - robot.getAngle(), heading_c.kp, heading_c.ki, heading_c.kd, heading_c.starti);
+    prev_line_settled_dtp = is_line_settled(x, y, start_angle_dtp, robot.getX(), robot.getY());
+    start_dtp = false;
+  }
+  if (drivePID_dtp.is_settled()) {
+    reset_drive_to_point();
+    return true;
+  }
+  const line_settled = is_line_settled(x, y, start_angle_dtp, robot.getX(), robot.getY());
+  if (line_settled && !prev_line_settled_dtp) {
+    reset_drive_to_point();
+    return true;
+  }
+  prev_line_settled_dtp = line_settled;
+  const drive_error = Math.hypot(x - robot.getX(), y - robot.getY());
+  let heading_error = reduce_negative_180_to_180(to_deg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle());
+  let drive_output = drivePID_dtp.compute(drive_error);
+  const heading_scale_factor = Math.cos(to_rad(heading_error));
+  drive_output *= heading_scale_factor;
+  heading_error = reduce_negative_90_to_90(heading_error);
+  let heading_output = headingPID_dtp.compute(heading_error);
+  if (drive_error < drive.settle_error) heading_output = 0;
+  drive_output = clamp$1(drive_output, -Math.abs(heading_scale_factor) * drive.max_voltage, Math.abs(heading_scale_factor) * drive.max_voltage);
+  heading_output = clamp$1(heading_output, -heading_c.max_voltage, heading_c.max_voltage);
+  drive_output = clamp_min_voltage(drive_output, drive.min_voltage);
+  robot.tankDrive(
+    left_voltage_scaling(drive_output, heading_output) / 12,
+    right_voltage_scaling(drive_output, heading_output) / 12,
+    dt
+  );
+  return false;
+}
+let drivePID_dpose;
+let headingPID_dpose;
+let prev_line_settled_dpose = false;
+let crossed_center_line_dpose = false;
+let center_line_side_dpose = false;
+let prev_center_line_side_dpose = false;
+let start_dpose = true;
+function reset_drive_to_pose() {
+  start_dpose = true;
+}
+function drive_to_pose(robot, dt, x, y, angle, constants) {
+  const drive = constants[0];
+  const heading_c = constants[1];
+  if (start_dpose) {
+    const target_distance2 = Math.hypot(x - robot.getX(), y - robot.getY());
+    drivePID_dpose = new PID$1(target_distance2, drive.kp, drive.ki, drive.kd, drive.starti, drive.settle_error, drive.settle_time, drive.timeout);
+    headingPID_dpose = new PID$1(to_deg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle(), heading_c.kp, heading_c.ki, heading_c.kd, heading_c.starti);
+    prev_line_settled_dpose = is_line_settled(x, y, angle, robot.getX(), robot.getY());
+    crossed_center_line_dpose = false;
+    center_line_side_dpose = is_line_settled(x, y, angle + 90, robot.getX(), robot.getY());
+    prev_center_line_side_dpose = center_line_side_dpose;
+    start_dpose = false;
+  }
+  if (drivePID_dpose.is_settled()) {
+    reset_drive_to_pose();
+    return true;
+  }
+  const line_settled = is_line_settled(x, y, angle, robot.getX(), robot.getY());
+  if (line_settled && !prev_line_settled_dpose) {
+    reset_drive_to_pose();
+    return true;
+  }
+  prev_line_settled_dpose = line_settled;
+  center_line_side_dpose = is_line_settled(x, y, angle + 90, robot.getX(), robot.getY());
+  if (center_line_side_dpose !== prev_center_line_side_dpose) crossed_center_line_dpose = true;
+  prev_center_line_side_dpose = center_line_side_dpose;
+  const target_distance = Math.hypot(x - robot.getX(), y - robot.getY());
+  const carrot_X = x - Math.sin(to_rad(angle)) * (drive.lead * target_distance + drive.setback);
+  const carrot_Y = y - Math.cos(to_rad(angle)) * (drive.lead * target_distance + drive.setback);
+  let drive_error = Math.hypot(carrot_X - robot.getX(), carrot_Y - robot.getY());
+  let heading_error = reduce_negative_180_to_180(to_deg(Math.atan2(carrot_X - robot.getX(), carrot_Y - robot.getY())) - robot.getAngle());
+  if (drive_error < drive.settle_error || crossed_center_line_dpose || drive_error < drive.setback) {
+    heading_error = reduce_negative_180_to_180(angle - robot.getAngle());
+    drive_error = target_distance;
+  }
+  let drive_output = drivePID_dpose.compute(drive_error);
+  const heading_scale_factor = Math.cos(to_rad(heading_error));
+  drive_output *= heading_scale_factor;
+  heading_error = reduce_negative_90_to_90(heading_error);
+  let heading_output = headingPID_dpose.compute(heading_error);
+  drive_output = clamp$1(drive_output, -Math.abs(heading_scale_factor) * drive.max_voltage, Math.abs(heading_scale_factor) * drive.max_voltage);
+  heading_output = clamp$1(heading_output, -heading_c.max_voltage, heading_c.max_voltage);
+  drive_output = clamp_min_voltage(drive_output, drive.min_voltage);
+  robot.tankDrive(
+    left_voltage_scaling(drive_output, heading_output) / 12,
+    right_voltage_scaling(drive_output, heading_output) / 12,
+    dt
+  );
+  return false;
+}
+let turnPID_ttp;
+let start_ttp = true;
+function reset_turn_to_point() {
+  start_ttp = true;
+}
+function turn_to_point(robot, dt, x, y, extra_angle, constants) {
+  const turn = constants[0];
+  if (start_ttp) {
+    const initial_error = reduce_negative_180_to_180(to_deg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle());
+    turnPID_ttp = new PID$1(initial_error, turn.kp, turn.ki, turn.kd, turn.starti, turn.settle_error, turn.settle_time, turn.timeout);
+    start_ttp = false;
+  }
+  if (turnPID_ttp.is_settled()) {
+    reset_turn_to_point();
+    return true;
+  }
+  const error = reduce_negative_180_to_180(to_deg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle() + extra_angle);
+  let output = turnPID_ttp.compute(error);
+  output = clamp$1(output, -turn.max_voltage, turn.max_voltage);
+  robot.tankDrive(output / 12, -output / 12, dt);
+  return false;
+}
+const kJarDrive = {
+  max_voltage: 8,
+  min_voltage: 0,
+  kp: 1.5,
+  ki: 0,
+  kd: 10,
+  starti: 0,
+  settle_error: 3,
+  settle_time: 300,
+  timeout: 5e3,
+  setback: 0,
+  lead: 0.5,
+  swing_direction: "left"
+};
+const kJarHeading = {
+  max_voltage: 10,
+  min_voltage: 0,
+  kp: 0.4,
+  ki: 0,
+  kd: 1,
+  starti: 0,
+  settle_error: 0,
+  settle_time: 0,
+  timeout: 0,
+  setback: 0,
+  lead: 0.5,
+  swing_direction: "left"
+};
+const kJarTurn = {
+  max_voltage: 12,
+  min_voltage: 0,
+  kp: 0.4,
+  ki: 0.03,
+  kd: 3,
+  starti: 15,
+  settle_error: 1,
+  settle_time: 300,
+  timeout: 3e3,
+  setback: 0,
+  lead: 0.5,
+  swing_direction: "left"
+};
+const kJarSwing = {
+  max_voltage: 12,
+  min_voltage: 0,
+  kp: 0.4,
+  ki: 0.01,
+  kd: 2,
+  starti: 15,
+  settle_error: 1,
+  settle_time: 300,
+  timeout: 3e3,
+  setback: 0,
+  lead: 0.5,
+  swing_direction: "left"
+};
+const JarTurnExitConditions = [
+  { key: "settle_error", units: "in", label: "Settle Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
+  { key: "settle_time", units: "ms", label: "Settle Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+  { key: "timeout", units: "ms", label: "Timeout", input: { bounds: [0, 9999], stepSize: 100, roundTo: 0 } }
+];
+const JarDriveExitConditions = [
+  ...JarTurnExitConditions,
+  { key: "min_voltage", units: "volt", label: "Min Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } }
+];
+const JarPIDConstantsSettings = [
+  { key: "max_voltage", units: "volt", label: "Max Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
+  { key: "kp", label: "kP", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
+  { key: "ki", label: "kI", units: "", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
+  { key: "kd", label: "kD", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
+  { key: "starti", units: "in", label: "Starti", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } }
+];
+const swingDirectionButton$1 = {
+  key: "swing_direction",
+  keyValues: [
+    { srcImg: rightswing, value: "right" },
+    { srcImg: leftswing, value: "left" }
+  ]
+};
+const JarTemplateDef = {
+  constants: [kJarDrive],
+  kMaxSpeed: 12,
+  formatPathName: "JAR-Template Path",
+  kBuilder: kJarBuilder,
+  kParser: kJarParser,
+  segments: {
+    start: {
+      name: "Start",
+      defaults: [kJarDrive],
+      toStringTemplate: "chassis.set_coordinates(${x}, ${y}, ${angle});",
+      simFn: (robot, _dt, x, y, angle) => robot.setPose(x, y, angle ?? 0),
+      cycleButtons: [],
+      numberInputs: []
+    },
+    wait: {
+      name: "Wait",
+      defaults: [kJarDrive],
+      toStringTemplate: "task::sleep(${time});",
+      simFn: (robot, dt, time) => robot.wait(time, dt),
+      slider: { key: "time", bounds: [0, 1e3], roundTo: 10, constantsIdx: 0 },
+      cycleButtons: [],
+      numberInputs: [{
+        constantsIdx: 0,
+        headerName: "Wait Settings",
+        fields: [
+          { key: "time", label: "Time", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } }
+        ]
+      }]
+    },
+    poseDrive: {
+      name: "Drive to Pose",
+      defaults: [kJarDrive, kJarHeading],
+      toStringTemplate: "chassis.drive_to_pose(${x}, ${y}, ${angle}, ${kBuilder});",
+      simFn: (robot, dt, x, y, angle, constants) => drive_to_pose(robot, dt, x, y, angle ?? 0, constants),
+      slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
+      cycleButtons: [],
+      numberInputs: [
+        {
+          constantsIdx: 0,
+          headerName: "Exit Conditions",
+          fields: [...JarDriveExitConditions]
+        },
+        {
+          constantsIdx: 0,
+          headerName: "Drive Constants",
+          fields: [
+            ...JarPIDConstantsSettings,
+            { key: "setback", label: "Setback", units: "in", input: { bounds: [0, 100], stepSize: 1, roundTo: 1 } },
+            { key: "lead", label: "Lead", units: "in", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 1 } }
+          ]
+        },
+        { constantsIdx: 1, headerName: "Heading Constants", fields: [...JarPIDConstantsSettings] }
+      ]
+    },
+    distanceDrive: {
+      name: "Drive to Distance",
+      defaults: [kJarDrive, kJarHeading],
+      toStringTemplate: "chassis.drive_distance(${distance}, ${kBuilder});",
+      simFn: (robot, dt, distance, _y, angle, constants) => drive_distance(robot, dt, distance, angle, constants),
+      slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
+      cycleButtons: [],
+      numberInputs: [
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...JarDriveExitConditions] },
+        { constantsIdx: 0, headerName: "Drive Constants", fields: [...JarPIDConstantsSettings] },
+        { constantsIdx: 1, headerName: "Heading Constants", fields: [...JarPIDConstantsSettings] }
+      ]
+    },
+    pointDrive: {
+      name: "Drive to Point",
+      defaults: [kJarDrive, kJarHeading],
+      toStringTemplate: "chassis.drive_to_point(${x}, ${y}, ${kBuilder});",
+      simFn: (robot, dt, x, y, _angle, constants) => drive_to_point(robot, dt, x, y, constants),
+      slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
+      cycleButtons: [],
+      numberInputs: [
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...JarDriveExitConditions] },
+        { constantsIdx: 0, headerName: "Drive Constants", fields: [...JarPIDConstantsSettings] },
+        { constantsIdx: 1, headerName: "Heading Constants", fields: [...JarPIDConstantsSettings] }
+      ]
+    },
+    pointTurn: {
+      name: "Turn to Point",
+      defaults: [kJarTurn],
+      toStringTemplate: "chassis.turn_to_point(${x}, ${y}, ${kBuilder});",
+      simFn: (robot, dt, x, y, angle, constants) => turn_to_point(robot, dt, x, y, angle ?? 0, constants),
+      slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
+      cycleButtons: [],
+      numberInputs: [
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...JarTurnExitConditions] },
+        { constantsIdx: 0, headerName: "Turn Constants", fields: [...JarPIDConstantsSettings] }
+      ]
+    },
+    angleTurn: {
+      name: "Turn to Angle",
+      defaults: [kJarTurn],
+      toStringTemplate: "chassis.turn_to_angle(${angle}, ${kBuilder});",
+      simFn: (robot, dt, _x, _y, angle, constants) => turn_to_angle(robot, dt, angle ?? 0, constants),
+      slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
+      cycleButtons: [],
+      numberInputs: [
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...JarTurnExitConditions] },
+        { constantsIdx: 0, headerName: "Turn Constants", fields: [...JarPIDConstantsSettings] }
+      ]
+    },
+    angleSwing: {
+      name: "Swing to Angle",
+      defaults: [kJarSwing],
+      toStringTemplate: "chassis.${swing_direction}_swing_to_angle(${angle}, ${kBuilder});",
+      simFn: (robot, dt, _x, _y, angle, constants) => swing_to_angle(robot, dt, angle ?? 0, constants),
+      slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
+      cycleButtons: [
+        { constantsIdx: 0, ...swingDirectionButton$1 }
+      ],
+      numberInputs: [
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...JarTurnExitConditions] },
+        { constantsIdx: 0, headerName: "Swing Constants", fields: [...JarPIDConstantsSettings] }
+      ]
+    },
+    pointSwing: {
+      castTo: "angleSwing"
+    },
+    strafeDrive: {
+      castTo: "distanceDrive"
+    }
+  }
+};
+function kJarBuilder(defaultConstants, constants, pose, kind) {
+  const driveDefault = defaultConstants[0];
+  const driveConstants2 = constants[0];
+  const pidKeys = ["kp", "ki", "kd", "starti"];
+  const exitKeys = ["settle_error", "settle_time", "timeout"];
+  function anyKeyDiffers(defaults, current, keys) {
+    return keys.some((key) => defaults[key] !== current[key]);
+  }
+  function formatDrivePID(k) {
+    return `${roundOff(k.kp, 3)}, ${roundOff(k.ki, 5)}, ${roundOff(k.kd, 3)}, ${roundOff(k.starti, 2)}`;
+  }
+  function formatExitConditions(k) {
+    return `${roundOff(k.settle_error, 2)}, ${roundOff(k.settle_time, 0)}, ${roundOff(k.timeout, 0)}`;
+  }
+  if (kind === "angleTurn") {
+    const pidChanged = anyKeyDiffers(driveDefault, driveConstants2, pidKeys);
+    const exitChanged = anyKeyDiffers(driveDefault, driveConstants2, exitKeys);
+    const voltageChanged = driveDefault.max_voltage !== driveConstants2.max_voltage;
+    if (pidChanged)
+      return `${roundOff(driveConstants2.max_voltage, 1)}, ${formatExitConditions(driveConstants2)}, ${formatDrivePID(driveConstants2)}`;
+    if (exitChanged)
+      return `${roundOff(driveConstants2.max_voltage, 1)}, ${formatExitConditions(driveConstants2)}`;
+    if (voltageChanged)
+      return `${roundOff(driveConstants2.max_voltage, 1)}`;
+    return "";
+  }
+  if (kind === "pointTurn") {
+    const extraAngle = pose?.angle ?? 0;
+    const pidChanged = anyKeyDiffers(driveDefault, driveConstants2, pidKeys);
+    const exitOrVoltageChanged = anyKeyDiffers(driveDefault, driveConstants2, exitKeys) || driveDefault.max_voltage !== driveConstants2.max_voltage;
+    if (pidChanged)
+      return `${roundOff(extraAngle, 2)}, ${roundOff(driveConstants2.max_voltage, 1)}, ${formatExitConditions(driveConstants2)}, ${formatDrivePID(driveConstants2)}`;
+    if (exitOrVoltageChanged)
+      return `${roundOff(extraAngle, 2)}, ${roundOff(driveConstants2.max_voltage, 1)}, ${formatExitConditions(driveConstants2)}`;
+    if (extraAngle !== 0)
+      return `${roundOff(extraAngle, 2)}`;
+    return "";
+  }
+  if (kind === "angleSwing") {
+    const anyConstantChanged = anyKeyDiffers(driveDefault, driveConstants2, [...pidKeys, ...exitKeys]) || driveDefault.max_voltage !== driveConstants2.max_voltage;
+    if (anyConstantChanged)
+      return `${roundOff(driveConstants2.max_voltage, 1)}, ${formatExitConditions(driveConstants2)}, ${formatDrivePID(driveConstants2)}`;
+    return "";
+  }
+  if (!defaultConstants[1] || !constants[1]) return "";
+  const headingDefault = defaultConstants[1];
+  const headingConstants2 = constants[1];
+  const anyPIDChanged = anyKeyDiffers(driveDefault, driveConstants2, pidKeys) || anyKeyDiffers(headingDefault, headingConstants2, pidKeys);
+  const exitConditionsChanged = anyKeyDiffers(driveDefault, driveConstants2, exitKeys);
+  const anyVoltageChanged = driveDefault.max_voltage !== driveConstants2.max_voltage || headingDefault.max_voltage !== headingConstants2.max_voltage;
+  function formatBothPIDs() {
+    return `${formatDrivePID(driveConstants2)}, ${formatDrivePID(headingConstants2)}`;
+  }
+  function formatDriveVoltages() {
+    return `${roundOff(driveConstants2.max_voltage, 1)}, ${roundOff(headingConstants2.max_voltage, 1)}`;
+  }
+  if (kind === "poseDrive") {
+    const poseParamsChanged = driveDefault.lead !== driveConstants2.lead || driveDefault.setback !== driveConstants2.setback || driveDefault.min_voltage !== driveConstants2.min_voltage;
+    const poseParams = `${roundOff(driveConstants2.lead, 1)}, ${roundOff(driveConstants2.setback, 1)}, ${roundOff(driveConstants2.min_voltage, 1)}`;
+    if (anyPIDChanged)
+      return `${poseParams}, ${formatDriveVoltages()}, ${formatExitConditions(driveConstants2)}, ${formatBothPIDs()}`;
+    if (exitConditionsChanged)
+      return `${poseParams}, ${formatDriveVoltages()}, ${formatExitConditions(driveConstants2)}`;
+    if (anyVoltageChanged)
+      return `${poseParams}, ${formatDriveVoltages()}`;
+    if (poseParamsChanged)
+      return poseParams;
+    return "";
+  }
+  if (kind === "distanceDrive") {
+    const heading = pose?.angle ?? null;
+    if (anyPIDChanged)
+      return `${roundOff(heading ?? 0, 2)}, ${formatDriveVoltages()}, ${formatExitConditions(driveConstants2)}, ${formatBothPIDs()}`;
+    if (exitConditionsChanged)
+      return `${roundOff(heading ?? 0, 2)}, ${formatDriveVoltages()}, ${formatExitConditions(driveConstants2)}`;
+    if (anyVoltageChanged)
+      return `${roundOff(heading ?? 0, 2)}, ${formatDriveVoltages()}`;
+    if (heading !== null)
+      return `${roundOff(heading, 2)}`;
+    return "";
+  }
+  if (kind === "pointDrive") {
+    const minOrMaxVoltageChanged = anyVoltageChanged || driveDefault.min_voltage !== driveConstants2.min_voltage;
+    const voltageParams = `${roundOff(driveConstants2.min_voltage, 1)}, ${formatDriveVoltages()}`;
+    if (anyPIDChanged)
+      return `${voltageParams}, ${formatExitConditions(driveConstants2)}, ${formatBothPIDs()}`;
+    if (exitConditionsChanged)
+      return `${voltageParams}, ${formatExitConditions(driveConstants2)}`;
+    if (minOrMaxVoltageChanged)
+      return voltageParams;
+    return "";
+  }
+  return "";
+}
+function kJarParser(kDefault, kBuilderStr, kind) {
+  const constants = kDefault.map((k) => ({ ...k }));
+  if (!kBuilderStr.trim()) return [constants];
+  const vals = kBuilderStr.split(",").map((s) => parseFloat(s.trim()));
+  const n = vals.length;
+  if (kind === "angleTurn") {
+    if (n >= 1) constants[0].max_voltage = vals[0];
+    if (n >= 4) {
+      constants[0].settle_error = vals[1];
+      constants[0].settle_time = vals[2];
+      constants[0].timeout = vals[3];
+    }
+    if (n >= 8) {
+      constants[0].kp = vals[4];
+      constants[0].ki = vals[5];
+      constants[0].kd = vals[6];
+      constants[0].starti = vals[7];
+    }
+    return [constants];
+  }
+  if (kind === "pointTurn") {
+    const pose = { angle: vals[0] };
+    if (n >= 2) constants[0].max_voltage = vals[1];
+    if (n >= 5) {
+      constants[0].settle_error = vals[2];
+      constants[0].settle_time = vals[3];
+      constants[0].timeout = vals[4];
+    }
+    if (n >= 9) {
+      constants[0].kp = vals[5];
+      constants[0].ki = vals[6];
+      constants[0].kd = vals[7];
+      constants[0].starti = vals[8];
+    }
+    return [constants, pose];
+  }
+  if (kind === "angleSwing") {
+    if (n >= 8) {
+      constants[0].max_voltage = vals[0];
+      constants[0].settle_error = vals[1];
+      constants[0].settle_time = vals[2];
+      constants[0].timeout = vals[3];
+      constants[0].kp = vals[4];
+      constants[0].ki = vals[5];
+      constants[0].kd = vals[6];
+      constants[0].starti = vals[7];
+    }
+    return [constants];
+  }
+  if (kind === "poseDrive") {
+    if (n >= 3) {
+      constants[0].lead = vals[0];
+      constants[0].setback = vals[1];
+      constants[0].min_voltage = vals[2];
+    }
+    if (n >= 5) {
+      constants[0].max_voltage = vals[3];
+      constants[1].max_voltage = vals[4];
+    }
+    if (n >= 8) {
+      constants[0].settle_error = vals[5];
+      constants[0].settle_time = vals[6];
+      constants[0].timeout = vals[7];
+    }
+    if (n >= 16) {
+      constants[0].kp = vals[8];
+      constants[0].ki = vals[9];
+      constants[0].kd = vals[10];
+      constants[0].starti = vals[11];
+      constants[1].kp = vals[12];
+      constants[1].ki = vals[13];
+      constants[1].kd = vals[14];
+      constants[1].starti = vals[15];
+    }
+    return [constants];
+  }
+  if (kind === "distanceDrive") {
+    const pose = { angle: vals[0] };
+    if (n >= 3) {
+      constants[0].max_voltage = vals[1];
+      constants[1].max_voltage = vals[2];
+    }
+    if (n >= 6) {
+      constants[0].settle_error = vals[3];
+      constants[0].settle_time = vals[4];
+      constants[0].timeout = vals[5];
+    }
+    if (n >= 14) {
+      constants[0].kp = vals[6];
+      constants[0].ki = vals[7];
+      constants[0].kd = vals[8];
+      constants[0].starti = vals[9];
+      constants[1].kp = vals[10];
+      constants[1].ki = vals[11];
+      constants[1].kd = vals[12];
+      constants[1].starti = vals[13];
+    }
+    return [constants, pose];
+  }
+  if (kind === "pointDrive") {
+    if (n >= 3) {
+      constants[0].min_voltage = vals[0];
+      constants[0].max_voltage = vals[1];
+      constants[1].max_voltage = vals[2];
+    }
+    if (n >= 6) {
+      constants[0].settle_error = vals[3];
+      constants[0].settle_time = vals[4];
+      constants[0].timeout = vals[5];
+    }
+    if (n >= 14) {
+      constants[0].kp = vals[6];
+      constants[0].ki = vals[7];
+      constants[0].kd = vals[8];
+      constants[0].starti = vals[9];
+      constants[1].kp = vals[10];
+      constants[1].ki = vals[11];
+      constants[1].kd = vals[12];
+      constants[1].starti = vals[13];
+    }
+    return [constants];
+  }
+  return [constants];
+}
+const fastest = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20fill='%23FFFFFF'%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20id='turn-around-up-direction-2'%20data-name='Flat%20Line'%20xmlns='http://www.w3.org/2000/svg'%20class='icon%20flat-line'%3e%3cpath%20id='primary'%20d='M18,13v3.5A4.49,4.49,0,0,1,13.5,21h0A4.49,4.49,0,0,1,9,16.5V3'%20style='fill:%20none;%20stroke:%20rgb(255,%20255,%20255);%20stroke-linecap:%20round;%20stroke-linejoin:%20round;%20stroke-width:%202;'%3e%3c/path%3e%3cpolyline%20id='primary-2'%20data-name='primary'%20points='6%206%209%203%2012%206'%20style='fill:%20none;%20stroke:%20rgb(255,%20255,%20255);%20stroke-linecap:%20round;%20stroke-linejoin:%20round;%20stroke-width:%202;'%3e%3c/polyline%3e%3c/svg%3e";
+const slowest = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20fill='%23FFFFFF'%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20id='turn-around-up-direction'%20data-name='Flat%20Line'%20xmlns='http://www.w3.org/2000/svg'%20class='icon%20flat-line'%3e%3cpath%20id='primary'%20d='M18,4V16.5A4.49,4.49,0,0,1,13.5,21h0A4.49,4.49,0,0,1,9,16.5V3'%20style='fill:%20none;%20stroke:%20rgb(255,%20255,%20255);%20stroke-linecap:%20round;%20stroke-linejoin:%20round;%20stroke-width:%202;'%3e%3c/path%3e%3cpolyline%20id='primary-2'%20data-name='primary'%20points='6%206%209%203%2012%206'%20style='fill:%20none;%20stroke:%20rgb(255,%20255,%20255);%20stroke-linecap:%20round;%20stroke-linejoin:%20round;%20stroke-width:%202;'%3e%3c/polyline%3e%3c/svg%3e";
+const stop = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='80'%20height='80'%20viewBox='3%2011%2019%202'%20fill='none'%20stroke='%23FFFFFF'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%20%3e%3cpolyline%20points='7%2018%2013%2012%207%206'%20/%3e%3cpath%20d='M17%206v12'%20/%3e%3c/svg%3e";
+const slow = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='80'%20height='80'%20viewBox='3%2011%2019%202'%20fill='none'%20stroke='%23FFFFFF'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%20%3e%3cpolyline%20points='9%2018%2015%2012%209%206'%20/%3e%3c/svg%3e";
+const fast = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='80'%20height='80'%20viewBox='3%2011%2019%202'%20fill='none'%20stroke='%23FFFFFF'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%20%3e%3cpolyline%20points='13%2017%2018%2012%2013%207'%20/%3e%3cpolyline%20points='6%2017%2011%2012%206%207'%20/%3e%3c/svg%3e";
+function wait(mode, pid, current_dist, chain_target_start2, chain_constant) {
+  switch (mode) {
+    case "wait":
+      return pid_wait(pid);
+    case "wait_quick":
+      return pid_wait_quick(pid, current_dist, chain_target_start2);
+    case "wait_quick_chain":
+      return pid_wait_quick_chain(pid, current_dist, chain_target_start2, chain_constant);
+  }
+}
+function pid_wait(pid) {
+  return pid.exit_condition() !== "RUNNING";
+}
+function pid_wait_quick(pid, current_dist, chain_target_start2) {
+  console.log(roundOff(chain_target_start2, 2), roundOff(current_dist, 2), roundOff(chain_target_start2 - current_dist, 2), roundOff(chain_target_start2, 2));
+  if (Math.sign(chain_target_start2 - current_dist) !== Math.sign(chain_target_start2)) {
+    pid.timers_reset();
+    return true;
+  }
+  if (pid.exit_condition() !== "RUNNING") {
+    return true;
+  }
+  return false;
+}
+let chain_started = false;
+function pid_wait_quick_chain(pid, current_dist, chain_target_start2, chain_constant) {
+  if (!chain_started) {
+    chain_started = true;
+    pid.target_set(pid.target_get() + chain_constant * Math.sign(chain_target_start2));
+  }
+  if (pid_wait_quick(pid, current_dist, chain_target_start2)) {
+    chain_started = false;
+    return true;
+  }
+  return false;
+}
+class PID3 {
+  constructor(kp, ki, kd, start_i, small_exit_time = 0, small_error = 0, big_exit_time = 0, big_error = 0, velocity_exit_time = 0) {
+    this.kp = kp;
+    this.ki = ki;
+    this.kd = kd;
+    this.start_i = start_i;
+    this.small_exit_time = small_exit_time;
+    this.small_error = small_error;
+    this.big_exit_time = big_exit_time;
+    this.big_error = big_error;
+    this.velocity_exit_time = velocity_exit_time;
+  }
+  output = 0;
+  cur = 0;
+  error = 0;
+  target = 0;
+  prev_current = 0;
+  integral = 0;
+  derivative = 0;
+  i = 0;
+  j = 0;
+  k = 0;
+  target_set(input) {
+    this.target = input;
+  }
+  target_get() {
+    return this.target;
+  }
+  sensor_set(input) {
+    this.prev_current = input;
+  }
+  compute_error(err, current) {
+    this.error = err;
+    this.cur = current;
+    return this.raw_compute();
+  }
+  raw_compute() {
+    this.derivative = this.cur - this.prev_current;
+    if (this.ki !== 0) {
+      if (Math.abs(this.error) < this.start_i)
+        this.integral += this.error;
+      if (Math.sign(this.error) !== Math.sign(this.prev_current))
+        this.integral = 0;
+    }
+    this.output = this.error * this.kp + this.integral * this.ki - this.derivative * this.kd;
+    this.prev_current = this.cur;
+    return this.output;
+  }
+  compute(current) {
+    return this.compute_error(this.target - current, current);
+  }
+  timers_reset() {
+    this.i = 0;
+    this.k = 0;
+    this.j = 0;
+  }
+  exit_condition() {
+    if (this.small_error !== 0) {
+      if (Math.abs(this.error) < this.small_error) {
+        this.j += SIM_CONSTANTS.dt_ms;
+        this.i = 0;
+        if (this.j > this.small_exit_time) {
+          this.timers_reset();
+          return "SMALL_EXIT";
+        }
+      } else {
+        this.j = 0;
+      }
+    } else if (this.big_error !== 0 && this.big_exit_time !== 0) {
+      if (Math.abs(this.error) < this.big_error) {
+        this.i += SIM_CONSTANTS.dt_ms;
+        if (this.i > this.big_exit_time) {
+          this.timers_reset();
+          return "BIG_EXIT";
+        }
+      } else {
+        this.i = 0;
+      }
+    }
+    if (this.velocity_exit_time !== 0) {
+      if (Math.abs(this.derivative) <= 0.05) {
+        this.k += SIM_CONSTANTS.dt_ms;
+        if (this.k > this.velocity_exit_time) {
+          this.timers_reset();
+          return "VELOCITY_EXIT";
+        }
+      } else {
+        this.k = 0;
+      }
+    }
+    return "RUNNING";
+  }
+}
+class slew {
+  constructor(min_speed, distance_to_travel) {
+    this.min_speed = min_speed;
+    this.distance_to_travel = distance_to_travel;
+  }
+  sign = 0;
+  error = 0;
+  x_intercept = 0;
+  y_intercept = 0;
+  slope = 0;
+  last_output = 0;
+  max_speed = 0;
+  is_enabled = false;
+  initialize(enabled, maximum_speed, target2, current) {
+    this.is_enabled = maximum_speed < this.min_speed || this.sign === 0 ? false : enabled;
+    this.max_speed = maximum_speed;
+    this.sign = Math.sign(target2 - current);
+    this.x_intercept = current + this.distance_to_travel * this.sign;
+    this.y_intercept = this.max_speed * this.sign;
+    this.slope = (this.sign * this.min_speed - this.y_intercept) / (this.x_intercept - 0 - current);
+  }
+  iterate(current) {
+    if (this.is_enabled) {
+      this.error = this.x_intercept - current;
+      if (Math.sign(this.error) !== this.sign) {
+        this.is_enabled = false;
+      } else if (Math.sign(this.error) === this.sign) {
+        this.last_output = (this.slope * this.error + this.y_intercept) * this.sign;
+      }
+    } else {
+      this.last_output = this.max_speed;
+    }
+    return this.last_output;
+  }
+}
+let drive_start = true;
+let drivePID;
+let headingPID;
+let slew_both$2;
+let start_x$2 = 0;
+let start_y$2 = 0;
+function resetDrivePid() {
+  drive_start = true;
+}
+function pid_drive_set(robot, dt, target2, p) {
+  const drive_p = p[0];
+  const heading_p = p[1];
+  if (drive_start) {
+    drive_start = false;
+    start_x$2 = robot.getX();
+    start_y$2 = robot.getY();
+    drivePID = new PID3(drive_p.p, drive_p.i, drive_p.d, drive_p.start_i, drive_p.small_exit_time, drive_p.small_error, drive_p.big_exit_time, drive_p.big_error, drive_p.velocity_exit_time);
+    headingPID = new PID3(heading_p.p, heading_p.i, heading_p.d, heading_p.start_i);
+    slew_both$2 = new slew(drive_p.slew_min_speed, drive_p.slew_distance);
+    drivePID.target_set(target2);
+    headingPID.target_set(robot.getRotation());
+    headingPID.sensor_set(robot.getRotation());
+    slew_both$2.initialize(drive_p.slew, drive_p.speed, target2, 0);
+    return false;
+  }
+  const current_dist = (robot.getX() - start_x$2) * Math.sin(toRad(headingPID.target_get())) + (robot.getY() - start_y$2) * Math.cos(toRad(headingPID.target_get()));
+  let drive_out = drivePID.compute(current_dist);
+  const imu_out = headingPID.compute(robot.getRotation());
+  const max_slew_out = slew_both$2.iterate(current_dist);
+  let faster_side = Math.abs(drive_out);
+  if (faster_side > max_slew_out)
+    drive_out *= max_slew_out / faster_side;
+  let l_out = drive_out + imu_out;
+  let r_out = drive_out - imu_out;
+  faster_side = Math.max(Math.abs(l_out), Math.abs(r_out));
+  if (faster_side > max_slew_out) {
+    l_out *= max_slew_out / faster_side;
+    r_out *= max_slew_out / faster_side;
+  }
+  robot.tankDrive(l_out / 127, r_out / 127, dt);
+  const output = wait(drive_p.wait, drivePID, current_dist, target2, drive_p.chain_constant);
+  if (output) {
+    drive_start = true;
+    return output;
+  }
+  return output;
+}
+function distance_to_point(itarget, icurrent) {
+  const x_error = itarget.x - icurrent.x;
+  const y_error = itarget.y - icurrent.y;
+  const distance = Math.hypot(x_error, y_error);
+  return distance;
+}
+function absolute_angle_to_point(itarget, icurrent) {
+  const x_error = itarget.x - icurrent.x;
+  const y_error = itarget.y - icurrent.y;
+  const error = to_deg(Math.atan2(x_error, y_error));
+  return error;
+}
+function vector_off_point(added, icurrent) {
+  const x_error = Math.sin(to_rad(icurrent.theta)) * added;
+  const y_error = Math.cos(to_rad(icurrent.theta)) * added;
+  const output = { x: 0, y: 0, theta: 0 };
+  output.x = x_error + icurrent.x;
+  output.y = y_error + icurrent.y;
+  output.theta = icurrent.theta;
+  return output;
+}
+function find_point_to_face(current, target2, dir) {
+  if (dir == "rev") {
+    target2 = {
+      x: -(target2.x - current.x) + current.x,
+      y: -(target2.y - current.y) + current.y,
+      theta: target2.theta
+    };
+  }
+  const tx_cx = target2.x - current.x;
+  let m = 0;
+  let angle = 0;
+  if (tx_cx != 0) {
+    m = (target2.y - current.y) / tx_cx;
+    angle = 90 - to_deg(Math.atan(m));
+  }
+  const ptf1 = vector_off_point(7.5, { x: target2.x, y: target2.y, theta: angle });
+  const ptf2 = vector_off_point(-7.5, { x: target2.x, y: target2.y, theta: angle });
+  const ptf1_dist = distance_to_point(ptf1, current);
+  const ptf2_dist = distance_to_point(ptf2, current);
+  if (ptf1_dist > ptf2_dist) {
+    return ptf1;
+  } else {
+    return ptf2;
+  }
+}
+function is_past_target(target2, current, point_to_face2, drive_direction) {
+  const fakek_y = current.y - target2.y;
+  const fakek_x = current.x - target2.x;
+  const ptf = { x: 0, y: 0 };
+  ptf.y = point_to_face2.y - target2.y;
+  ptf.x = point_to_face2.x - target2.x;
+  const add = drive_direction == "rev" ? 180 : 0;
+  const fake_angle = to_rad(absolute_angle_to_point(ptf, { x: fakek_x, y: fakek_y }) + add);
+  const fake_y = fakek_y * Math.cos(fake_angle) + fakek_x * Math.sin(fake_angle);
+  return fake_y;
+}
+function turn_shortest(target2, current) {
+  let error = target2 - current;
+  if (Math.abs(error) < 180) return target2;
+  let new_target = target2;
+  while (error > 180) {
+    new_target -= 360;
+    error = new_target - current;
+  }
+  while (error < -180) {
+    new_target += 360;
+    error = new_target - current;
+  }
+  if (new_target - current === 0) return current;
+  return new_target;
+}
+function turn_longest(target2, current) {
+  const shortest_target = turn_shortest(target2, current);
+  const error = shortest_target - current;
+  return shortest_target - 360 * Math.sign(error);
+}
+function turn_is_toleranced(current, input, longest, shortest, turn_tolerance = 0, turn_biased_left = false) {
+  let output = input;
+  const long_error = longest - current;
+  const short_error = shortest - current;
+  if (Math.abs(long_error) - Math.abs(short_error) >= turn_tolerance * 2)
+    return output;
+  const long_error_sgn = Math.sign(long_error);
+  if (turn_biased_left)
+    output = long_error_sgn === -1 ? longest : shortest;
+  else
+    output = long_error_sgn === 1 ? longest : shortest;
+  return output;
+}
+function turn_short(target2, current) {
+  const shortest = turn_shortest(target2, current);
+  const longest = turn_longest(target2, current);
+  return turn_is_toleranced(current, shortest, longest, shortest);
+}
+function turn_long(target2, current) {
+  const longest = turn_longest(target2, current);
+  const shortest = turn_shortest(target2, current);
+  return turn_is_toleranced(current, longest, longest, shortest);
+}
+function turn_left(target2, current) {
+  const shortest = turn_shortest(target2, current);
+  if (Math.sign(shortest - current) === -1) return shortest;
+  return turn_longest(target2, current);
+}
+function turn_right(target2, current) {
+  const shortest = turn_shortest(target2, current);
+  if (Math.sign(shortest - current) === 1) return shortest;
+  return turn_longest(target2, current);
+}
+function new_turn_target_compute(target2, current, behavior) {
+  let new_target = 0;
+  switch (behavior) {
+    case "cw":
+      new_target = turn_right(target2, current);
+      break;
+    case "ccw":
+      new_target = turn_left(target2, current);
+      break;
+    case "shortest":
+      new_target = turn_short(target2, current);
+      break;
+    case "longest":
+      new_target = turn_long(target2, current);
+      break;
+    default:
+      new_target = target2;
+      break;
+  }
+  return new_target;
+}
+let turn_start$1 = true;
+let sensor_start$1 = 0;
+let chain_target_start$1 = 0;
+let turnPID;
+let slew_turn;
+function resetTurnPid() {
+  turn_start$1 = true;
+}
+function pid_turn_set(robot, dt, target2, p) {
+  const turn_p = p[0];
+  if (turn_start$1) {
+    turn_start$1 = false;
+    sensor_start$1 = robot.getRotation();
+    target2 = new_turn_target_compute(target2, sensor_start$1, turn_p.angle_behavior);
+    chain_target_start$1 = target2 - sensor_start$1;
+    turnPID = new PID3(turn_p.p, turn_p.i, turn_p.d, turn_p.start_i, turn_p.small_exit_time, turn_p.small_error, turn_p.big_exit_time, turn_p.big_error, turn_p.velocity_exit_time);
+    slew_turn = new slew(turn_p.slew_min_speed, turn_p.slew_distance);
+    turnPID.target_set(target2);
+    turnPID.sensor_set(sensor_start$1);
+    slew_turn.initialize(turn_p.slew, turn_p.speed, target2, sensor_start$1);
+    return false;
+  }
+  const turn_output = turnPID.compute(robot.getRotation());
+  const slew_output = slew_turn.iterate(robot.getRotation());
+  let gyro_out = clamp$1(turn_output, -slew_output, slew_output);
+  if (turn_p.i != 0 && (Math.abs(turnPID.target_get()) > turn_p.start_i && Math.abs(turnPID.error) < turn_p.start_i)) {
+    gyro_out = clamp$1(gyro_out, -30, 30);
+  }
+  robot.tankDrive(gyro_out / 127, -gyro_out / 127, dt);
+  const output = wait(turn_p.wait, turnPID, robot.getRotation() - sensor_start$1, chain_target_start$1, turn_p.chain_constant);
+  if (output) {
+    turn_start$1 = true;
+    return output;
+  }
+  return output;
+}
+let turn_start = true;
+let target = 0;
+function resetOdomTurnPid() {
+  turn_start = true;
+  resetTurnPid();
+}
+function pid_odom_turn_set(robot, dt, x, y, p) {
+  const turn_p = p[0];
+  if (turn_start) {
+    turn_start = false;
+    target = toDeg(Math.atan2(x - robot.getX(), y - robot.getY())) + (turn_p.drive_directions === "rev" ? 180 : 0);
+    return pid_turn_set(robot, dt, target, p);
+  }
+  const output = pid_turn_set(robot, dt, target, p);
+  if (output) {
+    turn_start = true;
+    return output;
+  }
+  return output;
+}
+let swing_start = true;
+let sensor_start = 0;
+let chain_target_start = 0;
+let swingPID;
+let slew_swing;
+function resetSwingPid() {
+  swing_start = true;
+}
+function pid_swing_set(robot, dt, target2, p) {
+  const swing_p = p[0];
+  if (swing_start) {
+    swing_start = false;
+    sensor_start = robot.getRotation();
+    target2 = new_turn_target_compute(target2, sensor_start, swing_p.angle_behavior);
+    chain_target_start = target2 - sensor_start;
+    swingPID = new PID3(swing_p.p, swing_p.i, swing_p.d, swing_p.start_i, swing_p.small_exit_time, swing_p.small_error, swing_p.big_exit_time, swing_p.big_error, swing_p.velocity_exit_time);
+    slew_swing = new slew(swing_p.slew_min_speed, swing_p.slew_distance);
+    swingPID.target_set(target2);
+    swingPID.sensor_set(sensor_start);
+    slew_swing.initialize(swing_p.slew, swing_p.speed, target2, sensor_start);
+    return false;
+  }
+  const turn_output = swingPID.compute(robot.getRotation());
+  const slew_output = slew_swing.iterate(robot.getRotation());
+  let swing_out = clamp$1(turn_output, -slew_output, slew_output);
+  if (swing_p.i != 0 && (Math.abs(swingPID.target_get()) > swing_p.start_i && Math.abs(swingPID.error) < swing_p.start_i)) {
+    swing_out = clamp$1(swing_out, -30, 30);
+  }
+  let opposite_output = 0;
+  const scale = swing_out / swing_p.speed;
+  if (swing_p.swing === "LEFT_SWING") {
+    opposite_output = swing_p.opposite_speed > 0 ? swing_p.opposite_speed * scale : 0;
+    robot.tankDrive(swing_out / 127, opposite_output / 127, dt);
+  } else if (swing_p.swing === "RIGHT_SWING") {
+    opposite_output = swing_p.opposite_speed > 0 ? -(swing_p.opposite_speed * scale) : 0;
+    robot.tankDrive(opposite_output / 127, -swing_out / 127, dt);
+  }
+  const output = wait(swing_p.wait, swingPID, robot.getRotation() - sensor_start, chain_target_start, swing_p.chain_constant);
+  if (output) {
+    swing_start = true;
+    return true;
+  }
+  return output;
+}
+let ptp_start = true;
+let xyPID$1;
+let current_a_odomPID$1;
+let slew_both$1;
+let point_to_face$1;
+let odom_target$1;
+let odom_target_start$1;
+let past_target$1 = 0;
+let start_x$1 = 0;
+let start_y$1 = 0;
+let odom_imu_start$1 = 0;
+let prev_x$1 = 0;
+let prev_y$1 = 0;
+let new_current_fake$1 = 0;
+let chain_applied$1 = false;
+function resetOdomSet() {
+  ptp_start = true;
+}
+function pid_odom_set(robot, dt, x, y, p) {
+  const drive_p = p[0];
+  const heading_p = p[1];
+  const odom_pose_get = () => ({ x: robot.getX(), y: robot.getY(), theta: robot.getRotation() });
+  if (ptp_start) {
+    ptp_start = false;
+    start_x$1 = robot.getX();
+    start_y$1 = robot.getY();
+    prev_x$1 = robot.getX();
+    prev_y$1 = robot.getY();
+    new_current_fake$1 = 0;
+    chain_applied$1 = false;
+    xyPID$1 = new PID3(drive_p.p, drive_p.i, drive_p.d, drive_p.start_i, drive_p.small_exit_time, drive_p.small_error, drive_p.big_exit_time, drive_p.big_error, drive_p.velocity_exit_time);
+    current_a_odomPID$1 = new PID3(heading_p.p, heading_p.i, heading_p.d, heading_p.start_i);
+    slew_both$1 = new slew(drive_p.slew_min_speed, drive_p.slew_distance);
+    odom_target$1 = { x, y, theta: 0 };
+    odom_target_start$1 = { x, y, theta: 0 };
+    point_to_face$1 = find_point_to_face(odom_pose_get(), odom_target$1, drive_p.drive_directions);
+    past_target$1 = Math.sign(is_past_target(odom_target$1, odom_pose_get(), point_to_face$1, drive_p.drive_directions));
+    odom_imu_start$1 = robot.getRotation();
+    const dir2 = drive_p.drive_directions === "rev" ? -1 : 1;
+    slew_both$1.initialize(drive_p.slew, drive_p.speed, 100 * dir2, 0);
+    return false;
+  }
+  const dir = drive_p.drive_directions === "rev" ? -1 : 1;
+  const current_dist = Math.hypot(robot.getX() - start_x$1, robot.getY() - start_y$1);
+  const signed_dist = current_dist * dir;
+  const max_slew_out = slew_both$1.iterate(signed_dist);
+  const temp_target = is_past_target(odom_target$1, odom_pose_get(), point_to_face$1, drive_p.drive_directions);
+  const flipped = Math.sign(temp_target) !== Math.sign(past_target$1) ? -1 : 1;
+  const xy_delta_fake = Math.hypot(robot.getX() - prev_x$1, robot.getY() - prev_y$1);
+  prev_x$1 = robot.getX();
+  prev_y$1 = robot.getY();
+  new_current_fake$1 += xy_delta_fake * dir * flipped;
+  const ptf = point_to_face$1;
+  let a_target = absolute_angle_to_point(ptf, odom_pose_get());
+  a_target = new_turn_target_compute(a_target, odom_imu_start$1, drive_p.angle_behavior);
+  const wrapped_a_target = a_target - robot.getRotation();
+  let a_out = current_a_odomPID$1.compute_error(wrapped_a_target, robot.getRotation());
+  let xy_out = xyPID$1.compute_error(Math.abs(temp_target) * dir * flipped, new_current_fake$1);
+  xy_out = Math.sign(xy_out) * Math.min(Math.abs(xy_out), max_slew_out);
+  if (drive_p.odom_turn_bias > 0) {
+    const scale = 1 - (1 - Math.cos(toRad(current_a_odomPID$1.error))) / drive_p.odom_turn_bias;
+    xy_out *= scale;
+  }
+  let faster_side = Math.max(Math.abs(xy_out), Math.abs(a_out));
+  if (faster_side > max_slew_out) {
+    xy_out *= max_slew_out / faster_side;
+    a_out *= max_slew_out / faster_side;
+  }
+  let l_out = xy_out + a_out;
+  let r_out = xy_out - a_out;
+  faster_side = Math.max(Math.abs(l_out), Math.abs(r_out));
+  if (faster_side > max_slew_out) {
+    l_out *= max_slew_out / faster_side;
+    r_out *= max_slew_out / faster_side;
+  }
+  robot.tankDrive(l_out / 127, r_out / 127, dt);
+  const output = odom_exit(drive_p, odom_pose_get());
+  if (output) {
+    ptp_start = true;
+    return true;
+  }
+  return output;
+}
+function odom_exit(drive_p, current_pose) {
+  const past_original = Math.sign(is_past_target(odom_target_start$1, current_pose, point_to_face$1, drive_p.drive_directions)) !== Math.sign(past_target$1);
+  switch (drive_p.wait) {
+    case "wait":
+      return xyPID$1.exit_condition() !== "RUNNING";
+    case "wait_quick":
+      if (past_original) {
+        xyPID$1.timers_reset();
+        current_a_odomPID$1.timers_reset();
+        return true;
+      }
+      return xyPID$1.exit_condition() !== "RUNNING";
+    case "wait_quick_chain":
+      if (!chain_applied$1) {
+        chain_applied$1 = true;
+        const angle = absolute_angle_to_point(odom_target_start$1, { x: start_x$1, y: start_y$1 });
+        const extended = vector_off_point(drive_p.chain_constant, { x: odom_target_start$1.x, y: odom_target_start$1.y, theta: angle });
+        odom_target$1.x = extended.x;
+        odom_target$1.y = extended.y;
+      }
+      if (past_original) {
+        xyPID$1.timers_reset();
+        current_a_odomPID$1.timers_reset();
+        return true;
+      }
+      return xyPID$1.exit_condition() !== "RUNNING";
+  }
+}
+let boomerang_start = true;
+let xyPID;
+let current_a_odomPID;
+let slew_both;
+let point_to_face;
+let odom_target;
+let odom_target_start;
+let final_target;
+let past_target = 0;
+let start_x = 0;
+let start_y = 0;
+let odom_imu_start = 0;
+let prev_x = 0;
+let prev_y = 0;
+let new_current_fake = 0;
+let chain_applied = false;
+function compute_carrot(current, dir, drive_p) {
+  const dist2 = distance_to_point(final_target, current);
+  if (dist2 < drive_p.lookahead / 2) {
+    return { x: final_target.x, y: final_target.y, theta: final_target.theta };
+  }
+  const h = Math.min(dist2 * drive_p.lead, drive_p.boomerang_distance) * dir;
+  const base = vector_off_point(-h, final_target);
+  return { x: base.x, y: base.y, theta: final_target.theta };
+}
+function resetBoomerangSet() {
+  boomerang_start = true;
+}
+function pid_odom_boomerang_set(robot, dt, x, y, angle, p) {
+  const drive_p = p[0];
+  const heading_p = p[1];
+  const odom_pose_get = () => ({ x: robot.getX(), y: robot.getY(), theta: robot.getRotation() });
+  const dir = drive_p.drive_directions === "rev" ? -1 : 1;
+  if (boomerang_start) {
+    boomerang_start = false;
+    start_x = robot.getX();
+    start_y = robot.getY();
+    prev_x = robot.getX();
+    prev_y = robot.getY();
+    new_current_fake = 0;
+    chain_applied = false;
+    final_target = { x, y, theta: angle };
+    odom_target_start = { x, y, theta: 0 };
+    xyPID = new PID3(drive_p.p, drive_p.i, drive_p.d, drive_p.start_i, drive_p.small_exit_time, drive_p.small_error, drive_p.big_exit_time, drive_p.big_error, drive_p.velocity_exit_time);
+    current_a_odomPID = new PID3(heading_p.p, heading_p.i, heading_p.d, heading_p.start_i);
+    slew_both = new slew(drive_p.slew_min_speed, drive_p.slew_distance);
+    const initial_carrot = compute_carrot(odom_pose_get(), dir, drive_p);
+    odom_target = { x: initial_carrot.x, y: initial_carrot.y, theta: angle };
+    point_to_face = find_point_to_face(odom_pose_get(), odom_target, drive_p.drive_directions);
+    past_target = Math.sign(is_past_target(odom_target, odom_pose_get(), point_to_face, drive_p.drive_directions));
+    odom_imu_start = robot.getRotation();
+    slew_both.initialize(drive_p.slew, drive_p.speed, 100 * dir, 0);
+    return false;
+  }
+  if (!chain_applied) {
+    const carrot = compute_carrot(odom_pose_get(), dir, drive_p);
+    if (odom_target.x !== carrot.x || odom_target.y !== carrot.y) {
+      odom_target.x = carrot.x;
+      odom_target.y = carrot.y;
+      point_to_face = find_point_to_face(odom_pose_get(), odom_target, drive_p.drive_directions);
+      past_target = Math.sign(is_past_target(odom_target, odom_pose_get(), point_to_face, drive_p.drive_directions));
+    }
+  }
+  const current_dist = Math.hypot(robot.getX() - start_x, robot.getY() - start_y);
+  const signed_dist = current_dist * dir;
+  const max_slew_out = slew_both.iterate(signed_dist);
+  const temp_target = is_past_target(odom_target, odom_pose_get(), point_to_face, drive_p.drive_directions);
+  const flipped = Math.sign(temp_target) !== Math.sign(past_target) ? -1 : 1;
+  const xy_delta_fake = Math.hypot(robot.getX() - prev_x, robot.getY() - prev_y);
+  prev_x = robot.getX();
+  prev_y = robot.getY();
+  new_current_fake += xy_delta_fake * dir * flipped;
+  const ptf = point_to_face;
+  let a_target = absolute_angle_to_point(ptf, odom_pose_get());
+  a_target = new_turn_target_compute(a_target, odom_imu_start, drive_p.angle_behavior);
+  const wrapped_a_target = a_target - robot.getRotation();
+  let a_out = current_a_odomPID.compute_error(wrapped_a_target, robot.getRotation());
+  let xy_out = xyPID.compute_error(Math.abs(temp_target) * dir * flipped, new_current_fake);
+  xy_out = Math.sign(xy_out) * Math.min(Math.abs(xy_out), max_slew_out);
+  if (drive_p.odom_turn_bias > 0) {
+    const scale = 1 - (1 - Math.cos(toRad(current_a_odomPID.error))) / drive_p.odom_turn_bias;
+    xy_out *= scale;
+  }
+  let faster_side = Math.max(Math.abs(xy_out), Math.abs(a_out));
+  if (faster_side > max_slew_out) {
+    xy_out *= max_slew_out / faster_side;
+    a_out *= max_slew_out / faster_side;
+  }
+  let l_out = xy_out + a_out;
+  let r_out = xy_out - a_out;
+  faster_side = Math.max(Math.abs(l_out), Math.abs(r_out));
+  if (faster_side > max_slew_out) {
+    l_out *= max_slew_out / faster_side;
+    r_out *= max_slew_out / faster_side;
+  }
+  robot.tankDrive(l_out / 127, r_out / 127, dt);
+  const output = boomerang_exit(drive_p, odom_pose_get());
+  if (output) {
+    boomerang_start = true;
+    return true;
+  }
+  return output;
+}
+function boomerang_exit(drive_p, current_pose) {
+  const past_original = Math.sign(is_past_target(odom_target_start, current_pose, point_to_face, drive_p.drive_directions)) !== Math.sign(past_target);
+  switch (drive_p.wait) {
+    case "wait":
+      return xyPID.exit_condition() !== "RUNNING";
+    case "wait_quick":
+      if (past_original) {
+        xyPID.timers_reset();
+        current_a_odomPID.timers_reset();
+        return true;
+      }
+      return xyPID.exit_condition() !== "RUNNING";
+    case "wait_quick_chain":
+      if (!chain_applied) {
+        chain_applied = true;
+        const extended = vector_off_point(drive_p.chain_constant, {
+          x: odom_target_start.x,
+          y: odom_target_start.y,
+          theta: final_target.theta
+        });
+        odom_target.x = extended.x;
+        odom_target.y = extended.y;
+      }
+      if (past_original) {
+        xyPID.timers_reset();
+        current_a_odomPID.timers_reset();
+        return true;
+      }
+      return xyPID.exit_condition() !== "RUNNING";
+  }
+}
+const driveConstants = {
+  speed: 110,
+  chain_constant: 3,
+  opposite_speed: 0,
+  p: 10,
+  i: 0,
+  d: 100,
+  start_i: 0,
+  small_exit_time: 90,
+  small_error: 1,
+  big_exit_time: 250,
+  big_error: 3,
+  velocity_exit_time: 500,
+  slew_distance: 3,
+  slew_min_speed: 70,
+  odom_turn_bias: 0.9,
+  lead: 0.625,
+  boomerang_distance: 16,
+  lookahead: 7,
+  angle_behavior: "shortest",
+  drive_directions: "fwd",
+  swing: "LEFT_SWING",
+  wait: "wait",
+  slew: true
+};
+const headingConstants = {
+  ...driveConstants,
+  p: 11,
+  i: 0,
+  d: 20,
+  start_i: 0
+};
+const angularConstants = {
+  ...driveConstants,
+  p: 6.5,
+  i: 0,
+  d: 52.5,
+  start_i: 0
+};
+const boomerangConstants = {
+  ...driveConstants,
+  p: 5.8,
+  i: 0,
+  d: 32.5,
+  start_i: 0
+};
+const turnConstants = {
+  ...driveConstants,
+  speed: 90,
+  chain_constant: 3,
+  opposite_speed: 0,
+  p: 3,
+  i: 0.05,
+  d: 20,
+  start_i: 15,
+  small_exit_time: 90,
+  small_error: 3,
+  big_exit_time: 250,
+  big_error: 7,
+  velocity_exit_time: 500,
+  slew_distance: 3,
+  slew_min_speed: 70
+};
+const swingConstants = {
+  ...driveConstants,
+  speed: 110,
+  chain_constant: 5,
+  opposite_speed: 0,
+  p: 6,
+  i: 0,
+  d: 65,
+  start_i: 0,
+  small_exit_time: 90,
+  small_error: 3,
+  big_exit_time: 250,
+  big_error: 7,
+  velocity_exit_time: 500,
+  slew_distance: 3,
+  slew_min_speed: 80
+};
+const exitConditions = (type) => {
+  const distUnit = type === "TURN" ? "deg" : "in";
+  return [
+    { key: "chain_constant", units: distUnit, label: "Chain Constant", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
+    { key: "small_error", units: distUnit, label: "Small Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
+    { key: "small_exit_time", units: "ms", label: "Small Exit Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+    { key: "big_error", units: distUnit, label: "Big Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
+    { key: "big_exit_time", units: "ms", label: "Big Exit Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+    { key: "velocity_exit_time", units: "ms", label: "Velocity Exit Time", input: { bounds: [0, 9999], stepSize: 100, roundTo: 0 } }
+  ];
+};
+const pidSettings = (type) => {
+  const distUnit = type === "TURN" ? "deg" : "in";
+  return [
+    { key: "p", label: "P", units: "", input: { bounds: [0, 999], stepSize: 0.5, roundTo: 5 } },
+    { key: "i", label: "I", units: "", input: { bounds: [0, 999], stepSize: 0.1, roundTo: 5 } },
+    { key: "d", label: "D", units: "", input: { bounds: [0, 999], stepSize: 0.5, roundTo: 5 } },
+    { key: "start_i", units: distUnit, label: "Start i", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } }
+  ];
+};
+const pidSlewSettings = (type) => [
+  ...pidSettings(type),
+  { key: "speed", units: "", label: "Max Speed", input: { bounds: [0, 127], stepSize: 10, roundTo: 1 } },
+  { key: "slew_distance", units: type === "TURN" ? "deg" : "in", label: "Slew Distance", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 2 } },
+  { key: "slew_min_speed", units: "", label: "Slew Min Speed", input: { bounds: [0, 127], stepSize: 1, roundTo: 1 } },
+  { key: "slew", units: "", label: "Slew Enabled 0-1", input: { bounds: [0, 1], stepSize: 1, roundTo: 0 } }
+];
+const driveDirectionButton = {
+  key: "drive_directions",
+  keyValues: [
+    { srcImg: fwd, value: "fwd" },
+    { srcImg: rev, value: "rev" }
+  ]
+};
+const turnDirectionButton = {
+  key: "angle_behavior",
+  keyValues: [
+    { srcImg: slowest, value: "longest" },
+    { srcImg: refresh, value: "cw" },
+    { srcImg: ccw, value: "ccw" },
+    { srcImg: fastest, value: "shortest" }
+  ]
+};
+const swingDirectionButton = {
+  key: "swing",
+  keyValues: [
+    { srcImg: rightswing, value: "RIGHT_SWING" },
+    { srcImg: leftswing, value: "LEFT_SWING" }
+  ]
+};
+const waitButton = {
+  key: "wait",
+  keyValues: [
+    { srcImg: stop, value: "wait" },
+    { srcImg: slow, value: "wait_quick" },
+    { srcImg: fast, value: "wait_quick_chain" }
+  ]
+};
+const EZTemplateDef = {
+  constants: [driveConstants],
+  kMaxSpeed: 127,
+  formatPathName: "EZ-Template Path",
+  // kBuilder: kMikBuilder,
+  // kParser: kMikParser,
+  segments: {
+    start: {
+      name: "Start",
+      defaults: [driveConstants],
+      toStringTemplate: "chassis.odom_xyt_set(${x}_in, ${y}_in, ${angle}_deg);",
+      simFn: (robot, _dt, x, y, angle) => robot.setPose(x, y, angle ?? 0),
+      cycleButtons: [],
+      numberInputs: []
+    },
+    wait: {
+      name: "Wait",
+      defaults: [driveConstants],
+      toStringTemplate: "pros::delay(${time});",
+      simFn: (robot, dt, time) => robot.wait(time, dt),
+      slider: { key: "time", bounds: [0, 1e3], roundTo: 10, constantsIdx: 0 },
+      cycleButtons: [],
+      numberInputs: [{
+        constantsIdx: 0,
+        headerName: "Wait Settings",
+        fields: [
+          { key: "time", label: "Time", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } }
+        ]
+      }]
+    },
+    distanceDrive: {
+      name: "Drive",
+      defaults: [driveConstants, headingConstants],
+      toStringTemplate: "chassis.set_drive_pid(${distance}_in, ${speed}, ${slew});\nchassis.pid_${0:wait}();",
+      simFn: (robot, dt, distance, _y, _angle, constants) => pid_drive_set(robot, dt, distance, constants),
+      simReset: () => resetDrivePid(),
+      slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
+      cycleButtons: [
+        { constantsIdx: 0, ...waitButton }
+      ],
+      numberInputs: [
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: exitConditions("DRIVE") },
+        { constantsIdx: 0, headerName: "Drive Constants", fields: pidSlewSettings("DRIVE") },
+        { constantsIdx: 1, headerName: "Heading Constants", fields: pidSettings("DRIVE") }
+      ]
+    },
+    poseDrive: {
+      name: "Odom Boomerang",
+      defaults: [driveConstants, boomerangConstants],
+      toStringTemplate: "chassis.pid_odom_set({{${x}_in, ${y}_in, ${angle}_deg}, ${drive_directions}, ${speed}}, ${slew});\nchassis.pid_${0:wait}();",
+      simFn: (robot, dt, x, y, angle, constants) => pid_odom_boomerang_set(robot, dt, x, y, angle ?? 0, constants),
+      simReset: () => resetBoomerangSet(),
+      slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
+      cycleButtons: [
+        { constantsIdx: 0, ...waitButton },
+        { constantsIdx: 0, ...driveDirectionButton }
+      ],
+      numberInputs: [
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: exitConditions("DRIVE") },
+        {
+          constantsIdx: 0,
+          headerName: "Drive Constants",
+          fields: [
+            ...pidSlewSettings("DRIVE"),
+            { key: "odom_turn_bias", label: "Turn Bias", units: "", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } },
+            { key: "lead", label: "Lead", units: "", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 3 } },
+            { key: "boomerang_distance", label: "Distance", units: "in", input: { bounds: [0, 100], stepSize: 1, roundTo: 1 } },
+            { key: "lookahead", label: "Lookahead", units: "in", input: { bounds: [0, 100], stepSize: 1, roundTo: 1 } }
+          ]
+        },
+        { constantsIdx: 1, headerName: "Heading Constants", fields: pidSettings("DRIVE") }
+      ]
+    },
+    pointDrive: {
+      name: "Odom Drive",
+      defaults: [driveConstants, angularConstants],
+      toStringTemplate: "chassis.pid_odom_set({{${x}_in, ${y}_in}, ${drive_directions}, ${speed}}, ${slew});\nchassis.pid_${0:wait}();",
+      simFn: (robot, dt, x, y, _angle, constants) => pid_odom_set(robot, dt, x, y, constants),
+      simReset: () => resetOdomSet(),
+      slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
+      cycleButtons: [
+        { constantsIdx: 0, ...waitButton },
+        { constantsIdx: 0, ...driveDirectionButton }
+      ],
+      numberInputs: [
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: exitConditions("DRIVE") },
+        {
+          constantsIdx: 0,
+          headerName: "Drive Constants",
+          fields: [
+            ...pidSlewSettings("DRIVE"),
+            { key: "odom_turn_bias", label: "Turn Bias", units: "", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } }
+          ]
+        },
+        { constantsIdx: 1, headerName: "Heading Constants", fields: pidSettings("DRIVE") }
+      ]
+    },
+    pointTurn: {
+      name: "Odom Turn",
+      defaults: [turnConstants],
+      toStringTemplate: "chassis.pid_turn_set({${x}_in, ${y}_in}, ${drive_directions}, ${speed}, ${angle_behavior}, ${slew});\nchassis.pid_${0:wait}();",
+      simFn: (robot, dt, x, y, _angle, constants) => pid_odom_turn_set(robot, dt, x, y, constants),
+      simReset: () => resetOdomTurnPid(),
+      slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
+      cycleButtons: [
+        { constantsIdx: 0, ...waitButton },
+        { constantsIdx: 0, ...driveDirectionButton, poseEffect: (val) => ({ angle: val === "fwd" ? 0 : 180 }) },
+        { constantsIdx: 0, ...turnDirectionButton }
+      ],
+      numberInputs: [
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: exitConditions("TURN") },
+        { constantsIdx: 0, headerName: "Turn Constants", fields: pidSlewSettings("TURN") }
+      ]
+    },
+    angleTurn: {
+      name: "Turn",
+      defaults: [turnConstants],
+      toStringTemplate: "chassis.pid_turn_set(${angle}_deg, ${speed}, ${angle_behavior}, ${slew});\nchassis.pid_${0:wait}();",
+      simFn: (robot, dt, _x, _y, angle, constants) => pid_turn_set(robot, dt, angle ?? 0, constants),
+      simReset: () => resetTurnPid(),
+      slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
+      cycleButtons: [
+        { constantsIdx: 0, ...waitButton },
+        { constantsIdx: 0, ...turnDirectionButton }
+      ],
+      numberInputs: [
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: exitConditions("TURN") },
+        { constantsIdx: 0, headerName: "Turn Constants", fields: pidSlewSettings("TURN") }
+      ]
+    },
+    angleSwing: {
+      name: "Swing",
+      defaults: [swingConstants],
+      toStringTemplate: "chassis.pid_swing_set(${swing}, ${angle}_deg, ${speed}, ${opposite_speed}, ${angle_behavior}, ${slew});\nchassis.pid_${0:wait}();",
+      simFn: (robot, dt, _x, _y, angle, constants) => pid_swing_set(robot, dt, angle ?? 0, constants),
+      simReset: () => resetSwingPid(),
+      slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
+      cycleButtons: [
+        { constantsIdx: 0, ...swingDirectionButton },
+        { constantsIdx: 0, ...waitButton },
+        { constantsIdx: 0, ...turnDirectionButton }
+      ],
+      numberInputs: [
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: exitConditions("TURN") },
+        {
+          constantsIdx: 0,
+          headerName: "Swing Constants",
+          fields: [
+            ...pidSlewSettings("TURN"),
+            { key: "opposite_speed", units: "", label: "Opposite Speed", input: { bounds: [0, 127], stepSize: 10, roundTo: 1 } }
+          ]
+        }
+      ]
+    },
+    pointSwing: {
+      castTo: "angleSwing"
+    },
+    strafeDrive: {
+      castTo: "distanceDrive"
+    }
+  }
+};
 const FORMAT_REGISTRY = {
   LemLib: LemLibDef,
   mikLib: mikLibDef,
   ReveilLib: reveilLibDef,
-  "JAR-Template": LemLibDef,
+  "JAR-Template": JarTemplateDef,
   "RW-Template": LemLibDef,
-  Holonomic: holonomicDef
+  Holonomic: holonomicDef,
+  "EZ-Template": EZTemplateDef
 };
 function mergeFormatDef(registry, saved2) {
   if (!saved2 || typeof saved2 !== "object") return registry;
@@ -15289,6 +17107,7 @@ function mergeFormatDef(registry, saved2) {
       ...reg,
       ...v,
       simFn: reg.simFn,
+      simReset: reg.simReset,
       cycleButtons: reg.cycleButtons,
       numberInputs: reg.numberInputs,
       slider: reg.slider
@@ -15296,7 +17115,7 @@ function mergeFormatDef(registry, saved2) {
   }
   return { ...registry, ...s, kBuilder: registry.kBuilder, kParser: registry.kParser, segments: segs };
 }
-const SEGMENT_UI_KEYS = /* @__PURE__ */ new Set(["simFn", "cycleButtons", "numberInputs", "slider"]);
+const SEGMENT_UI_KEYS = /* @__PURE__ */ new Set(["simFn", "simReset", "cycleButtons", "numberInputs", "slider"]);
 const FORMAT_FN_KEYS = /* @__PURE__ */ new Set(["kBuilder", "kParser"]);
 function stripFormatDefForSave(formatDef) {
   const segments = {};
@@ -15336,6 +17155,7 @@ function changeFormat(newFormat) {
     formatDef: newFormatDef,
     path: {
       ...prev.path,
+      name: newFormatDef.formatPathName,
       segments: prev.path.segments.map((s) => {
         const newSegDef = newFormatDef.segments[s.kind];
         const castKind = newSegDef?.castTo ?? s.kind;
@@ -15680,6 +17500,7 @@ class Robot {
     this.isOmnis = isOmnis;
     this.lateralTau = lateralTau;
     this.angularTau = angularTau;
+    this.rotation = angle;
     if (isOmnis) {
       this.lateralFriction = 10;
     } else {
@@ -15697,6 +17518,7 @@ class Robot {
   vRR = 0;
   lateralFriction = 0;
   timeout = 0;
+  rotation = 0;
   setAngle(angle) {
     this.angle = normalizeDeg(angle);
   }
@@ -15711,6 +17533,9 @@ class Robot {
   }
   getAngle() {
     return this.angle;
+  }
+  getRotation() {
+    return this.rotation;
   }
   getPose() {
     return { x: this.x, y: this.y, angle: this.angle };
@@ -15791,6 +17616,7 @@ class Robot {
     const prev_orientation_rad = toRad(this.angle);
     const orientation_rad = prev_orientation_rad + orientation_delta_rad;
     this.setAngle(toDeg(orientation_rad));
+    this.rotation += toDeg(orientation_delta_rad);
     let local_X_position;
     let local_Y_position;
     if (Math.abs(orientation_delta_rad) < 1e-7) {
@@ -15823,6 +17649,7 @@ class Robot {
   // x, y are the CoG offset point position; converts to kinematic center internally
   setPose(x, y, angle) {
     this.angle = angle;
+    this.rotation = angle;
     const θ = toRad(angle);
     this.x = x - (this.cogOffsetX * Math.cos(θ) + this.cogOffsetY * Math.sin(θ));
     this.y = y - (-this.cogOffsetX * Math.sin(θ) + this.cogOffsetY * Math.cos(θ));
@@ -15845,7 +17672,7 @@ const DEFAULT_FORMAT = {
   format: "mikLib",
   field: DEFAULT_FIELD_KEY,
   formatDef: FORMAT_REGISTRY["mikLib"],
-  path: { segments: [], name: "" },
+  path: { segments: [], name: "mikLib Path" },
   robot: defaultRobotConstants
 };
 function loadValidatedAppState() {
@@ -16024,11 +17851,14 @@ function Slider({
 }
 const undoHistory = createStore([fileFormatStore.getState()]);
 const redoHistory = createStore([]);
+const fileUndosStore = createStore(0);
 function saveSnapshot() {
   const snapshot = fileFormatStore.getState();
   const current = undoHistory.getState();
   undoHistory.setState([...current, snapshot].slice(-300));
   redoHistory.setState([]);
+  fileUndosStore.setState((n) => n + 1);
+  console.log(snapshot);
   localStorage.setItem("appState", JSON.stringify(snapshot));
 }
 function evaluate(expr) {
@@ -16040,7 +17870,7 @@ function evaluate(expr) {
       continue;
     }
     const isUnary = expr[i] === "-" && (tokens.length === 0 || ["+", "-", "*", "/"].includes(tokens[tokens.length - 1]));
-    if (isUnary || /\d/.test(expr[i])) {
+    if (isUnary || /[\d.]/.test(expr[i])) {
       let num = isUnary ? "-" : "";
       if (isUnary) i++;
       while (i < expr.length && /[\d.]/.test(expr[i])) num += expr[i++];
@@ -16333,7 +18163,7 @@ function ConstantRow({
     "div",
     {
       className: `flex flex-row items-center
-            justify-between h-[35px] pr-2 pl-2 gap-1 rounded-lg
+            justify-between h-[35px] pr-1 pl-1 gap-1 rounded-lg
 
             hover:brightness-90
             transition-all duration-100
@@ -16343,7 +18173,7 @@ function ConstantRow({
         /* @__PURE__ */ jsxRuntimeExports.jsx(
           "button",
           {
-            className: `w-[100px] text-left ${labelColor} ${onToggleSelect ? "cursor-pointer" : "cursor-default"}`,
+            className: `w-[200px] text-left text-[15px] ${labelColor} ${onToggleSelect ? "cursor-pointer" : "cursor-default"}`,
             onClick: onToggleSelect,
             children: label
           }
@@ -16351,10 +18181,10 @@ function ConstantRow({
         /* @__PURE__ */ jsxRuntimeExports.jsx(
           NumberInput,
           {
-            width: 55,
-            height: 30,
+            width: 48,
+            height: 28,
             fontSize: 16,
-            value: typeof value === "number" ? value : null,
+            value: typeof value === "number" ? value : typeof value === "boolean" ? value ? 1 : 0 : null,
             setValue: onChange,
             units,
             bounds: input?.bounds ?? [0, 100],
@@ -16401,7 +18231,7 @@ function Tooltip({ label, placement = "top", keybind = false, children, speed = 
   const hideTimer = reactExports.useRef(void 0);
   const [tooltipStyle, setTooltipStyle] = reactExports.useState(null);
   const [visible, setVisible] = reactExports.useState(false);
-  const openDelay = speed === "slow" ? 600 : 400;
+  const openDelay = speed === "slow" ? 600 : 100;
   function handleMouseEnter() {
     clearTimeout(hideTimer.current);
     if (ref.current) setTooltipStyle(computeStyle(ref.current.getBoundingClientRect(), placement));
@@ -16688,109 +18518,6 @@ const moveMultipleSegments = (setPath, fromIds, toIndex) => {
   });
   if (didChange) saveSnapshot();
 };
-const SIM_CONSTANTS = {
-  seconds: 99,
-  dt: 1 / 60
-  // Sim is run at 60 hertz
-};
-const pathTelemetry = createStore([]);
-const activeSimSegmentStore = createStore(-1);
-const simJumpStore = createStore(null);
-const computedPathStore = createStore({
-  totalTime: 0,
-  trajectory: [],
-  endTrajectory: [],
-  segmentTrajectorys: [],
-  segmentCumulativeDists: [],
-  timeOffset: 0
-});
-function precomputePath(robot, auton) {
-  const simLengthSeconds = SIM_CONSTANTS.seconds;
-  let autoIdx = 0;
-  const trajectory = [];
-  const endTrajectory = [];
-  const segmentTrajectory = [];
-  const segmentTrajectorys = [];
-  const segmentKinds = [];
-  const segmentTargetDists = [];
-  const dt = SIM_CONSTANTS.dt;
-  let t = 0;
-  let safetyIter = 0;
-  const maxIter = 60 * simLengthSeconds;
-  while (safetyIter < maxIter) {
-    if (autoIdx < auton.length) {
-      const [done, kind, targetDist] = auton[autoIdx](robot, dt);
-      if (done) {
-        endTrajectory.push({
-          x: robot.getX(),
-          y: robot.getY(),
-          angle: robot.getAngle()
-        });
-        segmentTrajectorys.push([...segmentTrajectory]);
-        segmentKinds.push(kind);
-        segmentTargetDists.push(targetDist);
-        segmentTrajectory.length = 0;
-        autoIdx++;
-      }
-    }
-    if (autoIdx >= auton.length) break;
-    segmentTrajectory.push({
-      t,
-      x: robot.getX(),
-      y: robot.getY(),
-      angle: robot.getAngle()
-    });
-    trajectory.push({
-      t,
-      x: robot.getX(),
-      y: robot.getY(),
-      angle: robot.getAngle()
-    });
-    t += dt;
-    safetyIter++;
-  }
-  const turnKinds = /* @__PURE__ */ new Set(["pointTurn", "angleTurn", "angleSwing", "pointSwing"]);
-  function shortAngleDiff(a, b) {
-    let d = normalizeDeg(b - a);
-    if (d > 180) d -= 360;
-    return Math.abs(d);
-  }
-  const segmentCumulativeDists = [];
-  const telemetry = segmentTrajectorys.map((seg, i) => {
-    const kind = segmentKinds[i];
-    const isTurn = turnKinds.has(kind);
-    const totalDistance = segmentTargetDists[i] ?? 0;
-    if (seg.length === 0) {
-      segmentCumulativeDists.push([]);
-      return { totalTime: 0, totalDistance, progressRaw: 0, progressPercent: 0, units: isTurn ? "deg" : "in" };
-    }
-    const totalTime = seg[seg.length - 1].t - seg[0].t;
-    const cumDist = [0];
-    for (let j = 1; j < seg.length; j++) {
-      let step;
-      if (isTurn) {
-        step = shortAngleDiff(seg[j - 1].angle, seg[j].angle);
-      } else {
-        const dx = seg[j].x - seg[j - 1].x;
-        const dy = seg[j].y - seg[j - 1].y;
-        step = Math.sqrt(dx * dx + dy * dy);
-      }
-      cumDist.push(cumDist[j - 1] + step);
-    }
-    segmentCumulativeDists.push(cumDist);
-    const progressRaw = cumDist[cumDist.length - 1];
-    const progressPercent = totalDistance > 0 ? Math.min(progressRaw / totalDistance * 100, 100) : 100;
-    return {
-      totalTime,
-      totalDistance,
-      progressRaw,
-      progressPercent,
-      units: isTurn ? "deg" : "in"
-    };
-  });
-  pathTelemetry.setState(telemetry);
-  return { totalTime: t, trajectory, endTrajectory, segmentTrajectorys, segmentCumulativeDists, timeOffset: 0 };
-}
 const hoveredSegmentStore = createStore(null);
 const MotionList = reactExports.memo(function MotionList2({
   segmentId,
@@ -17232,7 +18959,7 @@ function PathConfigHeader({ name, isOpen, setOpen, isTelemetryOpen, onTelemetryT
     if (e.key === "Enter") commit();
     if (e.key === "Escape") setEditing(false);
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "w-full flex flex-row items-center justify-between", children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "w-full flex flex-row items-center justify-between min-w-0", children: [
     editing ? /* @__PURE__ */ jsxRuntimeExports.jsx(
       "input",
       {
@@ -17241,11 +18968,11 @@ function PathConfigHeader({ name, isOpen, setOpen, isTelemetryOpen, onTelemetryT
         onChange: (e) => setDraft(e.target.value),
         onBlur: commit,
         onKeyDown: handleKeyDown,
-        className: "text-[20px] bg-blackgray outline-none rounded-lg px-2 w-40",
+        className: "text-[20px] bg-blackgray outline-none rounded-lg px-2 w-40 min-w-0",
         autoFocus: true
       }
-    ) : /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "block text-[20px] cursor-text", onClick: startEditing, children: name }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row gap-[10px] items-center", children: [
+    ) : /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "block text-[20px] cursor-text truncate min-w-0", onClick: startEditing, children: name }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row gap-[10px] items-center shrink-0", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Hide Path", placement: "bottom", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
         "button",
         {
@@ -17471,6 +19198,10 @@ function convertPathToString(formatDef, path, selected = false) {
     for (const key of Object.keys(mergedK)) {
       line = line.replace(new RegExp(`\\$\\{${key}\\}`, "g"), String(mergedK[key]));
     }
+    line = line.replace(/\$\{(\d+):(\w+)\}/g, (_, idxStr, key) => {
+      const group = k[Number(idxStr)];
+      return group && key in group ? String(group[key]) : "";
+    });
     if (kBuilderStr === "") {
       line = line.replace(/,\s*\$\{kBuilder\}/g, "").replace(/\$\{kBuilder\}/g, "");
     } else {
@@ -17482,24 +19213,34 @@ function convertPathToString(formatDef, path, selected = false) {
 }
 function convertStringToPath(formatDef, format, pathString) {
   const segments = [];
-  for (const rawLine of pathString.split("\n")) {
-    const line = rawLine.trim().replace(/\(\s+/g, "(").replace(/\s+\)/g, ")");
-    if (!line) continue;
+  const lines2 = pathString.split("\n").map((l) => l.trim().replace(/\(\s+/g, "(").replace(/\s+\)/g, ")"));
+  let i = 0;
+  while (i < lines2.length) {
+    if (!lines2[i]) {
+      i++;
+      continue;
+    }
+    let matched = false;
     for (const [kind, segDef] of Object.entries(formatDef.segments)) {
       if (!segDef || segDef.castTo || !segDef.toStringTemplate) continue;
-      const seg = parseSegmentLine(line, kind, segDef, formatDef, format);
+      const templateLineCount = segDef.toStringTemplate.split("\n").length;
+      const chunk = lines2.slice(i, i + templateLineCount).join("\n");
+      const seg = parseSegmentLine(chunk, kind, segDef, formatDef, format);
       if (seg) {
         segments.push(seg);
+        i += templateLineCount;
+        matched = true;
         break;
       }
     }
+    if (!matched) i++;
   }
   const tempPath = { segments };
-  for (let i = 0; i < segments.length; i++) {
-    const seg = segments[i];
+  for (let i2 = 0; i2 < segments.length; i2++) {
+    const seg = segments[i2];
     if (seg.kind !== "distanceDrive" || seg.distance == null) continue;
-    const pos = distanceToPosition(tempPath, i, seg.distance);
-    if (pos) segments[i] = { ...seg, pose: { ...seg.pose, x: pos.x, y: pos.y } };
+    const pos = distanceToPosition(tempPath, i2, seg.distance);
+    if (pos) segments[i2] = { ...seg, pose: { ...seg.pose, x: pos.x, y: pos.y } };
   }
   return segments;
 }
@@ -17566,9 +19307,14 @@ function parseSegmentLine(line, kind, segDef, formatDef, format) {
     time: parsedTime !== void 0 && !isNaN(parsedTime) ? parsedTime : 0
   };
 }
+const debugStore = createStore(false);
 SIM_CONSTANTS.seconds = 99;
+let currentPathTime = -2 / 60;
+let simComputed = 0;
 function convertPathToSim(formatDef, path) {
   const auton = [];
+  DEBUG_printSimulationStart();
+  currentPathTime = -2 / 60;
   for (let idx = 0; idx < path.segments.length; idx++) {
     const seg = path.segments[idx];
     const x = seg.pose.x ?? 0;
@@ -17583,12 +19329,14 @@ function convertPathToSim(formatDef, path) {
     const resolvedSimDef = segDef.castTo ? formatDef.segments[segDef.castTo] ?? segDef : segDef;
     if (!resolvedSimDef.simFn) continue;
     const simFn = resolvedSimDef.simFn;
+    const simReset = resolvedSimDef.simReset;
     let started = false;
     let targetDist = 0;
     switch (kind) {
       case "start":
         auton.push(
           (robot, dt) => {
+            DEBUG_printRobotState(robot, dt);
             const output = simFn(robot, dt, x, y, angle, k);
             return [output, kind, 0];
           }
@@ -17598,10 +19346,14 @@ function convertPathToSim(formatDef, path) {
         auton.push(
           (robot, dt) => {
             if (!started) {
+              simReset?.();
+              DEBUG_printSegmentStart(idx, formatDef, kind);
               targetDist = 999;
               started = true;
             }
+            DEBUG_printRobotState(robot, dt);
             const output = simFn(robot, dt, time, 0, 0, k);
+            if (output) DEBUG_printSegmentEnd(idx, formatDef, kind);
             return [output, kind, targetDist];
           }
         );
@@ -17611,10 +19363,14 @@ function convertPathToSim(formatDef, path) {
         auton.push(
           (robot, dt) => {
             if (!started) {
+              simReset?.();
+              DEBUG_printSegmentStart(idx, formatDef, kind);
               targetDist = Math.hypot(x - robot.getX(), y - robot.getY());
               started = true;
             }
+            DEBUG_printRobotState(robot, dt);
             const output = simFn(robot, dt, x, y, angle, k);
+            if (output) DEBUG_printSegmentEnd(idx, formatDef, kind);
             return [output, kind, targetDist];
           }
         );
@@ -17624,11 +19380,15 @@ function convertPathToSim(formatDef, path) {
         auton.push(
           (robot, dt) => {
             if (!started) {
+              simReset?.();
+              DEBUG_printSegmentStart(idx, formatDef, kind);
               const targetAngle = toDeg(Math.atan2(turn_pos.x - robot.getX(), turn_pos.y - robot.getY())) + angle;
               targetDist = Math.abs(angle_error(targetAngle - robot.getAngle(), "fastest"));
               started = true;
             }
+            DEBUG_printRobotState(robot, dt);
             const output = simFn(robot, dt, turn_pos.x, turn_pos.y, angle, k);
+            if (output) DEBUG_printSegmentEnd(idx, formatDef, kind);
             return [output, kind, targetDist];
           }
         );
@@ -17638,10 +19398,14 @@ function convertPathToSim(formatDef, path) {
         auton.push(
           (robot, dt) => {
             if (!started) {
+              simReset?.();
+              DEBUG_printSegmentStart(idx, formatDef, kind);
               targetDist = Math.abs(angle_error(angle - robot.getAngle(), "fastest"));
               started = true;
             }
+            DEBUG_printRobotState(robot, dt);
             const output = simFn(robot, dt, x, y, angle, k);
+            if (output) DEBUG_printSegmentEnd(idx, formatDef, kind);
             return [output, kind, targetDist];
           }
         );
@@ -17652,10 +19416,14 @@ function convertPathToSim(formatDef, path) {
         auton.push(
           (robot, dt) => {
             if (!started) {
+              simReset?.();
+              DEBUG_printSegmentStart(idx, formatDef, kind);
               targetDist = Math.abs(segDistance);
               started = true;
             }
+            DEBUG_printRobotState(robot, dt);
             const output = simFn(robot, dt, segDistance, y, seg.pose.angle, k);
+            if (output) DEBUG_printSegmentEnd(idx, formatDef, kind);
             return [output, kind, targetDist];
           }
         );
@@ -17664,6 +19432,24 @@ function convertPathToSim(formatDef, path) {
     }
   }
   return auton;
+}
+function DEBUG_printSegmentStart(idx, formatDef, kind) {
+  if (!debugStore.getState()) return;
+  console.log(`%cStarting ${formatDef.segments[kind]?.name} ${idx}`, "color: lime; font-weight: bold");
+}
+function DEBUG_printSegmentEnd(idx, formatDef, kind) {
+  if (!debugStore.getState()) return;
+  console.log(`%cEnding ${formatDef.segments[kind]?.name} ${idx}`, "color: #ff6b6b; font-weight: bold");
+}
+function DEBUG_printRobotState(robot, dt) {
+  if (!debugStore.getState()) return;
+  currentPathTime += dt;
+  console.log(`%cx: ${robot.getX().toFixed(2)}, y: ${robot.getY().toFixed(2)}, θ: ${robot.getAngle().toFixed(2)} dt: ${currentPathTime.toFixed(2)}s`, "color: cyan");
+}
+function DEBUG_printSimulationStart() {
+  if (!debugStore.getState()) return;
+  simComputed += 1;
+  console.log(`%cSTARTING SIMULATION COMPUTE #${simComputed}`, "color: violet; font-weight: bold");
 }
 const useRobotPose = createSharedState([]);
 const DEFAULTS = {
@@ -18179,6 +19965,82 @@ function ControlConfig() {
     ] })
   ] });
 }
+const fileSaveStore = createStore(0);
+const fileHandleStore = createStore(null);
+const dirHandleStore = createStore(null);
+const FILE_VERSION = "mikGen v1.0.0";
+function serializeFile(fileFormat) {
+  const stripped = { ...fileFormat, formatDef: stripFormatDefForSave(fileFormat.formatDef) };
+  return FILE_VERSION + "\n" + JSON.stringify(stripped);
+}
+function handleFileConversion(content) {
+  let raw;
+  try {
+    raw = JSON.parse(content);
+  } catch {
+    alert("File loading failed");
+    throw new Error("Invalid JSON in legacy file");
+  }
+  if (!raw || typeof raw !== "object") throw new Error("Expected object");
+  const p = raw;
+  if (typeof p.format !== "string" || !(p.format in FORMAT_REGISTRY)) {
+    alert("File loading failed");
+    throw new Error(`Unknown format: ${p.format}`);
+  }
+  const format = p.format;
+  const rawPath = p.path && typeof p.path === "object" ? p.path : null;
+  const rawSegments = rawPath && Array.isArray(rawPath.segments) ? rawPath.segments : [];
+  const segments = rawSegments.map((seg) => {
+    if (!seg || typeof seg !== "object") return seg;
+    const s = seg;
+    const kind = s.kind;
+    return { ...s, format, kind, constants: getDefaultConstants(void 0, format, kind) };
+  });
+  if (segments.length > 0 && segments[0]?.kind !== "start") {
+    const s = segments[0];
+    segments[0] = { ...s, kind: "start", constants: getDefaultConstants(void 0, format, "start") };
+  }
+  const path = rawPath ? { ...rawPath, segments } : DEFAULT_FORMAT.path;
+  return { ...DEFAULT_FORMAT, format, formatDef: FORMAT_REGISTRY[format], path };
+}
+function deserializeFile(content) {
+  const newline = content.indexOf("\n");
+  const firstLine = newline === -1 ? content : content.slice(0, newline);
+  if (firstLine.trim() !== FILE_VERSION) {
+    return handleFileConversion(content);
+  }
+  return JSON.parse(content.slice(newline + 1));
+}
+async function loadFromHandle(handle) {
+  if (fileUndosStore.getState() > 1) {
+    const currentHandle = fileHandleStore.getState();
+    if (currentHandle) {
+      const choice = window.confirm("You have unsaved changes. Save before loading?");
+      if (choice) {
+        const writable = await currentHandle.createWritable();
+        await writable.write(serializeFile(fileFormatStore.getState()));
+        await writable.close();
+        fileSaveStore.setState((n) => n + 1);
+      } else if (!window.confirm("Discard unsaved changes and load new file?")) {
+        return;
+      }
+    } else {
+      if (!window.confirm("You have unsaved changes. Discard and load new file?")) return;
+    }
+  }
+  const file = await handle.getFile();
+  const content = await file.text();
+  const fileName = handle.name.replace(/\.[^/.]+$/, "");
+  const parsed = deserializeFile(content);
+  fileFormatStore.setState({
+    ...parsed,
+    formatDef: mergeFormatDef(FORMAT_REGISTRY[parsed.format], parsed.formatDef),
+    path: { ...parsed.path, name: fileName }
+  });
+  saveSnapshot();
+  fileUndosStore.setState(0);
+  fileHandleStore.setState(handle);
+}
 function TextInput({
   fontSize,
   unitsFontSize,
@@ -18358,71 +20220,74 @@ function FileRenamePopup({
     onEnter(text);
     setOpen(false);
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(React.Fragment, { children: open && /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "div",
-    {
-      className: "\n                        fixed inset-0 z-30\n                        bg-black/10 backdrop-blur-[7px]\n                        grid place-items-center\n                        overflow-x-hidden",
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "div",
-        {
-          className: "\n                            relative\n                            -translate-y-[15%]\n                            bg-medgray_hover w-auto h-auto p-4\n                            flex flex-col gap-2\n                            shadow-xs shadow-blackgray\n                            rounded-lg\n                        ",
-          ref: popupRef,
-          children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-2 text-start ", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "button",
-              {
-                className: "fixed right-2 top-2 px-0.5 py-0.5 rounded-sm hover:bg-blackgrayhover",
-                onClick: () => setOpen(false),
-                children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  "img",
-                  {
-                    className: "w-[25px] h-[25px]",
-                    src: cross
-                  }
-                )
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[18px] text-white", children: label }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row gap-1", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                TextInput,
-                {
-                  fontSize: 18,
-                  unitsFontSize: 14,
-                  width: 200,
-                  height: 40,
-                  units: ".txt",
-                  value: intialName,
-                  setValue: (text2) => {
-                    onEnter(text2);
-                    setOpen(false);
-                  },
-                  focus: true,
-                  setText
-                }
-              ),
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(React.Fragment, { children: open && reactDomExports.createPortal(
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "div",
+      {
+        className: "\n                        fixed inset-0 z-[60]\n                        bg-black/10 backdrop-blur-[7px]\n                        grid place-items-center\n                        overflow-x-hidden",
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "div",
+          {
+            className: "\n                            relative\n                            -translate-y-[15%]\n                            bg-medgray_hover w-auto h-auto p-4\n                            flex flex-col gap-2\n                            shadow-xs shadow-blackgray\n                            rounded-lg\n                        ",
+            ref: popupRef,
+            children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-2 text-start ", children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx(
                 "button",
                 {
-                  className: "flex px-[5px] py-[5px] rounded-sm hover:bg-blackgrayhover",
-                  onClick: () => handleOnEnter(),
+                  className: "fixed right-2 top-2 px-0.5 py-0.5 rounded-sm hover:bg-blackgrayhover",
+                  onClick: () => setOpen(false),
                   children: /* @__PURE__ */ jsxRuntimeExports.jsx(
                     "img",
                     {
-                      className: "w-[30px] h-[30px]",
-                      src: enter
+                      className: "w-[25px] h-[25px]",
+                      src: cross
                     }
                   )
                 }
-              )
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[18px] text-white", children: label }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row gap-1", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  TextInput,
+                  {
+                    fontSize: 18,
+                    unitsFontSize: 14,
+                    width: 200,
+                    height: 40,
+                    units: ".txt",
+                    value: intialName,
+                    setValue: (text2) => {
+                      onEnter(text2);
+                      setOpen(false);
+                    },
+                    focus: true,
+                    setText
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "button",
+                  {
+                    className: "flex px-[5px] py-[5px] rounded-sm hover:bg-blackgrayhover",
+                    onClick: () => handleOnEnter(),
+                    children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "img",
+                      {
+                        className: "w-[30px] h-[30px]",
+                        src: enter
+                      }
+                    )
+                  }
+                )
+              ] })
             ] })
-          ] })
-        }
-      )
-    }
+          }
+        )
+      }
+    ),
+    document.body
   ) });
 }
-function MenuButtonTemplate({ title, children, onOpen, onClose, flashRef, underlineRef }) {
+function MenuButtonTemplate({ title, children, onOpen, onClose, flashRef, underlineRef, width, closeOnClick = true }) {
   const [isOpen, setOpen] = reactExports.useState(false);
   const [flash, setFlash] = reactExports.useState(false);
   const [underline, setUnderline] = reactExports.useState(false);
@@ -18506,10 +20371,13 @@ function MenuButtonTemplate({ title, children, onOpen, onClose, flashRef, underl
         isOpen && /* @__PURE__ */ jsxRuntimeExports.jsx(
           "div",
           {
-            className: "absolute left-0 top-full mt-1 z-40 w-45 rounded-sm bg-medgray_hover shadow-xs shadow-black",
+            className: `absolute left-0 top-full mt-1 z-40 rounded-sm bg-medgray_hover shadow-xs shadow-black`,
+            style: width !== void 0 ? { width: width * 4 } : void 0,
             onClick: () => {
-              setOpen(false);
-              onCloseRef.current?.();
+              if (closeOnClick) {
+                setOpen(false);
+                onCloseRef.current?.();
+              }
             },
             children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-col mt-2 px-1 mb-2 gap-0.5", children })
           }
@@ -18525,7 +20393,7 @@ function MenuKeybindButton({ callback, name, keybind, textSize }) {
       onClick: callback,
       className: "flex pr-1 pl-2 py-0.5 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm",
       children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `text-[${textSize || 14}px]`, children: name }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `text-[${textSize || 14}px] truncate min-w-0`, children: name }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `text-lightgray text-[${textSize || 14}px] font-sans flex items-center gap-0`, children: keybind })
       ]
     }
@@ -18538,7 +20406,7 @@ function ConfigKeybindButton({ callback, name, keybind, textSize }) {
       onClick: callback,
       className: "flex w-full pr-1 pl-2 py-0.5 items-center justify-between bg-medgray hover:brightness-92 cursor-pointer rounded-sm",
       children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `text-[${textSize || 14}px]`, children: name }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `text-[${textSize || 14}px] truncate min-w-0`, children: name }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `text-lightgray text-[${textSize || 14}px] font-sans flex items-center gap-0`, children: keybind })
       ]
     }
@@ -18570,54 +20438,9 @@ function Section({ name = "", children, defaultCollapsed = false }) {
     !collapsed && children
   ] });
 }
-function handleFileConversion(content) {
-  let raw;
-  try {
-    raw = JSON.parse(content);
-  } catch {
-    alert("File loading failed");
-    throw new Error("Invalid JSON in legacy file");
-  }
-  if (!raw || typeof raw !== "object") throw new Error("Expected object");
-  const p = raw;
-  if (typeof p.format !== "string" || !(p.format in FORMAT_REGISTRY)) {
-    alert("File loading failed");
-    throw new Error(`Unknown format: ${p.format}`);
-  }
-  const format = p.format;
-  const rawPath = p.path && typeof p.path === "object" ? p.path : null;
-  const rawSegments = rawPath && Array.isArray(rawPath.segments) ? rawPath.segments : [];
-  const formatDef = FORMAT_REGISTRY[format];
-  const segments = rawSegments.map((seg) => {
-    if (!seg || typeof seg !== "object") return seg;
-    const s = seg;
-    const kind = s.kind;
-    return { ...s, format, kind, constants: getDefaultConstants(void 0, format, kind) };
-  });
-  if (segments.length > 0 && segments[0]?.kind !== "start") {
-    const s = segments[0];
-    segments[0] = { ...s, kind: "start", constants: getDefaultConstants(void 0, format, "start") };
-  }
-  const path = rawPath ? { ...rawPath, segments } : DEFAULT_FORMAT.path;
-  return { ...DEFAULT_FORMAT, format, formatDef, path };
-}
-const FILE_VERSION = "mikGen v1.0.0";
-function serializeFile(fileFormat) {
-  const stripped = { ...fileFormat, formatDef: stripFormatDefForSave(fileFormat.formatDef) };
-  return FILE_VERSION + "\n" + JSON.stringify(stripped);
-}
-function deserializeFile(content) {
-  const newline = content.indexOf("\n");
-  const firstLine = newline === -1 ? content : content.slice(0, newline);
-  if (firstLine.trim() !== FILE_VERSION) {
-    return handleFileConversion(content);
-  }
-  return JSON.parse(content.slice(newline + 1));
-}
 function FileButton() {
   const fileInputRef = reactExports.useRef(null);
   const renameResolveRef = reactExports.useRef(null);
-  const fileHandleRef = reactExports.useRef(null);
   const underlineRef = reactExports.useRef(void 0);
   const [popupOpen, setPopupOpen] = reactExports.useState(false);
   const [path, setPath] = usePath();
@@ -18645,6 +20468,12 @@ function FileButton() {
     }
     setIsSaved(false);
   }, [historyLength]);
+  reactExports.useEffect(() => {
+    return fileHandleStore.subscribe(() => {
+      skipSave.current = true;
+      setIsSaved(true);
+    });
+  }, []);
   const updatePathName = (name) => {
     setPath((prev) => ({ ...prev, name }));
     renameResolveRef.current?.(name);
@@ -18663,7 +20492,7 @@ function FileButton() {
     }
   }, [popupOpen]);
   const handleNewFile = () => {
-    if (!isSaved) handleSaveAs();
+    if (fileUndosStore.getState() > 1) handleSaveAs();
     const newFileFormat = {
       format,
       field,
@@ -18673,7 +20502,8 @@ function FileButton() {
     };
     fileFormatStore.setState(newFileFormat);
     saveSnapshot();
-    fileHandleRef.current = null;
+    fileUndosStore.setState(0);
+    fileHandleStore.setState(null);
     setIsSaved(true);
   };
   const handleOpenFile = async () => {
@@ -18690,17 +20520,7 @@ function FileButton() {
         ],
         multiple: false
       });
-      fileHandleRef.current = handle;
-      const file = await handle.getFile();
-      const content = await file.text();
-      const fileName = handle.name.replace(/\.[^/.]+$/, "");
-      const parsed = deserializeFile(content);
-      fileFormatStore.setState({
-        ...parsed,
-        formatDef: mergeFormatDef(FORMAT_REGISTRY[parsed.format], parsed.formatDef),
-        path: { ...parsed.path, name: fileName }
-      });
-      saveSnapshot();
+      await loadFromHandle(handle);
       setIsSaved(true);
     } catch (error) {
       if (error.name !== "AbortError") {
@@ -18708,9 +20528,26 @@ function FileButton() {
       }
     }
   };
+  const handleOpenFolder = async () => {
+    if (!("showDirectoryPicker" in window)) return;
+    try {
+      const handle = await window.showDirectoryPicker({ mode: "read" });
+      dirHandleStore.setState(handle);
+    } catch (error) {
+      if (error.name !== "AbortError") {
+        console.error("Error opening folder:", error);
+      }
+    }
+  };
   const handleFileSelect = (event) => {
     const file = event.target.files?.[0];
     if (file) {
+      if (fileUndosStore.getState() > 1) {
+        if (!window.confirm("You have unsaved changes. Discard and load new file?")) {
+          event.target.value = "";
+          return;
+        }
+      }
       const fileName = file.name.replace(/\.[^/.]+$/, "");
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -18722,11 +20559,13 @@ function FileButton() {
           path: { ...parsed.path, name: fileName }
         });
         saveSnapshot();
+        fileUndosStore.setState(0);
       };
       reader.readAsText(file);
-      fileHandleRef.current = null;
+      fileHandleStore.setState(null);
     }
     event.target.value = "";
+    fileHandleStore.setState(null);
     setIsSaved(true);
     skipSave.current = true;
   };
@@ -18736,11 +20575,14 @@ function FileButton() {
       return;
     }
     try {
-      if (fileHandleRef.current) {
-        const writable = await fileHandleRef.current.createWritable();
+      const handle = fileHandleStore.getState();
+      if (handle) {
+        const writable = await handle.createWritable();
         await writable.write(serializeFile(fileText));
         await writable.close();
         setIsSaved(true);
+        fileUndosStore.setState(0);
+        fileSaveStore.setState((n) => n + 1);
       } else {
         await handleSaveAs();
       }
@@ -18764,13 +20606,15 @@ function FileButton() {
           { description: "JSON Files", accept: { "application/json": [".json"] } }
         ]
       });
-      fileHandleRef.current = handle;
+      fileHandleStore.setState(handle);
       const savedFileName = handle.name.replace(/\.[^/.]+$/, "");
       setPath((prev) => ({ ...prev, name: savedFileName }));
       const writable = await handle.createWritable();
       await writable.write(serializeFile(fileText));
       await writable.close();
       setIsSaved(true);
+      fileUndosStore.setState(0);
+      fileSaveStore.setState((n) => n + 1);
     } catch (error) {
       if (error.name !== "AbortError") {
         console.error("Error saving file:", error);
@@ -18799,6 +20643,7 @@ function FileButton() {
   };
   const handleNewFileRef = reactExports.useRef(handleNewFile);
   const handleOpenFileRef = reactExports.useRef(handleOpenFile);
+  const handleOpenFolderRef = reactExports.useRef(handleOpenFolder);
   const handleSaveRef = reactExports.useRef(handleSave);
   const handleSaveAsRef = reactExports.useRef(handleSaveAs);
   const handleDownloadRef = reactExports.useRef(handleDownload);
@@ -18806,6 +20651,7 @@ function FileButton() {
   reactExports.useEffect(() => {
     handleNewFileRef.current = handleNewFile;
     handleOpenFileRef.current = handleOpenFile;
+    handleOpenFolderRef.current = handleOpenFolder;
     handleSaveRef.current = handleSave;
     handleSaveAsRef.current = handleSaveAs;
     handleDownloadRef.current = handleDownload;
@@ -18819,6 +20665,9 @@ function FileButton() {
       } else if (event.ctrlKey && event.key === "o") {
         event.preventDefault();
         handleOpenFileRef.current();
+      } else if (event.ctrlKey && event.shiftKey && event.key === "O") {
+        event.preventDefault();
+        handleOpenFolderRef.current();
       } else if (event.ctrlKey && event.shiftKey && event.key === "S") {
         event.preventDefault();
         handleSaveAsRef.current();
@@ -18856,10 +20705,11 @@ function FileButton() {
         onChange: handleFileSelect
       }
     ),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(MenuButtonTemplate, { title: "File", underlineRef, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(MenuButtonTemplate, { title: "File", underlineRef, width: 44, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "New File", keybind: "Ctrl+P", callback: handleNewFile }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
       /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Open File", keybind: "Ctrl+O", callback: handleOpenFile }),
+      "showDirectoryPicker" in window && /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Open Folder", keybind: "Ctrl+⇧O", callback: handleOpenFolder }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
       /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Save", keybind: "Ctrl+S", callback: handleSave }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Save As", keybind: "Ctrl+⇧S", callback: handleSaveAs }),
@@ -18867,104 +20717,6 @@ function FileButton() {
       /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Download", keybind: "Ctrl+D", callback: handleDownload }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Download As", keybind: "Ctrl+⇧D", callback: handleDownloadAs })
     ] })
-  ] });
-}
-function ConfigButtonTemplate({ title, children, onOpen, onClose, flashRef, underlineRef }) {
-  const [isOpen, setOpen] = reactExports.useState(false);
-  const [flash, setFlash] = reactExports.useState(false);
-  const [underline, setUnderline] = reactExports.useState(false);
-  const flashTimeoutRef = reactExports.useRef(null);
-  const blockNextContextMenu = reactExports.useRef(false);
-  const containerRef = reactExports.useRef(null);
-  reactExports.useEffect(() => {
-    const handleContextMenu = (e) => {
-      if (blockNextContextMenu.current) {
-        e.preventDefault();
-        blockNextContextMenu.current = false;
-      }
-    };
-    document.addEventListener("contextmenu", handleContextMenu, true);
-    return () => document.removeEventListener("contextmenu", handleContextMenu, true);
-  }, []);
-  reactExports.useEffect(() => {
-    if (!isOpen) return;
-    const handleRightClick = (e) => {
-      if (e.button !== 2) return;
-      if (containerRef.current?.contains(e.target)) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        blockNextContextMenu.current = true;
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleRightClick, true);
-    return () => {
-      document.removeEventListener("mousedown", handleRightClick, true);
-    };
-  }, [isOpen]);
-  if (flashRef) {
-    flashRef.current = () => {
-      setFlash(true);
-      if (flashTimeoutRef.current) window.clearTimeout(flashTimeoutRef.current);
-      flashTimeoutRef.current = window.setTimeout(() => setFlash(false), 400);
-    };
-  }
-  if (underlineRef) {
-    underlineRef.current = setUnderline;
-  }
-  const handleToggle = () => {
-    setOpen((prev) => {
-      const next = !prev;
-      if (next) onOpen?.();
-      else onClose?.();
-      return next;
-    });
-  };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    "div",
-    {
-      ref: containerRef,
-      className: `flex flex-col ${isOpen ? "config-open" : ""}`,
-      onContextMenu: (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      },
-      onMouseDown: (e) => {
-        if (e.button === 2) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
-      },
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          "button",
-          {
-            onClick: handleToggle,
-            className: `flex flex-row items-center justify-between
-                    gap-[12px] px-2 py-2 cursor-pointer bg-medgray [.config-open+div_&]:rounded-t-sm [*:last-child:not(.config-open)>&]:rounded-b-sm
-                    ${flash ? "bg-medlightgray ease-out duration-100" : ""}`,
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `text-[16px] ${underline ? "underline" : ""}`, children: title }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                "img",
-                {
-                  className: `w-[12px] h-[12px] transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`,
-                  src: downArrow
-                }
-              )
-            ]
-          }
-        ),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `grid transition-[grid-template-rows] duration-200 ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"} 
-            ${isOpen ? "mb-2" : ""}`, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "overflow-hidden", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `relative flex flex-col gap-1 bg-medgray px-2 py-2 ${isOpen ? "rounded-b-sm" : ""}`, children }) }) })
-      ]
-    }
-  );
-}
-function CheckboxButton({ name, checked, setChecked, label }) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row pr-2 pl-2 py-0.5 items-center justify-between rounded-sm", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: name }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: label ?? "", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Checkbox, { checked, setChecked, size: 18 }) })
   ] });
 }
 function EditJSONPopup({
@@ -19024,172 +20776,74 @@ function EditJSONPopup({
     saveSnapshot();
     setOpen(false);
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(React.Fragment, { children: open && /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "div",
-    {
-      className: "\n                        fixed inset-0 z-30\n                        bg-black/10 backdrop-blur-[7px]\n                        grid place-items-center\n                        overflow-x-hidden",
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "div",
-        {
-          className: "\n                            relative\n                            -translate-y-[15%]\n                            bg-medgray_hover w-auto h-auto p-4\n                            flex flex-col gap-2\n                            shadow-xs shadow-blackgray\n                            rounded-lg\n                        ",
-          ref: popupRef,
-          children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-2 text-start ", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "button",
-              {
-                className: "fixed right-2 top-2 px-0.5 py-0.5 rounded-sm hover:bg-blackgrayhover",
-                onClick: () => setOpen(false),
-                children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  "img",
-                  {
-                    className: "w-[25px] h-[25px]",
-                    src: cross
-                  }
-                )
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "button",
-              {
-                className: "fixed right-23 top-2 px-2 py-0.5 rounded-sm hover:bg-blackgrayhover",
-                onClick: handleReset,
-                children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-lightgray", children: "Reset" })
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "button",
-              {
-                className: "fixed right-10 top-2 px-2 py-0.5 rounded-sm hover:bg-blackgrayhover",
-                onClick: handleOnSave,
-                children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "Save" })
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[16px] text-white", children: "Templates" }),
-            Object.entries(formatDef.segments).filter(([, segDef]) => !segDef.castTo && segDef.toStringTemplate).map(([kind, segDef]) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-row gap-1", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-              TextInput,
-              {
-                fontSize: 16,
-                unitsFontSize: 14,
-                width: 800,
-                height: 40,
-                units: "",
-                value: segDef.toStringTemplate ?? "",
-                setValue: () => {
-                },
-                focus: false,
-                setText: (v) => {
-                  templatesRef.current[kind] = v;
-                },
-                position: "left"
-              }
-            ) }, kind)),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "pt-2 text-[12px]", children: "Editing these templates may affect pasting behavior and create bugs; variables are placed inside ${}" })
-          ] })
-        }
-      )
-    }
-  ) });
-}
-function NumberInputButton({ name, value, setValue, bounds, stepSize, roundTo, units, label }) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row pr-1 pl-2 items-center justify-between rounded-sm", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: name }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-      NumberInput,
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(React.Fragment, { children: open && reactDomExports.createPortal(
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "div",
       {
-        width: 45,
-        height: 28,
-        fontSize: 14,
-        bounds,
-        stepSize,
-        roundTo,
-        units,
-        value,
-        setValue,
-        addToHistory: () => saveSnapshot()
+        className: "\n                        fixed inset-0 z-[60]\n                        bg-black/10 backdrop-blur-[7px]\n                        grid place-items-center\n                        overflow-x-hidden",
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "div",
+          {
+            className: "\n                            relative\n                            -translate-y-[15%]\n                            bg-medgray_hover w-auto h-auto p-4\n                            flex flex-col gap-2\n                            shadow-xs shadow-blackgray\n                            rounded-lg\n                        ",
+            ref: popupRef,
+            children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-2 text-start ", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "button",
+                {
+                  className: "fixed right-2 top-2 px-0.5 py-0.5 rounded-sm hover:bg-blackgrayhover",
+                  onClick: () => setOpen(false),
+                  children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "img",
+                    {
+                      className: "w-[25px] h-[25px]",
+                      src: cross
+                    }
+                  )
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "button",
+                {
+                  className: "fixed right-23 top-2 px-2 py-0.5 rounded-sm hover:bg-blackgrayhover",
+                  onClick: handleReset,
+                  children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-lightgray", children: "Reset" })
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "button",
+                {
+                  className: "fixed right-10 top-2 px-2 py-0.5 rounded-sm hover:bg-blackgrayhover",
+                  onClick: handleOnSave,
+                  children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "Save" })
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[16px] text-white", children: "Templates" }),
+              Object.entries(formatDef.segments).filter(([, segDef]) => !segDef.castTo && segDef.toStringTemplate).map(([kind, segDef]) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-row gap-1", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                TextInput,
+                {
+                  fontSize: 16,
+                  unitsFontSize: 14,
+                  width: 800,
+                  height: 40,
+                  units: "",
+                  value: segDef.toStringTemplate ?? "",
+                  setValue: () => {
+                  },
+                  focus: false,
+                  setText: (v) => {
+                    templatesRef.current[kind] = v;
+                  },
+                  position: "left"
+                }
+              ) }, kind)),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "pt-2 text-[12px]", children: "Editing these templates may affect pasting behavior and create bugs; variables are placed inside ${}" })
+            ] })
+          }
+        )
       }
-    ) })
-  ] });
-}
-function NumberInputCheckboxButton({ name, value, setValue, bounds, stepSize, roundTo, units, checked, setChecked }) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row pr-1 pl-2 items-center justify-between rounded-sm", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: name }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row items-center gap-1.5", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Checkbox, { checked, setChecked, size: 18 }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: checked ? "" : "opacity-40 pointer-events-none", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-        NumberInput,
-        {
-          width: 45,
-          height: 28,
-          fontSize: 14,
-          bounds,
-          stepSize,
-          roundTo,
-          units,
-          value,
-          setValue,
-          addToHistory: () => saveSnapshot()
-        }
-      ) })
-    ] })
-  ] });
-}
-function RobotButton() {
-  const [format] = useFormat();
-  const prevFormatRef = reactExports.useRef(format);
-  const robot = fileFormatStore.useSelector((s) => s.robot);
-  const handleExpansionChange = (side, v) => {
-    if (v === null) return;
-    mergeRobot({ [`expansion${side}`]: v });
-  };
-  const handleExpansionToggle = (side, checked) => {
-    mergeRobot({ [`expansion${side}Disabled`]: !checked });
-    saveSnapshot();
-  };
-  const handleToggleHolonomic = (checked) => {
-    const newFormat = checked ? "Holonomic" : "mikLib";
-    const changed = prevFormatRef.current !== newFormat;
-    changeFormat(newFormat);
-    if (changed) saveSnapshot();
-    prevFormatRef.current = newFormat;
-  };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigButtonTemplate, { title: "Robot", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-1.5", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Section, { name: "General", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Width", value: robot.width, setValue: (v) => v !== null && mergeRobot({ width: v }), bounds: [0, 30], stepSize: 1, roundTo: 1, units: "in" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Height", value: robot.height, setValue: (v) => v !== null && mergeRobot({ height: v }), bounds: [0, 30], stepSize: 1, roundTo: 1, units: "in" }),
-      (format === "mikLib" || format === "Holonomic") && /* @__PURE__ */ jsxRuntimeExports.jsx(CheckboxButton, { name: "Holonomic", checked: format === "Holonomic", label: "Toggle format to mikLib Holonomic", setChecked: handleToggleHolonomic })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Section, { name: "Motion", defaultCollapsed: true, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Speed", value: robot.speed, setValue: (v) => v !== null && mergeRobot({ speed: v }), bounds: [0, 100], stepSize: 0.5, roundTo: 2, units: "ft/s" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Track Width", label: "Distance measured from wheel to wheel", value: robot.trackwidth, setValue: (v) => v !== null && mergeRobot({ trackwidth: v }), bounds: [0, 30], stepSize: 0.5, roundTo: 1, units: "in" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Drive Constant", label: "Time for robot to reach 63.2% of its max velocity laterally", value: robot.lateralTau, setValue: (v) => v !== null && mergeRobot({ lateralTau: v }), bounds: [0, 2], stepSize: 0.05, roundTo: 2, units: "s" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Turn Constant", label: "Time for robot to reach 63.2% of max velocity turning", value: robot.angularTau, setValue: (v) => v !== null && mergeRobot({ angularTau: v }), bounds: [0, 2], stepSize: 0.05, roundTo: 2, units: "s" })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Section, { name: "Expansion", defaultCollapsed: true, children: ["Front", "Left", "Right", "Rear"].map((side) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-      NumberInputCheckboxButton,
-      {
-        name: side,
-        value: robot[`expansion${side}`],
-        setValue: (v) => handleExpansionChange(side, v),
-        bounds: [0, 30],
-        stepSize: 0.5,
-        roundTo: 2,
-        units: "in",
-        checked: !robot[`expansion${side}Disabled`],
-        setChecked: (checked) => handleExpansionToggle(side, checked)
-      },
-      side
-    )) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Section, { name: "CoG Offset", defaultCollapsed: true, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputCheckboxButton, { name: "Lateral", value: robot.cogOffsetX, setValue: (v) => v !== null && mergeRobot({ cogOffsetX: v }), bounds: [-15, 15], stepSize: 0.5, roundTo: 2, units: "in", checked: !robot.cogOffsetXDisabled, setChecked: (checked) => {
-        mergeRobot({ cogOffsetXDisabled: !checked });
-        saveSnapshot();
-      } }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputCheckboxButton, { name: "Forward", value: robot.cogOffsetY, setValue: (v) => v !== null && mergeRobot({ cogOffsetY: v }), bounds: [-15, 15], stepSize: 0.5, roundTo: 2, units: "in", checked: !robot.cogOffsetYDisabled, setChecked: (checked) => {
-        mergeRobot({ cogOffsetYDisabled: !checked });
-        saveSnapshot();
-      } })
-    ] })
-  ] }) });
+    ),
+    document.body
+  ) });
 }
 const RED_BLUE_THEME = {
   primary: "#a02007",
@@ -19390,11 +21044,66 @@ const getSegmentLines = (idx, path, img, precise = false) => {
   }
   return boomerangPts.join(" ");
 };
+function ConfigCheckboxButton({ name, checked, setChecked, label }) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row pr-2 pl-2 py-0.5 items-center justify-between rounded-sm", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: name }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: label ?? "", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Checkbox, { checked, setChecked, size: 18 }) })
+  ] });
+}
+function MenuCheckboxButton({ name, checked, setChecked, label }) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row pr-2 pl-2 py-0.5 items-center justify-between rounded-sm", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: name }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: label ?? "", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Checkbox, { checked, setChecked, size: 18 }) })
+  ] });
+}
+function NumberInputButton({ name, value, setValue, bounds, stepSize, roundTo, units, label }) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row pr-1 pl-2 items-center justify-between rounded-sm", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: name }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+      NumberInput,
+      {
+        width: 45,
+        height: 28,
+        fontSize: 14,
+        bounds,
+        stepSize,
+        roundTo,
+        units,
+        value,
+        setValue,
+        addToHistory: () => saveSnapshot()
+      }
+    ) })
+  ] });
+}
+function NumberInputCheckboxButton({ name, value, setValue, bounds, stepSize, roundTo, units, checked, setChecked }) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row pr-1 pl-2 items-center justify-between rounded-sm", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: name }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row items-center gap-1.5", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Checkbox, { checked, setChecked, size: 18 }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: checked ? "" : "opacity-40 pointer-events-none", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+        NumberInput,
+        {
+          width: 45,
+          height: 28,
+          fontSize: 14,
+          bounds,
+          stepSize,
+          roundTo,
+          units,
+          value,
+          setValue,
+          addToHistory: () => saveSnapshot()
+        }
+      ) })
+    ] })
+  ] });
+}
 function ColorButton({ callback, name, primary, secondary, textSize }) {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "button",
     {
-      className: "flex pr-1 pl-2 py-0.5 items-center justify-between bg-medgray hover:brightness-92 cursor-pointer rounded-sm",
+      className: "flex pr-1 pl-2 py-0.5 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm",
       onClick: callback,
       children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `text-[${textSize || 14}px]`, children: name }),
@@ -19421,6 +21130,7 @@ function ColorButton({ callback, name, primary, secondary, textSize }) {
 function SettingsButton() {
   const [settings, setSettings] = useSettings();
   const [popup, setPopup] = reactExports.useState(false);
+  const debug = debugStore.useStore();
   reactExports.useEffect(() => {
     localStorage.setItem("settings", JSON.stringify(settings));
   }, [settings]);
@@ -19440,18 +21150,18 @@ function SettingsButton() {
         }
       }
     ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigButtonTemplate, { title: "Settings", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-1.5", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(Section, { name: "Display", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(CheckboxButton, { name: "Robot Outlines", label: "Displays end positions when sim is off", checked: settings.ghostRobots, setChecked: set("ghostRobots") }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(CheckboxButton, { name: "Robot Position", label: "Displays robots's actual position", checked: settings.robotPosition, setChecked: set("robotPosition") }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(CheckboxButton, { name: "Precise Path", label: "Displays robots exact path taken", checked: settings.precisePath, setChecked: set("precisePath") }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(CheckboxButton, { name: "Numbered Path", label: "Displays number labels for notebook screenshots", checked: settings.numberedPath, setChecked: set("numberedPath") })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(Section, { name: "Field", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Grid Snap", label: "What to snap to while Ctrl+Dragging", value: settings.snapToGrid, setValue: (v) => v !== null && set("snapToGrid")(v), bounds: [0.1, 10], stepSize: 0.5, roundTo: 1, units: "" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ColorButton, { name: "Theme", primary: DEFAULT_THEMES[settings.themeIdx].primary, secondary: DEFAULT_THEMES[settings.themeIdx].secondary, callback: () => updateTheme(settings.themeIdx) })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: "Edit Templates", keybind: "", callback: () => setPopup(true) })
+    /* @__PURE__ */ jsxRuntimeExports.jsx(MenuButtonTemplate, { title: "Settings", closeOnClick: false, width: 40, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-1.5", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Robot Outlines", label: "Displays end positions when sim is off", checked: settings.ghostRobots, setChecked: set("ghostRobots") }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Robot Position", label: "Displays robots's actual position", checked: settings.robotPosition, setChecked: set("robotPosition") }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Precise Path", label: "Displays robots exact path taken", checked: settings.precisePath, setChecked: set("precisePath") }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Numbered Path", label: "Displays number labels for notebook screenshots", checked: settings.numberedPath, setChecked: set("numberedPath") }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Position Logs", label: "Prints robot position to console", checked: debug, setChecked: (state) => {
+        debugStore.setState(state);
+      } }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Grid Snap", label: "What to snap to while Ctrl+Dragging", value: settings.snapToGrid, setValue: (v) => v !== null && set("snapToGrid")(v), bounds: [0.1, 10], stepSize: 0.5, roundTo: 1, units: "" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(ColorButton, { name: "Theme", primary: DEFAULT_THEMES[settings.themeIdx].primary, secondary: DEFAULT_THEMES[settings.themeIdx].secondary, callback: () => updateTheme(settings.themeIdx) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Edit Templates", keybind: "", callback: () => setPopup(true) })
     ] }) })
   ] });
 }
@@ -19731,7 +21441,7 @@ function FieldMacros() {
       return;
     }
     let dir = 0;
-    if (evt !== null && !evt.ctrlKey && action !== null) return;
+    if (evt !== null && !evt.ctrlKey && action === null) return;
     if (evt?.key === "=" || action === "ZoomIn") dir = 1;
     if (evt?.key === "-" || action === "ZoomOut") dir = -1;
     if (evt !== null) {
@@ -19881,6 +21591,117 @@ function FieldMacros() {
     addStartSegment
   };
 }
+function ConfigButtonTemplate({ title, tooltip, children, onOpen, onClose, flashRef, underlineRef, iconButtons }) {
+  const [isOpen, setOpen] = reactExports.useState(false);
+  const [flash, setFlash] = reactExports.useState(false);
+  const [underline, setUnderline] = reactExports.useState(false);
+  const flashTimeoutRef = reactExports.useRef(null);
+  const blockNextContextMenu = reactExports.useRef(false);
+  const containerRef = reactExports.useRef(null);
+  reactExports.useEffect(() => {
+    const handleContextMenu = (e) => {
+      if (blockNextContextMenu.current) {
+        e.preventDefault();
+        blockNextContextMenu.current = false;
+      }
+    };
+    document.addEventListener("contextmenu", handleContextMenu, true);
+    return () => document.removeEventListener("contextmenu", handleContextMenu, true);
+  }, []);
+  reactExports.useEffect(() => {
+    if (!isOpen) return;
+    const handleRightClick = (e) => {
+      if (e.button !== 2) return;
+      if (containerRef.current?.contains(e.target)) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        blockNextContextMenu.current = true;
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleRightClick, true);
+    return () => {
+      document.removeEventListener("mousedown", handleRightClick, true);
+    };
+  }, [isOpen]);
+  if (flashRef) {
+    flashRef.current = () => {
+      setFlash(true);
+      if (flashTimeoutRef.current) window.clearTimeout(flashTimeoutRef.current);
+      flashTimeoutRef.current = window.setTimeout(() => setFlash(false), 400);
+    };
+  }
+  if (underlineRef) {
+    underlineRef.current = setUnderline;
+  }
+  const handleToggle = () => {
+    setOpen((prev) => {
+      const next = !prev;
+      if (next) onOpen?.();
+      else onClose?.();
+      return next;
+    });
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "div",
+    {
+      ref: containerRef,
+      className: `flex flex-col ${isOpen ? "config-open" : ""}`,
+      onContextMenu: (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      },
+      onMouseDown: (e) => {
+        if (e.button === 2) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      },
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: tooltip, placement: "right", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "button",
+          {
+            onClick: handleToggle,
+            className: `flex flex-row items-center justify-between
+                    gap-[12px] px-2 py-2 cursor-pointer bg-medgray [.config-open+div_&]:rounded-t-sm [*:last-child:not(.config-open)>&]:rounded-b-sm
+                    ${flash ? "bg-medlightgray ease-out duration-100" : ""}`,
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `text-[16px] truncate min-w-0 ${underline ? "underline" : ""}`, children: title }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row gap-2.5 items-center shrink-0", children: [
+                iconButtons?.map((i) => /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: i.visible && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: i.tooltip, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "button",
+                  {
+                    className: "hover:opacity-60 active:scale-90 transition-transform cursor-pointer",
+                    onClick: (e) => {
+                      if (i.onClick) i.onClick();
+                      e.stopPropagation();
+                    },
+                    children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "img",
+                      {
+                        src: i.icon,
+                        className: "w-[13px] h-[13px]"
+                      }
+                    )
+                  }
+                ) }) })),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "img",
+                  {
+                    className: `w-[12px] h-[12px] transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`,
+                    src: downArrow
+                  }
+                )
+              ] })
+            ]
+          }
+        ) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `grid transition-[grid-template-rows] duration-200 ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}
+            ${isOpen ? "mb-2" : ""}`, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "overflow-hidden", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `relative flex flex-col gap-1 bg-medgray px-2 py-2 ${isOpen ? "rounded-b-sm" : ""}`, children }) }) })
+      ]
+    }
+  );
+}
 function AddSegmentButton() {
   const [path, setPath] = usePath();
   const [format] = useFormat();
@@ -19901,17 +21722,17 @@ function AddSegmentButton() {
   const segName = (key) => String(formatDef.segments[key]?.name);
   const visible = (key) => seg(key) && !seg(key)?.castTo;
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigButtonTemplate, { title: "Segment", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Left Click", placement: "right", speed: "fast", children: visible("pointDrive") && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("pointDrive"), callback: () => addPointDriveSegment(null, format, { x: 0, y: 0 }, setPath, path) }) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Ctrl+Left Click", placement: "right", speed: "fast", children: visible("poseDrive") && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("poseDrive"), callback: () => addPoseDriveSegment(null, format, { x: 0, y: 0, angle: 0 }, setPath, path) }) }),
+    visible("pointDrive") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Left Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("pointDrive"), callback: () => addPointDriveSegment(null, format, { x: 0, y: 0 }, setPath, path) }) }),
+    visible("poseDrive") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Ctrl+Left Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("poseDrive"), callback: () => addPoseDriveSegment(null, format, { x: 0, y: 0, angle: 0 }, setPath, path) }) }),
     (visible("distanceDrive") || visible("strafeDrive")) && /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Alt+Left Click", placement: "right", speed: "fast", children: visible("distanceDrive") && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("distanceDrive"), callback: () => addDistanceSegment(null, format, { x: 0, y: 0, angle: null }, setPath, path) }) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Ctrl+Alt+Left Click", placement: "right", speed: "fast", children: visible("strafeDrive") && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("strafeDrive"), callback: () => addStrafeSegment(null, format, { x: 0, y: 0, angle: null }, setPath, path) }) }),
+    visible("distanceDrive") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Alt+Left Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("distanceDrive"), callback: () => addDistanceSegment(null, format, { x: 0, y: 0, angle: null }, setPath, path) }) }),
+    visible("strafeDrive") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Ctrl+Alt+Left Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("strafeDrive"), callback: () => addStrafeSegment(null, format, { x: 0, y: 0, angle: null }, setPath, path) }) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Right Click", placement: "right", speed: "fast", children: visible("pointTurn") && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("pointTurn"), callback: () => addPointTurnSegment(null, format, setPath, path) }) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Ctrl+Right Click", placement: "right", speed: "fast", children: visible("angleTurn") && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("angleTurn"), callback: () => addAngleTurnSegment(null, format, setPath, path) }) }),
+    visible("pointTurn") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Right Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("pointTurn"), callback: () => addPointTurnSegment(null, format, setPath, path) }) }),
+    visible("angleTurn") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Ctrl+Right Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("angleTurn"), callback: () => addAngleTurnSegment(null, format, setPath, path) }) }),
     (visible("pointSwing") || visible("angleSwing")) && /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Alt+Right Click", placement: "right", speed: "fast", children: visible("pointSwing") && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("pointSwing"), callback: () => addPointSwingSegment(null, format, setPath, path) }) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Ctrl+Alt+Right Click", placement: "right", speed: "fast", children: visible("angleSwing") && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("angleSwing"), callback: () => addAngleSwingSegment(null, format, setPath, path) }) }),
+    visible("pointSwing") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Alt+Right Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("pointSwing"), callback: () => addPointSwingSegment(null, format, setPath, path) }) }),
+    visible("angleSwing") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Ctrl+Alt+Right Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("angleSwing"), callback: () => addAngleSwingSegment(null, format, setPath, path) }) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
     visible("start") && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("start"), callback: () => addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath) }),
     visible("wait") && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("wait"), callback: () => addWaitSegment(format, setPath, path) })
@@ -19945,12 +21766,12 @@ function EditButton() {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(MenuButtonTemplate, { title: "Edit", flashRef, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(MenuButtonTemplate, { title: "Edit", flashRef, width: 44, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Undo", keybind: "Ctrl+Z", callback: () => undo(null) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Redo", keybind: "Ctrl+Y", callback: () => redo(null) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
     /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Cut", keybind: "Ctrl+X", callback: () => cut(null, pathRef.current, setPath) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Copy", keybind: "Ctrl+C", callback: () => copy(null, pathRef.current, triggerFlash) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Copy/Export", keybind: "Ctrl+C", callback: () => copy(null, pathRef.current, triggerFlash) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Copy All", keybind: "Ctrl+⇧C", callback: () => copy(null, pathRef.current, triggerFlash, true) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Paste", keybind: "Ctrl+V", callback: () => paste(null, setPath) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Delete", keybind: "⌫", callback: () => deleteControl(null, setPath) }),
@@ -19960,13 +21781,32 @@ function EditButton() {
     /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Select Inverse", keybind: "Ctrl+⇧A", callback: () => selectInversePath(null, setPath) })
   ] }) });
 }
-const download = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M16%2011L12%2015M12%2015L8%2011M12%2015V3M21%2015V17C21%2018.1046%2020.1046%2019%2019%2019H5C3.89543%2019%203%2018.1046%203%2017V15'%20stroke='%23ffffff'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e";
+const fileIcon = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20fill='%23000000'%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20id='file-7'%20data-name='Flat%20Color'%20xmlns='http://www.w3.org/2000/svg'%20class='icon%20flat-color'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20id='primary'%20d='M19.71,6.29l-4-4A1,1,0,0,0,15,2H6A2,2,0,0,0,4,4V20a2,2,0,0,0,2,2H18a2,2,0,0,0,2-2V7A1,1,0,0,0,19.71,6.29Z'%20style='fill:%20%23ffffff;'/%3e%3cpath%20id='secondary'%20d='M16,18H8a1,1,0,0,1,0-2h8a1,1,0,0,1,0,2Zm0-4H8a1,1,0,0,1,0-2h8a1,1,0,0,1,0,2Zm0-4H8A1,1,0,0,1,8,8h8a1,1,0,0,1,0,2Z'%20style='fill:%20%23e6e6e6;'/%3e%3c/g%3e%3c/svg%3e";
+const folderIcon = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20d='M2%207c0-1.4%200-2.1.272-2.635a2.5%202.5%200%200%201%201.093-1.093C3.9%203%204.6%203%206%203h1.431c.94%200%201.409%200%201.835.13a3%203%200%200%201%201.033.552c.345.283.605.674%201.126%201.455L12%206h6c1.4%200%202.1%200%202.635.272a2.5%202.5%200%200%201%201.092%201.093C22%207.9%2022%208.6%2022%2010v5c0%201.4%200%202.1-.273%202.635a2.5%202.5%200%200%201-1.092%201.092C20.1%2019%2019.4%2019%2018%2019H6c-1.4%200-2.1%200-2.635-.273a2.5%202.5%200%200%201-1.093-1.092C2%2017.1%202%2016.4%202%2015V7z'%20fill='%23BED8FF'/%3e%3c/g%3e%3c/svg%3e";
+const back = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='4%204%2016%2018'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20transform='matrix(1,%200,%200,%20-1,%200,%200)'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M3%2014a1%201%200%200%201%201-1h12a3%203%200%200%200%203-3V6a1%201%200%201%201%202%200v4a5%205%200%200%201-5%205H4a1%201%200%200%201-1-1z'%20fill='%23ffffff'/%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M3.293%2014.707a1%201%200%200%201%200-1.414l4-4a1%201%200%200%201%201.414%201.414L5.414%2014l3.293%203.293a1%201%200%201%201-1.414%201.414l-4-4z'%20fill='%23ffffff'/%3e%3c/g%3e%3c/svg%3e";
+async function readExportDirEntries(handle) {
+  const result = [];
+  for await (const [name, h] of handle.entries()) {
+    const kind = h.kind;
+    if (kind === "file" && !name.endsWith(".cpp")) continue;
+    result.push({ name, kind, handle: h });
+  }
+  result.sort((a, b) => {
+    if (a.kind !== b.kind) return a.kind === "directory" ? -1 : 1;
+    return a.name.localeCompare(b.name);
+  });
+  return result;
+}
 function spliceGeneratedBlock(fileContent, generated, path) {
   const marker2 = "[" + path.name + "]";
   const begin = fileContent.indexOf(marker2);
-  if (begin === -1) return { content: "", message: `No start marker found: ${marker2}` };
+  if (begin === -1) return { content: "", message: `No start marker found. Add this comment to your file:
+// ${marker2}
+// your code here
+// ${marker2}` };
   const end = fileContent.indexOf(marker2, begin + marker2.length);
-  if (end === -1) return { content: "", message: `No end marker found: ${marker2}` };
+  if (end === -1) return { content: "", message: `No end marker found. Add a closing marker after the start:
+// ${marker2}` };
   const openLineStart = fileContent.lastIndexOf("\n", begin - 1) + 1;
   const indent = fileContent.slice(openLineStart, begin).match(/^(\s*)/)?.[1] ?? "";
   const indented = generated.split("\n").map((line) => line ? indent + line : line).join("\n");
@@ -19987,7 +21827,7 @@ function lcsIndices(a, b) {
   const pairs = [];
   let i = m, j = n;
   while (i > 0 && j > 0) {
-    if (a[i - 1] === b[j - 1]) {
+    if (a[i - 1] === b[j - 1] && dp[i][j] > dp[i][j - 1]) {
       pairs.unshift([i - 1, j - 1]);
       i--;
       j--;
@@ -19999,9 +21839,13 @@ function lcsIndices(a, b) {
 function flexReplaceGeneratedBlock(fileContent, formatDef, path) {
   const marker2 = "[" + path.name + "]";
   const begin = fileContent.indexOf(marker2);
-  if (begin === -1) return { content: "", message: `No start marker found: ${marker2}` };
+  if (begin === -1) return { content: "", message: `No start marker found. Add this comment to your file:
+// ${marker2}
+// your code here
+// ${marker2}` };
   const end = fileContent.indexOf(marker2, begin + marker2.length);
-  if (end === -1) return { content: "", message: `No end marker found: ${marker2}` };
+  if (end === -1) return { content: "", message: `No end marker found. Add a closing marker after the start:
+// ${marker2}` };
   const blockStart = fileContent.indexOf("\n", begin + marker2.length) + 1;
   const closingLineStart = fileContent.lastIndexOf("\n", end - 1) + 1;
   const endMarkerIndent = fileContent.slice(closingLineStart, fileContent.indexOf("\n", closingLineStart)).match(/^(\s*)/)?.[1] ?? "";
@@ -20013,14 +21857,18 @@ function flexReplaceGeneratedBlock(fileContent, formatDef, path) {
   const lines2 = block.split("\n");
   const lineToFileSeg = /* @__PURE__ */ new Map();
   const fileKinds = [];
+  const fileContinuationLines = /* @__PURE__ */ new Set();
   for (let i = 0; i < lines2.length; i++) {
     const trimmed = lines2[i].trim();
-    if (!trimmed) continue;
+    if (!trimmed || fileContinuationLines.has(i)) continue;
     for (const [kind, segDef] of Object.entries(formatDef.segments)) {
       if (!segDef || segDef.castTo || !segDef.toStringTemplate) continue;
-      if (templateToRegex(segDef.toStringTemplate).regex.test(trimmed)) {
+      const templateLineCount = segDef.toStringTemplate.split("\n").length;
+      const chunk = lines2.slice(i, i + templateLineCount).map((l) => l.trim()).join("\n");
+      if (templateToRegex(segDef.toStringTemplate).regex.test(chunk)) {
         lineToFileSeg.set(i, fileKinds.length);
         fileKinds.push(kind);
+        for (let j = 1; j < templateLineCount; j++) fileContinuationLines.add(i + j);
         break;
       }
     }
@@ -20036,24 +21884,39 @@ function flexReplaceGeneratedBlock(fileContent, formatDef, path) {
   const alignment = lcsIndices(fileKinds, webKinds);
   const fileToWeb = new Map(alignment);
   const webToFile = new Map(alignment.map(([fi, wi]) => [wi, fi]));
-  const insertBefore = /* @__PURE__ */ new Map();
-  const insertAtEnd = [];
+  const insertAfter = /* @__PURE__ */ new Map();
+  const insertAtStart = [];
   for (let wi = 0; wi < webSegs.length; wi++) {
     if (webToFile.has(wi)) continue;
-    const nextPair = alignment.find(([, lwi]) => lwi > wi);
-    if (nextPair) {
-      const fi = nextPair[0];
-      if (!insertBefore.has(fi)) insertBefore.set(fi, []);
-      insertBefore.get(fi).push(wi);
+    let prevFi = -1;
+    for (const [fi, lwi] of alignment) {
+      if (lwi < wi) prevFi = fi;
+    }
+    if (prevFi >= 0) {
+      if (!insertAfter.has(prevFi)) insertAfter.set(prevFi, []);
+      insertAfter.get(prevFi).push(wi);
     } else {
-      insertAtEnd.push(wi);
+      insertAtStart.push(wi);
     }
   }
   const anySelected = webSegs.some((seg) => seg.selected);
-  const newSegLines = convertPathToString(formatDef, path, false).split("\n").filter(Boolean);
+  const allGenLines = convertPathToString(formatDef, path, false).split("\n").filter(Boolean);
+  let genOffset = 0;
+  const newSegStrings = webSegs.map((seg) => {
+    const k = seg.kind;
+    const def = formatDef.segments[k];
+    const resolved = def?.castTo ? formatDef.segments[def.castTo] ?? def : def;
+    const lineCount = resolved?.toStringTemplate?.split("\n").length ?? 1;
+    const segLines = allGenLines.slice(genOffset, genOffset + lineCount);
+    genOffset += lineCount;
+    return segLines;
+  });
   const newLines = [];
   let replacedCount = 0, insertedCount = 0, deletedCount = 0;
+  let pendingWis = [...insertAtStart];
+  let insertedAtEnd = 0;
   for (let lineIdx = 0; lineIdx < lines2.length; lineIdx++) {
+    if (fileContinuationLines.has(lineIdx)) continue;
     const fileSeg = lineToFileSeg.get(lineIdx);
     if (fileSeg === void 0) {
       newLines.push(lines2[lineIdx]);
@@ -20061,31 +21924,39 @@ function flexReplaceGeneratedBlock(fileContent, formatDef, path) {
     }
     const indent = lines2[lineIdx].match(/^(\s*)/)?.[1] ?? "";
     if (!fileToWeb.has(fileSeg)) {
-      deletedCount++;
+      if (anySelected) {
+        newLines.push(lines2[lineIdx]);
+      } else {
+        deletedCount++;
+      }
       continue;
     }
-    const wi = fileToWeb.get(fileSeg);
-    for (const insertWi of insertBefore.get(fileSeg) ?? []) {
+    for (const insertWi of pendingWis) {
       const seg2 = webSegs[insertWi];
       if (!seg2.visible || anySelected && !seg2.selected) continue;
-      newLines.push(indent + newSegLines[insertWi]);
+      for (const subLine of newSegStrings[insertWi]) newLines.push(indent + subLine);
       insertedCount++;
     }
+    pendingWis = [];
+    const wi = fileToWeb.get(fileSeg);
     const seg = webSegs[wi];
     if (seg.visible && (!anySelected || seg.selected)) {
       const trailingMarker = lines2[lineIdx].match(/(\/\/\s*\[.*?\])$/)?.[1];
-      newLines.push(indent + newSegLines[wi]);
+      for (const subLine of newSegStrings[wi]) newLines.push(indent + subLine);
       if (trailingMarker) newLines.push(indent + trailingMarker);
       replacedCount++;
     } else {
-      newLines.push(lines2[lineIdx]);
+      const k = fileKinds[fileSeg];
+      const segDef = formatDef.segments[k];
+      const templateLineCount = segDef?.toStringTemplate?.split("\n").length ?? 1;
+      for (let j = 0; j < templateLineCount; j++) newLines.push(lines2[lineIdx + j]);
     }
+    pendingWis = insertAfter.get(fileSeg) ?? [];
   }
-  let insertedAtEnd = 0;
-  for (const wi of insertAtEnd) {
+  for (const wi of pendingWis) {
     const seg = webSegs[wi];
     if (!seg.visible || anySelected && !seg.selected) continue;
-    newLines.push(endMarkerIndent + newSegLines[wi]);
+    for (const subLine of newSegStrings[wi]) newLines.push(endMarkerIndent + subLine);
     insertedCount++;
     insertedAtEnd++;
   }
@@ -20106,9 +21977,13 @@ ${joined}${separator}${after}`,
 function replaceGeneratedBlock(fileContent, formatDef, path) {
   const marker2 = "[" + path.name + "]";
   const begin = fileContent.indexOf(marker2);
-  if (begin === -1) return { content: "", message: `No start marker found: ${marker2}` };
+  if (begin === -1) return { content: "", message: `No start marker found. Add this comment to your file:
+// ${marker2}
+// your code here
+// ${marker2}` };
   const end = fileContent.indexOf(marker2, begin + marker2.length);
-  if (end === -1) return { content: "", message: `No end marker found: ${marker2}` };
+  if (end === -1) return { content: "", message: `No end marker found. Add a closing marker after the start:
+// ${marker2}` };
   const blockStart = fileContent.indexOf("\n", begin + marker2.length) + 1;
   const lineStart = fileContent.lastIndexOf("\n", end - 1) + 1;
   const block = fileContent.slice(blockStart, lineStart);
@@ -20163,10 +22038,8 @@ ${newLines.join("\n")}${after}`,
     message: `Replaced ${replacedCount} of ${matchedIndices.length} segments`
   };
 }
-function DragAndDrop({ onHandle }) {
+function DragAndDrop({ onHandle, onDirHandle }) {
   const [isDragging, setIsDragging] = reactExports.useState(false);
-  const inputRef = reactExports.useRef(null);
-  const [unsupportedBroswer, setUnsupportedBroswer] = reactExports.useState(false);
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -20184,45 +22057,65 @@ function DragAndDrop({ onHandle }) {
     const item = e.dataTransfer.items[0];
     if (!item) return;
     const handle = await item.getAsFileSystemHandle?.();
-    if (handle && handle.kind === "file") onHandle(handle);
+    if (!handle) return;
+    if (handle.kind === "directory") onDirHandle(handle);
+    else if (handle.kind === "file") onHandle(handle);
   };
-  const handleClick = async () => {
+  const handleFileClick = async (e) => {
+    e.stopPropagation();
     try {
-      const picker = window.showOpenFilePicker;
-      const [handle] = await picker({
+      const [handle] = await window.showOpenFilePicker({
         types: [{ description: "C++ Source", accept: { "text/plain": [".cpp"] } }],
         multiple: false
       });
       if (handle) onHandle(handle);
-      setUnsupportedBroswer(false);
     } catch {
-      setUnsupportedBroswer(true);
     }
   };
-  const handleInputChange = (e) => {
-    e.target.value = "";
+  const handleFolderClick = async (e) => {
+    e.stopPropagation();
+    try {
+      const handle = await window.showDirectoryPicker({ mode: "readwrite" });
+      onDirHandle(handle);
+    } catch {
+    }
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[7.5px] mb-1 opacity-50", children: "Segments can be also be exported by Ctrl+C" }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(
-      "div",
-      {
-        className: `h-12 outline-1 pt-2.5 pb-1.5 outline-dashed flex items-center justify-between flex-col rounded-sm cursor-pointer transition-colors duration-100
-                    ${isDragging ? "outline-white" : "outline-lightgray"}`,
-        onDragOver: handleDragOver,
-        onDragEnter: handleDragEnter,
-        onDragLeave: handleDragLeave,
-        onDrop: handleDrop,
-        onClick: handleClick,
-        children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("input", { ref: inputRef, type: "file", accept: ".cpp", className: "hidden", onChange: handleInputChange }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: download, className: "w-4 h-4" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[8px]", children: "Choose .cpp file or drag it here" })
-        ]
-      }
-    ),
-    unsupportedBroswer && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[8px] mt-1 opacity-50", children: "Your browser does not support writing to files. Please use a compatible browser like Chrome or Edge." })
-  ] });
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "div",
+    {
+      className: `h-12 outline-1 outline-dashed flex items-stretch rounded-sm transition-colors duration-100
+                ${isDragging ? "outline-white" : "outline-lightgray"}`,
+      onDragOver: handleDragOver,
+      onDragEnter: handleDragEnter,
+      onDragLeave: handleDragLeave,
+      onDrop: handleDrop,
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "div",
+          {
+            onClick: handleFileClick,
+            className: "flex-1 flex flex-col items-center justify-center gap-1 cursor-pointer hover:opacity-60 py-1",
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: fileIcon, className: "w-3.5 h-3.5" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[8px]", children: ".cpp file" })
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-px bg-lightgray opacity-20 self-stretch my-2" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "div",
+          {
+            onClick: handleFolderClick,
+            className: "flex-1 flex flex-col items-center justify-center gap-1 cursor-pointer hover:opacity-60 py-1",
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: folderIcon, className: "w-3.5 h-3.5" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[8px]", children: "folder" })
+            ]
+          }
+        )
+      ]
+    }
+  );
 }
 function ErrorConsole({ lines: lines2 }) {
   const containerRef = reactExports.useRef(null);
@@ -20236,7 +22129,7 @@ function ErrorConsole({ lines: lines2 }) {
     "div",
     {
       ref: containerRef,
-      className: "h-15 bg-blackgray rounded-sm px-2 py-1 overflow-y-auto font-mono text-[9px]",
+      className: "h-18 bg-blackgray rounded-sm px-2 py-1 overflow-y-auto font-mono text-[9px]",
       style: { scrollbarWidth: "none", msOverflowStyle: "none" },
       children: /* @__PURE__ */ jsxRuntimeExports.jsx(
         "div",
@@ -20254,11 +22147,40 @@ function ErrorConsole({ lines: lines2 }) {
 }
 function ExportButton() {
   const [handle, setHandle] = reactExports.useState(null);
+  const [currentExportDir, setCurrentExportDir] = reactExports.useState(null);
+  const [exportDirHistory, setExportDirHistory] = reactExports.useState([]);
+  const [exportDirEntries, setExportDirEntries] = reactExports.useState([]);
   const [consoleLines, setConsoleLines] = reactExports.useState([]);
   const [mergeMode, setMergeMode] = reactExports.useState(true);
   const [replaceMode, setReplaceMode] = reactExports.useState(false);
   const [path] = usePath();
+  const mode = handle ? "writeInterface" : currentExportDir ? "folderView" : "default";
   const log = (text) => setConsoleLines((prev) => [...prev, text]);
+  const handleDirChosen = async (dirHandle) => {
+    setCurrentExportDir(dirHandle);
+    setExportDirHistory([]);
+    setExportDirEntries(await readExportDirEntries(dirHandle));
+  };
+  const openExportSubDir = async (h) => {
+    if (currentExportDir) setExportDirHistory((prev) => [...prev, currentExportDir]);
+    setCurrentExportDir(h);
+    setExportDirEntries(await readExportDirEntries(h));
+  };
+  const goExportBack = async () => {
+    const prev = exportDirHistory[exportDirHistory.length - 1];
+    if (!prev) {
+      setCurrentExportDir(null);
+      setExportDirHistory([]);
+      setExportDirEntries([]);
+      return;
+    }
+    setExportDirHistory((h) => h.slice(0, -1));
+    setCurrentExportDir(prev);
+    setExportDirEntries(await readExportDirEntries(prev));
+  };
+  const refreshExportDir = () => {
+    if (currentExportDir) readExportDirEntries(currentExportDir).then(setExportDirEntries);
+  };
   const toggleMergeMode = () => {
     const next = !mergeMode;
     setMergeMode(next);
@@ -20322,30 +22244,70 @@ function ExportButton() {
       log(err instanceof Error ? err.message : String(err));
     }
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigButtonTemplate, { title: "Export", children: handle ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-0.5", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-row items-center gap-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "button",
-      {
-        onClick: () => {
-          setHandle(null);
-        },
-        className: "text-[10px] opacity-70 cursor-pointer hover:opacity-100 truncate",
-        title: handle.name,
-        children: handle.name
+  const writeRef = reactExports.useRef(() => {
+  });
+  reactExports.useEffect(() => {
+    writeRef.current = replaceMode || mergeMode ? replaceInFile : writeToFile;
+  });
+  reactExports.useEffect(() => {
+    const handler = (e) => {
+      if (e.ctrlKey && e.key === "e") {
+        e.preventDefault();
+        writeRef.current();
       }
-    ) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "button",
-      {
-        className: "w-full flex items-center justify-center px-2 py-1 brightness-120 bg-medgray hover:brightness-95 cursor-pointer rounded-sm",
-        onClick: replaceMode || mergeMode ? replaceInFile : writeToFile,
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: "Write" })
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "pt-2 pb-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorConsole, { lines: consoleLines }) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(CheckboxButton, { name: "Merge", checked: mergeMode, setChecked: toggleMergeMode }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(CheckboxButton, { name: "Replace", checked: replaceMode, setChecked: toggleReplaceMode })
-  ] }) : /* @__PURE__ */ jsxRuntimeExports.jsx(DragAndDrop, { onHandle: setHandle }) });
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+  const backButton = { icon: back, visible: true, onClick: goExportBack, tooltip: "Go Back" };
+  const refreshButton = { icon: refresh, visible: true, onClick: refreshExportDir, tooltip: "Refresh Folder" };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    ConfigButtonTemplate,
+    {
+      title: "Export",
+      iconButtons: mode === "folderView" ? [backButton, refreshButton] : [],
+      children: [
+        mode === "default" && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[7.5px] mb-1 opacity-50", children: "Segments can be also be exported by Ctrl+C" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(DragAndDrop, { onHandle: setHandle, onDirHandle: handleDirChosen })
+        ] }),
+        mode === "folderView" && (exportDirEntries.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[12px] opacity-40 px-1", children: "Empty folder" }) : exportDirEntries.map((entry) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "button",
+          {
+            className: "flex flex-row px-2 py-0.5 items-center justify-between cursor-pointer rounded-sm w-full text-left hover:bg-medlightgray",
+            onClick: () => entry.kind === "directory" ? openExportSubDir(entry.handle) : setHandle(entry.handle),
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[13px] truncate min-w-0", children: entry.name }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: entry.kind === "file" ? fileIcon : folderIcon, className: "w-3.5 h-3.5 shrink-0 ml-1" })
+            ]
+          },
+          entry.name
+        ))),
+        mode === "writeInterface" && handle && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-0.5", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-row items-center gap-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              onClick: () => setHandle(null),
+              className: "text-[10px] opacity-70 cursor-pointer hover:opacity-100 truncate",
+              title: handle.name,
+              children: handle.name
+            }
+          ) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Export Path  Ctrl+E", placement: "right", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              className: "w-full flex items-center justify-center px-2 py-1 brightness-120 bg-medgray hover:brightness-95 cursor-pointer rounded-sm",
+              onClick: replaceMode || mergeMode ? replaceInFile : writeToFile,
+              children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: "Write" })
+            }
+          ) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "pt-2 pb-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorConsole, { lines: consoleLines }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigCheckboxButton, { name: "Merge", label: "Toggles Merge Mode (Read Console)", checked: mergeMode, setChecked: toggleMergeMode }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigCheckboxButton, { name: "Replace", label: "Toggles Replace Mode (Read Console)", checked: replaceMode, setChecked: toggleReplaceMode })
+        ] })
+      ]
+    }
+  );
 }
 const imageCache = /* @__PURE__ */ new Set();
 function preloadImage(src) {
@@ -20412,6 +22374,104 @@ function FieldButton() {
   ) });
 }
 const check = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='3%209%2018%205'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20d='M4%2012.6111L8.92308%2017.5L20%206.5'%20stroke='%23ffffff'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/g%3e%3c/svg%3e";
+async function readDirEntries(handle) {
+  const result = [];
+  for await (const [name, h] of handle.entries()) {
+    const kind = h.kind;
+    if (kind === "file") {
+      const ext = name.slice(name.lastIndexOf("."));
+      if (!(ext === ".txt")) continue;
+    }
+    result.push({ name, kind, handle: h });
+  }
+  result.sort((a, b) => {
+    if (a.kind !== b.kind) return a.kind === "directory" ? -1 : 1;
+    return a.name.localeCompare(b.name);
+  });
+  return result;
+}
+function FolderEntry({ entry, isSelected, onEnterFolder, onSelectFile }) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "button",
+    {
+      className: "flex flex-row px-2 py-0.5 items-center justify-between cursor-pointer rounded-sm w-full text-left hover:bg-medlightgray",
+      onClick: () => {
+        if (entry.kind === "directory") {
+          onEnterFolder(entry.handle);
+        } else {
+          onSelectFile(entry.handle);
+        }
+      },
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[13px] truncate min-w-0", children: entry.name }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center shrink-0 ml-1 gap-1", children: [
+          isSelected && /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: check, className: "w-3 h-3" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: entry.kind === "file" ? fileIcon : folderIcon, className: "w-3.5 h-3.5" })
+        ] })
+      ]
+    }
+  );
+}
+function FolderButton({ fileName }) {
+  const rootHandle = dirHandleStore.useStore();
+  const [dirHandle, setDirHandle] = reactExports.useState(rootHandle);
+  const [entries, setEntries] = reactExports.useState([]);
+  const [history, setHistory] = reactExports.useState([]);
+  const saveCount = fileSaveStore.useStore();
+  const currentHandle = fileHandleStore.useStore();
+  reactExports.useEffect(() => {
+    setDirHandle(rootHandle);
+    setHistory([]);
+    if (!rootHandle) setEntries([]);
+  }, [rootHandle]);
+  const refreshDir = (handle = dirHandle) => {
+    if (!handle) return;
+    readDirEntries(handle).then(setEntries);
+  };
+  reactExports.useEffect(() => {
+    refreshDir();
+  }, [saveCount, dirHandle]);
+  const openDir = async (handle, pushCurrent = true) => {
+    const result = await readDirEntries(handle);
+    if (pushCurrent && dirHandle) setHistory((prev) => [...prev, dirHandle]);
+    setDirHandle(handle);
+    setEntries(result);
+  };
+  const goBack = async () => {
+    const prev = history[history.length - 1];
+    if (!prev) return;
+    const result = await readDirEntries(prev);
+    setHistory((h) => h.slice(0, -1));
+    setDirHandle(prev);
+    setEntries(result);
+  };
+  const refreshDirRef = reactExports.useRef(refreshDir);
+  reactExports.useEffect(() => {
+    refreshDirRef.current = refreshDir;
+  });
+  const backButton = {
+    icon: back,
+    visible: history.length > 0,
+    onClick: goBack,
+    tooltip: "Go Back"
+  };
+  const refreshButton = {
+    icon: refresh,
+    visible: true,
+    onClick: () => refreshDirRef.current(),
+    tooltip: "Refresh Folder"
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigButtonTemplate, { title: dirHandle?.name ?? fileName, iconButtons: [backButton, refreshButton], children: entries.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[12px] opacity-40 px-1", children: "Empty folder" }) : entries.map((entry) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+    FolderEntry,
+    {
+      entry,
+      isSelected: entry.kind === "file" && currentHandle?.name === entry.name,
+      onEnterFolder: (h) => openDir(h),
+      onSelectFile: loadFromHandle
+    },
+    entry.name
+  )) });
+}
 function MenuCheckButton({
   name,
   checked,
@@ -20461,8 +22521,9 @@ function ConfigCheckButton({
 const FORMATS = [
   { name: "mikLib v2.2.0", format: "mikLib" },
   { name: "LemLib v0.5.6", format: "LemLib" },
-  { name: "ReveilLib v2.1.0", format: "ReveilLib" },
-  { name: "JAR-Template", format: "JAR-Template" }
+  // { name: "ReveilLib v2.1.0", format: "ReveilLib" },
+  { name: "JAR-Template", format: "JAR-Template" },
+  { name: "EZ-Template v3.2.2", format: "EZ-Template" }
 ];
 function FormatButton() {
   const [format] = useFormat();
@@ -20475,6 +22536,64 @@ function FormatButton() {
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigButtonTemplate, { title: "Format", children: FORMATS.map((c) => /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigCheckButton, { checked: format === c.format, setChecked: () => handleClickItem(c.format), name: c.name }, c.format)) });
 }
+function RobotButton() {
+  const [format] = useFormat();
+  const prevFormatRef = reactExports.useRef(format);
+  const robot = fileFormatStore.useSelector((s) => s.robot);
+  const handleExpansionChange = (side, v) => {
+    if (v === null) return;
+    mergeRobot({ [`expansion${side}`]: v });
+  };
+  const handleExpansionToggle = (side, checked) => {
+    mergeRobot({ [`expansion${side}Disabled`]: !checked });
+    saveSnapshot();
+  };
+  const handleToggleHolonomic = (checked) => {
+    const newFormat = checked ? "Holonomic" : "mikLib";
+    const changed = prevFormatRef.current !== newFormat;
+    changeFormat(newFormat);
+    if (changed) saveSnapshot();
+    prevFormatRef.current = newFormat;
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigButtonTemplate, { title: "Robot", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-1.5", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(Section, { name: "General", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Width", value: robot.width, setValue: (v) => v !== null && mergeRobot({ width: v }), bounds: [0, 30], stepSize: 1, roundTo: 1, units: "in" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Height", value: robot.height, setValue: (v) => v !== null && mergeRobot({ height: v }), bounds: [0, 30], stepSize: 1, roundTo: 1, units: "in" }),
+      (format === "mikLib" || format === "Holonomic") && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigCheckboxButton, { name: "Holonomic", checked: format === "Holonomic", label: "Toggle format to mikLib Holonomic", setChecked: handleToggleHolonomic })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(Section, { name: "Motion", defaultCollapsed: true, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Speed", label: "Max velocity; measure on actual robot", value: robot.speed, setValue: (v) => v !== null && mergeRobot({ speed: v }), bounds: [0, 100], stepSize: 0.5, roundTo: 2, units: "ft/s" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Track Width", label: "Distance measured from wheel to wheel", value: robot.trackwidth, setValue: (v) => v !== null && mergeRobot({ trackwidth: v }), bounds: [0, 30], stepSize: 0.5, roundTo: 1, units: "in" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Drive Constant", label: "Time for robot to reach 63.2% of its max velocity laterally", value: robot.lateralTau, setValue: (v) => v !== null && mergeRobot({ lateralTau: v }), bounds: [0, 2], stepSize: 0.05, roundTo: 2, units: "s" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Turn Constant", label: "Time for robot to reach 63.2% of max velocity turning", value: robot.angularTau, setValue: (v) => v !== null && mergeRobot({ angularTau: v }), bounds: [0, 2], stepSize: 0.05, roundTo: 2, units: "s" })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Section, { name: "Expansion", defaultCollapsed: true, children: ["Front", "Left", "Right", "Rear"].map((side) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+      NumberInputCheckboxButton,
+      {
+        name: side,
+        value: robot[`expansion${side}`],
+        setValue: (v) => handleExpansionChange(side, v),
+        bounds: [0, 30],
+        stepSize: 0.5,
+        roundTo: 2,
+        units: "in",
+        checked: !robot[`expansion${side}Disabled`],
+        setChecked: (checked) => handleExpansionToggle(side, checked)
+      },
+      side
+    )) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(Section, { name: "CoG Offset", defaultCollapsed: true, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputCheckboxButton, { name: "Lateral", value: robot.cogOffsetX, setValue: (v) => v !== null && mergeRobot({ cogOffsetX: v }), bounds: [-15, 15], stepSize: 0.5, roundTo: 2, units: "in", checked: !robot.cogOffsetXDisabled, setChecked: (checked) => {
+        mergeRobot({ cogOffsetXDisabled: !checked });
+        saveSnapshot();
+      } }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputCheckboxButton, { name: "Forward", value: robot.cogOffsetY, setValue: (v) => v !== null && mergeRobot({ cogOffsetY: v }), bounds: [-15, 15], stepSize: 0.5, roundTo: 2, units: "in", checked: !robot.cogOffsetYDisabled, setChecked: (checked) => {
+        mergeRobot({ cogOffsetYDisabled: !checked });
+        saveSnapshot();
+      } })
+    ] })
+  ] }) });
+}
 const useFieldImg = createSharedState(FIELD_IMG_DIMENSIONS);
 function ViewButton() {
   const [, setImg] = useFieldImg();
@@ -20482,12 +22601,12 @@ function ViewButton() {
   const {
     fieldZoomKeyboard
   } = FieldMacros();
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(MenuButtonTemplate, { title: "View", children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(MenuButtonTemplate, { title: "View", width: 40, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckButton, { name: "Auto Adjust", checked: viewMode === "automatic", setChecked: () => setViewMode("automatic") }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckButton, { name: "Standard View", checked: viewMode === "standard", setChecked: () => setViewMode("standard") }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckButton, { name: "Collapsed Config", checked: viewMode === "collapsed-config", setChecked: () => setViewMode("collapsed-config") }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckButton, { name: "Collapsed List", checked: viewMode === "collapsed-list", setChecked: () => setViewMode("collapsed-list") }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckButton, { name: "Fully Collapsed", checked: viewMode === "fully-collapsed", setChecked: () => setViewMode("fully-collapsed") }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckButton, { name: "Collapse All", checked: viewMode === "fully-collapsed", setChecked: () => setViewMode("fully-collapsed") }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
     /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Zoom In", keybind: "Ctrl+=", callback: () => fieldZoomKeyboard(null, setImg, "ZoomIn") }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Zoom Out", keybind: "Ctrl+-", callback: () => fieldZoomKeyboard(null, setImg, "ZoomOut") }),
@@ -20495,19 +22614,21 @@ function ViewButton() {
   ] });
 }
 function Config({ fillHeight = false }) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `flex pr-[6px] flex-col gap-2 ${fillHeight ? "h-full" : ""}`, children: [
+  const dirHandle = dirHandleStore.useStore();
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `flex pr-[6px] flex-col gap-2 pl-[6px] ${fillHeight ? "h-full" : ""}`, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "w-[180px] flex bg-medgray rounded-sm pt-1 pr-1 pl-1 pb-1 gap-1", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(FileButton, {}),
       /* @__PURE__ */ jsxRuntimeExports.jsx(EditButton, {}),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(ViewButton, {})
+      /* @__PURE__ */ jsxRuntimeExports.jsx(ViewButton, {}),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(SettingsButton, {})
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `w-[180px] ${fillHeight ? "flex-1" : "h-[685px]"} flex flex-col overflow-y-auto scrollbar-thin rounded-sm`, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `w-[180px] ${fillHeight ? "flex-1" : "h-[685px]"} flex flex-col overflow-y-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none] rounded-sm`, children: [
+      dirHandle !== null && /* @__PURE__ */ jsxRuntimeExports.jsx(FolderButton, { fileName: "" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(AddSegmentButton, {}),
       /* @__PURE__ */ jsxRuntimeExports.jsx(RobotButton, {}),
       /* @__PURE__ */ jsxRuntimeExports.jsx(FieldButton, {}),
       /* @__PURE__ */ jsxRuntimeExports.jsx(FormatButton, {}),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(ExportButton, {}),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(SettingsButton, {})
+      "showDirectoryPicker" in window && /* @__PURE__ */ jsxRuntimeExports.jsx(ExportButton, {})
     ] })
   ] });
 }
@@ -20768,9 +22889,9 @@ function RobotLayer({ img, pose, robotPose, robotConstants, visible, path }) {
 }
 const DOT_SPACING = 2;
 const DOT_RADIUS = 1.8 * FIELD_REAL_DIMENSIONS.w / FIELD_IMG_DIMENSIONS.w;
-function speedColor(t, slow, mid, fast) {
+function speedColor(t, slow2, mid, fast2) {
   const curved = Math.pow(t, 1.5);
-  const [a, b, frac] = curved < 0.5 ? [slow, mid, curved * 2] : [mid, fast, (curved - 0.5) * 2];
+  const [a, b, frac] = curved < 0.5 ? [slow2, mid, curved * 2] : [mid, fast2, (curved - 0.5) * 2];
   return `rgb(${Math.round(a[0] + frac * (b[0] - a[0]))},${Math.round(a[1] + frac * (b[1] - a[1]))},${Math.round(a[2] + frac * (b[2] - a[2]))})`;
 }
 function PathLayer({ path, img, visible, precise, colors }) {
@@ -20934,7 +23055,7 @@ function ControlsLayer({ path, img, radius, format, colors, onPointerDown }) {
       })(),
       ["angleSwing", "pointSwing"].includes(control.kind) && (() => {
         const snapPose = getBackwardsSnapPose(path, idx);
-        if (!snapPose?.x || !snapPose?.y) return null;
+        if (snapPose === null || snapPose.x === null || snapPose.y === null) return null;
         const active = control.selected;
         const hovered = hoveredId === control.id;
         const r = active && hovered ? radius * VISUAL.swingIndicator.activeHoveredRadiusMultiplier : active ? radius * VISUAL.swingIndicator.activeRadiusMultiplier : hovered ? radius * VISUAL.swingIndicator.hoverRadiusMultiplier : radius;
@@ -20945,7 +23066,7 @@ function ControlsLayer({ path, img, radius, format, colors, onPointerDown }) {
           const pos = findPointToFace(path, idx);
           angle = calculateHeading({ x: snapPose.x, y: snapPose.y }, { x: pos.x, y: pos.y }) + angle;
         }
-        const curveLeft = format === "mikLib" && control.constants[0].swing_direction == "left" || format === "LemLib" && control.constants[0].lockedSide === "DriveSide::RIGHT";
+        const curveLeft = format === "mikLib" && control.constants[0].swing_direction == "left" || format === "LemLib" && control.constants[0].lockedSide === "DriveSide::RIGHT" || format === "JAR-Template" && control.constants[0].swing_direction === "left" || format === "EZ-Template" && control.constants[0].swing === "LEFT_SWING";
         const rInner = Math.max(0, r - thickness * VISUAL.swingIndicator.innerRadiusOffsetFactor);
         const basePx = toPX({ x: snapPose.x, y: snapPose.y }, FIELD_REAL_DIMENSIONS, img);
         const tipPx = toPX({
@@ -21027,6 +23148,40 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
   const moveHistoryTimerRef = reactExports.useRef(null);
   const [path, setPath] = usePath();
   pathRef.current = path;
+  const nonDistancePoseKey = reactExports.useMemo(
+    () => path.segments.filter((s) => s.kind !== "distanceDrive" && s.kind !== "strafeDrive").map((s) => `${s.id}:${s.pose.x},${s.pose.y},${s.pose.angle}`).join("|"),
+    [path.segments]
+  );
+  reactExports.useEffect(() => {
+    setPath((prev) => {
+      const segments = [...prev.segments];
+      let changed = false;
+      for (let segIdx = 0; segIdx < segments.length; segIdx++) {
+        const c = segments[segIdx];
+        if (c.kind !== "distanceDrive" && c.kind !== "strafeDrive") continue;
+        const prevSegKind = segments[segIdx - 1]?.kind;
+        const afterTurn = prevSegKind === "pointSwing" || prevSegKind === "pointTurn";
+        const currentPath = { ...prev, segments };
+        if (afterTurn) {
+          const anchorPose = getBackwardsSnapPose(currentPath, segIdx - 1);
+          if (!anchorPose || anchorPose.x === null || anchorPose.y === null) continue;
+          const newDist = Math.hypot((c.pose.x ?? 0) - anchorPose.x, (c.pose.y ?? 0) - anchorPose.y);
+          if (Math.abs(newDist - c.distance) > 1e-3) {
+            segments[segIdx] = { ...c, distance: newDist };
+            changed = true;
+          }
+          continue;
+        }
+        const newPos = distanceToPosition(currentPath, segIdx, c.distance, c.kind === "strafeDrive" ? 90 : 0);
+        if (!newPos) continue;
+        if (Math.abs(newPos.x - (c.pose.x ?? 0)) > 1e-3 || Math.abs(newPos.y - (c.pose.y ?? 0)) > 1e-3) {
+          segments[segIdx] = { ...c, pose: { ...c.pose, x: newPos.x, y: newPos.y } };
+          changed = true;
+        }
+      }
+      return changed ? { ...prev, segments } : prev;
+    });
+  }, [nonDistancePoseKey, setPath]);
   const [pose] = usePose();
   const [robotPose] = useRobotPose();
   const robot = fileFormatStore.useSelector((s) => s.robot);
@@ -21045,6 +23200,7 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
   const dragStartPointerInch = reactExports.useRef(null);
   const dragStartPositions = reactExports.useRef({});
   const shiftPendingSelectRef = reactExports.useRef(null);
+  const pendingTurnCycleRef = reactExports.useRef(null);
   const [middleMouseDown, setMiddleMouseDown] = reactExports.useState(false);
   const fieldDragRef = reactExports.useRef({ x: 0, y: 0 });
   const isFieldDragging = reactExports.useRef(false);
@@ -21223,43 +23379,13 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
     lastAppliedDelta.current = { dx, dy };
     if (dx !== 0 || dy !== 0) dragDidMove.current = true;
     setPath((prev) => {
-      const next = prev.segments.map((c, segIdx) => {
+      const firstPass = prev.segments.map((c) => {
+        if (c.kind === "distanceDrive" || c.kind === "strafeDrive") return c;
         if (!c.selected || c.locked) return c;
         const startPos = dragStartPositions.current[c.id];
         if (!startPos) return c;
         const sx = startPos.x;
         const sy = startPos.y;
-        const prevSeg = path.segments[segIdx - 1]?.kind;
-        if ((c.kind === "distanceDrive" || c.kind === "strafeDrive") && prevSeg !== "pointSwing" && prevSeg !== "pointTurn") {
-          const anchorPose = getBackwardsSnapPose(prev, segIdx - 1);
-          if (!anchorPose || anchorPose.x === null || anchorPose.y === null) {
-            return { ...c, pose: { ...c.pose, x: sx === null ? null : sx + dx, y: sy === null ? null : sy + dy } };
-          }
-          const resolved = resolveHeading(prev, segIdx, anchorPose, c.kind === "strafeDrive" ? 90 : 0);
-          let hx, hy;
-          if (resolved) {
-            hx = resolved.heading.x / resolved.headingMag;
-            hy = resolved.heading.y / resolved.headingMag;
-          } else {
-            const ofsX = (sx ?? 0) - anchorPose.x;
-            const ofsY = (sy ?? 0) - anchorPose.y;
-            const mag = Math.sqrt(ofsX * ofsX + ofsY * ofsY);
-            if (mag === 0) return c;
-            hx = ofsX / mag;
-            hy = ofsY / mag;
-          }
-          const fromAnchorX = effectivePosInch.x - anchorPose.x;
-          const fromAnchorY = effectivePosInch.y - anchorPose.y;
-          let t = fromAnchorX * hx + fromAnchorY * hy;
-          let newX2 = anchorPose.x + t * hx;
-          let newY2 = anchorPose.y + t * hy;
-          if (ctrlHeld) {
-            newX2 = Math.round(newX2 * snapValue) / snapValue;
-            newY2 = Math.round(newY2 * snapValue) / snapValue;
-            t = (newX2 - anchorPose.x) * hx + (newY2 - anchorPose.y) * hy;
-          }
-          return { ...c, pose: { ...c.pose, x: newX2, y: newY2 }, distance: t };
-        }
         let newX = sx === null ? null : sx + dx;
         let newY = sy === null ? null : sy + dy;
         if (ctrlHeld) {
@@ -21268,12 +23394,85 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
         }
         return { ...c, pose: { ...c.pose, x: newX, y: newY } };
       });
+      const next = [...firstPass];
+      for (let segIdx = 0; segIdx < firstPass.length; segIdx++) {
+        const c = firstPass[segIdx];
+        if (c.kind !== "distanceDrive" && c.kind !== "strafeDrive") continue;
+        const anchorPose = getBackwardsSnapPose({ ...prev, segments: next }, segIdx - 1);
+        const prevSegKind = next[segIdx - 1]?.kind;
+        const afterTurn = prevSegKind === "pointSwing" || prevSegKind === "pointTurn";
+        if (afterTurn) {
+          if (!anchorPose || anchorPose.x === null || anchorPose.y === null) continue;
+          if (c.selected && !c.locked) {
+            const startPos = dragStartPositions.current[c.id];
+            let newX = startPos?.x == null ? c.pose.x ?? 0 : startPos.x + dx;
+            let newY = startPos?.y == null ? c.pose.y ?? 0 : startPos.y + dy;
+            if (ctrlHeld) {
+              newX = Math.round(newX * snapValue) / snapValue;
+              newY = Math.round(newY * snapValue) / snapValue;
+            }
+            const t = Math.hypot(newX - anchorPose.x, newY - anchorPose.y);
+            next[segIdx] = { ...c, pose: { ...c.pose, x: newX, y: newY }, distance: t };
+          } else {
+            const newDist = Math.hypot((c.pose.x ?? 0) - anchorPose.x, (c.pose.y ?? 0) - anchorPose.y);
+            next[segIdx] = { ...c, distance: newDist };
+          }
+          continue;
+        }
+        if (c.selected && !c.locked) {
+          const startPos = dragStartPositions.current[c.id];
+          if (!anchorPose || anchorPose.x === null || anchorPose.y === null) {
+            if (startPos) {
+              let newX2 = startPos.x === null ? null : startPos.x + dx;
+              let newY2 = startPos.y === null ? null : startPos.y + dy;
+              if (ctrlHeld) {
+                if (newX2 !== null) newX2 = Math.round(newX2 * snapValue) / snapValue;
+                if (newY2 !== null) newY2 = Math.round(newY2 * snapValue) / snapValue;
+              }
+              next[segIdx] = { ...c, pose: { ...c.pose, x: newX2, y: newY2 } };
+            }
+            continue;
+          }
+          const resolved = resolveHeading({ ...prev, segments: next }, segIdx, anchorPose, c.kind === "strafeDrive" ? 90 : 0);
+          let hx, hy;
+          if (resolved) {
+            hx = resolved.heading.x / resolved.headingMag;
+            hy = resolved.heading.y / resolved.headingMag;
+          } else {
+            const ofsX = (startPos?.x ?? 0) - anchorPose.x;
+            const ofsY = (startPos?.y ?? 0) - anchorPose.y;
+            const mag = Math.sqrt(ofsX * ofsX + ofsY * ofsY);
+            if (mag === 0) continue;
+            hx = ofsX / mag;
+            hy = ofsY / mag;
+          }
+          const segEffX = startPos?.x == null ? effectivePosInch.x : startPos.x + dx;
+          const segEffY = startPos?.y == null ? effectivePosInch.y : startPos.y + dy;
+          const fromAnchorX = segEffX - anchorPose.x;
+          const fromAnchorY = segEffY - anchorPose.y;
+          let t = fromAnchorX * hx + fromAnchorY * hy;
+          let newX = anchorPose.x + t * hx;
+          let newY = anchorPose.y + t * hy;
+          if (ctrlHeld) {
+            newX = Math.round(newX * snapValue) / snapValue;
+            newY = Math.round(newY * snapValue) / snapValue;
+            t = (newX - anchorPose.x) * hx + (newY - anchorPose.y) * hy;
+          }
+          next[segIdx] = { ...c, pose: { ...c.pose, x: newX, y: newY }, distance: t };
+          continue;
+        }
+        const geomDist = getSegmentDistance(prev, segIdx, c.kind === "strafeDrive" ? 90 : 0) ?? c.distance;
+        const newPos = distanceToPosition({ ...prev, segments: next }, segIdx, geomDist, c.kind === "strafeDrive" ? 90 : 0);
+        if (!newPos) continue;
+        next[segIdx] = { ...c, pose: { ...c.pose, x: newPos.x, y: newPos.y }, distance: geomDist };
+      }
       return { ...prev, segments: next };
     });
   };
   const endDrag = () => {
     clearSnap();
     shiftPendingSelectRef.current = null;
+    pendingTurnCycleRef.current = null;
     setDrag({ dragging: false, lastPos: { x: 0, y: 0 } });
     dragHistoryActive.current = false;
     if (dragDidMove.current) {
@@ -21325,7 +23524,27 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
       if (evt.shiftKey) {
         shiftPendingSelectRef.current = controlId;
       } else {
-        selectSegment(controlId, false);
+        const clickedIdx = path.segments.findIndex((s) => s.id === controlId);
+        const turnsOnTop = [];
+        for (let i = clickedIdx + 1; i < path.segments.length; i++) {
+          const s = path.segments[i];
+          if (s.pose.x !== null && s.pose.y !== null) break;
+          if (["pointTurn", "angleTurn", "pointSwing", "angleSwing"].includes(s.kind) && getBackwardsSnapIdx(path, i) === clickedIdx) {
+            turnsOnTop.push(s.id);
+          }
+        }
+        if (turnsOnTop.length > 0) {
+          const cycle = [controlId, ...turnsOnTop];
+          const selectedCount = path.segments.filter((s) => s.selected).length;
+          const currentCycleIdx = selectedCount === 1 ? cycle.findIndex((id) => path.segments.some((s) => s.id === id && s.selected)) : -1;
+          if (currentCycleIdx >= 0) {
+            pendingTurnCycleRef.current = cycle[(currentCycleIdx + 1) % cycle.length];
+          } else {
+            selectSegment(controlId, false);
+          }
+        } else {
+          selectSegment(controlId, false);
+        }
       }
     }
     const startInch = toInch(posSvg, FIELD_REAL_DIMENSIONS, img);
@@ -21349,10 +23568,6 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
     const isBareLeftClick = evt.button === 0 && !evt.ctrlKey && !evt.altKey && !evt.shiftKey && !evt.metaKey;
     if (isBareLeftClick) {
       const selectedCount2 = path.segments.filter((c) => c.selected).length;
-      if (selectedCount2 > 1) {
-        endSelection();
-        return;
-      }
       if (selectedCount2 >= 1) endSelection();
       const pos2 = getPressedPositionInch(evt, svgRef.current, img);
       if (path.segments.length <= 0) {
@@ -21387,6 +23602,9 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
     if (shiftPendingSelectRef.current !== null && !dragDidMove.current) {
       selectSegment(shiftPendingSelectRef.current, true);
     }
+    if (pendingTurnCycleRef.current !== null && !dragDidMove.current) {
+      selectSegment(pendingTurnCycleRef.current, false);
+    }
     endDrag();
     finalizeBoxSelect(img, path, setPath, (startInch) => {
       if (path.segments.length > 0) {
@@ -21394,7 +23612,7 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
       }
     });
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { tabIndex: 0, onMouseLeave: () => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { tabIndex: 0, className: "select-none", onMouseLeave: () => {
     endDrag();
     cancelBoxSelect();
   }, children: [
@@ -21421,6 +23639,7 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
         },
         onPointerDown: (e) => {
           if (e.button === 1) {
+            e.preventDefault();
             setMiddleMouseDown(true);
           }
           handleFieldPointerDown(e);
@@ -21565,18 +23784,20 @@ function App() {
       const nextShowRight = mode === "standard" ? true : mode === "collapsed-list" || mode === "fully-collapsed" ? false : autoRight;
       setShowConfig(nextShowConfig);
       setShowRightPanel(nextShowRight);
-      const cw2 = content.scrollWidth;
+      const cw = content.scrollWidth;
       const ch = content.scrollHeight;
       content.style.transform = prev;
-      if (cw2 <= 0 || ch <= 0) return;
+      if (cw <= 0 || ch <= 0) return;
       const padding = 16;
+      const CONFIG_W = 196;
       const fullyCollapsedNext = !nextShowConfig && !nextShowRight;
       if (fullyCollapsedNext) {
         const s = clamp((vh - padding) / ch, 0.75, 2);
         setScale(s);
         setCanvasWidth(Math.round(vw / s));
       } else {
-        setScale(clamp(Math.min((vw - padding) / cw2, (vh - padding) / ch), 0.75, 2));
+        const totalCw = (nextShowConfig ? CONFIG_W : 0) + cw;
+        setScale(clamp(Math.min((vw - padding) / totalCw, (vh - padding) / ch), 0.75, 2));
         setCanvasWidth(FIELD_IMG_DIMENSIONS.w);
       }
     };
@@ -21595,21 +23816,21 @@ function App() {
     return viewModeStore.subscribe(() => computeRef.current());
   }, []);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(ScaleContext.Provider, { value: scale, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { ref: viewportRef, className: `w-screen h-screen overflow-hidden${fullyCollapsed ? " flex items-center justify-center" : ""}`, children: [
-    !showConfig && /* @__PURE__ */ jsxRuntimeExports.jsx(
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
       HoverButton,
       {
         src: threeDots,
         onClick: () => setConfigPopout((v) => !v),
-        className: "fixed top-[10px] left-[10px] z-50 w-[33px] h-[33px]",
+        className: `fixed top-[10px] left-[10px] z-50 w-[33px] h-[33px]${showConfig ? " hidden" : ""}`,
         imgClassName: "w-5 h-5"
       }
     ),
-    !showConfig && /* @__PURE__ */ jsxRuntimeExports.jsx(
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
       "div",
       {
-        className: `fixed top-[52px] left-[10px] z-50 flex flex-col ${configPopout ? "" : "hidden"}`,
-        style: { transform: "scale(0.85)", transformOrigin: "top left", height: "calc((100vh - 62px) / 0.85)" },
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx(Config, { fillHeight: true })
+        className: "fixed flex flex-col",
+        style: !showConfig && !configPopout ? { display: "none" } : showConfig ? { top: "10px", left: "10px", transform: `scale(${scale})`, transformOrigin: "top left", zIndex: 10 } : { top: "52px", left: "10px", transform: "scale(0.85)", transformOrigin: "top left", height: "calc((100vh - 62px) / 0.85)", zIndex: 50 },
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx(Config, { fillHeight: !showConfig })
       }
     ),
     !showRightPanel && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
@@ -21652,31 +23873,34 @@ function App() {
         }
       )
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
       "div",
       {
         ref: contentRef,
-        style: { transform: `scale(${scale})`, transformOrigin: fullyCollapsed ? "center" : "top left" },
+        style: { transform: `scale(${scale})`, transformOrigin: fullyCollapsed ? "center" : "top left", marginLeft: showConfig ? `${10 + 196 * scale}px` : void 0 },
         className: "inline-flex w-max h-max",
-        children: [
-          showConfig && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "pt-[10px] ml-[10px]", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Config, {}) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "inline-flex", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { ref: fieldRef, className: `flex flex-col gap-[10px] ml-[4px] pt-[10px]${fullyCollapsed ? " items-center" : ""}`, children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Field, { showRightPanel, canvasWidth }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(PathSimulator, {})
-            ] }),
-            showRightPanel && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { ref: rightPanelRef, className: "flex flex-col gap-[10px] pt-[10px] pl-[10px]", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(PathConfig, {}),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(ControlConfig, {})
-            ] })
+        children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "inline-flex", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { ref: fieldRef, className: `flex flex-col gap-[10px] ml-[4px] pt-[10px]${fullyCollapsed ? " items-center" : ""}`, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Field, { showRightPanel, canvasWidth }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(PathSimulator, {})
+          ] }),
+          showRightPanel && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { ref: rightPanelRef, className: "flex flex-col gap-[10px] pt-[10px] pl-[10px]", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(PathConfig, {}),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(ControlConfig, {})
           ] })
-        ]
+        ] })
       }
     )
   ] }) });
 }
 registerSW({ immediate: true });
+const blockMiddleClick = (e) => {
+  if (e.button === 1) e.preventDefault();
+};
+document.addEventListener("mousedown", blockMiddleClick, { capture: true });
+document.addEventListener("mouseup", blockMiddleClick, { capture: true });
+document.addEventListener("auxclick", blockMiddleClick, { capture: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-DAXYMGII.js.map
+//# sourceMappingURL=index-iQzzl7mi.js.map
