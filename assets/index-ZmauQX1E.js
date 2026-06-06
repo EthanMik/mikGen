@@ -12980,6 +12980,7 @@ function moveToPose(robot, dt, x, y, angle, k) {
   const radius = 1 / Math.abs(getCurvature(pose, carrot));
   const horizontalDrift = params.horizontalDrift !== 0 ? params.horizontalDrift : 2;
   const maxSlipSpeed = Math.sqrt(horizontalDrift * radius * 9.8);
+  console.log(maxSlipSpeed);
   lateralOut = clamp(lateralOut, -maxSlipSpeed, maxSlipSpeed);
   const overturn = Math.abs(angularOut) + Math.abs(lateralOut) - effectiveMaxSpeed;
   if (overturn > 0) lateralOut -= lateralOut > 0 ? overturn : -overturn;
@@ -13643,7 +13644,7 @@ function clamp_max_slip(drive_output, current_X, current_Y, current_angle_deg, d
   const perpDist = Math.abs(Math.sin(heading) * dy - Math.cos(heading) * dx);
   const dist2 = Math.hypot(dx, dy);
   const radius = dist2 * dist2 / (2 * perpDist);
-  const max_slip = Math.sqrt(drift * radius * 9.8);
+  const max_slip = Math.sqrt(drift * radius);
   return clamp(drive_output, -max_slip, max_slip);
 }
 function overturn_scaling(drive_output, heading_output, max_speed) {
@@ -14066,7 +14067,7 @@ const kMikDrive = {
   settle_time: 200,
   timeout: 5e3,
   slew: 2,
-  drift: 2,
+  drift: 3,
   lead: 0.5,
   turn_direction: "fastest",
   drive_direction: "fastest",
@@ -14075,6 +14076,7 @@ const kMikDrive = {
   wait: true
 };
 const kMikHeading = {
+  ...kMikDrive,
   max_voltage: 10,
   min_voltage: 0,
   kp: 0.4,
@@ -14084,17 +14086,10 @@ const kMikHeading = {
   exit_error: 0,
   settle_error: 1,
   settle_time: 200,
-  timeout: 3e3,
-  drift: 0,
-  slew: 0,
-  lead: 0,
-  turn_direction: "fastest",
-  drive_direction: "fastest",
-  swing_direction: "left",
-  opposite_voltage: 0,
-  wait: true
+  timeout: 3e3
 };
 const kMikTurn = {
+  ...kMikDrive,
   max_voltage: 12,
   min_voltage: 0,
   kp: 0.4,
@@ -14104,17 +14099,10 @@ const kMikTurn = {
   exit_error: 0,
   settle_error: 1,
   settle_time: 200,
-  timeout: 3e3,
-  slew: 0,
-  drift: 0,
-  lead: 0,
-  turn_direction: "fastest",
-  drive_direction: "fastest",
-  swing_direction: "left",
-  opposite_voltage: 0,
-  wait: true
+  timeout: 3e3
 };
 const kMikSwing = {
+  ...kMikDrive,
   max_voltage: 8,
   min_voltage: 0,
   kp: 0.4,
@@ -14124,15 +14112,7 @@ const kMikSwing = {
   exit_error: 0,
   settle_error: 1,
   settle_time: 200,
-  timeout: 3e3,
-  drift: 0,
-  slew: 0,
-  lead: 0,
-  turn_direction: "fastest",
-  drive_direction: "fastest",
-  swing_direction: "left",
-  opposite_voltage: 0,
-  wait: true
+  timeout: 3e3
 };
 const mikExitConditionsSettings = [
   { key: "settle_error", units: "in", label: "Settle Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
@@ -17222,13 +17202,6 @@ const getBackwardsSnapIdx = (path, idx) => {
   }
   return null;
 };
-function getForwardSnapPose(path, idx) {
-  for (let i = idx; i < path.segments.length; i++) {
-    const seg = path.segments[i];
-    if (seg.pose.x !== null && seg.pose.y !== null) return seg.pose;
-  }
-  return null;
-}
 function resolveHeading(path, idx, anchorPose, offset = 0) {
   const seg = path.segments[idx];
   const prevSeg = path.segments[idx - 1];
@@ -17239,7 +17212,16 @@ function resolveHeading(path, idx, anchorPose, offset = 0) {
   if (prevSeg.pose.angle !== null && prevSeg.pose.angle !== void 0) {
     if (prevSeg.kind === "pointSwing" || prevSeg.kind === "pointTurn") {
       const prevSegIdx = idx - 1;
-      const turnToPos = getForwardSnapPose(path, prevSegIdx);
+      let turnToPose = null;
+      for (let i = prevSegIdx; i < path.segments.length; i++) {
+        const s = path.segments[i];
+        if (s.kind === "strafeDrive") continue;
+        if (s.pose.x !== null && s.pose.y !== null) {
+          turnToPose = s.pose;
+          break;
+        }
+      }
+      const turnToPos = turnToPose;
       const previousPos = getBackwardsSnapPose(path, prevSegIdx - 1);
       const turnTarget = turnToPos ? { x: turnToPos.x ?? 0, y: turnToPos.y ?? 0 } : previousPos ? { x: previousPos.x ?? 0, y: (previousPos.y ?? 0) + 5 } : { x: 0, y: 5 };
       const fromPos = { x: anchorPose.x ?? 0, y: anchorPose.y ?? 0 };
@@ -17353,7 +17335,15 @@ function toPX(position, field, img) {
 }
 function findPointToFace(path, idx) {
   const previousPos = getBackwardsSnapPose(path, idx - 1);
-  const turnToPos = getForwardSnapPose(path, idx);
+  let turnToPos = null;
+  for (let i = idx; i < path.segments.length; i++) {
+    const seg = path.segments[i];
+    if (seg.kind === "strafeDrive") continue;
+    if (seg.pose.x !== null && seg.pose.y !== null) {
+      turnToPos = seg.pose;
+      break;
+    }
+  }
   const pos = turnToPos ? { x: turnToPos.x ?? 0, y: turnToPos.y ?? 0 } : previousPos ? { x: previousPos.x ?? 0, y: (previousPos.y ?? 0) + 5 } : { x: 0, y: 5 };
   return pos;
 }
@@ -19720,6 +19710,27 @@ function PathSimulator() {
 }
 const flipHorizontal = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20id='mdi-flip-horizontal'%20viewBox='0%200%2024%2024'%3e%3cpath%20d='M15%2021H17V19H15M19%209H21V7H19M3%205V19C3%2020.1%203.9%2021%205%2021H9V19H5V5H9V3H5C3.9%203%203%203.9%203%205M19%203V5H21C21%203.9%2020.1%203%2019%203M11%2023H13V1H11M19%2017H21V15H19M15%205H17V3H15M19%2013H21V11H19M19%2021C20.1%2021%2021%2020.1%2021%2019H19Z'%20fill='%23ffffff'/%3e%3c/svg%3e";
 const flipVertical = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20id='mdi-flip-vertical'%20viewBox='0%200%2024%2024'%3e%3cpath%20d='M3%2015V17H5V15M15%2019V21H17V19M19%203H5C3.9%203%203%203.9%203%205V9H5V5H19V9H21V5C21%203.9%2020.1%203%2019%203M21%2019H19V21C20.1%2021%2021%2020.1%2021%2019M1%2011V13H23V11M7%2019V21H9V19M19%2015V17H21V15M11%2019V21H13V19M3%2019C3%2020.1%203.9%2021%205%2021V19Z'%20fill='%23ffffff'/%3e%3c/svg%3e";
+function flipSwingDirection(constants) {
+  const [first, ...rest] = constants;
+  const k = first;
+  let flipped;
+  if (k.swing_direction !== void 0)
+    flipped = { ...k, swing_direction: k.swing_direction === "left" ? "right" : "left" };
+  else if (k.swing !== void 0)
+    flipped = { ...k, swing: k.swing === "LEFT_SWING" ? "RIGHT_SWING" : "LEFT_SWING" };
+  else if (k.lockedSide !== void 0)
+    flipped = { ...k, lockedSide: k.lockedSide === "DriveSide::LEFT" ? "DriveSide::RIGHT" : "DriveSide::LEFT" };
+  else
+    flipped = k;
+  return [flipped, ...rest];
+}
+function applyMirrorExtras(c) {
+  if (c.kind === "strafeDrive")
+    return { ...c, distance: -c.distance };
+  if (c.kind === "angleSwing" || c.kind === "pointSwing")
+    return { ...c, constants: flipSwingDirection(c.constants) };
+  return c;
+}
 function MirrorControl({
   src,
   mirrorDirection
@@ -19729,16 +19740,18 @@ function MirrorControl({
     const hasSelected = path.segments.some((m) => m.selected);
     setPath((prev) => ({
       ...prev,
-      segments: prev.segments.map(
-        (c) => c.selected ? {
+      segments: prev.segments.map((c) => {
+        if (!c.selected) return c;
+        const posed = {
           ...c,
           pose: {
             ...c.pose,
             angle: c.pose.angle != null ? normalizeDeg(360 - c.pose.angle) : null,
             x: c.pose.x != null ? -c.pose.x : null
           }
-        } : c
-      )
+        };
+        return applyMirrorExtras(posed);
+      })
     }));
     if (hasSelected) saveSnapshot();
   };
@@ -19746,16 +19759,19 @@ function MirrorControl({
     const hasSelected = path.segments.some((m) => m.selected);
     setPath((prev) => ({
       ...prev,
-      segments: prev.segments.map(
-        (c) => c.selected ? {
+      segments: prev.segments.map((c) => {
+        if (!c.selected) return c;
+        const isPointBased = c.kind === "pointTurn" || c.kind === "pointSwing";
+        const posed = {
           ...c,
           pose: {
             ...c.pose,
-            angle: c.pose.angle != null ? normalizeDeg(180 - c.pose.angle) : null,
+            angle: c.pose.angle != null ? normalizeDeg(isPointBased ? 360 - c.pose.angle : 180 - c.pose.angle) : null,
             y: c.pose.y != null ? -c.pose.y : null
           }
-        } : c
-      )
+        };
+        return applyMirrorExtras(posed);
+      })
     }));
     if (hasSelected) saveSnapshot();
   };
@@ -23160,7 +23176,7 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
         const c = segments[segIdx];
         if (c.kind !== "distanceDrive" && c.kind !== "strafeDrive") continue;
         const prevSegKind = segments[segIdx - 1]?.kind;
-        const afterTurn = prevSegKind === "pointSwing" || prevSegKind === "pointTurn";
+        const afterTurn = (prevSegKind === "pointSwing" || prevSegKind === "pointTurn") && c.kind !== "strafeDrive";
         const currentPath = { ...prev, segments };
         if (afterTurn) {
           const anchorPose = getBackwardsSnapPose(currentPath, segIdx - 1);
@@ -23201,6 +23217,7 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
   const dragStartPositions = reactExports.useRef({});
   const shiftPendingSelectRef = reactExports.useRef(null);
   const pendingTurnCycleRef = reactExports.useRef(null);
+  const suppressClickFallbackRef = reactExports.useRef(false);
   const [middleMouseDown, setMiddleMouseDown] = reactExports.useState(false);
   const fieldDragRef = reactExports.useRef({ x: 0, y: 0 });
   const isFieldDragging = reactExports.useRef(false);
@@ -23400,7 +23417,7 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
         if (c.kind !== "distanceDrive" && c.kind !== "strafeDrive") continue;
         const anchorPose = getBackwardsSnapPose({ ...prev, segments: next }, segIdx - 1);
         const prevSegKind = next[segIdx - 1]?.kind;
-        const afterTurn = prevSegKind === "pointSwing" || prevSegKind === "pointTurn";
+        const afterTurn = (prevSegKind === "pointSwing" || prevSegKind === "pointTurn") && c.kind !== "strafeDrive";
         if (afterTurn) {
           if (!anchorPose || anchorPose.x === null || anchorPose.y === null) continue;
           if (c.selected && !c.locked) {
@@ -23568,7 +23585,12 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
     const isBareLeftClick = evt.button === 0 && !evt.ctrlKey && !evt.altKey && !evt.shiftKey && !evt.metaKey;
     if (isBareLeftClick) {
       const selectedCount2 = path.segments.filter((c) => c.selected).length;
-      if (selectedCount2 >= 1) endSelection();
+      if (selectedCount2 > 1) {
+        endSelection();
+        suppressClickFallbackRef.current = true;
+      } else if (selectedCount2 === 1) {
+        endSelection();
+      }
       const pos2 = getPressedPositionInch(evt, svgRef.current, img);
       if (path.segments.length <= 0) {
         addStartSegment(format, { x: pos2.x, y: pos2.y, angle: 0 }, setPath);
@@ -23606,8 +23628,10 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
       selectSegment(pendingTurnCycleRef.current, false);
     }
     endDrag();
+    const suppress = suppressClickFallbackRef.current;
+    suppressClickFallbackRef.current = false;
     finalizeBoxSelect(img, path, setPath, (startInch) => {
-      if (path.segments.length > 0) {
+      if (!suppress && path.segments.length > 0) {
         addPointDriveSegment(evt, format, startInch, setPath, path);
       }
     });
@@ -23903,4 +23927,4 @@ document.addEventListener("auxclick", blockMiddleClick, { capture: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-iQzzl7mi.js.map
+//# sourceMappingURL=index-ZmauQX1E.js.map
