@@ -118,6 +118,7 @@ export function moveToPose(robot: Robot, dt: number, x: number, y: number, angle
     const radius = 1 / Math.abs(getCurvature(pose, carrot));
     const horizontalDrift = params.horizontalDrift !== 0 ? params.horizontalDrift : 2;
     const maxSlipSpeed = Math.sqrt(horizontalDrift * radius * 9.8);
+    console.log(maxSlipSpeed)
     lateralOut = clamp(lateralOut, -maxSlipSpeed, maxSlipSpeed);
 
     // prioritize angular movement over lateral movement

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import type { Coordinate } from "./Types/Coordinate";
-import { getBackwardsSnapPose, getForwardSnapPose, type Path } from "./Types/Path";
+import { getBackwardsSnapPose, type Path } from "./Types/Path";
 import type { Pose } from "./Types/Pose";
 
 export interface Rectangle {
@@ -90,7 +90,14 @@ export function toPX(position: Coordinate, field: Rectangle, img: Rectangle): Co
 
 export function findPointToFace(path: Path, idx: number): Coordinate {
     const previousPos = getBackwardsSnapPose(path, idx - 1);
-    const turnToPos = getForwardSnapPose(path, idx);
+
+    // Skip strafeDrive segments: the turn should face the first forward waypoint, not a lateral strafe endpoint
+    let turnToPos = null;
+    for (let i = idx; i < path.segments.length; i++) {
+        const seg = path.segments[i];
+        if (seg.kind === "strafeDrive") continue;
+        if (seg.pose.x !== null && seg.pose.y !== null) { turnToPos = seg.pose; break; }
+    }
 
     const pos: Coordinate =
         turnToPos

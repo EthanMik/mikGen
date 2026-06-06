@@ -1,6 +1,7 @@
 Live Progress Txt
 
 Bugs:
+- if multiple segments are selected it still adds a new one
 
 Todo:
 - add example paths

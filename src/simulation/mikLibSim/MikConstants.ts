@@ -58,7 +58,7 @@ export const kMikDrive: mikConstants = {
     timeout: 5000,
 
     slew: 2,
-    drift: 2,
+    drift: 3,
     lead: 0.5,
 
     turn_direction: "fastest",
@@ -69,6 +69,8 @@ export const kMikDrive: mikConstants = {
 }
 
 export const kMikHeading: mikConstants = {
+    ...kMikDrive,
+
     max_voltage: 10,
     min_voltage: 0,
 
@@ -81,19 +83,11 @@ export const kMikHeading: mikConstants = {
     settle_error: 1,
     settle_time: 200,
     timeout: 3000,
-
-    drift: 0,
-    slew: 0,
-    lead: 0,
-
-    turn_direction: "fastest",
-    drive_direction: "fastest",
-    swing_direction: "left",
-    opposite_voltage: 0,
-    wait: true,
 }
 
 export const kMikTurn: mikConstants = {
+    ...kMikDrive,
+
     max_voltage: 12,
     min_voltage: 0,
 
@@ -106,19 +100,11 @@ export const kMikTurn: mikConstants = {
     settle_error: 1,
     settle_time: 200,
     timeout: 3000,
-
-    slew: 0,
-    drift: 0,
-    lead: 0,
-
-    turn_direction: "fastest",
-    drive_direction: "fastest",
-    swing_direction: "left",
-    opposite_voltage: 0,
-    wait: true,
 }
 
 export const kMikSwing: mikConstants = {
+    ...kMikDrive,
+    
     max_voltage: 8,
     min_voltage: 0,
 
@@ -131,16 +117,6 @@ export const kMikSwing: mikConstants = {
     settle_error: 1,
     settle_time: 200,
     timeout: 3000,
-
-    drift: 0,
-    slew: 0,
-    lead: 0,
-
-    turn_direction: "fastest",
-    drive_direction: "fastest",
-    swing_direction: "left",
-    opposite_voltage: 0,
-    wait: true,
 }
 
 type Fields = NumberInputGroup<"mikLib">["fields"];

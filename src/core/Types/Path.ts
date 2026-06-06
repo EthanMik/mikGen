@@ -48,7 +48,14 @@ export function resolveHeading(
     if (prevSeg.pose.angle !== null && prevSeg.pose.angle !== undefined) {
         if (prevSeg.kind === "pointSwing" || prevSeg.kind === "pointTurn") {
             const prevSegIdx = idx - 1;
-            const turnToPos = getForwardSnapPose(path, prevSegIdx);
+            // Skip strafeDrive so the turn faces the actual forward destination, not a lateral endpoint
+            let turnToPose = null;
+            for (let i = prevSegIdx; i < path.segments.length; i++) {
+                const s = path.segments[i];
+                if (s.kind === "strafeDrive") continue;
+                if (s.pose.x !== null && s.pose.y !== null) { turnToPose = s.pose; break; }
+            }
+            const turnToPos = turnToPose;
             const previousPos = getBackwardsSnapPose(path, prevSegIdx - 1);
             const turnTarget: Coordinate = turnToPos
                 ? { x: turnToPos.x ?? 0, y: turnToPos.y ?? 0 }

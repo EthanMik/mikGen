@@ -11,7 +11,7 @@ import { PathSimMacros } from "../../macros/PathSimMacros";
 import FieldMacros from "../../macros/FieldMacros";
 import { useRobotPose } from "../../hooks/useRobotPose";
 import { DEFAULT_THEMES, getPressedPositionInch, pointerToSvg } from "./FieldUtils";
-import HoverButton from "../util/HoverButton";
+import HoverButton from "../Util/HoverButton";
 import { useBoxSelect } from "./useBoxSelect";
 import { useMagnetSnap } from "./useMagnetSnap";
 import RobotLayer from "./RobotLayer";
@@ -53,7 +53,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 				if (c.kind !== "distanceDrive" && c.kind !== "strafeDrive") continue;
 
 				const prevSegKind = segments[segIdx - 1]?.kind;
-				const afterTurn = prevSegKind === "pointSwing" || prevSegKind === "pointTurn";
+				const afterTurn = (prevSegKind === "pointSwing" || prevSegKind === "pointTurn") && c.kind !== "strafeDrive";
 				const currentPath = { ...prev, segments };
 
 				if (afterTurn) {
@@ -102,6 +102,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 	const dragStartPositions = useRef<Record<string, { x: number | null; y: number | null }>>({});
 	const shiftPendingSelectRef = useRef<string | null>(null);
 	const pendingTurnCycleRef = useRef<string | null>(null);
+	const suppressClickFallbackRef = useRef(false);
 
 	const [middleMouseDown, setMiddleMouseDown] = useState(false)
 	const fieldDragRef = useRef<Coordinate>({ x: 0, y: 0 });
@@ -319,7 +320,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 
 				const anchorPose = getBackwardsSnapPose({ ...prev, segments: next }, segIdx - 1);
 				const prevSegKind = next[segIdx - 1]?.kind;
-				const afterTurn = prevSegKind === "pointSwing" || prevSegKind === "pointTurn";
+				const afterTurn = (prevSegKind === "pointSwing" || prevSegKind === "pointTurn") && c.kind !== "strafeDrive";
 
 				if (afterTurn) {
 					// After a point turn the turn always faces the next point, so the segment moves freely
@@ -524,7 +525,12 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 
 		if (isBareLeftClick) {
 			const selectedCount = path.segments.filter((c) => c.selected).length;
-			if (selectedCount >= 1) endSelection();
+			if (selectedCount > 1) {
+				endSelection();
+				suppressClickFallbackRef.current = true;
+			} else if (selectedCount === 1) {
+				endSelection();
+			}
 			const pos = getPressedPositionInch(evt, svgRef.current, img);
 			if (path.segments.length <= 0) {
 				addStartSegment(format, { x: pos.x, y: pos.y, angle: 0 }, setPath);
@@ -567,8 +573,10 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 			selectSegment(pendingTurnCycleRef.current, false);
 		}
 		endDrag();
+		const suppress = suppressClickFallbackRef.current;
+		suppressClickFallbackRef.current = false;
 		finalizeBoxSelect(img, path, setPath, (startInch) => {
-			if (path.segments.length > 0) {
+			if (!suppress && path.segments.length > 0) {
 				addPointDriveSegment(evt, format, startInch, setPath, path);
 			}
 		});

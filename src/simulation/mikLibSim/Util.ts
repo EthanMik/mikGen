@@ -48,7 +48,7 @@ export function slew_scaling(drive_output: number, prev_drive_output: number, sl
     return prev_drive_output + change;
 }
 
-export function clamp_max_slip(drive_output: number,current_X: number, current_Y: number, current_angle_deg: number,
+export function clamp_max_slip(drive_output: number, current_X: number, current_Y: number, current_angle_deg: number,
     desired_X: number, desired_Y: number, drift: number): number {
     const heading = toRad(current_angle_deg);
     const dx = desired_X - current_X;
@@ -58,7 +58,7 @@ export function clamp_max_slip(drive_output: number,current_X: number, current_Y
     const dist = Math.hypot(dx, dy);
 
     const radius = (dist * dist) / (2 * perpDist);
-    const max_slip = Math.sqrt(drift * radius * 9.8);
+    const max_slip = Math.sqrt(drift * radius);
     return clamp(drive_output, -max_slip, max_slip);
 }
 

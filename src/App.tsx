@@ -10,7 +10,7 @@ import Field from "./components/Field/Field";
 import { ScaleContext } from "./contexts/ScaleContext";
 import { fileFormatStore } from "./hooks/useFileFormat";
 import { useFieldImg } from "./hooks/useFieldImg";
-import HoverButton from "./components/util/HoverButton";
+import HoverButton from "./components/Util/HoverButton";
 import threeDots from "./assets/three-dots.svg";
 import lines from "./assets/lines.svg";
 import marker from "./assets/marker.svg";

@@ -4,6 +4,8 @@ import { distanceToPosition, getSegmentDistance } from "../core/Types/Path";
 import { saveSnapshot } from "../core/Undo/UndoHistory";
 import { normalizeDeg } from "../core/Util";
 import { useFormat, usePath } from "../hooks/useFileFormat";
+import type { Segment } from "../core/Types/Segment";
+import type { SegmentConstants, Format } from "../simulation/FormatDefinition";
 
 import NumberInput from "./Util/NumberInput";
 import Tooltip from "./Util/Tooltip";
@@ -13,6 +15,29 @@ type MirrorDirection = "x" | "y";
 type MirrorControlProps = {
     src: string
     mirrorDirection: MirrorDirection
+}
+
+function flipSwingDirection(constants: SegmentConstants<Format>): SegmentConstants<Format> {
+    const [first, ...rest] = constants;
+    const k = first as unknown as Record<string, unknown>;
+    let flipped: Record<string, unknown>;
+    if (k.swing_direction !== undefined)
+        flipped = { ...k, swing_direction: k.swing_direction === "left" ? "right" : "left" };
+    else if (k.swing !== undefined)
+        flipped = { ...k, swing: k.swing === "LEFT_SWING" ? "RIGHT_SWING" : "LEFT_SWING" };
+    else if (k.lockedSide !== undefined)
+        flipped = { ...k, lockedSide: k.lockedSide === "DriveSide::LEFT" ? "DriveSide::RIGHT" : "DriveSide::LEFT" };
+    else
+        flipped = k;
+    return [flipped, ...rest] as unknown as SegmentConstants<Format>;
+}
+
+function applyMirrorExtras(c: Segment): Segment {
+    if (c.kind === "strafeDrive")
+        return { ...c, distance: -c.distance };
+    if (c.kind === "angleSwing" || c.kind === "pointSwing")
+        return { ...c, constants: flipSwingDirection(c.constants) };
+    return c;
 }
 
 function MirrorControl({
@@ -25,14 +50,16 @@ function MirrorControl({
         const hasSelected = path.segments.some(m => m.selected);
         setPath(prev => ({
             ...prev,
-            segments: prev.segments.map(c =>
-                c.selected ? {
+            segments: prev.segments.map(c => {
+                if (!c.selected) return c;
+                const posed = {
                     ...c, pose: {
                         ...c.pose, angle: c.pose.angle != null ? normalizeDeg(360 - c.pose.angle) : null,
                         x: c.pose.x != null ? -c.pose.x : null
                     }
-                } : c
-            )
+                };
+                return applyMirrorExtras(posed);
+            })
         }));
         if (hasSelected) saveSnapshot();
     }
@@ -41,14 +68,17 @@ function MirrorControl({
         const hasSelected = path.segments.some(m => m.selected);
         setPath(prev => ({
             ...prev,
-            segments: prev.segments.map(c =>
-                c.selected ? {
+            segments: prev.segments.map(c => {
+                if (!c.selected) return c;
+                const isPointBased = c.kind === "pointTurn" || c.kind === "pointSwing";
+                const posed = {
                     ...c, pose: {
-                        ...c.pose, angle: c.pose.angle != null ? normalizeDeg(180 - c.pose.angle) : null,
+                        ...c.pose, angle: c.pose.angle != null ? normalizeDeg(isPointBased ? 360 - c.pose.angle : 180 - c.pose.angle) : null,
                         y: c.pose.y != null ? -c.pose.y : null
                     }
-                } : c
-            )
+                };
+                return applyMirrorExtras(posed);
+            })
         }));
         if (hasSelected) saveSnapshot();
     }
