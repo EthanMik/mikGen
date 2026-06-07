@@ -10,7 +10,7 @@ Easy to use autonoumous simulator and planner website for VEX Robotics
    - [JAR-Template](https://github.com/JacksonAreaRobotics/JAR-Template)
    - [EZ-Template](https://github.com/EZ-Robotics/EZ-Template)
 ### Segments supported
-   - Move to Point and Boomerang
+   - Move to Point or Pose
    - Turn to Angle and Point
    - Swing to Angle and Point
    - Drive Distance and Strafe Distance
