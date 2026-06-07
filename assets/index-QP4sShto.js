@@ -17248,7 +17248,9 @@ function resolveHeading(path, idx, anchorPose, offset = 0) {
   const hy = (anchorPose.y ?? 0) - (approachPose.y ?? 0);
   const mag = Math.sqrt(hx * hx + hy * hy);
   if (mag === 0) return null;
-  return { heading: { x: hx, y: hy }, headingMag: mag };
+  const co = Math.cos(toRad(offset));
+  const si = Math.sin(toRad(offset));
+  return { heading: { x: hx * co + hy * si, y: hy * co - hx * si }, headingMag: mag };
 }
 function getSegmentDistance(path, idx, offset = 0) {
   if (idx <= 0) return null;
@@ -23927,4 +23929,4 @@ document.addEventListener("auxclick", blockMiddleClick, { capture: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-ZmauQX1E.js.map
+//# sourceMappingURL=index-QP4sShto.js.map
