@@ -94,7 +94,9 @@ export function resolveHeading(
     const mag = Math.sqrt(hx * hx + hy * hy);
     if (mag === 0) return null;
 
-    return { heading: { x: hx, y: hy }, headingMag: mag };
+    const co = Math.cos(toRad(offset));
+    const si = Math.sin(toRad(offset));
+    return { heading: { x: hx * co + hy * si, y: hy * co - hx * si }, headingMag: mag };
 }
 
 export function getSegmentDistance(path: Path, idx: number, offset: number = 0): number | null {
