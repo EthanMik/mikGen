@@ -53,7 +53,7 @@ export default function RobotLayer({ img, pose, robotPose, robotConstants, visib
             )}
 
         {/* Ghost Robots */}
-        {!visible && settings.ghostRobots &&
+        {settings.ghostRobots &&
             robotPose.map((p, idx) => (
             <React.Fragment key={`ghost-${idx}`}>
                 {path.segments[idx]?.visible && (

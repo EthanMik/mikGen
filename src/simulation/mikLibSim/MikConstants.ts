@@ -104,7 +104,7 @@ export const kMikTurn: mikConstants = {
 
 export const kMikSwing: mikConstants = {
     ...kMikDrive,
-    
+
     max_voltage: 8,
     min_voltage: 0,
 
@@ -240,7 +240,9 @@ export const mikLibDef = {
             toStringTemplate: "chassis.drive_to_point(${x}, ${y}, ${kBuilder});",
             simFn: (robot, dt, x, y, _angle, constants) => drive_to_point(robot, dt, x, y, constants),
             slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
-            cycleButtons: [],
+            cycleButtons: [
+                { constantsIdx: 0, ...driveDirectionButton },
+            ],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
                 { constantsIdx: 0, headerName: "Drive Constants", fields: [...mikPIDConstantsSettings] },
@@ -439,6 +441,16 @@ function kMikParser(kDefault: mikConstants[], kBuilderStr: string, kind: Segment
         const [, rawKey, rawValue] = match;
         const num = parseFloat(rawValue);
 
+        // Cast raw value to drive/turn direction so format doesnt need to change 
+        const turnDirectionMap: { [key: string]: mikConstants["turn_direction"]; } = {
+            "clockwise": "cw", "counter_clockwise": "ccw",
+            "cw": "cw", "ccw": "ccw",
+        };
+        const driveDirectionMap: { [key: string]: mikConstants["drive_direction"]; } = {
+            "fwd": "forwards", "forward": "forwards", "reverse": "reversed",
+        };
+
+
         if (isDrive) {
             if (rawKey === "drive_k.p") constants[0].kp = num;
             else if (rawKey === "drive_k.i") constants[0].ki = num;
@@ -453,7 +465,7 @@ function kMikParser(kDefault: mikConstants[], kBuilderStr: string, kind: Segment
             else if (rawKey === "timeout") constants[0].timeout = num;
             else if (rawKey === "slew") constants[0].slew = num;
             else if (rawKey === "exit_error") constants[0].exit_error = num;
-            else if (rawKey === "direction") constants[0].drive_direction = rawValue as mikConstants["drive_direction"];
+            else if (rawKey === "direction") constants[0].drive_direction = driveDirectionMap[rawValue] ?? "fastest";
             else if (rawKey === "heading_k.p") constants[1].kp = num;
             else if (rawKey === "heading_k.i") constants[1].ki = num;
             else if (rawKey === "heading_k.d") constants[1].kd = num;
@@ -475,7 +487,7 @@ function kMikParser(kDefault: mikConstants[], kBuilderStr: string, kind: Segment
             else if (rawKey === "timeout") constants[0].timeout = num;
             else if (rawKey === "slew") constants[0].slew = num;
             else if (rawKey === "opposite_voltage") constants[0].opposite_voltage = num;
-            else if (rawKey === "direction") constants[0].turn_direction = rawValue as mikConstants["turn_direction"];
+            else if (rawKey === "direction") constants[0].turn_direction = turnDirectionMap[rawValue] ?? "fastest";
             else if (rawKey === "wait") constants[0].wait = rawValue === "true";
             else if (rawKey === "angle_offset") poseAngle = num;
         }

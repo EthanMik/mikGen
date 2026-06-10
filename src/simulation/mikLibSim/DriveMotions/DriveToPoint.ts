@@ -46,36 +46,37 @@ export function drive_to_point(robot: Robot, dt: number, x: number, y: number, p
     
     }
 
-    console.log(drivePID.derivative)
-
     const line_settled = is_line_settled(x, y, desired_heading, robot.getX(), robot.getY(), drive_p.exit_error);
     if (!(line_settled === prev_line_settled) && drive_p.min_voltage > 0) {
         reset_drive_to_point();
         return true;
     }
+
     prev_line_settled = line_settled;
 
     desired_heading = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
-
+    const reversed_heading = desired_heading + (drive_p.drive_direction === "reversed" ? 180 : 0);
+    console.log(drive_p.drive_direction, desired_heading, reversed_heading);
     const drive_error = Math.hypot(x - robot.getX(), y - robot.getY());
-
-    let heading_error = reduce_negative_180_to_180(desired_heading - robot.getAngle());
+    let heading_error = reduce_negative_180_to_180(reversed_heading - robot.getAngle());
     
     let drive_output = drivePID.compute(drive_error);
 
-    const heading_scale_factor = Math.cos(toRad(heading_error));
+    const heading_scale_factor = Math.cos(toRad(reduce_negative_180_to_180(desired_heading - robot.getAngle())));
 
     drive_output *= heading_scale_factor;
 
     if (drive_error < DRIVE_LARGE_SETTLE_ERROR) {
         if (!heading_locked) {
-            locked_heading = desired_heading;
+            locked_heading = reversed_heading;
             heading_locked = true;
         }
         heading_error = reduce_negative_180_to_180(locked_heading - robot.getAngle());
     }
 
-    heading_error = reduce_negative_90_to_90(heading_error);
+    if (drive_p.drive_direction === "fastest") {
+        heading_error = reduce_negative_90_to_90(heading_error);
+    }
 
     let heading_output = headingPID.compute(heading_error);
 
@@ -84,6 +85,9 @@ export function drive_to_point(robot: Robot, dt: number, x: number, y: number, p
 
     drive_output = slew_scaling(drive_output, prev_drive_output, drive_p.slew * (dt / 0.01), !heading_locked);
     heading_output = slew_scaling(heading_output, prev_heading_output, heading_p.slew * (dt / 0.01));
+
+    if (drive_p.drive_direction === "forwards" && !heading_locked) drive_output = Math.max(drive_output, 0);
+    else if (drive_p.drive_direction === "reversed" && !heading_locked) drive_output = Math.min(drive_output, 0);
 
     drive_output = clamp_min_voltage(drive_output, drive_p.min_voltage);
 
