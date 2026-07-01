@@ -58,7 +58,7 @@ export const kMikDrive: mikConstants = {
     timeout: 5000,
 
     slew: 2,
-    drift: 3,
+    drift: 2,
     lead: 0.5,
 
     turn_direction: "fastest",
@@ -105,7 +105,7 @@ export const kMikTurn: mikConstants = {
 export const kMikSwing: mikConstants = {
     ...kMikDrive,
 
-    max_voltage: 8,
+    max_voltage: 12,
     min_voltage: 0,
 
     kp: .4,
@@ -292,7 +292,13 @@ export const mikLibDef = {
             ],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
-                { constantsIdx: 0, headerName: "Swing Constants", fields: [...mikPIDConstantsSettings] },
+                {
+                    constantsIdx: 0, headerName: "Swing Constants", fields: [
+                        ...mikPIDConstantsSettings,
+                        { key: "opposite_voltage", label: "Opposite Voltage", units: "volt", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
+
+                    ]
+                },
             ],
         },
 
@@ -308,7 +314,13 @@ export const mikLibDef = {
             ],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
-                { constantsIdx: 0, headerName: "Swing Constants", fields: [...mikPIDConstantsSettings] },
+                {
+                    constantsIdx: 0, headerName: "Swing Constants", fields: [
+                        ...mikPIDConstantsSettings,
+                        { key: "opposite_voltage", label: "Opposite Voltage", units: "volt", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
+
+                    ]
+                },
             ],
         },
 

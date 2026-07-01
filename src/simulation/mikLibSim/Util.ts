@@ -13,9 +13,9 @@ export function angle_error(error: number, direction: mikConstants["turn_directi
 }
 
 export function reduce_0_to_360(angle: number) {
-    while(!(angle >= 0 && angle < 360)) {
-        if(angle < 0) { angle += 360; }
-        if(angle >= 360) { angle -= 360; }
+    while (!(angle >= 0 && angle < 360)) {
+        if (angle < 0) { angle += 360; }
+        if (angle >= 360) { angle -= 360; }
     }
     return angle;
 }
@@ -50,15 +50,18 @@ export function slew_scaling(drive_output: number, prev_drive_output: number, sl
 
 export function clamp_max_slip(drive_output: number, current_X: number, current_Y: number, current_angle_deg: number,
     desired_X: number, desired_Y: number, drift: number): number {
+    
+    if (drift <= 0) return drive_output
+
     const heading = toRad(current_angle_deg);
     const dx = desired_X - current_X;
     const dy = desired_Y - current_Y;
 
-    const perpDist = Math.abs(Math.sin(heading) * dy - Math.cos(heading) * dx);
+    const signed_dist = Math.cos(heading) * dx + Math.sin(heading) * dy;
+    const x = Math.abs(signed_dist);
     const dist = Math.hypot(dx, dy);
-
-    const radius = (dist * dist) / (2 * perpDist);
-    const max_slip = Math.sqrt(drift * radius);
+    const max_slip = Math.sqrt((dist * dist) / (2 * x) * drift);
+    
     return clamp(drive_output, -max_slip, max_slip);
 }
 

@@ -71,13 +71,14 @@ export default function SettingsButton() {
                     <MenuCheckboxButton name="Robot Position" label="Displays robots's actual position" checked={settings.robotPosition} setChecked={set("robotPosition")} />
                     <MenuCheckboxButton name="Precise Path" label="Displays robots exact path taken" checked={settings.precisePath} setChecked={set("precisePath")} />
                     <MenuCheckboxButton name="Numbered Path" label="Displays number labels for notebook screenshots" checked={settings.numberedPath} setChecked={set("numberedPath")} />
-                    <MenuCheckboxButton name="Position Logs" label="Prints robot position to console" checked={debug} setChecked={(state: boolean) => { debugStore.setState(state); }} />
+                    {/* <MenuCheckboxButton name="Position Logs" label="Prints robot position to console" checked={debug} setChecked={(state: boolean) => { debugStore.setState(state); }} /> */}
 
                     <Section />
 
-                    <NumberInputButton name="Grid Snap" label="What to snap to while Ctrl+Dragging" value={settings.snapToGrid} setValue={v => v !== null && set("snapToGrid")(v)} bounds={[0.1, 10]} stepSize={0.5} roundTo={1} units="" />
-                    <ColorButton name="Theme" primary={DEFAULT_THEMES[settings.themeIdx].primary} secondary={DEFAULT_THEMES[settings.themeIdx].secondary} callback={() => updateTheme(settings.themeIdx)} />
+                    <NumberInputButton name="Grid Snap" label="What to snap to while Ctrl+Dragging" value={settings.snapToGrid} setValue={v => v !== null && set("snapToGrid")(v)} bounds={[0.1, 10]} stepSize={0.5} roundTo={1} units="in" />
                     <MenuKeybindButton name="Edit Templates" keybind={""} callback={() => setPopup(true)} />
+                    <Section />
+                    <ColorButton name="Theme" primary={DEFAULT_THEMES[settings.themeIdx].primary} secondary={DEFAULT_THEMES[settings.themeIdx].secondary} callback={() => updateTheme(settings.themeIdx)} />
                 </div>
             </MenuButtonTemplate>
         </>

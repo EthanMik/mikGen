@@ -5,8 +5,7 @@ import type { Path } from "../../core/Types/Path";
 import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, toRGB, type Rectangle } from "../../core/Util";
 import { getSegmentLines, getPreciseSegmentDots, type FieldColors } from "./FieldUtils";
 
-const DOT_SPACING = 2;
-// radius in real-world inches so the SVG group transform scales it automatically with zoom
+const DOT_SPACING = 1.5;
 const DOT_RADIUS = 1.8 * FIELD_REAL_DIMENSIONS.w / FIELD_IMG_DIMENSIONS.w;
 
 function speedColor(t: number, slow: number[], mid: number[], fast: number[]): string {
