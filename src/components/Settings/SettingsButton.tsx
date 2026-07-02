@@ -7,7 +7,7 @@ import Section from "../Util/Section";
 import MenuButtonTemplate from "../Util/MenuButtonTemplate";
 import { MenuCheckboxButton } from "../Util/CheckboxButton";
 import { NumberInputButton } from "../Util/NumberInputButton";
-import { debugStore } from "../../simulation/Conversion";
+// import { debugStore } from "../../simulation/Conversion";
 
 type ColorButtonProps = {
     callback: () => void;
@@ -42,7 +42,7 @@ function ColorButton({ callback, name, primary, secondary, textSize }: ColorButt
 export default function SettingsButton() {
     const [settings, setSettings] = useSettings();
     const [popup, setPopup] = useState(false);
-    const debug = debugStore.useStore();
+    // const debug = debugStore.useStore();
 
     useEffect(() => {
         localStorage.setItem("settings", JSON.stringify(settings));
