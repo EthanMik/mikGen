@@ -14120,19 +14120,26 @@ const kMikSwing = {
   settle_time: 200,
   timeout: 3e3
 };
-const mikExitConditionsSettings = [
+const mikDriveExitConditionsSettings = [
   { key: "settle_error", units: "in", label: "Settle Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
   { key: "settle_time", units: "ms", label: "Settle Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
   { key: "timeout", units: "ms", label: "Timeout", input: { bounds: [0, 9999], stepSize: 100, roundTo: 0 } },
   { key: "min_voltage", units: "volt", label: "Min Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
   { key: "exit_error", units: "in", label: "Exit Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } }
 ];
+const mikTurnExitConditionsSettings = [
+  { key: "settle_error", units: "deg", label: "Settle Error", input: { bounds: [0, 360], stepSize: 0.5, roundTo: 2 } },
+  { key: "settle_time", units: "ms", label: "Settle Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+  { key: "timeout", units: "ms", label: "Timeout", input: { bounds: [0, 9999], stepSize: 100, roundTo: 0 } },
+  { key: "min_voltage", units: "volt", label: "Min Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
+  { key: "exit_error", units: "deg", label: "Exit Error", input: { bounds: [0, 360], stepSize: 5, roundTo: 2 } }
+];
 const mikPIDConstantsSettings = [
   { key: "max_voltage", units: "volt", label: "Max Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
   { key: "kp", label: "kP", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
   { key: "ki", label: "kI", units: "", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
   { key: "kd", label: "kD", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
-  { key: "starti", units: "in", label: "Starti", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
+  { key: "starti", units: "", label: "Starti", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
   { key: "slew", units: "volt/10ms", label: "Slew", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 2 } }
 ];
 const driveDirectionButton$1 = {
@@ -14201,7 +14208,7 @@ const mikLibDef = {
         {
           constantsIdx: 0,
           headerName: "Exit Conditions",
-          fields: [...mikExitConditionsSettings]
+          fields: [...mikDriveExitConditionsSettings]
         },
         {
           constantsIdx: 0,
@@ -14223,7 +14230,7 @@ const mikLibDef = {
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [],
       numberInputs: [
-        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikDriveExitConditionsSettings] },
         { constantsIdx: 0, headerName: "Drive Constants", fields: [...mikPIDConstantsSettings] },
         { constantsIdx: 1, headerName: "Heading Constants", fields: [...mikPIDConstantsSettings] }
       ]
@@ -14238,7 +14245,7 @@ const mikLibDef = {
         { constantsIdx: 0, ...driveDirectionButton$1 }
       ],
       numberInputs: [
-        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikDriveExitConditionsSettings] },
         { constantsIdx: 0, headerName: "Drive Constants", fields: [...mikPIDConstantsSettings] },
         { constantsIdx: 1, headerName: "Heading Constants", fields: [...mikPIDConstantsSettings] }
       ]
@@ -14253,7 +14260,7 @@ const mikLibDef = {
         { constantsIdx: 0, ...turnDirectionButton$1 }
       ],
       numberInputs: [
-        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikTurnExitConditionsSettings] },
         { constantsIdx: 0, headerName: "Turn Constants", fields: [...mikPIDConstantsSettings] }
       ]
     },
@@ -14267,7 +14274,7 @@ const mikLibDef = {
         { constantsIdx: 0, ...turnDirectionButton$1 }
       ],
       numberInputs: [
-        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikTurnExitConditionsSettings] },
         { constantsIdx: 0, headerName: "Turn Constants", fields: [...mikPIDConstantsSettings] }
       ]
     },
@@ -14282,7 +14289,7 @@ const mikLibDef = {
         { constantsIdx: 0, ...turnDirectionButton$1 }
       ],
       numberInputs: [
-        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikTurnExitConditionsSettings] },
         {
           constantsIdx: 0,
           headerName: "Swing Constants",
@@ -14304,7 +14311,7 @@ const mikLibDef = {
         { constantsIdx: 0, ...turnDirectionButton$1 }
       ],
       numberInputs: [
-        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikTurnExitConditionsSettings] },
         {
           constantsIdx: 0,
           headerName: "Swing Constants",
@@ -14497,6 +14504,7 @@ function kMikParser(kDefault, kBuilderStr, kind) {
       else if (rawKey === "min_voltage") constants[0].min_voltage = num;
       else if (rawKey === "settle_error") constants[0].settle_error = num;
       else if (rawKey === "settle_time") constants[0].settle_time = num;
+      else if (rawKey === "exit_error") constants[0].exit_error = num;
       else if (rawKey === "timeout") constants[0].timeout = num;
       else if (rawKey === "slew") constants[0].slew = num;
       else if (rawKey === "opposite_voltage") constants[0].opposite_voltage = num;
@@ -15280,7 +15288,7 @@ const holonomicDef = {
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [],
       numberInputs: [
-        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikDriveExitConditionsSettings] },
         { constantsIdx: 0, headerName: "Drive Constants", fields: [...mikPIDConstantsSettings] },
         { constantsIdx: 1, headerName: "Heading Constants", fields: [...mikPIDConstantsSettings] }
       ]
@@ -23991,4 +23999,4 @@ document.addEventListener("auxclick", blockMiddleClick, { capture: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-BOu3bD_r.js.map
+//# sourceMappingURL=index-F5LV5L3N.js.map
