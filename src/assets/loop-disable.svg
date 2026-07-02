@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Transformed by: SVG Repo Mixer Tools -->
+
+<svg
+   width="800px"
+   height="800px"
+   viewBox="0 0 24 24"
+   fill="none"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="refresh-cw-alt-svgrepo-com (2).svg"
+   inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1">
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect7"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1"
+       radius="0"
+       unit="px"
+       method="auto"
+       mode="F"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" />
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect3"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1"
+       radius="0"
+       unit="px"
+       method="auto"
+       mode="F"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" />
+  </defs>
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     inkscape:zoom="0.6175"
+     inkscape:cx="84.210526"
+     inkscape:cy="354.65587"
+     inkscape:window-width="1908"
+     inkscape:window-height="1023"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="SVGRepo_iconCarrier" />
+  <g
+     id="SVGRepo_bgCarrier"
+     stroke-width="0" />
+  <g
+     id="SVGRepo_tracerCarrier"
+     stroke-linecap="round"
+     stroke-linejoin="round" />
+  <g
+     id="SVGRepo_iconCarrier">
+    <path
+       d="m 21,12 c 0.0184,1.334935 -0.292807,2.658087 -0.923795,3.889738 m -4.267543,4.2239 C 14.138429,21.02822 12.286723,20.973849 11.089636,20.965646 9.8583188,20.957209 7.59227,20.1334 6,18.7083 L 3,16 M 3,12 C 3.0856306,10.391704 3.1465001,9.8805864 3.816926,8.2996744 M 8.105997,3.9471126 C 9.762535,3.0439672 11.630415,2.9129277 13.093117,3.048583 14.608416,3.1891162 16.618465,4.0444674 18,5.29168 L 21,8 M 3,21 v -5 m 0,0 H 8 M 21,3 v 5 m 0,0 h -5"
+       stroke="#ffffff"
+       stroke-width="2"
+       stroke-linecap="round"
+       stroke-linejoin="round"
+       id="path1"
+       sodipodi:nodetypes="cccscccccssccccccccc" />
+    <path
+       style="fill:#000000;stroke-width:0.03"
+       d="M 2.0890688,1.4089069 21.910931,22.639676"
+       id="path4" />
+    <path
+       style="fill:#000000;stroke-width:0.03"
+       d="M 1.8461539,1.7004049 22.251012,22.785425 Z"
+       id="path5" />
+    <rect
+       style="fill:#ffffff;stroke-width:0.0335846"
+       id="rect6"
+       width="1.899596"
+       height="29.20233"
+       x="-1.2514524"
+       y="2.4518316"
+       sodipodi:type="rect"
+       ry="0.94979799"
+       transform="matrix(0.71194974,-0.70223042,0.71194974,0.70223042,0,0)" />
+  </g>
+</svg>

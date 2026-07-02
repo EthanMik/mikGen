@@ -5,6 +5,7 @@ type Settings = {
     robotPosition: boolean;
     precisePath: boolean;
     numberedPath: boolean;
+    loopPath: boolean;
     snapToGrid: number;
     themeIdx: number;
 };
@@ -14,6 +15,7 @@ const DEFAULTS: Settings = {
     robotPosition: false,
     precisePath: false,
     numberedPath: false,
+    loopPath: false,
     snapToGrid: 0.5,
     themeIdx: 0
 };

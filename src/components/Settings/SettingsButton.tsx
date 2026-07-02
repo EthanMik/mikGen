@@ -67,18 +67,18 @@ export default function SettingsButton() {
 
             <MenuButtonTemplate title="Settings" closeOnClick={false} width={40}>
                 <div className="flex flex-col gap-1.5">
-                    <MenuCheckboxButton name="Robot Outlines" label="Displays end positions when sim is off" checked={settings.ghostRobots} setChecked={set("ghostRobots")} />
+                    {/* <MenuCheckboxButton name="Position Logs" label="Prints robot position to console" checked={debug} setChecked={(state: boolean) => { debugStore.setState(state); }} /> */}
+
                     <MenuCheckboxButton name="Robot Position" label="Displays robots's actual position" checked={settings.robotPosition} setChecked={set("robotPosition")} />
                     <MenuCheckboxButton name="Precise Path" label="Displays robots exact path taken" checked={settings.precisePath} setChecked={set("precisePath")} />
                     <MenuCheckboxButton name="Numbered Path" label="Displays number labels for notebook screenshots" checked={settings.numberedPath} setChecked={set("numberedPath")} />
-                    {/* <MenuCheckboxButton name="Position Logs" label="Prints robot position to console" checked={debug} setChecked={(state: boolean) => { debugStore.setState(state); }} /> */}
-
-                    <Section />
-
-                    <NumberInputButton name="Grid Snap" label="What to snap to while Ctrl+Dragging" value={settings.snapToGrid} setValue={v => v !== null && set("snapToGrid")(v)} bounds={[0.1, 10]} stepSize={0.5} roundTo={1} units="in" />
-                    <MenuKeybindButton name="Edit Templates" keybind={""} callback={() => setPopup(true)} />
-                    <Section />
+                    <MenuCheckboxButton name="Robot Outlines" label="Displays end positions when sim is off" checked={settings.ghostRobots} setChecked={set("ghostRobots")} />
                     <ColorButton name="Theme" primary={DEFAULT_THEMES[settings.themeIdx].primary} secondary={DEFAULT_THEMES[settings.themeIdx].secondary} callback={() => updateTheme(settings.themeIdx)} />
+
+                    <Section />
+                    <NumberInputButton name="Grid Snap" label="What to snap to while Ctrl+Dragging" value={settings.snapToGrid} setValue={v => v !== null && set("snapToGrid")(v)} bounds={[0.1, 10]} stepSize={0.5} roundTo={1} units="in" />
+                    <Section />
+                    <MenuKeybindButton name="Edit Templates" keybind={""} callback={() => setPopup(true)} />
                 </div>
             </MenuButtonTemplate>
         </>

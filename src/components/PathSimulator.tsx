@@ -15,8 +15,10 @@ import { useRobotPose } from "../hooks/useRobotPose";
 import { useSettings } from "../hooks/useSettings";
 import { useSimulateGroup } from "../hooks/useSimulateGroup";
 import Tooltip from "./Util/Tooltip";
-
-// This fucking file is the biggest piece of shit i find a new bug every day
+import closedEye from "../assets/eye-closed.svg"
+import openEye from "../assets/eye-open.svg"
+import loopOn from "../assets/loop.svg"
+import loopOff from "../assets/loop-disable.svg"
 
 function createRobot(): Robot {
     const { width, height, trackwidth, speed, lateralTau, angularTau, isOmni, cogOffsetX, cogOffsetY, cogOffsetXDisabled, cogOffsetYDisabled, expansionFront, expansionLeft, expansionRight, expansionRear, expansionFrontDisabled, expansionLeftDisabled, expansionRightDisabled, expansionRearDisabled } = fileFormatStore.getState().robot;
@@ -48,12 +50,19 @@ export default function PathSimulator() {
     const [, setRobotPose] = useRobotPose();
     const robot = fileFormatStore.useSelector(s => s.robot);
     const [playing, setPlaying] = useState<boolean>(false);
+    const playingRef = useRef(playing);
+    playingRef.current = playing;
     const [robotVisible, setRobotVisibility] = useRobotVisibility();
     const [path,] = usePath();
     const formatDef = fileFormatStore.useSelector(s => s.formatDef);
     const skip = useRef(false);
-    const [settings] = useSettings();
+    const [settings, setSettings] = useSettings();
+    const looping = settings.loopPath;
+    const loopingRef = useRef(looping);
+    loopingRef.current = looping;
     const computedPath = computedPathStore.useStore();
+    const computedPathRef = useRef(computedPath);
+    computedPathRef.current = computedPath;
     const [simulatedGroups] = useSimulateGroup();
     const simJump = simJumpStore.useStore();
 
@@ -70,10 +79,17 @@ export default function PathSimulator() {
 
     useEffect(() => {
         if (simJump === null) return;
-        setPlaying(false);
         setRobotVisibility(true);
         skip.current = false;
-        setValue(simJump);
+
+        if (loopingRef.current && playingRef.current) {
+            // While looping, jump to the segment but keep the robot running.
+            setValue(simJump);
+            setTime((simJump / 100) * computedPathRef.current.totalTime);
+        } else {
+            setPlaying(false);
+            setValue(simJump);
+        }
         simJumpStore.setState(null);
     }, [simJump, setRobotVisibility]);
 
@@ -248,12 +264,17 @@ export default function PathSimulator() {
             last = now;
 
             setTime(prevTime => {
+                const path = computedPathRef.current;
                 const nextTime = prevTime + dtSec;
-                const clamped = Math.min(nextTime, computedPath.totalTime);
+                const clamped = Math.min(nextTime, path.totalTime);
 
-                setPathTime(computedPath, clamped);
+                setPathTime(path, clamped);
 
-                if (clamped >= computedPath.totalTime) {
+                if (clamped >= path.totalTime) {
+                    if (loopingRef.current) {
+                        setPathTime(path, 0);
+                        return 0;
+                    }
                     clearInterval(interval);
                     setPlaying(false);
                 }
@@ -275,7 +296,7 @@ export default function PathSimulator() {
                     return !p
                 });
             }}
-                className="hover:bg-medgray_hover px-1 py-1 rounded-sm">
+                className="cursor-pointer px-1 py-1 rounded-sm">
                 {playing ?
                     <img className="w-[25px] h-[25px]" src={pause} /> :
                     <img className="w-[25px] h-[25px]" src={play} />
@@ -284,7 +305,7 @@ export default function PathSimulator() {
             <Slider
                 value={value}
                 setValue={setValue}
-                sliderWidth={!settings.robotPosition ? 448 : 192}
+                sliderWidth={!settings.robotPosition ? 415 : 192}
                 sliderHeight={8}
                 knobHeight={22}
                 knobWidth={22}
@@ -301,10 +322,19 @@ export default function PathSimulator() {
                     θ: <span className="inline-block w-12 text-left">{pose?.angle?.toFixed(1)}</span>
                 </span>
             }
-            <span className="block w-14 ">{time.toFixed(2)} s</span>
-            <Tooltip label="Toggle Robot Visibility" placement="top" speed="fast">
-                <Checkbox checked={robotVisible} setChecked={setRobotVisibility} />
-            </Tooltip>
+            <span className="block w-9 ">{time.toFixed(2)}s</span>
+            <div className="flex flex-row items-center gap-1.5">
+                <Tooltip label="Toggle Robot Visibility" placement="top" speed="fast">
+                    <Checkbox checked={robotVisible} setChecked={setRobotVisibility} size={22} checkedSvg={openEye} uncheckedSvg={closedEye}/>
+                </Tooltip>
+                <Tooltip label="Loop Path" placement="top" speed="fast">
+                    <button onClick={() => setSettings(prev => ({ ...prev, loopPath: !prev.loopPath }))}
+                        className={`px-1 py-1 rounded-sm hover:brightness-90 cursor-pointer`}>
+                        <img className="w-[22px] h-[22px]" src={looping ? loopOn : loopOff} />
+                    </button>
+                </Tooltip>
+                
+            </div>
         </div>
     );
 }
