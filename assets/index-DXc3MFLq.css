@@ -560,6 +560,10 @@
     display: block;
   }
 
+  .contents {
+    display: contents;
+  }
+
   .flex {
     display: flex;
   }
@@ -712,16 +716,16 @@
     width: calc(var(--spacing) * 5);
   }
 
+  .w-9 {
+    width: calc(var(--spacing) * 9);
+  }
+
   .w-12 {
     width: calc(var(--spacing) * 12);
   }
 
   .w-13 {
     width: calc(var(--spacing) * 13);
-  }
-
-  .w-14 {
-    width: calc(var(--spacing) * 14);
   }
 
   .w-25 {
@@ -762,6 +766,10 @@
 
   .w-\[20px\] {
     width: 20px;
+  }
+
+  .w-\[22px\] {
+    width: 22px;
   }
 
   .w-\[25px\] {

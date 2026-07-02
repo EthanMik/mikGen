@@ -13638,13 +13638,14 @@ function slew_scaling(drive_output, prev_drive_output2, slew2, scale = true) {
   return prev_drive_output2 + change;
 }
 function clamp_max_slip(drive_output, current_X, current_Y, current_angle_deg, desired_X, desired_Y, drift) {
+  if (drift <= 0) return drive_output;
   const heading = toRad(current_angle_deg);
   const dx = desired_X - current_X;
   const dy = desired_Y - current_Y;
-  const perpDist = Math.abs(Math.sin(heading) * dy - Math.cos(heading) * dx);
+  const signed_dist = Math.cos(heading) * dx + Math.sin(heading) * dy;
+  const x = Math.abs(signed_dist);
   const dist2 = Math.hypot(dx, dy);
-  const radius = dist2 * dist2 / (2 * perpDist);
-  const max_slip = Math.sqrt(drift * radius);
+  const max_slip = Math.sqrt(dist2 * dist2 / (2 * x) * drift);
   return clamp(drive_output, -max_slip, max_slip);
 }
 function overturn_scaling(drive_output, heading_output, max_speed) {
@@ -13848,7 +13849,6 @@ function drive_to_point$1(robot, dt, x, y, p) {
     reset_drive_to_point$1();
     return true;
   }
-  console.log(drivePID$3.derivative);
   const line_settled = is_line_settled$1(x, y, desired_heading, robot.getX(), robot.getY(), drive_p.exit_error);
   if (!(line_settled === prev_line_settled$1) && drive_p.min_voltage > 0) {
     reset_drive_to_point$1();
@@ -13856,24 +13856,30 @@ function drive_to_point$1(robot, dt, x, y, p) {
   }
   prev_line_settled$1 = line_settled;
   desired_heading = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
+  const reversed_heading = desired_heading + (drive_p.drive_direction === "reversed" ? 180 : 0);
+  console.log(drive_p.drive_direction, desired_heading, reversed_heading);
   const drive_error = Math.hypot(x - robot.getX(), y - robot.getY());
-  let heading_error = reduce_negative_180_to_180$1(desired_heading - robot.getAngle());
+  let heading_error = reduce_negative_180_to_180$1(reversed_heading - robot.getAngle());
   let drive_output = drivePID$3.compute(drive_error);
-  const heading_scale_factor = Math.cos(toRad(heading_error));
+  const heading_scale_factor = Math.cos(toRad(reduce_negative_180_to_180$1(desired_heading - robot.getAngle())));
   drive_output *= heading_scale_factor;
   if (drive_error < DRIVE_LARGE_SETTLE_ERROR) {
     if (!heading_locked) {
-      locked_heading = desired_heading;
+      locked_heading = reversed_heading;
       heading_locked = true;
     }
     heading_error = reduce_negative_180_to_180$1(locked_heading - robot.getAngle());
   }
-  heading_error = reduce_negative_90_to_90$1(heading_error);
+  if (drive_p.drive_direction === "fastest") {
+    heading_error = reduce_negative_90_to_90$1(heading_error);
+  }
   let heading_output = headingPID$2.compute(heading_error);
   drive_output = clamp(drive_output, -Math.abs(heading_scale_factor) * drive_p.max_voltage, Math.abs(heading_scale_factor) * drive_p.max_voltage);
   heading_output = clamp(heading_output, -heading_p.max_voltage, heading_p.max_voltage);
   drive_output = slew_scaling(drive_output, prev_drive_output$2, drive_p.slew * (dt / 0.01), !heading_locked);
   heading_output = slew_scaling(heading_output, prev_heading_output$1, heading_p.slew * (dt / 0.01));
+  if (drive_p.drive_direction === "forwards" && !heading_locked) drive_output = Math.max(drive_output, 0);
+  else if (drive_p.drive_direction === "reversed" && !heading_locked) drive_output = Math.min(drive_output, 0);
   drive_output = clamp_min_voltage$1(drive_output, drive_p.min_voltage);
   prev_drive_output$2 = drive_output;
   prev_heading_output$1 = heading_output;
@@ -14067,7 +14073,7 @@ const kMikDrive = {
   settle_time: 200,
   timeout: 5e3,
   slew: 2,
-  drift: 3,
+  drift: 2,
   lead: 0.5,
   turn_direction: "fastest",
   drive_direction: "fastest",
@@ -14103,7 +14109,7 @@ const kMikTurn = {
 };
 const kMikSwing = {
   ...kMikDrive,
-  max_voltage: 8,
+  max_voltage: 12,
   min_voltage: 0,
   kp: 0.4,
   ki: 0.01,
@@ -14228,7 +14234,9 @@ const mikLibDef = {
       toStringTemplate: "chassis.drive_to_point(${x}, ${y}, ${kBuilder});",
       simFn: (robot, dt, x, y, _angle, constants) => drive_to_point$1(robot, dt, x, y, constants),
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
-      cycleButtons: [],
+      cycleButtons: [
+        { constantsIdx: 0, ...driveDirectionButton$1 }
+      ],
       numberInputs: [
         { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
         { constantsIdx: 0, headerName: "Drive Constants", fields: [...mikPIDConstantsSettings] },
@@ -14275,7 +14283,14 @@ const mikLibDef = {
       ],
       numberInputs: [
         { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
-        { constantsIdx: 0, headerName: "Swing Constants", fields: [...mikPIDConstantsSettings] }
+        {
+          constantsIdx: 0,
+          headerName: "Swing Constants",
+          fields: [
+            ...mikPIDConstantsSettings,
+            { key: "opposite_voltage", label: "Opposite Voltage", units: "volt", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } }
+          ]
+        }
       ]
     },
     pointSwing: {
@@ -14290,7 +14305,14 @@ const mikLibDef = {
       ],
       numberInputs: [
         { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
-        { constantsIdx: 0, headerName: "Swing Constants", fields: [...mikPIDConstantsSettings] }
+        {
+          constantsIdx: 0,
+          headerName: "Swing Constants",
+          fields: [
+            ...mikPIDConstantsSettings,
+            { key: "opposite_voltage", label: "Opposite Voltage", units: "volt", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } }
+          ]
+        }
       ]
     },
     strafeDrive: {
@@ -14431,6 +14453,17 @@ function kMikParser(kDefault, kBuilderStr, kind) {
     if (!match) continue;
     const [, rawKey, rawValue] = match;
     const num = parseFloat(rawValue);
+    const turnDirectionMap = {
+      "clockwise": "cw",
+      "counter_clockwise": "ccw",
+      "cw": "cw",
+      "ccw": "ccw"
+    };
+    const driveDirectionMap = {
+      "fwd": "forwards",
+      "forward": "forwards",
+      "reverse": "reversed"
+    };
     if (isDrive) {
       if (rawKey === "drive_k.p") constants[0].kp = num;
       else if (rawKey === "drive_k.i") constants[0].ki = num;
@@ -14445,7 +14478,7 @@ function kMikParser(kDefault, kBuilderStr, kind) {
       else if (rawKey === "timeout") constants[0].timeout = num;
       else if (rawKey === "slew") constants[0].slew = num;
       else if (rawKey === "exit_error") constants[0].exit_error = num;
-      else if (rawKey === "direction") constants[0].drive_direction = rawValue;
+      else if (rawKey === "direction") constants[0].drive_direction = driveDirectionMap[rawValue] ?? "fastest";
       else if (rawKey === "heading_k.p") constants[1].kp = num;
       else if (rawKey === "heading_k.i") constants[1].ki = num;
       else if (rawKey === "heading_k.d") constants[1].kd = num;
@@ -14467,7 +14500,7 @@ function kMikParser(kDefault, kBuilderStr, kind) {
       else if (rawKey === "timeout") constants[0].timeout = num;
       else if (rawKey === "slew") constants[0].slew = num;
       else if (rawKey === "opposite_voltage") constants[0].opposite_voltage = num;
-      else if (rawKey === "direction") constants[0].turn_direction = rawValue;
+      else if (rawKey === "direction") constants[0].turn_direction = turnDirectionMap[rawValue] ?? "fastest";
       else if (rawKey === "wait") constants[0].wait = rawValue === "true";
       else if (rawKey === "angle_offset") poseAngle = num;
     }
@@ -17757,8 +17790,8 @@ function useFormatDef() {
 function setFormatDef(next) {
   fileFormatStore.setState((prev) => ({ ...prev, formatDef: next }));
 }
-const eyeOpen = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='white'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M12%205C8.24261%205%205.43602%207.4404%203.76737%209.43934C2.51521%2010.9394%202.51521%2013.0606%203.76737%2014.5607C5.43602%2016.5596%208.24261%2019%2012%2019C15.7574%2019%2018.564%2016.5596%2020.2326%2014.5607C21.4848%2013.0606%2021.4848%2010.9394%2020.2326%209.43934C18.564%207.4404%2015.7574%205%2012%205Z'%20stroke='%23ffffffff'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M12%2015C13.6569%2015%2015%2013.6569%2015%2012C15%2010.3431%2013.6569%209%2012%209C10.3431%209%209%2010.3431%209%2012C9%2013.6569%2010.3431%2015%2012%2015Z'%20stroke='%233C3B3B'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e";
-const eyeClosed = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M9.76404%205.29519C10.4664%205.10724%2011.2123%205%2012%205C15.7574%205%2018.564%207.4404%2020.2326%209.43934C21.4848%2010.9394%2021.4846%2013.0609%2020.2324%2014.5609C20.0406%2014.7907%2019.8337%2015.0264%2019.612%2015.2635M12.5%209.04148C13.7563%209.25224%2014.7478%2010.2437%2014.9585%2011.5M3%203L21%2021M11.5%2014.9585C10.4158%2014.7766%209.52884%2014.0132%209.17072%2013M4.34914%208.77822C4.14213%209.00124%203.94821%209.22274%203.76762%209.43907C2.51542%2010.9391%202.51523%2013.0606%203.76739%2014.5607C5.43604%2016.5596%208.24263%2019%2012%2019C12.8021%2019%2013.5608%2018.8888%2014.2744%2018.6944'%20stroke='%23ffffffff'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e";
+const openEye = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='white'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M12%205C8.24261%205%205.43602%207.4404%203.76737%209.43934C2.51521%2010.9394%202.51521%2013.0606%203.76737%2014.5607C5.43602%2016.5596%208.24261%2019%2012%2019C15.7574%2019%2018.564%2016.5596%2020.2326%2014.5607C21.4848%2013.0606%2021.4848%2010.9394%2020.2326%209.43934C18.564%207.4404%2015.7574%205%2012%205Z'%20stroke='%23ffffffff'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M12%2015C13.6569%2015%2015%2013.6569%2015%2012C15%2010.3431%2013.6569%209%2012%209C10.3431%209%209%2010.3431%209%2012C9%2013.6569%2010.3431%2015%2012%2015Z'%20stroke='%233C3B3B'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e";
+const closedEye = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M9.76404%205.29519C10.4664%205.10724%2011.2123%205%2012%205C15.7574%205%2018.564%207.4404%2020.2326%209.43934C21.4848%2010.9394%2021.4846%2013.0609%2020.2324%2014.5609C20.0406%2014.7907%2019.8337%2015.0264%2019.612%2015.2635M12.5%209.04148C13.7563%209.25224%2014.7478%2010.2437%2014.9585%2011.5M3%203L21%2021M11.5%2014.9585C10.4158%2014.7766%209.52884%2014.0132%209.17072%2013M4.34914%208.77822C4.14213%209.00124%203.94821%209.22274%203.76762%209.43907C2.51542%2010.9391%202.51523%2013.0606%203.76739%2014.5607C5.43604%2016.5596%208.24263%2019%2012%2019C12.8021%2019%2013.5608%2018.8888%2014.2744%2018.6944'%20stroke='%23ffffffff'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e";
 const clockClose = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M12%2017V12L14.5%2010.5M21%2012C21%2016.9706%2016.9706%2021%2012%2021C7.02944%2021%203%2016.9706%203%2012C3%207.02944%207.02944%203%2012%203C16.9706%203%2021%207.02944%2021%2012Z'%20stroke='%23FFFFFF'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e";
 const clockOpen = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M12%207V12L14.5%2010.5M21%2012C21%2016.9706%2016.9706%2021%2012%2021C7.02944%2021%203%2016.9706%203%2012C3%207.02944%207.02944%203%2012%203C16.9706%203%2021%207.02944%2021%2012Z'%20stroke='%23FFFFFF'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e";
 const downArrow = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='100px'%20height='100px'%20viewBox='5%2010%2014%205'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M6%2010L12%2015L18%2010'%20stroke='%23FFFFFF'%20stroke-width='2.5'/%3e%3c/svg%3e";
@@ -18784,7 +18817,7 @@ const MotionList = reactExports.memo(function MotionList2({
               /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "cursor-pointer shrink-0", onClick: (e) => {
                 e.stopPropagation();
                 handleEyeOnClick();
-              }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "w-[20px] h-[20px]", src: isEyeOpen ? eyeOpen : eyeClosed }) }),
+              }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "w-[20px] h-[20px]", src: isEyeOpen ? openEye : closedEye }) }),
               /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "cursor-pointer shrink-0", onClick: (e) => {
                 e.stopPropagation();
                 setTelemetryOpen(!isTelemetryOpen);
@@ -18974,7 +19007,7 @@ function PathConfigHeader({ name, isOpen, setOpen, isTelemetryOpen, onTelemetryT
             "img",
             {
               className: "w-[20px] h-[22px]",
-              src: isEyeOpen ? eyeClosed : eyeOpen
+              src: isEyeOpen ? closedEye : openEye
             }
           )
         }
@@ -19103,12 +19136,14 @@ const uncheckedBox = "data:image/svg+xml,%3csvg%20width='22'%20height='22'%20vie
 function Checkbox({
   checked,
   setChecked,
-  size
+  size,
+  checkedSvg,
+  uncheckedSvg
 }) {
   const handleMouseDown = () => {
     setChecked(!checked);
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { onMouseDown: handleMouseDown, className: "hover:cursor-pointer hover:brightness-90", style: { width: size, height: size }, children: checked ? /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: checkedBox }) : /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: uncheckedBox }) });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { onMouseDown: handleMouseDown, className: "hover:cursor-pointer hover:brightness-90", style: { width: size, height: size }, children: checked ? /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: checkedSvg === void 0 ? checkedBox : checkedSvg }) : /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: uncheckedSvg === void 0 ? uncheckedBox : uncheckedSvg }) });
 }
 function PathSimMacros() {
   function toggleRobotVisibility(evt, setVisibility) {
@@ -19449,6 +19484,7 @@ const DEFAULTS = {
   robotPosition: false,
   precisePath: false,
   numberedPath: false,
+  loopPath: false,
   snapToGrid: 0.5,
   themeIdx: 0
 };
@@ -19456,6 +19492,8 @@ const saved = localStorage.getItem("settings");
 const initial = saved ? { ...DEFAULTS, ...JSON.parse(saved) } : DEFAULTS;
 const useSettings = createSharedState(initial);
 const useSimulateGroup = createSharedState([]);
+const loopOn = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20stroke='%23ffffff'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20d='M21%2012C21%2016.9706%2016.9706%2021%2012%2021C9.69494%2021%207.59227%2020.1334%206%2018.7083L3%2016M3%2012C3%207.02944%207.02944%203%2012%203C14.3051%203%2016.4077%203.86656%2018%205.29168L21%208M3%2021V16M3%2016H8M21%203V8M21%208H16'%20stroke='%23ffffff'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/g%3e%3c/svg%3e";
+const loopOff = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20version='1.1'%20id='svg1'%20sodipodi:docname='refresh-cw-alt-svgrepo-com%20(2).svg'%20inkscape:version='1.4.4%20(dcaf3e7d9e,%202026-05-05)'%20xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'%20xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:svg='http://www.w3.org/2000/svg'%3e%3cdefs%20id='defs1'%3e%3cinkscape:path-effect%20effect='fillet_chamfer'%20id='path-effect7'%20is_visible='true'%20lpeversion='1'%20nodesatellites_param='F,0,0,1,0,0,0,1%20@%20F,0,0,1,0,0,0,1%20@%20F,0,0,1,0,0,0,1%20@%20F,0,0,1,0,0,0,1'%20radius='0'%20unit='px'%20method='auto'%20mode='F'%20chamfer_steps='1'%20flexible='false'%20use_knot_distance='true'%20apply_no_radius='true'%20apply_with_radius='true'%20only_selected='false'%20hide_knots='false'%20/%3e%3cinkscape:path-effect%20effect='fillet_chamfer'%20id='path-effect3'%20is_visible='true'%20lpeversion='1'%20nodesatellites_param='F,0,0,1,0,0,0,1%20@%20F,0,0,1,0,0,0,1%20@%20F,0,0,1,0,0,0,1%20@%20F,0,0,1,0,0,0,1'%20radius='0'%20unit='px'%20method='auto'%20mode='F'%20chamfer_steps='1'%20flexible='false'%20use_knot_distance='true'%20apply_no_radius='true'%20apply_with_radius='true'%20only_selected='false'%20hide_knots='false'%20/%3e%3c/defs%3e%3csodipodi:namedview%20id='namedview1'%20pagecolor='%23505050'%20bordercolor='%23eeeeee'%20borderopacity='1'%20inkscape:showpageshadow='0'%20inkscape:pageopacity='0'%20inkscape:pagecheckerboard='0'%20inkscape:deskcolor='%23505050'%20inkscape:zoom='0.6175'%20inkscape:cx='84.210526'%20inkscape:cy='354.65587'%20inkscape:window-width='1908'%20inkscape:window-height='1023'%20inkscape:window-x='0'%20inkscape:window-y='0'%20inkscape:window-maximized='1'%20inkscape:current-layer='SVGRepo_iconCarrier'%20/%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'%20/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'%20/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20d='m%2021,12%20c%200.0184,1.334935%20-0.292807,2.658087%20-0.923795,3.889738%20m%20-4.267543,4.2239%20C%2014.138429,21.02822%2012.286723,20.973849%2011.089636,20.965646%209.8583188,20.957209%207.59227,20.1334%206,18.7083%20L%203,16%20M%203,12%20C%203.0856306,10.391704%203.1465001,9.8805864%203.816926,8.2996744%20M%208.105997,3.9471126%20C%209.762535,3.0439672%2011.630415,2.9129277%2013.093117,3.048583%2014.608416,3.1891162%2016.618465,4.0444674%2018,5.29168%20L%2021,8%20M%203,21%20v%20-5%20m%200,0%20H%208%20M%2021,3%20v%205%20m%200,0%20h%20-5'%20stroke='%23ffffff'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%20id='path1'%20sodipodi:nodetypes='cccscccccssccccccccc'%20/%3e%3cpath%20style='fill:%23000000;stroke-width:0.03'%20d='M%202.0890688,1.4089069%2021.910931,22.639676'%20id='path4'%20/%3e%3cpath%20style='fill:%23000000;stroke-width:0.03'%20d='M%201.8461539,1.7004049%2022.251012,22.785425%20Z'%20id='path5'%20/%3e%3crect%20style='fill:%23ffffff;stroke-width:0.0335846'%20id='rect6'%20width='1.899596'%20height='29.20233'%20x='-1.2514524'%20y='2.4518316'%20sodipodi:type='rect'%20ry='0.94979799'%20transform='matrix(0.71194974,-0.70223042,0.71194974,0.70223042,0,0)'%20/%3e%3c/g%3e%3c/svg%3e";
 function createRobot() {
   const { width, height, trackwidth, speed, lateralTau, angularTau, isOmni, cogOffsetX, cogOffsetY, cogOffsetXDisabled, cogOffsetYDisabled, expansionFront, expansionLeft, expansionRight, expansionRear, expansionFrontDisabled, expansionLeftDisabled, expansionRightDisabled, expansionRearDisabled } = fileFormatStore.getState().robot;
   return new Robot(
@@ -19494,12 +19532,19 @@ function PathSimulator() {
   const [, setRobotPose] = useRobotPose();
   const robot = fileFormatStore.useSelector((s) => s.robot);
   const [playing, setPlaying] = reactExports.useState(false);
+  const playingRef = reactExports.useRef(playing);
+  playingRef.current = playing;
   const [robotVisible, setRobotVisibility] = useRobotVisibility();
   const [path] = usePath();
   const formatDef = fileFormatStore.useSelector((s) => s.formatDef);
   const skip = reactExports.useRef(false);
-  const [settings] = useSettings();
+  const [settings, setSettings] = useSettings();
+  const looping = settings.loopPath;
+  const loopingRef = reactExports.useRef(looping);
+  loopingRef.current = looping;
   const computedPath = computedPathStore.useStore();
+  const computedPathRef = reactExports.useRef(computedPath);
+  computedPathRef.current = computedPath;
   const [simulatedGroups] = useSimulateGroup();
   const simJump = simJumpStore.useStore();
   const { pauseSimulator, scrubSimulator } = PathSimMacros();
@@ -19512,10 +19557,15 @@ function PathSimulator() {
   );
   reactExports.useEffect(() => {
     if (simJump === null) return;
-    setPlaying(false);
     setRobotVisibility(true);
     skip.current = false;
-    setValue(simJump);
+    if (loopingRef.current && playingRef.current) {
+      setValue(simJump);
+      setTime(simJump / 100 * computedPathRef.current.totalTime);
+    } else {
+      setPlaying(false);
+      setValue(simJump);
+    }
     simJumpStore.setState(null);
   }, [simJump, setRobotVisibility]);
   reactExports.useEffect(() => {
@@ -19646,10 +19696,15 @@ function PathSimulator() {
       const dtSec = (now - last) / 1e3;
       last = now;
       setTime((prevTime) => {
+        const path2 = computedPathRef.current;
         const nextTime = prevTime + dtSec;
-        const clamped = Math.min(nextTime, computedPath.totalTime);
-        setPathTime(computedPath, clamped);
-        if (clamped >= computedPath.totalTime) {
+        const clamped = Math.min(nextTime, path2.totalTime);
+        setPathTime(path2, clamped);
+        if (clamped >= path2.totalTime) {
+          if (loopingRef.current) {
+            setPathTime(path2, 0);
+            return 0;
+          }
           clearInterval(interval);
           setPlaying(false);
         }
@@ -19672,7 +19727,7 @@ function PathSimulator() {
                 return !p;
               });
             },
-            className: "hover:bg-medgray_hover px-1 py-1 rounded-sm",
+            className: "cursor-pointer px-1 py-1 rounded-sm",
             children: playing ? /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "w-[25px] h-[25px]", src: pause }) : /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "w-[25px] h-[25px]", src: play })
           }
         ),
@@ -19681,7 +19736,7 @@ function PathSimulator() {
           {
             value,
             setValue,
-            sliderWidth: !settings.robotPosition ? 448 : 192,
+            sliderWidth: !settings.robotPosition ? 415 : 192,
             sliderHeight: 8,
             knobHeight: 22,
             knobWidth: 22,
@@ -19701,11 +19756,21 @@ function PathSimulator() {
           "θ: ",
           /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "inline-block w-12 text-left", children: pose?.angle?.toFixed(1) })
         ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "block w-14 ", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "block w-9 ", children: [
           time.toFixed(2),
-          " s"
+          "s"
         ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Toggle Robot Visibility", placement: "top", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Checkbox, { checked: robotVisible, setChecked: setRobotVisibility }) })
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row items-center gap-1.5", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Toggle Robot Visibility", placement: "top", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Checkbox, { checked: robotVisible, setChecked: setRobotVisibility, size: 22, checkedSvg: openEye, uncheckedSvg: closedEye }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Loop Path", placement: "top", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              onClick: () => setSettings((prev) => ({ ...prev, loopPath: !prev.loopPath })),
+              className: `px-1 py-1 rounded-sm hover:brightness-90 cursor-pointer`,
+              children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "w-[22px] h-[22px]", src: looping ? loopOn : loopOff })
+            }
+          ) })
+        ] })
       ]
     }
   );
@@ -21148,7 +21213,6 @@ function ColorButton({ callback, name, primary, secondary, textSize }) {
 function SettingsButton() {
   const [settings, setSettings] = useSettings();
   const [popup, setPopup] = reactExports.useState(false);
-  const debug = debugStore.useStore();
   reactExports.useEffect(() => {
     localStorage.setItem("settings", JSON.stringify(settings));
   }, [settings]);
@@ -21169,16 +21233,14 @@ function SettingsButton() {
       }
     ),
     /* @__PURE__ */ jsxRuntimeExports.jsx(MenuButtonTemplate, { title: "Settings", closeOnClick: false, width: 40, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-1.5", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Robot Outlines", label: "Displays end positions when sim is off", checked: settings.ghostRobots, setChecked: set("ghostRobots") }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Robot Position", label: "Displays robots's actual position", checked: settings.robotPosition, setChecked: set("robotPosition") }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Precise Path", label: "Displays robots exact path taken", checked: settings.precisePath, setChecked: set("precisePath") }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Numbered Path", label: "Displays number labels for notebook screenshots", checked: settings.numberedPath, setChecked: set("numberedPath") }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Position Logs", label: "Prints robot position to console", checked: debug, setChecked: (state) => {
-        debugStore.setState(state);
-      } }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Grid Snap", label: "What to snap to while Ctrl+Dragging", value: settings.snapToGrid, setValue: (v) => v !== null && set("snapToGrid")(v), bounds: [0.1, 10], stepSize: 0.5, roundTo: 1, units: "" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Robot Outlines", label: "Displays end positions when sim is off", checked: settings.ghostRobots, setChecked: set("ghostRobots") }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(ColorButton, { name: "Theme", primary: DEFAULT_THEMES[settings.themeIdx].primary, secondary: DEFAULT_THEMES[settings.themeIdx].secondary, callback: () => updateTheme(settings.themeIdx) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Grid Snap", label: "What to snap to while Ctrl+Dragging", value: settings.snapToGrid, setValue: (v) => v !== null && set("snapToGrid")(v), bounds: [0.1, 10], stepSize: 0.5, roundTo: 1, units: "in" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
       /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Edit Templates", keybind: "", callback: () => setPopup(true) })
     ] }) })
   ] });
@@ -22885,7 +22947,7 @@ function RobotLayer({ img, pose, robotPose, robotConstants, visible, path }) {
         cogOffsetY: robotConstants.cogOffsetYDisabled ? 0 : robotConstants.cogOffsetY
       }
     ),
-    !visible && settings.ghostRobots && robotPose.map((p, idx) => /* @__PURE__ */ jsxRuntimeExports.jsx(React.Fragment, { children: path.segments[idx]?.visible && /* @__PURE__ */ jsxRuntimeExports.jsx(
+    settings.ghostRobots && robotPose.map((p, idx) => /* @__PURE__ */ jsxRuntimeExports.jsx(React.Fragment, { children: path.segments[idx]?.visible && /* @__PURE__ */ jsxRuntimeExports.jsx(
       RobotView,
       {
         img,
@@ -22905,7 +22967,7 @@ function RobotLayer({ img, pose, robotPose, robotConstants, visible, path }) {
     ) }, `ghost-${idx}`))
   ] });
 }
-const DOT_SPACING = 2;
+const DOT_SPACING = 1.5;
 const DOT_RADIUS = 1.8 * FIELD_REAL_DIMENSIONS.w / FIELD_IMG_DIMENSIONS.w;
 function speedColor(t, slow2, mid, fast2) {
   const curved = Math.pow(t, 1.5);
@@ -23929,4 +23991,4 @@ document.addEventListener("auxclick", blockMiddleClick, { capture: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-QP4sShto.js.map
+//# sourceMappingURL=index-BOu3bD_r.js.map
