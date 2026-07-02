@@ -121,7 +121,7 @@ export const kMikSwing: mikConstants = {
 
 type Fields = NumberInputGroup<"mikLib">["fields"];
 
-export const mikExitConditionsSettings: Fields = [
+export const mikDriveExitConditionsSettings: Fields = [
     { key: "settle_error", units: "in", label: "Settle Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
     { key: "settle_time", units: "ms", label: "Settle Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
     { key: "timeout", units: "ms", label: "Timeout", input: { bounds: [0, 9999], stepSize: 100, roundTo: 0 } },
@@ -129,12 +129,20 @@ export const mikExitConditionsSettings: Fields = [
     { key: "exit_error", units: "in", label: "Exit Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
 ];
 
+export const mikTurnExitConditionsSettings: Fields = [
+    { key: "settle_error", units: "deg", label: "Settle Error", input: { bounds: [0, 360], stepSize: 0.5, roundTo: 2 } },
+    { key: "settle_time", units: "ms", label: "Settle Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+    { key: "timeout", units: "ms", label: "Timeout", input: { bounds: [0, 9999], stepSize: 100, roundTo: 0 } },
+    { key: "min_voltage", units: "volt", label: "Min Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
+    { key: "exit_error", units: "deg", label: "Exit Error", input: { bounds: [0, 360], stepSize: 5, roundTo: 2 } },
+];
+
 export const mikPIDConstantsSettings: Fields = [
     { key: "max_voltage", units: "volt", label: "Max Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
     { key: "kp", label: "kP", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
     { key: "ki", label: "kI", units: "", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
     { key: "kd", label: "kD", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
-    { key: "starti", units: "in", label: "Starti", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
+    { key: "starti", units: "", label: "Starti", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
     { key: "slew", units: "volt/10ms", label: "Slew", input: { bounds: [0, 100], stepSize: .1, roundTo: 2 } },
 ];
 
@@ -207,7 +215,7 @@ export const mikLibDef = {
             ],
             numberInputs: [
                 {
-                    constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings]
+                    constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikDriveExitConditionsSettings]
                 },
                 {
                     constantsIdx: 0, headerName: "Drive Constants", fields: [
@@ -228,7 +236,7 @@ export const mikLibDef = {
             slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
             cycleButtons: [],
             numberInputs: [
-                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
+                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikDriveExitConditionsSettings] },
                 { constantsIdx: 0, headerName: "Drive Constants", fields: [...mikPIDConstantsSettings] },
                 { constantsIdx: 1, headerName: "Heading Constants", fields: [...mikPIDConstantsSettings] },
             ],
@@ -244,7 +252,7 @@ export const mikLibDef = {
                 { constantsIdx: 0, ...driveDirectionButton },
             ],
             numberInputs: [
-                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
+                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikDriveExitConditionsSettings] },
                 { constantsIdx: 0, headerName: "Drive Constants", fields: [...mikPIDConstantsSettings] },
                 { constantsIdx: 1, headerName: "Heading Constants", fields: [...mikPIDConstantsSettings] },
             ],
@@ -260,7 +268,7 @@ export const mikLibDef = {
                 { constantsIdx: 0, ...turnDirectionButton },
             ],
             numberInputs: [
-                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
+                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikTurnExitConditionsSettings] },
                 { constantsIdx: 0, headerName: "Turn Constants", fields: [...mikPIDConstantsSettings] },
             ],
         },
@@ -275,7 +283,7 @@ export const mikLibDef = {
                 { constantsIdx: 0, ...turnDirectionButton },
             ],
             numberInputs: [
-                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
+                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikTurnExitConditionsSettings] },
                 { constantsIdx: 0, headerName: "Turn Constants", fields: [...mikPIDConstantsSettings] },
             ],
         },
@@ -291,7 +299,7 @@ export const mikLibDef = {
                 { constantsIdx: 0, ...turnDirectionButton },
             ],
             numberInputs: [
-                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
+                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikTurnExitConditionsSettings] },
                 {
                     constantsIdx: 0, headerName: "Swing Constants", fields: [
                         ...mikPIDConstantsSettings,
@@ -313,7 +321,7 @@ export const mikLibDef = {
                 { constantsIdx: 0, ...turnDirectionButton },
             ],
             numberInputs: [
-                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings] },
+                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikTurnExitConditionsSettings] },
                 {
                     constantsIdx: 0, headerName: "Swing Constants", fields: [
                         ...mikPIDConstantsSettings,
@@ -496,6 +504,7 @@ function kMikParser(kDefault: mikConstants[], kBuilderStr: string, kind: Segment
             else if (rawKey === "min_voltage") constants[0].min_voltage = num;
             else if (rawKey === "settle_error") constants[0].settle_error = num;
             else if (rawKey === "settle_time") constants[0].settle_time = num;
+            else if (rawKey === "exit_error") constants[0].exit_error = num;
             else if (rawKey === "timeout") constants[0].timeout = num;
             else if (rawKey === "slew") constants[0].slew = num;
             else if (rawKey === "opposite_voltage") constants[0].opposite_voltage = num;
@@ -507,3 +516,4 @@ function kMikParser(kDefault: mikConstants[], kBuilderStr: string, kind: Segment
 
     return poseAngle !== undefined ? [constants, { angle: poseAngle }] : [constants];
 }
+

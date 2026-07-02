@@ -1,8 +1,6 @@
 Live Progress Txt
 
 Bugs:
-exit-error is not working on turn segemnts
-
 
 
 Todo:

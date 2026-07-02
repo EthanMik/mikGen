@@ -1,5 +1,5 @@
 import type { FormatDef } from "../FormatDefinition";
-import { kMikDrive, kMikHeading, mikExitConditionsSettings, mikLibDef, mikPIDConstantsSettings } from "../mikLibSim/MikConstants";
+import { kMikDrive, kMikHeading, mikDriveExitConditionsSettings, mikLibDef, mikPIDConstantsSettings } from "../mikLibSim/MikConstants";
 import { holonomic_to_pose } from "./DriveMotions/HolonomicToPose";
 import { strafe_distance } from "./DriveMotions/StrafeDistance";
 
@@ -47,7 +47,7 @@ export const holonomicDef = {
             slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
             cycleButtons: [],
             numberInputs: [
-                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikExitConditionsSettings,] },
+                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikDriveExitConditionsSettings,] },
                 { constantsIdx: 0, headerName: "Drive Constants", fields: [...mikPIDConstantsSettings,] },
                 { constantsIdx: 1, headerName: "Heading Constants", fields: [...mikPIDConstantsSettings,] },
             ],
