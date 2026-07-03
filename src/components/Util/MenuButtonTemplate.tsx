@@ -87,7 +87,7 @@ export default function MenuButtonTemplate({ title, children, onOpen, onClose, f
             onMouseDown={e => { if (e.button === 2) { e.preventDefault(); e.stopPropagation(); } }}
         >
             <button onClick={handleToggle} className="px-1 cursor-pointer">
-                <span className={`text-[12px] ${underline ? "underline" : ""}`}>{title}</span>
+                <span className={`text-[12px] leading-none ${underline ? "underline" : ""}`}>{title}</span>
             </button>
 
             {isOpen && (

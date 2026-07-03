@@ -322,7 +322,7 @@ export default function PathSimulator() {
                     θ: <span className="inline-block w-12 text-left">{pose?.angle?.toFixed(1)}</span>
                 </span>
             }
-            <span className="block w-9 ">{time.toFixed(2)}s</span>
+            <span className="block w-10 ">{time.toFixed(2)}s</span>
             <div className="flex flex-row items-center gap-1.5">
                 <Tooltip label="Toggle Robot Visibility" placement="top" speed="fast">
                     <Checkbox checked={robotVisible} setChecked={setRobotVisibility} size={22} checkedSvg={openEye} uncheckedSvg={closedEye}/>
