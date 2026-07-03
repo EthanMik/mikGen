@@ -6,10 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -p tsconfig.app.json && vite build",
+    "build:docs": "cd docs && npm run build -- --out-dir ../dist/docs",
+    "build:all": "npm run build && npm run build:docs",
     "lint": "eslint .",
     "preview": "vite preview --base /mikGen/",
     "test": "vitest",
-    "deploy": "gh-pages -d dist"
+    "deploy": "npm run build:all && gh-pages -d dist"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.14",

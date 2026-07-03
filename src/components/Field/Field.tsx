@@ -528,9 +528,8 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 			if (selectedCount > 1) {
 				endSelection();
 				suppressClickFallbackRef.current = true;
-			} else if (selectedCount === 1) {
-				endSelection();
 			}
+
 			const pos = getPressedPositionInch(evt, svgRef.current, img);
 			if (path.segments.length <= 0) {
 				addStartSegment(format, { x: pos.x, y: pos.y, angle: 0 }, setPath);

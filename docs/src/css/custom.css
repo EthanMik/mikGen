@@ -1,0 +1,307 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&display=swap');
+
+/**
+ * mikGen color scheme
+ *
+ * blackgray:      #262626  - Primary background
+ * blackgrayhover: #2d2d2d  - Navbar / footer / sidebar background
+ * medgray_hover:  #323232  - Hover surface
+ * medgray:        #3C3B3B  - Elevated surface (code, inputs)
+ * medgrayoffset:  #474747  - Borders / active surface
+ * medlightgray:   #4A4A4A  - Stronger borders
+ * lightgray:      #848484  - Secondary text
+ * verylightgray:  #DBDBDB  - Primary text
+ * accent:         #BED8FF  - Accent / links (light blue)
+ */
+
+:root {
+  --ifm-font-family-base: 'Inter', sans-serif;
+  --ifm-heading-font-family: 'Inter', sans-serif;
+
+  /* Light blue accent */
+  --ifm-color-primary: #BED8FF;
+  --ifm-color-primary-dark: #9cc4ff;
+  --ifm-color-primary-darker: #8bb9ff;
+  --ifm-color-primary-darkest: #5896ff;
+  --ifm-color-primary-light: #e0ecff;
+  --ifm-color-primary-lighter: #f1f6ff;
+  --ifm-color-primary-lightest: #ffffff;
+
+  /* Backgrounds — layered so each surface is distinguishable */
+  --ifm-background-color: #262626;
+  --ifm-background-surface-color: #3C3B3B;
+
+  /* Text */
+  --ifm-font-color-base: #DBDBDB;
+  --ifm-font-color-secondary: #848484;
+  --ifm-heading-color: #ffffff;
+  --ifm-link-color: #BED8FF;
+  --ifm-link-hover-color: #f1f6ff;
+
+  /* Borders — subtle, not distracting */
+  --ifm-color-emphasis-300: #4A4A4A;
+  --ifm-color-emphasis-200: #474747;
+  --ifm-hr-background-color: #474747;
+  --ifm-toc-border-color: #474747;
+  --ifm-table-border-color: #474747;
+
+  /* Navbar */
+  --ifm-navbar-background-color: #2d2d2d;
+  --ifm-navbar-link-color: #DBDBDB;
+  --ifm-navbar-link-hover-color: #BED8FF;
+
+  /* Footer */
+  --ifm-footer-background-color: #2d2d2d;
+  --ifm-footer-color: #848484;
+  --ifm-footer-link-color: #DBDBDB;
+  --ifm-footer-link-hover-color: #BED8FF;
+  --ifm-footer-title-color: #ffffff;
+
+  /* Code */
+  --ifm-code-font-size: 95%;
+  --ifm-code-background: #3C3B3B;
+  --ifm-pre-background: #3C3B3B;
+  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.07);
+
+  /* Cards */
+  --ifm-card-background-color: #323232;
+
+  /* Sidebar */
+  --doc-sidebar-width: 300px;
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #BED8FF;
+  --ifm-color-primary-dark: #9cc4ff;
+  --ifm-color-primary-darker: #8bb9ff;
+  --ifm-color-primary-darkest: #5896ff;
+  --ifm-color-primary-light: #e0ecff;
+  --ifm-color-primary-lighter: #f1f6ff;
+  --ifm-color-primary-lightest: #ffffff;
+
+  --ifm-background-color: #262626;
+  --ifm-background-surface-color: #3C3B3B;
+  --ifm-font-color-base: #DBDBDB;
+  --ifm-font-color-secondary: #848484;
+  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.07);
+}
+
+/* ─── Navbar ─────────────────────────────────────────────── */
+
+.navbar__title {
+  font-size: 0;
+}
+
+.navbar__title::before {
+  content: 'mik';
+  font-family: 'Roboto Mono', monospace;
+  font-size: 1rem;
+  color: #848484;
+  transition: color 0.2s;
+}
+
+.navbar__title::after {
+  content: 'Gen';
+  font-family: 'Roboto Mono', monospace;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #BED8FF;
+  transition: color 0.2s;
+}
+
+.navbar__brand:hover .navbar__title::before,
+.navbar__brand:hover .navbar__title::after {
+  color: #BED8FF;
+}
+
+.navbar {
+  border-bottom: 1px solid #474747;
+  box-shadow: none;
+}
+
+/* ─── Footer ─────────────────────────────────────────────── */
+
+.footer {
+  border-top: 1px solid #474747;
+}
+
+/* ─── Sidebar ────────────────────────────────────────────── */
+
+.menu {
+  background-color: #2d2d2d;
+}
+
+.menu__link {
+  color: #848484;
+  border-radius: 4px;
+}
+
+.menu__link--active:not(.menu__link--sublist) {
+  color: #DBDBDB;
+  background-color: #474747;
+  border-left: 2px solid #BED8FF;
+}
+
+.menu__link:hover {
+  color: #DBDBDB;
+  background-color: #323232;
+}
+
+/* ─── Table of contents ──────────────────────────────────── */
+
+.table-of-contents__link {
+  color: #848484;
+}
+
+.table-of-contents__link:hover {
+  color: #DBDBDB;
+}
+
+.table-of-contents__link--active {
+  color: #BED8FF;
+  font-weight: 600;
+}
+
+/* ─── Pagination ─────────────────────────────────────────── */
+
+.pagination-nav__link {
+  border-color: #474747;
+  background-color: #2d2d2d;
+  transition: border-color 0.2s;
+}
+
+.pagination-nav__link:hover {
+  border-color: #BED8FF;
+}
+
+/* ─── Breadcrumbs ────────────────────────────────────────── */
+
+.breadcrumbs__link {
+  color: #848484;
+}
+
+.breadcrumbs__item--active .breadcrumbs__link {
+  color: #DBDBDB;
+  background-color: #323232;
+}
+
+/* ─── Doc cards ──────────────────────────────────────────── */
+
+.card {
+  background-color: #323232;
+  border: 1px solid #474747;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  border-color: #BED8FF;
+  box-shadow: 0 0 12px rgba(190, 216, 255, 0.15);
+}
+
+/* ─── Tables ─────────────────────────────────────────────── */
+
+table {
+  border-collapse: collapse;
+}
+
+table th {
+  background-color: #323232;
+  color: #DBDBDB;
+}
+
+table tr:nth-child(even) {
+  background-color: #2d2d2d;
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #262626;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4A4A4A;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #5c5c5c;
+}
+
+/* ─── Prism syntax highlighting (VSCode Dark+ style) ─────── */
+/* C++-specific token colors — scoped to C++ blocks so they don't
+   bleed into other languages (bash, etc.) */
+
+.prism-code.language-cpp .token.class-name {
+  color: #4ec9b0 !important;
+}
+
+.prism-code.language-cpp .token.function {
+  color: #dcdcaa !important;
+}
+
+.prism-code.language-cpp .token.variable {
+  color: #9cdcfe !important;
+}
+
+.prism-code.language-cpp .token.assembly-fn {
+  color: #dcdcaa !important;
+}
+
+.prism-code.language-cpp .token.control-keyword {
+  color: #c586c0 !important;
+}
+
+.prism-code.language-cpp .token.paren-brace,
+.prism-code.language-cpp .token.paren-after-brace {
+  color: #da70d6 !important;
+}
+
+.prism-code.language-cpp .token.brace {
+  color: #c586c0 !important;
+}
+
+.prism-code.language-cpp .token.bracket {
+  color: #ffd700 !important;
+}
+
+.prism-code.language-cpp .token.punctuation {
+  color: #d4d4d4 !important;
+}
+
+.prism-code.language-cpp .token.keyword {
+  color: #569cd6 !important;
+}
+
+.prism-code.language-cpp .token.boolean {
+  color: #569cd6 !important;
+}
+
+.prism-code.language-cpp .token.number {
+  color: #b5cea8 !important;
+}
+
+.prism-code.language-cpp .token.operator {
+  color: #d4d4d4 !important;
+}
+
+/* Generic tokens — safe across all languages */
+
+.prism-code .token.string {
+  color: #ce9178 !important;
+}
+
+.prism-code .token.comment {
+  color: #6a9955 !important;
+}
+
+/* ─── Admonitions ────────────────────────────────────────── */
+
+.admonition h5 {
+  font-size: 0.7rem;
+}
