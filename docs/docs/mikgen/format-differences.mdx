@@ -1,0 +1,69 @@
+---
+sidebar_position: 3
+---
+
+# Format Differences
+
+mikGen mirrors each library's internals, naming conventions, and constants, so paths simulate and
+export the way your library actually behaves. For tuning details, read your library's own documentation:
+
+- [mikLib](https://github.com/EthanMik/mikLib)
+- [LemLib](https://github.com/LemLib/LemLib)
+- [JAR-Template](https://github.com/JacksonAreaRobotics/JAR-Template)
+- [EZ-Template](https://github.com/EZ-Robotics/EZ-Template)
+
+:::important
+Swapping formats resets all segment constants to the new format's defaults. Segments the new
+format does not support are converted to their closest equivalent.
+:::
+
+## Supported Segments
+
+| Segment | mikLib | LemLib | JAR-Template | EZ-Template |
+|----------|----------|----------|----------|----------|
+| pointDrive | ✅ | ✅ | ✅ | ✅ |
+| poseDrive | ✅ | ✅ | ✅ | ✅ |
+| distanceDrive | ✅ | ❌ | ✅ | ✅ |
+| strafeDrive | Holonomic only | ❌ | ❌ | ❌ |
+| pointTurn | ✅ | ✅ | ✅ | ✅ |
+| angleTurn | ✅ | ✅ | ✅ | ✅ |
+| angleSwing | ✅ | ✅ | ✅ | ✅ |
+| pointSwing | ✅ | ✅ | ❌ | ❌ |
+| wait | ✅ | ✅ | ✅ | ✅ |
+
+Selecting the Holonomic option (available with mikLib) changes poseDrive to Holonomic to Pose and
+adds Strafe Distance as its own segment.
+
+## Segment Names
+
+The same segment kind is labeled with your library's naming convention:
+
+| Segment | mikLib | LemLib | JAR-Template | EZ-Template |
+|----------|----------|----------|----------|----------|
+| pointDrive | Drive to Point | Move to Point | Drive to Point | Odom Drive |
+| poseDrive | Drive to Pose | Move to Pose | Drive to Pose | Odom Boomerang |
+| distanceDrive | Drive to Distance | - | Drive to Distance | Drive |
+| pointTurn | Turn to Point | Turn to Point | Turn to Point | Odom Turn |
+| angleTurn | Turn to Angle | Turn to Heading | Turn to Angle | Turn |
+| angleSwing | Swing to Angle | Swing to Angle | Swing to Angle | Swing |
+| pointSwing | Swing to Point | Swing to Point | - | - |
+
+## Units
+
+Distances are always in inches, angles in degrees, and times in milliseconds. The speed scale
+depends on the library:
+
+| Format | Max speed scale |
+|----------|----------|
+| mikLib | 0 to 12 volts |
+| LemLib | 0 to 127 |
+| JAR-Template | 0 to 12 volts |
+| EZ-Template | 0 to 127 |
+
+## Constants
+
+Each format exposes its own library's constants and exit conditions, so the same idea goes by
+different names: mikLib uses `settle_error` and `settle_time`, LemLib uses `smallError` and
+`largeError` with separate timeouts, and EZ-Template uses `small_exit_time` and `big_exit_time`.
+mikGen uses your library's defaults, and every constant can be edited per segment from the path menu.
+Refer to your library's documentation for what each constant does and how to tune it.

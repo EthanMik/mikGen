@@ -1,0 +1,75 @@
+---
+sidebar_position: 2
+---
+
+# Segments & Keybinds
+
+A full reference for adding, selecting, and editing segments.
+
+## Adding Segments
+
+Similar segments share the same keybinds across every format, but each format only offers the
+segments its library supports; clicks for unsupported segments do nothing.
+See [Format Differences](./format-differences.mdx) for what each format includes.
+
+| Button | Segment | Description |
+|----------|----------|----------|
+| Left Click | pointDrive | Dual PID algorithm, gets the robot to desired (x, y) as fast as possible |
+| Ctrl + Left Click | poseDrive | Boomerang algorithm, drives robot to desired (x, y, theta) |
+| Alt + Left Click | distanceDrive | Relative motion, drives specified distance based on heading before it |
+| Ctrl + Alt + Left Click | strafeDrive | Same as distanceDrive but moves left and right |
+| Right Click | pointTurn | Points to drive segment in front of it |
+| Ctrl + Right Click | angleTurn | Turns to specified angle |
+| Alt + Right Click | pointSwing | Swings a drivetrain side to drive segment in front of it |
+| Ctrl + Alt + Right Click | angleSwing | Turns a side of drivetrain to specified angle |
+
+Two segments are added from buttons instead of clicks:
+
+- **Start**: added automatically the first time you click on an empty field. It sets the robot's initial pose.
+- **Wait**: pauses the path for a set time, added from the segment buttons in the path menu.
+
+New segments are inserted after the currently selected segment, otherwise they are appended to the end of the path.
+
+## Selecting Segments
+
+| Action | Effect |
+|----------|----------|
+| Click | Select a segment |
+| Ctrl + Click | Add or remove a segment from the selection |
+| Shift + Click | Select a range in the path list |
+| Click + Drag on field | Box select |
+| Ctrl + A | Select all |
+| Ctrl + Shift + A | Invert selection |
+| Esc | Deselect all |
+
+## Editing Segments
+
+| Action | Effect |
+|----------|----------|
+| Drag waypoint | Move the segment on the field |
+| Ctrl + Drag | Snap to grid (grid size set in Settings, default 0.5 in) |
+| Arrow Keys | Nudge selected segments 0.25 in |
+| Shift + Arrow Keys | Nudge selected segments 1 in |
+| Shift + Scroll | Rotate heading in 90 degree snaps |
+| Ctrl + Shift + Scroll | Rotate heading in 5 degree steps |
+| Backspace / Delete | Delete selected segments |
+| Drag row in path list | Reorder segments |
+| Ctrl + Z | Undo |
+| Ctrl + Y | Redo |
+
+Waypoints also magnet-snap to nearby waypoints while dragging. The Mirror Horizontal and
+Mirror Vertical buttons in the bottom bar flip the selected segments across the field.
+
+Each constant row in the path menu has options to reset it to default, set the current value
+as the new default, or apply it to every segment of the same kind.
+
+## Playback Controls
+
+| Action | Effect |
+|----------|----------|
+| Space or K | Play / pause |
+| J / L | Scrub backward / forward (hold Shift for 1 second steps) |
+| R | Toggle robot visibility |
+| Right Click a row | Jump the simulation to that segment |
+
+The loop button next to the play controls replays the path continuously.

@@ -1,0 +1,62 @@
+---
+sidebar_position: 4
+---
+
+# Exporting & Saving
+
+mikGen generates code in your chosen library's API. You can copy it to the clipboard, write it
+directly into your project's source files, or save the path as a mikGen project file.
+
+## Copy & Paste Code
+
+| Shortcut | Action |
+|----------|----------|
+| Ctrl + C | Copy code for the selected segments |
+| Ctrl + Shift + C | Copy code for the whole path |
+| Ctrl + X | Cut the selected segments as code |
+| Ctrl + V | Paste code back into the path |
+
+Pasting parses the code back into segments, so you can round-trip a path between mikGen and
+your autonomous routine, or share paths with teammates as plain code.
+
+## Writing to a File
+
+Press `Ctrl+E` or use the Export button to write the path directly into a `.cpp` file in your
+project. The generated code is placed between comment markers named after your path, and only
+the code between the markers is touched on later exports:
+
+```cpp
+// [My Path]
+chassis.set_coordinates(0, 0, 0);
+chassis.drive_to_point(24, 24);
+// [My Path]
+```
+
+Two optional modes change how existing code in the file is updated:
+
+- **Merge mode** (on by default): matches segments to the code already in the file, replacing,
+  inserting, or deleting lines as needed. Hidden segments are ignored.
+- **Replace mode**: only replaces segments that match the type and count in mikGen. Hidden or
+  unselected segments are ignored.
+
+:::note
+Writing to files uses the File System Access API, which requires a Chromium-based browser
+such as Chrome or Edge.
+:::
+
+## Project Files
+
+Paths can be saved and loaded as mikGen project files:
+
+| Shortcut | Action |
+|----------|----------|
+| Ctrl + P | New path |
+| Ctrl + O | Open file |
+| Ctrl + Shift + O | Open folder |
+| Ctrl + S | Save |
+| Ctrl + Shift + S | Save as |
+| Ctrl + D | Download |
+| Ctrl + Shift + D | Download as |
+
+Opening a folder shows a file browser sidebar for switching between paths. Your current path
+also auto-saves to browser storage, so it survives a page refresh even without saving to a file.

@@ -1,0 +1,89 @@
+---
+sidebar_position: 1
+---
+
+# Getting Started
+
+Build your first autonomous path in mikGen in about five minutes.
+
+## Selecting a Format
+
+To get started, first select the format you will be using.
+The format determines which segments are available, what they are named, and what constants they use,
+since mikGen matches your chosen library's internals. It is recommended to read your library's documentation:
+
+- [mikLib](https://ethanmik.github.io/mikLib/)
+- [LemLib](https://lemlib.readthedocs.io/en/stable/)
+- [JAR-Template](https://jacksonarearobotics.github.io/JAR-Template/)
+- [EZ-Template](https://ez-robotics.github.io/EZ-Template/)
+
+<img src={require('./img/getting-started/format.png').default} width="20%"  style={{ paddingBottom: '20px' }} />
+
+If your robot is holonomic you can select that here:
+
+<img src={require('./img/getting-started/holonomic.png').default} width="20%"  style={{ paddingBottom: '20px' }} />
+
+:::important
+Swapping formats will reset all your segment constants. See [Format Differences](./format-differences.mdx)
+for how the formats compare.
+:::
+
+## Building Your First Path
+
+To add the start of the path, left click on the field
+
+<img src={require('./img/getting-started/start.png').default} width="50%"  style={{ paddingBottom: '20px' }} />
+
+You can then left click again to add a Drive to Point segment
+
+<img src={require('./img/getting-started/mtp.png').default} width="50%"  style={{ paddingBottom: '20px' }} />
+
+The most common segments are added with these clicks:
+
+| Button | Segment | Description |
+|----------|----------|----------|
+| Left Click | pointDrive | Drives the robot to a desired (x, y) |
+| Ctrl + Left Click | poseDrive | Drives the robot to a desired (x, y, theta) |
+| Right Click | pointTurn | Points the robot at the drive segment in front of it |
+
+Every segment and keybind is listed in [Segments & Keybinds](./segments-and-keybinds.mdx).
+
+A few tips while building:
+
+- Drag any waypoint on the field to move it. Hold `Ctrl` while dragging to snap to the grid.
+- New segments are inserted after the currently selected segment.
+
+## Editing a Segment
+
+Click a segment on the field or in the path list to select it.
+
+
+ Press `Backspace` to delete a
+segment and `Ctrl+Z` to undo.
+
+## Playing the Path
+
+To play your path, press `spacebar` or click the play button at the bottom of the screen
+
+<video src={require('./img/getting-started/playpath.mp4').default} loop autoPlay muted playsInline width="50%" />
+
+You can scrub through the path with `J` and `L`, and the loop button replays the path continuously.
+
+## Copying the Code
+
+Once your path is ready, press `Ctrl+Shift+C` to copy the generated code for the whole path,
+or `Ctrl+C` to copy only the selected segments. The output uses your chosen library's API,
+so it can be pasted directly into your autonomous routine:
+
+```cpp
+chassis.set_coordinates(0, 0, 0);
+chassis.drive_to_point(24, 24);
+```
+
+mikGen can also write code directly into your project files. See [Exporting & Saving](./exporting-and-saving.mdx).
+
+## Next Steps
+
+- [Segments & Keybinds](./segments-and-keybinds.mdx): every segment type, editing shortcut, and playback control
+- [Format Differences](./format-differences.mdx): how the supported libraries differ inside mikGen
+- [Exporting & Saving](./exporting-and-saving.mdx): writing code to files and saving your project
