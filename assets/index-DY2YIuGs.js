@@ -17276,62 +17276,83 @@ const getBackwardsSnapIdx = (path, idx) => {
   }
   return null;
 };
-function resolveHeading(path, idx, anchorPose, offset = 0) {
-  const seg = path.segments[idx];
-  const prevSeg = path.segments[idx - 1];
-  const segAngle = seg.pose.angle;
-  if (segAngle !== null && segAngle !== void 0) {
-    return { heading: { x: Math.sin(toRad(segAngle + offset)), y: Math.cos(toRad(segAngle + offset)) }, headingMag: 1 };
-  }
-  if (prevSeg.pose.angle !== null && prevSeg.pose.angle !== void 0) {
-    if (prevSeg.kind === "pointSwing" || prevSeg.kind === "pointTurn") {
-      const prevSegIdx = idx - 1;
-      let turnToPose = null;
-      for (let i = prevSegIdx; i < path.segments.length; i++) {
-        const s = path.segments[i];
-        if (s.kind === "strafeDrive") continue;
-        if (s.pose.x !== null && s.pose.y !== null) {
-          turnToPose = s.pose;
-          break;
+function angleErrorDeg(a, b) {
+  let d = (a - b) % 360;
+  if (d > 180) d -= 360;
+  if (d < -180) d += 360;
+  return d;
+}
+function driveDirection(seg) {
+  const k = seg.constants[0];
+  if (!k) return "fastest";
+  if (k.drive_direction === "forwards" || k.drive_direction === "reversed") return k.drive_direction;
+  if (k.drive_directions !== void 0) return k.drive_directions === "rev" ? "reversed" : "forwards";
+  if (typeof k.forwards === "boolean") return k.forwards ? "forwards" : "reversed";
+  return "fastest";
+}
+function propagateStates(path) {
+  const states = [];
+  let pos = null;
+  let heading = null;
+  for (let i = 0; i < path.segments.length; i++) {
+    states.push({ pos, heading });
+    const seg = path.segments[i];
+    const { x, y, angle } = seg.pose;
+    switch (seg.kind) {
+      case "start":
+        if (x !== null && y !== null) pos = { x, y };
+        if (angle !== null) heading = angle;
+        break;
+      case "pointDrive":
+      case "poseDrive": {
+        if (x === null || y === null) break;
+        const target2 = { x, y };
+        let bearing = pos && (pos.x !== target2.x || pos.y !== target2.y) ? calculateHeading(pos, target2) : null;
+        if (bearing !== null) {
+          const direction = driveDirection(seg);
+          if (direction === "reversed") bearing += 180;
+          else if (direction === "fastest" && heading !== null && Math.abs(angleErrorDeg(bearing, heading)) > 90) bearing += 180;
         }
+        pos = target2;
+        heading = seg.kind === "poseDrive" && angle !== null ? angle : bearing ?? heading;
+        break;
       }
-      const turnToPos = turnToPose;
-      const previousPos = getBackwardsSnapPose(path, prevSegIdx - 1);
-      const turnTarget = turnToPos ? { x: turnToPos.x ?? 0, y: turnToPos.y ?? 0 } : previousPos ? { x: previousPos.x ?? 0, y: (previousPos.y ?? 0) + 5 } : { x: 0, y: 5 };
-      const fromPos = { x: anchorPose.x ?? 0, y: anchorPose.y ?? 0 };
-      const bearing = calculateHeading(fromPos, turnTarget) + prevSeg.pose.angle + offset;
-      return { heading: { x: Math.sin(toRad(bearing)), y: Math.cos(toRad(bearing)) }, headingMag: 1 };
+      case "distanceDrive":
+      case "strafeDrive": {
+        const h = angle ?? heading;
+        if (h === null) break;
+        const move = seg.kind === "strafeDrive" ? h + 90 : h;
+        if (pos) pos = { x: pos.x + Math.sin(toRad(move)) * seg.distance, y: pos.y + Math.cos(toRad(move)) * seg.distance };
+        heading = h;
+        break;
+      }
+      case "pointTurn":
+      case "pointSwing": {
+        if (!pos) break;
+        heading = calculateHeading(pos, findPointToFace(path, i)) + (angle ?? 0);
+        break;
+      }
+      case "angleTurn":
+      case "angleSwing":
+        if (angle !== null) heading = angle;
+        break;
     }
-    const prevSegAngle = prevSeg.pose.angle + offset;
-    return { heading: { x: Math.sin(toRad(prevSegAngle)), y: Math.cos(toRad(prevSegAngle)) }, headingMag: 1 };
   }
-  if (anchorPose.angle !== null && anchorPose.angle !== void 0) {
-    return { heading: { x: Math.sin(toRad(anchorPose.angle + offset)), y: Math.cos(toRad(anchorPose.angle + offset)) }, headingMag: 1 };
-  }
-  const anchorIdx = getBackwardsSnapIdx(path, idx - 1);
-  if (anchorIdx !== null && anchorIdx > 0) {
-    const anchorSeg = path.segments[anchorIdx];
-    if (anchorSeg.kind === "distanceDrive" || anchorSeg.kind === "strafeDrive") {
-      const anchorAnchorPose = getBackwardsSnapPose(path, anchorIdx - 1);
-      if (anchorAnchorPose) return resolveHeading(path, anchorIdx, anchorAnchorPose, offset);
-    }
-  }
-  const approachPose = anchorIdx !== null && anchorIdx > 0 ? getBackwardsSnapPose(path, anchorIdx - 1) : null;
-  if (!approachPose) return null;
-  const hx = (anchorPose.x ?? 0) - (approachPose.x ?? 0);
-  const hy = (anchorPose.y ?? 0) - (approachPose.y ?? 0);
-  const mag = Math.sqrt(hx * hx + hy * hy);
-  if (mag === 0) return null;
-  const co = Math.cos(toRad(offset));
-  const si = Math.sin(toRad(offset));
-  return { heading: { x: hx * co + hy * si, y: hy * co - hx * si }, headingMag: mag };
+  return states;
+}
+function resolveHeading(path, idx, offset = 0) {
+  const seg = path.segments[idx];
+  const segAngle = seg.pose.angle;
+  const h = segAngle ?? propagateStates(path)[idx]?.heading;
+  if (h === null || h === void 0) return null;
+  return { heading: { x: Math.sin(toRad(h + offset)), y: Math.cos(toRad(h + offset)) }, headingMag: 1 };
 }
 function getSegmentDistance(path, idx, offset = 0) {
   if (idx <= 0) return null;
   const seg = path.segments[idx];
   const anchorPose = getBackwardsSnapPose(path, idx - 1);
   if (!anchorPose) return null;
-  const resolved = resolveHeading(path, idx, anchorPose, offset);
+  const resolved = resolveHeading(path, idx, offset);
   if (!resolved) {
     return Math.hypot((seg.pose.x ?? 0) - (anchorPose.x ?? 0), (seg.pose.y ?? 0) - (anchorPose.y ?? 0));
   }
@@ -17345,7 +17366,7 @@ function distanceToPosition(path, idx, distance, offset = 0) {
   const seg = path.segments[idx];
   const anchorPose = getBackwardsSnapPose(path, idx - 1);
   if (!anchorPose) return null;
-  const resolved = resolveHeading(path, idx, anchorPose, offset);
+  const resolved = resolveHeading(path, idx, offset);
   let hx, hy, hMag;
   if (!resolved) {
     hx = (seg.pose.x ?? 0) - (anchorPose.x ?? 0);
@@ -23562,7 +23583,7 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
             }
             continue;
           }
-          const resolved = resolveHeading({ ...prev, segments: next }, segIdx, anchorPose, c.kind === "strafeDrive" ? 90 : 0);
+          const resolved = resolveHeading({ ...prev, segments: next }, segIdx, c.kind === "strafeDrive" ? 90 : 0);
           let hx, hy;
           if (resolved) {
             hx = resolved.heading.x / resolved.headingMag;
@@ -24033,4 +24054,4 @@ document.addEventListener("auxclick", blockMiddleClick, { capture: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-DrQz89Fk.js.map
+//# sourceMappingURL=index-DY2YIuGs.js.map
