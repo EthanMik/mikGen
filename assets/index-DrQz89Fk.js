@@ -14165,6 +14165,15 @@ const swingDirectionButton$2 = {
     { srcImg: leftswing, value: "left" }
   ]
 };
+const turnFaceButton$2 = {
+  key: "angle_offset",
+  keyValues: [
+    { srcImg: fwd, value: "0" },
+    { srcImg: rev, value: "180" }
+  ],
+  poseValue: (pose) => normalizeDeg(pose.angle ?? 0) === 180 ? "180" : "0",
+  poseEffect: (val) => ({ angle: val === "180" ? 180 : 0 })
+};
 const mikLibDef = {
   constants: [kMikDrive],
   kMaxSpeed: 12,
@@ -14257,7 +14266,8 @@ const mikLibDef = {
       simFn: (robot, dt, x, y, angle, constants) => turn_to_point$1(robot, dt, x, y, angle ?? 0, constants),
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [
-        { constantsIdx: 0, ...turnDirectionButton$1 }
+        { constantsIdx: 0, ...turnDirectionButton$1 },
+        { constantsIdx: 0, ...turnFaceButton$2 }
       ],
       numberInputs: [
         { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikTurnExitConditionsSettings] },
@@ -14308,7 +14318,8 @@ const mikLibDef = {
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [
         { constantsIdx: 0, ...swingDirectionButton$2 },
-        { constantsIdx: 0, ...turnDirectionButton$1 }
+        { constantsIdx: 0, ...turnDirectionButton$1 },
+        { constantsIdx: 0, ...turnFaceButton$2 }
       ],
       numberInputs: [
         { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikTurnExitConditionsSettings] },
@@ -14958,6 +14969,15 @@ const kRevTurn = {
   dropEarly: 0,
   lead: 0.5
 };
+const turnFaceButton$1 = {
+  key: "angle_offset",
+  keyValues: [
+    { srcImg: fwd, value: "0" },
+    { srcImg: rev, value: "180" }
+  ],
+  poseValue: (pose) => normalizeDeg(pose.angle ?? 0) === 180 ? "180" : "0",
+  poseEffect: (val) => ({ angle: val === "180" ? 180 : 0 })
+};
 const driveSettingsFields = [
   { key: "maxSpeed", label: "Max Speed", units: "", input: { bounds: [0, 1], stepSize: 0.05, roundTo: 2 } },
   { key: "stopCoastPower", label: "Coast Power", units: "", input: { bounds: [0, 1], stepSize: 0.05, roundTo: 2 } },
@@ -15028,7 +15048,9 @@ const reveilLibDef = {
       toStringTemplate: "look(${x}, ${y}, ${angle}, ${kBuilder});",
       simFn: (robot, dt, x, y, angle, constants) => lookAt(robot, dt, x, y, angle ?? 0, constants),
       slider: { key: "maxSpeed", bounds: [0, 1], roundTo: 0.01, constantsIdx: 0 },
-      cycleButtons: [],
+      cycleButtons: [
+        { constantsIdx: 0, ...turnFaceButton$1 }
+      ],
       numberInputs: [
         { constantsIdx: 0, headerName: "Turn Settings", fields: [
           ...turnSettingsFields,
@@ -15772,6 +15794,15 @@ const swingDirectionButton$1 = {
     { srcImg: leftswing, value: "left" }
   ]
 };
+const turnFaceButton = {
+  key: "angle_offset",
+  keyValues: [
+    { srcImg: fwd, value: "0" },
+    { srcImg: rev, value: "180" }
+  ],
+  poseValue: (pose) => normalizeDeg(pose.angle ?? 0) === 180 ? "180" : "0",
+  poseEffect: (val) => ({ angle: val === "180" ? 180 : 0 })
+};
 const JarTemplateDef = {
   constants: [kJarDrive],
   kMaxSpeed: 12,
@@ -15859,7 +15890,9 @@ const JarTemplateDef = {
       toStringTemplate: "chassis.turn_to_point(${x}, ${y}, ${kBuilder});",
       simFn: (robot, dt, x, y, angle, constants) => turn_to_point(robot, dt, x, y, angle ?? 0, constants),
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
-      cycleButtons: [],
+      cycleButtons: [
+        { constantsIdx: 0, ...turnFaceButton }
+      ],
       numberInputs: [
         { constantsIdx: 0, headerName: "Exit Conditions", fields: [...JarTurnExitConditions] },
         { constantsIdx: 0, headerName: "Turn Constants", fields: [...JarPIDConstantsSettings] }
@@ -18746,11 +18779,11 @@ const MotionList = reactExports.memo(function MotionList2({
     return (segDef.cycleButtons ?? []).map((btn) => ({
       imageKeys: btn.keyValues.map((kv) => ({ src: kv.srcImg, key: String(kv.value) })),
       label: String(btn.key),
-      value: String(segment.constants[btn.constantsIdx][String(btn.key)]),
+      value: btn.poseValue ? btn.poseValue(segment.pose) : String(segment.constants[btn.constantsIdx][String(btn.key)]),
       onKeyChange: (newKey) => {
         const match = btn.keyValues.find((kv) => String(kv.value) === newKey);
         if (match !== void 0) {
-          updatePathConstants(updatePath, segmentId, btn.constantsIdx, { [String(btn.key)]: match.value });
+          if (!btn.poseValue) updatePathConstants(updatePath, segmentId, btn.constantsIdx, { [String(btn.key)]: match.value });
           const posePartial = btn.poseEffect?.(match.value);
           if (posePartial) {
             updatePath((prev) => ({
@@ -19764,7 +19797,7 @@ function PathSimulator() {
           "θ: ",
           /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "inline-block w-12 text-left", children: pose?.angle?.toFixed(1) })
         ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "block w-9 ", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "block w-10 ", children: [
           time.toFixed(2),
           "s"
         ] }),
@@ -19946,6 +19979,7 @@ function ControlConfig() {
     if (selectedCount !== 1) return;
     const selectedSegment2 = path.segments.find((c) => c.selected);
     if (selectedSegment2 === void 0) return;
+    if (selectedSegment2.kind === "pointSwing" || selectedSegment2.kind === "pointTurn") return;
     if (newHeading === null && selectedSegment2.kind !== "poseDrive" && selectedSegment2.kind !== "distanceDrive" && selectedSegment2.kind !== "strafeDrive") return;
     if (newHeading !== null) newHeading = normalizeDeg(newHeading);
     setPath((prev) => {
@@ -20030,7 +20064,7 @@ function ControlConfig() {
         )
       ] })
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `flex items-center gap-2 ${selectedSegment === "wait" ? "opacity-50 pointer-events-none" : ""}`, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `flex items-center gap-2 ${selectedSegment === "pointSwing" || selectedSegment === "pointTurn" || selectedSegment === "wait" ? "opacity-50 pointer-events-none" : ""}`, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: 20 }, children: "θ" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         NumberInput,
@@ -20458,7 +20492,7 @@ function MenuButtonTemplate({ title, children, onOpen, onClose, flashRef, underl
         }
       },
       children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: handleToggle, className: "px-1 cursor-pointer", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `text-[12px] ${underline ? "underline" : ""}`, children: title }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: handleToggle, className: "px-1 cursor-pointer", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `text-[12px] leading-none ${underline ? "underline" : ""}`, children: title }) }),
         isOpen && /* @__PURE__ */ jsxRuntimeExports.jsx(
           "div",
           {
@@ -22704,7 +22738,7 @@ function ViewButton() {
 function Config({ fillHeight = false }) {
   const dirHandle = dirHandleStore.useStore();
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `flex pr-[6px] flex-col gap-2 pl-[6px] ${fillHeight ? "h-full" : ""}`, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "w-[180px] flex bg-medgray rounded-sm pt-1 pr-1 pl-1 pb-1 gap-1", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "w-[180px] flex items-center bg-medgray rounded-sm px-1 py-0.5 gap-1", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(FileButton, {}),
       /* @__PURE__ */ jsxRuntimeExports.jsx(EditButton, {}),
       /* @__PURE__ */ jsxRuntimeExports.jsx(ViewButton, {}),
@@ -23253,7 +23287,8 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
         if (afterTurn) {
           const anchorPose = getBackwardsSnapPose(currentPath, segIdx - 1);
           if (!anchorPose || anchorPose.x === null || anchorPose.y === null) continue;
-          const newDist = Math.hypot((c.pose.x ?? 0) - anchorPose.x, (c.pose.y ?? 0) - anchorPose.y);
+          const newDist = getSegmentDistance(currentPath, segIdx, 0);
+          if (newDist === null) continue;
           if (Math.abs(newDist - c.distance) > 1e-3) {
             segments[segIdx] = { ...c, distance: newDist };
             changed = true;
@@ -23497,13 +23532,18 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
             let newX = startPos?.x == null ? c.pose.x ?? 0 : startPos.x + dx;
             let newY = startPos?.y == null ? c.pose.y ?? 0 : startPos.y + dy;
             if (ctrlHeld) {
-              newX = Math.round(newX * snapValue) / snapValue;
-              newY = Math.round(newY * snapValue) / snapValue;
+              const mag = Math.hypot(newX - anchorPose.x, newY - anchorPose.y);
+              if (mag > 0) {
+                const snappedMag = Math.round(mag * snapValue) / snapValue;
+                newX = anchorPose.x + (newX - anchorPose.x) / mag * snappedMag;
+                newY = anchorPose.y + (newY - anchorPose.y) / mag * snappedMag;
+              }
             }
-            const t = Math.hypot(newX - anchorPose.x, newY - anchorPose.y);
-            next[segIdx] = { ...c, pose: { ...c.pose, x: newX, y: newY }, distance: t };
+            next[segIdx] = { ...c, pose: { ...c.pose, x: newX, y: newY } };
+            const t = getSegmentDistance({ ...prev, segments: next }, segIdx, 0) ?? Math.hypot(newX - anchorPose.x, newY - anchorPose.y);
+            next[segIdx] = { ...next[segIdx], distance: t };
           } else {
-            const newDist = Math.hypot((c.pose.x ?? 0) - anchorPose.x, (c.pose.y ?? 0) - anchorPose.y);
+            const newDist = getSegmentDistance({ ...prev, segments: next }, segIdx, 0) ?? Math.hypot((c.pose.x ?? 0) - anchorPose.x, (c.pose.y ?? 0) - anchorPose.y);
             next[segIdx] = { ...c, distance: newDist };
           }
           continue;
@@ -23540,13 +23580,9 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
           const fromAnchorX = segEffX - anchorPose.x;
           const fromAnchorY = segEffY - anchorPose.y;
           let t = fromAnchorX * hx + fromAnchorY * hy;
-          let newX = anchorPose.x + t * hx;
-          let newY = anchorPose.y + t * hy;
-          if (ctrlHeld) {
-            newX = Math.round(newX * snapValue) / snapValue;
-            newY = Math.round(newY * snapValue) / snapValue;
-            t = (newX - anchorPose.x) * hx + (newY - anchorPose.y) * hy;
-          }
+          if (ctrlHeld) t = Math.round(t * snapValue) / snapValue;
+          const newX = anchorPose.x + t * hx;
+          const newY = anchorPose.y + t * hy;
           next[segIdx] = { ...c, pose: { ...c.pose, x: newX, y: newY }, distance: t };
           continue;
         }
@@ -23660,8 +23696,6 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
       if (selectedCount2 > 1) {
         endSelection();
         suppressClickFallbackRef.current = true;
-      } else if (selectedCount2 === 1) {
-        endSelection();
       }
       const pos2 = getPressedPositionInch(evt, svgRef.current, img);
       if (path.segments.length <= 0) {
@@ -23999,4 +24033,4 @@ document.addEventListener("auxclick", blockMiddleClick, { capture: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-F5LV5L3N.js.map
+//# sourceMappingURL=index-DrQz89Fk.js.map
