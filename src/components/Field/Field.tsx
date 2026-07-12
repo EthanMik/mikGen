@@ -59,7 +59,9 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 				if (afterTurn) {
 					const anchorPose = getBackwardsSnapPose(currentPath, segIdx - 1);
 					if (!anchorPose || anchorPose.x === null || anchorPose.y === null) continue;
-					const newDist = Math.hypot((c.pose.x ?? 0) - anchorPose.x, (c.pose.y ?? 0) - anchorPose.y);
+					// Signed projection so a turn's angle offset (e.g. 180) yields a negative distance
+					const newDist = getSegmentDistance(currentPath, segIdx, 0);
+					if (newDist === null) continue;
 					if (Math.abs(newDist - c.distance) > 0.001) {
 						segments[segIdx] = { ...c, distance: newDist };
 						changed = true;
@@ -332,14 +334,22 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 						let newX = startPos?.x == null ? (c.pose.x ?? 0) : startPos.x + dx;
 						let newY = startPos?.y == null ? (c.pose.y ?? 0) : startPos.y + dy;
 						if (ctrlHeld) {
-							newX = Math.round(newX * snapValue) / snapValue;
-							newY = Math.round(newY * snapValue) / snapValue;
+							// Snap the distance itself to the grid, keeping the drag direction
+							const mag = Math.hypot(newX - anchorPose.x, newY - anchorPose.y);
+							if (mag > 0) {
+								const snappedMag = Math.round(mag * snapValue) / snapValue;
+								newX = anchorPose.x + (newX - anchorPose.x) / mag * snappedMag;
+								newY = anchorPose.y + (newY - anchorPose.y) / mag * snappedMag;
+							}
 						}
-						const t = Math.hypot(newX - anchorPose.x, newY - anchorPose.y);
-						next[segIdx] = { ...c, pose: { ...c.pose, x: newX, y: newY }, distance: t };
+						next[segIdx] = { ...c, pose: { ...c.pose, x: newX, y: newY } };
+						const t = getSegmentDistance({ ...prev, segments: next }, segIdx, 0)
+							?? Math.hypot(newX - anchorPose.x, newY - anchorPose.y);
+						next[segIdx] = { ...next[segIdx], distance: t };
 					} else {
-						// Not selected: keep absolute position, update distance to new Euclidean from moved anchor
-						const newDist = Math.hypot((c.pose.x ?? 0) - anchorPose.x, (c.pose.y ?? 0) - anchorPose.y);
+						// Not selected: keep absolute position, update signed distance from moved anchor
+						const newDist = getSegmentDistance({ ...prev, segments: next }, segIdx, 0)
+							?? Math.hypot((c.pose.x ?? 0) - anchorPose.x, (c.pose.y ?? 0) - anchorPose.y);
 						next[segIdx] = { ...c, distance: newDist };
 					}
 					continue;
@@ -381,14 +391,10 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 					const fromAnchorX = segEffX - anchorPose.x;
 					const fromAnchorY = segEffY - anchorPose.y;
 					let t = fromAnchorX * hx + fromAnchorY * hy;
-					let newX = anchorPose.x + t * hx;
-					let newY = anchorPose.y + t * hy;
-
-					if (ctrlHeld) {
-						newX = Math.round(newX * snapValue) / snapValue;
-						newY = Math.round(newY * snapValue) / snapValue;
-						t = (newX - anchorPose.x) * hx + (newY - anchorPose.y) * hy;
-					}
+					// Snap the distance itself to the grid instead of the endpoint position
+					if (ctrlHeld) t = Math.round(t * snapValue) / snapValue;
+					const newX = anchorPose.x + t * hx;
+					const newY = anchorPose.y + t * hy;
 
 					next[segIdx] = { ...c, pose: { ...c.pose, x: newX, y: newY }, distance: t };
 					continue;

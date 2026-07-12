@@ -211,6 +211,10 @@ export default function ControlConfig() {
         const selectedSegment = path.segments.find(c => c.selected);
         if (selectedSegment === undefined) return;
 
+        if (selectedSegment.kind === "pointSwing" ||
+            selectedSegment.kind === "pointTurn"
+        ) return;
+
         if (newHeading === null && selectedSegment.kind !== "poseDrive" && selectedSegment.kind !== "distanceDrive" && selectedSegment.kind !== "strafeDrive") return;
         if (newHeading !== null) newHeading = normalizeDeg(newHeading);
         setPath(prev => {
@@ -290,7 +294,7 @@ export default function ControlConfig() {
                 </>
             }
 
-            <div className={`flex items-center gap-2 ${selectedSegment === "wait" ? "opacity-50 pointer-events-none" : ""}`}>
+            <div className={`flex items-center gap-2 ${(selectedSegment === "pointSwing" || selectedSegment === "pointTurn" || selectedSegment === "wait") ? "opacity-50 pointer-events-none" : ""}`}>
                 <span style={{ fontSize: 20 }}>θ</span>
                 <NumberInput
                     width={80}

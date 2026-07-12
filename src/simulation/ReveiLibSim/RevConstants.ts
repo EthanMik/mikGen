@@ -1,10 +1,12 @@
-import { getUnequalKeys, roundOff } from "../../core/Util";
-import { type FormatDef, type NumberInputGroup } from "../FormatDefinition";
+import { getUnequalKeys, normalizeDeg, roundOff } from "../../core/Util";
+import { type CycleButtonField, type FormatDef, type NumberInputGroup } from "../FormatDefinition";
 import { boomerangSegment } from "./DriveMotions/BoomerangSegment";
 import { pilonsSegment } from "./DriveMotions/PilonsSegment";
 import { turnSegment } from "./DriveMotions/TurnSegment";
 import { lookAt } from "./DriveMotions/LookAt";
 import type { Pose } from "../../core/Types/Pose";
+import fwd from "../../assets/fwd.svg";
+import rev from "../../assets/reverse.svg";
 
 export interface ReveilLibConstants {
     maxSpeed: number;
@@ -58,6 +60,17 @@ export const kRevTurn: ReveilLibConstants = {
 };
 
 type Fields = NumberInputGroup<"ReveilLib">["fields"];
+
+// Pose-backed: cycles the point turn angle offset stored in pose.angle
+const turnFaceButton: Omit<CycleButtonField<"ReveilLib">, "constantsIdx"> = {
+    key: "angle_offset",
+    keyValues: [
+        { srcImg: fwd, value: "0" },
+        { srcImg: rev, value: "180" },
+    ],
+    poseValue: (pose) => normalizeDeg(pose.angle ?? 0) === 180 ? "180" : "0",
+    poseEffect: (val) => ({ angle: val === "180" ? 180 : 0 }),
+};
 
 const driveSettingsFields: Fields = [
     { key: "maxSpeed",            label: "Max Speed",       units: "",   input: { bounds: [0, 1],    stepSize: 0.05, roundTo: 2 } },
@@ -136,7 +149,9 @@ export const reveilLibDef = {
             toStringTemplate: "look(${x}, ${y}, ${angle}, ${kBuilder});",
             simFn: (robot, dt, x, y, angle, constants) => lookAt(robot, dt, x, y, angle ?? 0, constants),
             slider: { key: "maxSpeed", bounds: [0, 1], roundTo: 0.01, constantsIdx: 0 },
-            cycleButtons: [],
+            cycleButtons: [
+                { constantsIdx: 0, ...turnFaceButton },
+            ],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Turn Settings", fields: [
                     ...turnSettingsFields,

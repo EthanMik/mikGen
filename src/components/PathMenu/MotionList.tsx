@@ -241,11 +241,13 @@ const MotionList = memo(function MotionList({
         return (segDef.cycleButtons ?? []).map(btn => ({
             imageKeys: btn.keyValues.map(kv => ({ src: kv.srcImg, key: String(kv.value) })) as CycleImageButtonProps["imageKeys"],
             label: String(btn.key),
-            value: String((segment.constants[btn.constantsIdx] as unknown as ConstantsRecord)[String(btn.key)]),
+            value: btn.poseValue
+                ? btn.poseValue(segment.pose)
+                : String((segment.constants[btn.constantsIdx] as unknown as ConstantsRecord)[String(btn.key)]),
             onKeyChange: (newKey: string | null) => {
                 const match = btn.keyValues.find(kv => String(kv.value) === newKey);
                 if (match !== undefined) {
-                    updatePathConstants(updatePath, segmentId, btn.constantsIdx, { [String(btn.key)]: match.value } as Partial<FormatConstants[Format]>);
+                    if (!btn.poseValue) updatePathConstants(updatePath, segmentId, btn.constantsIdx, { [String(btn.key)]: match.value } as Partial<FormatConstants[Format]>);
                     const posePartial = btn.poseEffect?.(match.value as never);
                     if (posePartial) {
                         updatePath(prev => ({

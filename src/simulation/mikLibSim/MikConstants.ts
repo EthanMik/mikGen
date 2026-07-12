@@ -1,4 +1,4 @@
-import { getUnequalKeys, roundOff } from "../../core/Util";
+import { getUnequalKeys, normalizeDeg, roundOff } from "../../core/Util";
 import { type FormatDef, type NumberInputGroup, type CycleButtonField, type SegmentKind } from "../FormatDefinition";
 import type { Pose } from "../../core/Types/Pose";
 import ccw from "../../assets/ccw.svg";
@@ -174,6 +174,17 @@ const swingDirectionButton: CycleButton = {
     ],
 };
 
+// Pose-backed: cycles the point turn/swing angle offset stored in pose.angle
+const turnFaceButton: CycleButton = {
+    key: "angle_offset",
+    keyValues: [
+        { srcImg: fwd, value: "0" },
+        { srcImg: rev, value: "180" },
+    ],
+    poseValue: (pose) => normalizeDeg(pose.angle ?? 0) === 180 ? "180" : "0",
+    poseEffect: (val) => ({ angle: val === "180" ? 180 : 0 }),
+};
+
 export const mikLibDef = {
     constants: [kMikDrive],
     kMaxSpeed: 12,
@@ -266,6 +277,7 @@ export const mikLibDef = {
             slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
             cycleButtons: [
                 { constantsIdx: 0, ...turnDirectionButton },
+                { constantsIdx: 0, ...turnFaceButton },
             ],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikTurnExitConditionsSettings] },
@@ -319,6 +331,7 @@ export const mikLibDef = {
             cycleButtons: [
                 { constantsIdx: 0, ...swingDirectionButton },
                 { constantsIdx: 0, ...turnDirectionButton },
+                { constantsIdx: 0, ...turnFaceButton },
             ],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikTurnExitConditionsSettings] },

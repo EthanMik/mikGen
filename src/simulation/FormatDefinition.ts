@@ -97,12 +97,14 @@ export type CycleButtonField<F extends Format = Format,
     K extends keyof FormatConstants[F] = keyof FormatConstants[F],
 > = {
     constantsIdx: number;
-    key: K;
+    key: K | (string & {});
     keyValues: {
         srcImg: string;
-        value: FormatConstants[F][K];
+        value: FormatConstants[F][K] | string;
     }[];
-    poseEffect?: (newValue: FormatConstants[F][K]) => Partial<Pose> | undefined;
+    poseEffect?: (newValue: FormatConstants[F][K] | string) => Partial<Pose> | undefined;
+    // When set, the button state derives from the segment's pose instead of a constants key
+    poseValue?: (pose: Pose) => string;
 }
 
 export type NumberInputGroup<F extends Format = Format> = {

@@ -1,8 +1,10 @@
 import type { CycleButtonField, FormatDef, NumberInputGroup, SegmentKind } from "../FormatDefinition";
 import type { Pose } from "../../core/Types/Pose";
-import { roundOff } from "../../core/Util";
+import { normalizeDeg, roundOff } from "../../core/Util";
 import leftswing from "../../assets/leftswing.svg";
 import rightswing from "../../assets/rightswing.svg";
+import fwd from "../../assets/fwd.svg";
+import rev from "../../assets/reverse.svg";
 import { drive_distance, drive_to_point, drive_to_pose, swing_to_angle, turn_to_angle, turn_to_point } from "./drive";
 
 export interface JarConstants {
@@ -127,6 +129,17 @@ const swingDirectionButton: CycleButton = {
     ],
 };
 
+// Pose-backed: cycles the point turn angle offset stored in pose.angle
+const turnFaceButton: CycleButton = {
+    key: "angle_offset",
+    keyValues: [
+        { srcImg: fwd, value: "0" },
+        { srcImg: rev, value: "180" },
+    ],
+    poseValue: (pose) => normalizeDeg(pose.angle ?? 0) === 180 ? "180" : "0",
+    poseEffect: (val) => ({ angle: val === "180" ? 180 : 0 }),
+};
+
 export const JarTemplateDef = {
     constants: [kJarDrive],
     kMaxSpeed: 12,
@@ -214,7 +227,9 @@ export const JarTemplateDef = {
             toStringTemplate: "chassis.turn_to_point(${x}, ${y}, ${kBuilder});",
             simFn: (robot, dt, x, y, angle, constants) => turn_to_point(robot, dt, x, y, angle ?? 0, constants),
             slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
-            cycleButtons: [],
+            cycleButtons: [
+                { constantsIdx: 0, ...turnFaceButton },
+            ],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Exit Conditions", fields: [...JarTurnExitConditions] },
                 { constantsIdx: 0, headerName: "Turn Constants", fields: [...JarPIDConstantsSettings] },
