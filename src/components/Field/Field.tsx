@@ -371,7 +371,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 						continue;
 					}
 
-					const resolved = resolveHeading({ ...prev, segments: next }, segIdx, anchorPose, c.kind === "strafeDrive" ? 90 : 0);
+					const resolved = resolveHeading({ ...prev, segments: next }, segIdx, c.kind === "strafeDrive" ? 90 : 0);
 
 					let hx: number, hy: number;
 					if (resolved) {
