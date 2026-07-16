@@ -56,7 +56,6 @@ export function drive_to_point(robot: Robot, dt: number, x: number, y: number, p
 
     desired_heading = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
     const reversed_heading = desired_heading + (drive_p.drive_direction === "reversed" ? 180 : 0);
-    console.log(drive_p.drive_direction, desired_heading, reversed_heading);
     const drive_error = Math.hypot(x - robot.getX(), y - robot.getY());
     let heading_error = reduce_negative_180_to_180(reversed_heading - robot.getAngle());
     
