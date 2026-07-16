@@ -13537,6 +13537,118 @@ function kLemParser(kDefault, kBuilderStr, kind) {
   return [constants, poseOverride];
 }
 const fastest$1 = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_296_2)'%3e%3cpath%20d='M20%204.96211C20%204.32319%2019.4821%203.80524%2018.8431%203.80524L3.96293%203.80524L4.88155%202.87553C5.10433%202.65007%205.2155%202.35622%205.2155%202.06246C5.2155%201.76408%205.10076%201.46578%204.87173%201.2395C4.41724%200.790433%203.68478%200.794817%203.23571%201.2493L0.334011%204.18602C0.119979%204.40263%206.10352e-05%204.6948%206.10352e-05%204.99911C6.10352e-05%205.0014%206.10352e-05%205.00376%208.30708e-05%205.00603C0.00193407%205.31283%200.125554%205.60637%200.343839%205.82201L3.24109%208.68473C3.69557%209.13379%204.42804%209.12941%204.8771%208.67492C5.32621%208.22041%205.3218%207.48795%204.8673%207.03888L3.93629%206.11896L18.8432%206.11896C19.4821%206.11898%2020%205.60104%2020%204.96211Z'%20fill='white'/%3e%3cpath%20d='M6.10352e-05%2013.0379C6.10352e-05%2013.6768%200.518009%2014.1948%201.15693%2014.1948H16.0638L15.1328%2015.1147C14.6783%2015.5637%2014.6739%2016.2962%2015.123%2016.7507C15.5721%2017.2052%2016.3045%2017.2096%2016.759%2016.7605L19.6562%2013.8978C19.8745%2013.6822%2019.9982%2013.3887%2020%2013.0819C20%2013.0796%2020%2013.0772%2020%2013.0749C20%2012.7706%2019.8801%2012.4784%2019.6661%2012.2618L16.7643%209.32506C16.3153%208.87057%2015.5828%208.86619%2015.1283%209.31525C14.6738%209.76431%2014.6694%2010.4968%2015.1185%2010.9513L16.0371%2011.881H1.15693C0.518009%2011.881%206.10352e-05%2012.399%206.10352e-05%2013.0379Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_296_2'%3e%3crect%20width='20'%20height='20'%20fill='white'%20transform='matrix(0%20-1%201%200%200%2020)'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
+const SIM_CONSTANTS = {
+  seconds: 99,
+  dt: 1 / 60,
+  // Sim is run at 60 hertz
+  dt_ms: 1 / 60 * 1e3
+};
+const pathTelemetry = createStore([]);
+const activeSimSegmentStore = createStore(-1);
+const simJumpStore = createStore(null);
+const computedPathStore = createStore({
+  totalTime: 0,
+  trajectory: [],
+  endTrajectory: [],
+  segmentTrajectorys: [],
+  segmentCumulativeDists: [],
+  segmentTimeRanges: [],
+  timeOffset: 0
+});
+function activeSegmentAtTime(path, t) {
+  return path.segmentTimeRanges.findIndex((r) => t >= r.startT && t < r.endT);
+}
+function precomputePath(robot, auton) {
+  const simLengthSeconds = SIM_CONSTANTS.seconds;
+  let autoIdx = 0;
+  const trajectory = [];
+  const endTrajectory = [];
+  const segmentTrajectory = [];
+  const segmentTrajectorys = [];
+  const segmentKinds = [];
+  const segmentTargetDists = [];
+  const segmentTimeRanges = [];
+  const dt = SIM_CONSTANTS.dt;
+  let t = 0;
+  let segmentStartT = 0;
+  let safetyIter = 0;
+  const maxIter = 60 * simLengthSeconds;
+  while (safetyIter < maxIter) {
+    if (autoIdx < auton.length) {
+      const [done, kind, targetDist] = auton[autoIdx](robot, dt);
+      if (done) {
+        endTrajectory.push({
+          x: robot.getX(),
+          y: robot.getY(),
+          angle: robot.getAngle()
+        });
+        segmentTrajectorys.push([...segmentTrajectory]);
+        segmentKinds.push(kind);
+        segmentTargetDists.push(targetDist);
+        segmentTimeRanges.push({ startT: segmentStartT, endT: t });
+        segmentStartT = t;
+        segmentTrajectory.length = 0;
+        autoIdx++;
+      }
+    }
+    if (autoIdx >= auton.length) break;
+    segmentTrajectory.push({
+      t,
+      x: robot.getX(),
+      y: robot.getY(),
+      angle: robot.getAngle()
+    });
+    trajectory.push({
+      t,
+      x: robot.getX(),
+      y: robot.getY(),
+      angle: robot.getAngle()
+    });
+    t += dt;
+    safetyIter++;
+  }
+  const turnKinds = /* @__PURE__ */ new Set(["pointTurn", "angleTurn", "angleSwing", "pointSwing"]);
+  function shortAngleDiff(a, b) {
+    let d = normalizeDeg(b - a);
+    if (d > 180) d -= 360;
+    return Math.abs(d);
+  }
+  const segmentCumulativeDists = [];
+  const telemetry = segmentTrajectorys.map((seg, i) => {
+    const kind = segmentKinds[i];
+    const isTurn = turnKinds.has(kind);
+    const totalDistance = segmentTargetDists[i] ?? 0;
+    if (seg.length === 0) {
+      segmentCumulativeDists.push([]);
+      return { totalTime: 0, totalDistance, progressRaw: 0, progressPercent: 0, units: isTurn ? "deg" : "in" };
+    }
+    const totalTime = seg[seg.length - 1].t - seg[0].t;
+    const cumDist = [0];
+    for (let j = 1; j < seg.length; j++) {
+      let step;
+      if (isTurn) {
+        step = shortAngleDiff(seg[j - 1].angle, seg[j].angle);
+      } else {
+        const dx = seg[j].x - seg[j - 1].x;
+        const dy = seg[j].y - seg[j - 1].y;
+        step = Math.sqrt(dx * dx + dy * dy);
+      }
+      cumDist.push(cumDist[j - 1] + step);
+    }
+    segmentCumulativeDists.push(cumDist);
+    const progressRaw = cumDist[cumDist.length - 1];
+    const progressPercent = totalDistance > 0 ? Math.min(progressRaw / totalDistance * 100, 100) : 100;
+    return {
+      totalTime,
+      totalDistance,
+      progressRaw,
+      progressPercent,
+      units: isTurn ? "deg" : "in"
+    };
+  });
+  pathTelemetry.setState(telemetry);
+  return { totalTime: t, trajectory, endTrajectory, segmentTrajectorys, segmentCumulativeDists, segmentTimeRanges, timeOffset: 0 };
+}
 let PID$2 = class PID {
   constructor(kp, ki, kd, starti, settle_time, settle_error, timeout, exit_error) {
     this.kp = kp;
@@ -13565,14 +13677,14 @@ let PID$2 = class PID {
     this.derivative = error - this.previous_error;
     this.previous_error = error;
     if (Math.abs(error) < this.settle_error) {
-      this.time_spent_settled += 1 / 60 * 1e3;
+      this.time_spent_settled += SIM_CONSTANTS.dt_ms;
     } else {
       this.time_spent_settled = 0;
     }
     if (Math.abs(error) < this.exit_error) {
       this.exiting = true;
     }
-    this.time_spent_running += 1 / 60 * 1e3;
+    this.time_spent_running += SIM_CONSTANTS.dt_ms;
     return output;
   }
   isSettled() {
@@ -13857,7 +13969,6 @@ function drive_to_point$1(robot, dt, x, y, p) {
   prev_line_settled$1 = line_settled;
   desired_heading = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
   const reversed_heading = desired_heading + (drive_p.drive_direction === "reversed" ? 180 : 0);
-  console.log(drive_p.drive_direction, desired_heading, reversed_heading);
   const drive_error = Math.hypot(x - robot.getX(), y - robot.getY());
   let heading_error = reduce_negative_180_to_180$1(reversed_heading - robot.getAngle());
   let drive_output = drivePID$3.compute(drive_error);
@@ -15317,110 +15428,6 @@ const holonomicDef = {
     }
   }
 };
-const SIM_CONSTANTS = {
-  seconds: 99,
-  dt: 1 / 60,
-  // Sim is run at 60 hertz
-  dt_ms: 1 / 60 * 1e3
-};
-const pathTelemetry = createStore([]);
-const activeSimSegmentStore = createStore(-1);
-const simJumpStore = createStore(null);
-const computedPathStore = createStore({
-  totalTime: 0,
-  trajectory: [],
-  endTrajectory: [],
-  segmentTrajectorys: [],
-  segmentCumulativeDists: [],
-  timeOffset: 0
-});
-function precomputePath(robot, auton) {
-  const simLengthSeconds = SIM_CONSTANTS.seconds;
-  let autoIdx = 0;
-  const trajectory = [];
-  const endTrajectory = [];
-  const segmentTrajectory = [];
-  const segmentTrajectorys = [];
-  const segmentKinds = [];
-  const segmentTargetDists = [];
-  const dt = SIM_CONSTANTS.dt;
-  let t = 0;
-  let safetyIter = 0;
-  const maxIter = 60 * simLengthSeconds;
-  while (safetyIter < maxIter) {
-    if (autoIdx < auton.length) {
-      const [done, kind, targetDist] = auton[autoIdx](robot, dt);
-      if (done) {
-        endTrajectory.push({
-          x: robot.getX(),
-          y: robot.getY(),
-          angle: robot.getAngle()
-        });
-        segmentTrajectorys.push([...segmentTrajectory]);
-        segmentKinds.push(kind);
-        segmentTargetDists.push(targetDist);
-        segmentTrajectory.length = 0;
-        autoIdx++;
-      }
-    }
-    if (autoIdx >= auton.length) break;
-    segmentTrajectory.push({
-      t,
-      x: robot.getX(),
-      y: robot.getY(),
-      angle: robot.getAngle()
-    });
-    trajectory.push({
-      t,
-      x: robot.getX(),
-      y: robot.getY(),
-      angle: robot.getAngle()
-    });
-    t += dt;
-    safetyIter++;
-  }
-  const turnKinds = /* @__PURE__ */ new Set(["pointTurn", "angleTurn", "angleSwing", "pointSwing"]);
-  function shortAngleDiff(a, b) {
-    let d = normalizeDeg(b - a);
-    if (d > 180) d -= 360;
-    return Math.abs(d);
-  }
-  const segmentCumulativeDists = [];
-  const telemetry = segmentTrajectorys.map((seg, i) => {
-    const kind = segmentKinds[i];
-    const isTurn = turnKinds.has(kind);
-    const totalDistance = segmentTargetDists[i] ?? 0;
-    if (seg.length === 0) {
-      segmentCumulativeDists.push([]);
-      return { totalTime: 0, totalDistance, progressRaw: 0, progressPercent: 0, units: isTurn ? "deg" : "in" };
-    }
-    const totalTime = seg[seg.length - 1].t - seg[0].t;
-    const cumDist = [0];
-    for (let j = 1; j < seg.length; j++) {
-      let step;
-      if (isTurn) {
-        step = shortAngleDiff(seg[j - 1].angle, seg[j].angle);
-      } else {
-        const dx = seg[j].x - seg[j - 1].x;
-        const dy = seg[j].y - seg[j - 1].y;
-        step = Math.sqrt(dx * dx + dy * dy);
-      }
-      cumDist.push(cumDist[j - 1] + step);
-    }
-    segmentCumulativeDists.push(cumDist);
-    const progressRaw = cumDist[cumDist.length - 1];
-    const progressPercent = totalDistance > 0 ? Math.min(progressRaw / totalDistance * 100, 100) : 100;
-    return {
-      totalTime,
-      totalDistance,
-      progressRaw,
-      progressPercent,
-      units: isTurn ? "deg" : "in"
-    };
-  });
-  pathTelemetry.setState(telemetry);
-  return { totalTime: t, trajectory, endTrajectory, segmentTrajectorys, segmentCumulativeDists, timeOffset: 0 };
-}
 let PID$1 = class PID2 {
   constructor(error, kp, ki, kd, starti, settle_error = 0, settle_time = 0, timeout = 0) {
     this.error = error;
@@ -17766,15 +17773,15 @@ function loadValidatedAppState() {
   const saved2 = localStorage.getItem("appState");
   if (!saved2) return DEFAULT_FORMAT;
   try {
-    const parsed = JSON.parse(saved2);
-    console.log(parsed);
-    const format = parsed.format ?? DEFAULT_FORMAT.format;
+    const parsed2 = JSON.parse(saved2);
+    console.log(parsed2);
+    const format = parsed2.format ?? DEFAULT_FORMAT.format;
     return {
       format,
-      field: parsed.field ?? DEFAULT_FORMAT.field,
-      formatDef: mergeFormatDef(FORMAT_REGISTRY[format], parsed.formatDef ?? parsed.defaults),
-      path: parsed.path && Array.isArray(parsed.path.segments) ? parsed.path : DEFAULT_FORMAT.path,
-      robot: parsed.robot ?? DEFAULT_FORMAT.robot
+      field: parsed2.field ?? DEFAULT_FORMAT.field,
+      formatDef: mergeFormatDef(FORMAT_REGISTRY[format], parsed2.formatDef ?? parsed2.defaults),
+      path: parsed2.path && Array.isArray(parsed2.path.segments) ? parsed2.path : DEFAULT_FORMAT.path,
+      robot: parsed2.robot ?? DEFAULT_FORMAT.robot
     };
   } catch {
     return DEFAULT_FORMAT;
@@ -18489,7 +18496,7 @@ const ConstantsList = reactExports.memo(function ConstantsList2({
     ),
     open && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute left-[10px] top-0 h-full w-[4px] rounded-full bg-medlightgray" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid grid-cols-2 min-w-0 pl-5 gap-1 mt-2 w-[400px]", children: fields.map((f) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid grid-cols-2 min-w-0 pl-5 gap-x-1 gap-y-0.5 mt-0.5 w-[400px]", children: fields.map((f) => /* @__PURE__ */ jsxRuntimeExports.jsx(
         ConstantRow,
         {
           label: f.label,
@@ -18606,6 +18613,120 @@ const moveMultipleSegments = (setPath, fromIds, toIndex) => {
   if (didChange) saveSnapshot();
 };
 const hoveredSegmentStore = createStore(null);
+const FIELD_COLORS = {
+  pathBaseColor: toRGBA("#1560BD", 0.75),
+  pathHoverColor: toRGBA("#a02807", 1),
+  pathSlowColor: toRGBA("#aa0505", 1),
+  pathMedColor: toRGBA("#977f03", 0.75),
+  pathFastColor: toRGBA("#058d29", 1),
+  endBorderColor: toRGBA("#1560BD", 0.75),
+  segmentColors: {
+    start: [
+      {
+        shape: "node",
+        baseColor: toRGBA("#a00753", 0.5),
+        selectedColor: toRGBA("#a00753", 0.75),
+        hoverScale: 1.4,
+        selectedScale: 1
+      },
+      {
+        shape: "line",
+        baseColor: toRGBA("#a00753", 1),
+        selectedColor: toRGBA("#a00753", 1),
+        hoverScale: 1.2,
+        selectedScale: 1.12
+      }
+    ],
+    poseDrive: [
+      {
+        shape: "node",
+        baseColor: toRGBA("#a02007", 0.5),
+        selectedColor: toRGBA("#a0320b", 0.75),
+        hoverScale: 1.4,
+        selectedScale: 1
+      },
+      {
+        shape: "line",
+        baseColor: toRGBA("#a02007", 1),
+        selectedColor: toRGBA("#a0320b", 1),
+        hoverScale: 1.2,
+        selectedScale: 1.12
+      }
+    ],
+    pointDrive: [
+      {
+        shape: "node",
+        baseColor: toRGBA("#a04207", 0.5),
+        selectedColor: toRGBA("#a0440b", 0.75),
+        hoverScale: 1.4,
+        selectedScale: 1
+      }
+    ],
+    distanceDrive: [
+      {
+        shape: "node",
+        baseColor: toRGBA("#a06d07", 0.5),
+        selectedColor: toRGBA("#a08407", 0.75),
+        hoverScale: 1.4,
+        selectedScale: 1
+      }
+    ],
+    strafeDrive: [
+      {
+        shape: "node",
+        baseColor: toRGBA("#77a007", 0.5),
+        selectedColor: toRGBA("#63a007", 0.75),
+        hoverScale: 1.4,
+        selectedScale: 1
+      }
+    ],
+    pointTurn: [
+      {
+        shape: "line",
+        baseColor: "#382727",
+        selectedColor: toRGBA("#9d3737", 0.9),
+        hoverScale: 1.2,
+        selectedScale: 1.4
+      }
+    ],
+    angleTurn: [
+      {
+        shape: "line",
+        baseColor: "#056185",
+        selectedColor: toRGBA("#056185", 0.9),
+        hoverScale: 1.2,
+        selectedScale: 1.4
+      }
+    ],
+    pointSwing: [
+      {
+        shape: "curve",
+        baseColor: "#491717",
+        selectedColor: toRGBA("#862828", 0.9),
+        hoverScale: 1.2,
+        selectedScale: 1.3
+      }
+    ],
+    angleSwing: [
+      {
+        shape: "curve",
+        baseColor: "#910798",
+        selectedColor: toRGBA("#910798", 0.9),
+        hoverScale: 1.2,
+        selectedScale: 1.3
+      }
+    ],
+    wait: [
+      {
+        shape: "circle",
+        baseColor: toRGBA("#1560BD", 0.3),
+        selectedColor: toRGBA("#1560BD", 0.6),
+        hoverScale: 1.2,
+        selectedScale: 1.4
+      }
+    ]
+  }
+};
 const MotionList = reactExports.memo(function MotionList2({
   segmentId,
   index,
@@ -18721,7 +18842,7 @@ const MotionList = reactExports.memo(function MotionList2({
     e.preventDefault();
     const computedPath = computedPathStore.getState();
     const startT = computedPath.segmentTrajectorys[index]?.[0]?.t ?? 0;
-    const percent = computedPath.totalTime > 0 ? startT / computedPath.totalTime * 100 : 0;
+    const percent = computedPath.totalTime > 0 ? (startT + SIM_CONSTANTS.dt) / computedPath.totalTime * 100 : 0;
     simJumpStore.setState(percent);
   };
   const field = reactExports.useMemo(() => {
@@ -18828,7 +18949,7 @@ const MotionList = reactExports.memo(function MotionList2({
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "div",
     {
-      className: `flex flex-col gap-2 mt-[1px] ${segment.locked ? "opacity-50 pointer-events-none" : ""}`,
+      className: `flex flex-col gap-0.5 mt-[1px] ${segment.locked ? "opacity-50 pointer-events-none" : ""}`,
       onClick: () => {
         if (selected) setOpen(!isOpen);
       },
@@ -18857,14 +18978,16 @@ const MotionList = reactExports.memo(function MotionList2({
                     h-[35px] gap-[12px]
                     bg-medgray
                     hover:brightness-92
-                    rounded-lg pl-4 pr-4
+                    rounded-md pl-4 pr-4
                     transition-all duration-100
                     active:scale-[0.995]
-                    ${isOpen && !selected ? "border-2 border-medlightgray" : "border-2 border-transparent"}
+                    ${isActiveSimSegment ? "border-2 border-[#535252]" : "border-2 border-transparent"}
                     ${draggingIds.includes(segmentId) ? "opacity-10" : ""}
                 `,
             children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `absolute left-0 top-[20%] h-[60%] w-[3px] rounded-full bg-lightgray transition-opacity duration-150 ${isActiveSimSegment ? "opacity-100" : "opacity-0"}` }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `absolute -left-[2px] -inset-y-0.5 w-[5px] h-7.5 self-center rounded-md ${selected ? "brightness-150" : ""}`, style: {
+                backgroundColor: FIELD_COLORS.segmentColors[segment.kind]?.[0]?.baseColor.replace(/,\s*[\d.]+\)$/, ", 1)")
+              } }),
               /* @__PURE__ */ jsxRuntimeExports.jsx(
                 "button",
                 {
@@ -18873,7 +18996,7 @@ const MotionList = reactExports.memo(function MotionList2({
                     e.stopPropagation();
                     setOpen(!isOpen);
                   },
-                  children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: `w-[15px] h-[15px] transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`, src: downArrow })
+                  children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: `w-[15px] h-[15px]  transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`, src: downArrow })
                 }
               ),
               /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "cursor-pointer shrink-0", onClick: (e) => {
@@ -18937,7 +19060,7 @@ const MotionList = reactExports.memo(function MotionList2({
           "div",
           {
             onClick: (e) => e.stopPropagation(),
-            className: `relative flex flex-col ml-9 gap-2 ${(!isTelemetryOpen || telemetrySlice === void 0) && !isOpen ? "hidden" : ""}`,
+            className: `relative flex flex-col ml-9 gap-0.5 ${(!isTelemetryOpen || telemetrySlice === void 0) && !isOpen ? "hidden" : ""}`,
             children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute left-[-16px] top-0 h-full w-[4px] rounded-full bg-medlightgray" }),
               isTelemetryOpen && telemetrySlice !== void 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex pl-1.5 gap-2 text-left", children: [
@@ -18966,7 +19089,7 @@ const MotionList = reactExports.memo(function MotionList2({
                   /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[10px] text-lightgray align-super leading-none", children: " %" })
                 ] })
               ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `flex flex-col gap-1 ${isOpen ? "" : "hidden"}`, children: fieldSections2.map((f) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `flex flex-col gap-0.5 ${isOpen ? "" : "hidden"}`, children: fieldSections2.map((f) => /* @__PURE__ */ jsxRuntimeExports.jsx(
                 ConstantsList,
                 {
                   header: f.header,
@@ -19110,7 +19233,7 @@ function PathConfig() {
     /* @__PURE__ */ jsxRuntimeExports.jsxs(
       "div",
       {
-        className: "mt-[10px] flex-1 min-h-2 overflow-y-auto scrollbar-thin\n                flex-col items-center overflow-x-hidden space-y-1.5 relative",
+        className: "mt-[10px] flex-1 min-h-2 overflow-y-auto scrollbar-thin\n                flex-col items-center overflow-x-hidden space-y-0.5 relative",
         onDrop: (e) => {
           if (draggingIds.length === 0) return;
           if (overIndex !== null && overIndex > 0) {
@@ -19375,9 +19498,9 @@ function parseSegmentLine(line, kind, segDef, formatDef, format) {
   for (const [name, value] of Object.entries(captured)) {
     if (name === "x" || name === "y" || name === "angle" || name === "distance" || name === "time" || name === "kBuilder" || !value) continue;
     const num = parseFloat(value);
-    const parsed = isNaN(num) ? value.trim() : num;
+    const parsed2 = isNaN(num) ? value.trim() : num;
     for (const k of constants) {
-      if (name in k) k[name] = parsed;
+      if (name in k) k[name] = parsed2;
     }
   }
   const parsedDistance = "distance" in captured && captured.distance !== "" ? parseFloat(captured.distance) : void 0;
@@ -19547,11 +19670,13 @@ const DEFAULTS = {
   precisePath: false,
   numberedPath: false,
   loopPath: false,
-  snapToGrid: 0.5,
-  themeIdx: 0
+  snapToGrid: 0.5
 };
 const saved = localStorage.getItem("settings");
-const initial = saved ? { ...DEFAULTS, ...JSON.parse(saved) } : DEFAULTS;
+const parsed = saved ? JSON.parse(saved) : {};
+const initial = Object.fromEntries(
+  Object.keys(DEFAULTS).map((k) => [k, parsed[k] ?? DEFAULTS[k]])
+);
 const useSettings = createSharedState(initial);
 const useSimulateGroup = createSharedState([]);
 const loopOn = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20stroke='%23ffffff'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20d='M21%2012C21%2016.9706%2016.9706%2021%2012%2021C9.69494%2021%207.59227%2020.1334%206%2018.7083L3%2016M3%2012C3%207.02944%207.02944%203%2012%203C14.3051%203%2016.4077%203.86656%2018%205.29168L21%208M3%2021V16M3%2016H8M21%203V8M21%208H16'%20stroke='%23ffffff'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/g%3e%3c/svg%3e";
@@ -19676,12 +19801,13 @@ function PathSimulator() {
     skip.current = true;
   }, [path]);
   reactExports.useEffect(() => {
+    const adjustedTime = time + computedPath.timeOffset;
+    activeSimSegmentStore.setState(activeSegmentAtTime(computedPath, adjustedTime));
     const segs = computedPath.segmentTrajectorys;
     const cumDists = computedPath.segmentCumulativeDists;
     const telemetry = pathTelemetry.getState();
     if (!telemetry.length) return;
     const dt = SIM_CONSTANTS.dt;
-    const adjustedTime = time + computedPath.timeOffset;
     const updated = telemetry.map((tel, i) => {
       const seg = segs[i];
       const cumDist = cumDists[i];
@@ -19703,15 +19829,13 @@ function PathSimulator() {
       return { ...tel, progressRaw, progressPercent };
     });
     pathTelemetry.setState(updated);
-    const activeIdx = updated.findIndex((tel) => tel.progressPercent > 0 && tel.progressPercent < 100);
-    activeSimSegmentStore.setState(activeIdx);
   }, [time, computedPath]);
   reactExports.useEffect(() => {
     const handleKeyDown = (evt) => {
       const target2 = evt.target;
       if (target2?.isContentEditable || target2?.tagName === "INPUT") return;
       pauseSimulator(evt, setPlaying, setRobotVisibility);
-      scrubSimulator(evt, setValue, setPlaying, setRobotVisibility, skip, computedPath, 1 / 60, 0.25);
+      scrubSimulator(evt, setValue, setPlaying, setRobotVisibility, skip, computedPath, SIM_CONSTANTS.dt, 0.25);
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => {
@@ -19747,7 +19871,7 @@ function PathSimulator() {
     setPose({ x: snap.x, y: snap.y, angle: snap.angle });
   };
   reactExports.useEffect(() => {
-    const dt = 1 / 60;
+    const dt = SIM_CONSTANTS.dt;
     if (playing) {
       setTime((prev) => prev + dt >= computedPath.totalTime ? 0 : prev);
     }
@@ -20149,13 +20273,24 @@ function handleFileConversion(content) {
   const path = rawPath ? { ...rawPath, segments } : DEFAULT_FORMAT.path;
   return { ...DEFAULT_FORMAT, format, formatDef: FORMAT_REGISTRY[format], path };
 }
+function validateRobot(raw) {
+  if (!raw || typeof raw !== "object") return defaultRobotConstants;
+  const robot = raw;
+  for (const [key, def] of Object.entries(defaultRobotConstants)) {
+    const value = robot[key];
+    if (typeof value !== typeof def) return defaultRobotConstants;
+    if (typeof value === "number" && !Number.isFinite(value)) return defaultRobotConstants;
+  }
+  return raw;
+}
 function deserializeFile(content) {
   const newline = content.indexOf("\n");
   const firstLine = newline === -1 ? content : content.slice(0, newline);
   if (firstLine.trim() !== FILE_VERSION) {
     return handleFileConversion(content);
   }
-  return JSON.parse(content.slice(newline + 1));
+  const parsed2 = JSON.parse(content.slice(newline + 1));
+  return { ...parsed2, robot: validateRobot(parsed2.robot) };
 }
 async function loadFromHandle(handle) {
   if (fileUndosStore.getState() > 1) {
@@ -20177,11 +20312,11 @@ async function loadFromHandle(handle) {
   const file = await handle.getFile();
   const content = await file.text();
   const fileName = handle.name.replace(/\.[^/.]+$/, "");
-  const parsed = deserializeFile(content);
+  const parsed2 = deserializeFile(content);
   fileFormatStore.setState({
-    ...parsed,
-    formatDef: mergeFormatDef(FORMAT_REGISTRY[parsed.format], parsed.formatDef),
-    path: { ...parsed.path, name: fileName }
+    ...parsed2,
+    formatDef: mergeFormatDef(FORMAT_REGISTRY[parsed2.format], parsed2.formatDef),
+    path: { ...parsed2.path, name: fileName }
   });
   saveSnapshot();
   fileUndosStore.setState(0);
@@ -20545,15 +20680,17 @@ function MenuKeybindButton({ callback, name, keybind, textSize }) {
     }
   );
 }
-function ConfigKeybindButton({ callback, name, keybind, textSize }) {
+const toSolid = (color) => color.replace(/,\s*[\d.]+\)$/, ", 1)");
+function ConfigKeybindButton({ callback, name, keybind, textSize, color }) {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "button",
     {
       onClick: callback,
-      className: "flex w-full pr-1 pl-2 py-0.5 items-center justify-between bg-medgray hover:brightness-92 cursor-pointer rounded-sm",
+      className: "relative flex w-full pr-1 pl-2 py-0.5 items-center justify-between bg-medgray hover:brightness-92 cursor-pointer rounded-sm",
       children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `text-[${textSize || 14}px] truncate min-w-0`, children: name }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `text-lightgray text-[${textSize || 14}px] font-sans flex items-center gap-0`, children: keybind })
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: color ? { paddingLeft: "6px" } : void 0, className: `text-[${textSize || 14}px] truncate min-w-0`, children: name }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `text-lightgray text-[${textSize || 14}px] font-sans flex items-center gap-0`, children: keybind }),
+        color && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "absolute inset-y-0 left-0.5 w-1 h-5 self-center rounded-sm", style: { backgroundColor: toSolid(color) } })
       ]
     }
   );
@@ -20698,11 +20835,11 @@ function FileButton() {
       const reader = new FileReader();
       reader.onload = (e) => {
         const content = e.target?.result;
-        const parsed = deserializeFile(content);
+        const parsed2 = deserializeFile(content);
         fileFormatStore.setState({
-          ...parsed,
-          formatDef: mergeFormatDef(FORMAT_REGISTRY[parsed.format], parsed.formatDef),
-          path: { ...parsed.path, name: fileName }
+          ...parsed2,
+          formatDef: mergeFormatDef(FORMAT_REGISTRY[parsed2.format], parsed2.formatDef),
+          path: { ...parsed2.path, name: fileName }
         });
         saveSnapshot();
         fileUndosStore.setState(0);
@@ -20991,98 +21128,91 @@ function EditJSONPopup({
     document.body
   ) });
 }
-const RED_BLUE_THEME = {
-  primary: "#a02007",
-  secondary: "#1560BD",
-  control: {
-    fill: toRGBA("#a02007", 0.5),
-    selected: toRGBA("#a0320b", 0.75),
-    stroke: toRGBA("#1560BD", 0.75)
-  },
-  turn: {
-    stroke: "#451717",
-    selected: toRGBA("#a0320b", 0.9),
-    strokePos: toRGBA("#1560BD", 1)
-  },
-  path: {
-    strokeLight: toRGBA("#21b8c3", 1),
-    stroke: toRGBA("#1560BD", 0.75),
-    strokeDark: toRGBA("#7e1ca1", 1),
-    hovered: toRGBA("#a02007", 1)
-  }
-};
-const gp_primary = "#7027c9";
-const gp_secondary = "#31a504";
-const gp_selected = "#8c2eff";
-const GREEN_PURPLE_THEME = {
-  primary: gp_primary,
-  secondary: gp_secondary,
-  control: {
-    fill: toRGBA(gp_primary, 0.5),
-    selected: toRGBA(gp_selected, 0.75),
-    stroke: toRGBA(gp_secondary, 0.75)
-  },
-  turn: {
-    stroke: "#021205",
-    selected: toRGBA(gp_selected, 0.9),
-    strokePos: toRGBA(gp_secondary, 1)
-  },
-  path: {
-    strokeLight: toRGBA("#c8db5d", 1),
-    stroke: toRGBA(gp_secondary, 0.75),
-    strokeDark: toRGBA("#c80505", 1),
-    hovered: toRGBA(gp_primary, 1)
-  }
-};
-const ORANGE_CYAN_THEME = {
-  primary: "#d45a00",
-  secondary: "#0096aa",
-  control: {
-    fill: toRGBA("#d45a00", 0.5),
-    selected: toRGBA("#a03f00", 0.75),
-    stroke: toRGBA("#0096aa", 0.75)
-  },
-  turn: {
-    stroke: "#4a2000",
-    selected: toRGBA("#a03f00", 0.9),
-    strokePos: toRGBA("#0096aa", 1)
-  },
-  path: {
-    strokeLight: toRGBA("#19ca69", 1),
-    stroke: toRGBA("#0096aa", 0.75),
-    strokeDark: toRGBA("#1b03a4", 1),
-    hovered: toRGBA("#d45a00", 1)
-  }
-};
-const gn_primary = "#1f4acc";
-const gn_secondary = "#b5820c";
-const gn_selected = "#265cff";
-const GOLD_NAVY_THEME = {
-  primary: gn_primary,
-  secondary: gn_secondary,
-  control: {
-    fill: toRGBA(gn_primary, 0.5),
-    selected: toRGBA(gn_selected, 0.75),
-    stroke: toRGBA(gn_secondary, 0.75)
-  },
-  turn: {
-    stroke: "#3d2a00",
-    selected: toRGBA(gn_selected, 0.9),
-    strokePos: toRGBA(gn_secondary, 1)
-  },
-  path: {
-    strokeLight: toRGBA("#f09e60", 1),
-    stroke: toRGBA(gn_secondary, 0.75),
-    strokeDark: toRGBA("#85b50c", 1),
-    hovered: toRGBA(gn_primary, 1)
-  }
-};
-const DEFAULT_THEMES = [
-  RED_BLUE_THEME,
-  GREEN_PURPLE_THEME,
-  ORANGE_CYAN_THEME,
-  GOLD_NAVY_THEME
-];
+function ConfigCheckboxButton({ name, checked, setChecked, label }) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row pr-2 pl-2 py-0.5 items-center justify-between rounded-sm", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: name }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: label ?? "", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Checkbox, { checked, setChecked, size: 18 }) })
+  ] });
+}
+function MenuCheckboxButton({ name, checked, setChecked, label }) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row pr-2 pl-2 py-0.5 items-center justify-between rounded-sm", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: name }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: label ?? "", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Checkbox, { checked, setChecked, size: 18 }) })
+  ] });
+}
+function NumberInputButton({ name, value, setValue, bounds, stepSize, roundTo, units, label }) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row pr-1 pl-2 items-center justify-between rounded-sm", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: name }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+      NumberInput,
+      {
+        width: 45,
+        height: 28,
+        fontSize: 14,
+        bounds,
+        stepSize,
+        roundTo,
+        units,
+        value,
+        setValue,
+        addToHistory: () => saveSnapshot()
+      }
+    ) })
+  ] });
+}
+function NumberInputCheckboxButton({ name, value, setValue, bounds, stepSize, roundTo, units, checked, setChecked }) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row pr-1 pl-2 items-center justify-between rounded-sm", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: name }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row items-center gap-1.5", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Checkbox, { checked, setChecked, size: 18 }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: checked ? "" : "opacity-40 pointer-events-none", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+        NumberInput,
+        {
+          width: 45,
+          height: 28,
+          fontSize: 14,
+          bounds,
+          stepSize,
+          roundTo,
+          units,
+          value,
+          setValue,
+          addToHistory: () => saveSnapshot()
+        }
+      ) })
+    ] })
+  ] });
+}
+function SettingsButton() {
+  const [settings, setSettings] = useSettings();
+  const [popup, setPopup] = reactExports.useState(false);
+  reactExports.useEffect(() => {
+    localStorage.setItem("settings", JSON.stringify(settings));
+  }, [settings]);
+  const set = (key) => (state) => setSettings((prev) => ({ ...prev, [key]: state }));
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+    popup && /* @__PURE__ */ jsxRuntimeExports.jsx(
+      EditJSONPopup,
+      {
+        label: "",
+        open: popup,
+        setOpen: setPopup,
+        onEnter: () => {
+        }
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(MenuButtonTemplate, { title: "Settings", closeOnClick: false, width: 40, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-1.5", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Robot Position", label: "Displays robots's actual position", checked: settings.robotPosition, setChecked: set("robotPosition") }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Precise Path", label: "Displays robots exact path taken", checked: settings.precisePath, setChecked: set("precisePath") }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Numbered Path", label: "Displays number labels for notebook screenshots", checked: settings.numberedPath, setChecked: set("numberedPath") }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Robot Outlines", label: "Displays end positions when sim is off", checked: settings.ghostRobots, setChecked: set("ghostRobots") }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Grid Snap", label: "What to snap to while Ctrl+Dragging", value: settings.snapToGrid, setValue: (v) => v !== null && set("snapToGrid")(v), bounds: [0.1, 10], stepSize: 0.5, roundTo: 1, units: "in" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Edit Templates", keybind: "", callback: () => setPopup(true) })
+    ] }) })
+  ] });
+}
 function pointerToSvg(evt, svg) {
   const ctm = svg.getScreenCTM();
   if (ctm) {
@@ -21190,124 +21320,6 @@ const getSegmentLines = (idx, path, img, precise = false) => {
   }
   return boomerangPts.join(" ");
 };
-function ConfigCheckboxButton({ name, checked, setChecked, label }) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row pr-2 pl-2 py-0.5 items-center justify-between rounded-sm", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: name }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: label ?? "", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Checkbox, { checked, setChecked, size: 18 }) })
-  ] });
-}
-function MenuCheckboxButton({ name, checked, setChecked, label }) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row pr-2 pl-2 py-0.5 items-center justify-between rounded-sm", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: name }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: label ?? "", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Checkbox, { checked, setChecked, size: 18 }) })
-  ] });
-}
-function NumberInputButton({ name, value, setValue, bounds, stepSize, roundTo, units, label }) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row pr-1 pl-2 items-center justify-between rounded-sm", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: name }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-      NumberInput,
-      {
-        width: 45,
-        height: 28,
-        fontSize: 14,
-        bounds,
-        stepSize,
-        roundTo,
-        units,
-        value,
-        setValue,
-        addToHistory: () => saveSnapshot()
-      }
-    ) })
-  ] });
-}
-function NumberInputCheckboxButton({ name, value, setValue, bounds, stepSize, roundTo, units, checked, setChecked }) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row pr-1 pl-2 items-center justify-between rounded-sm", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: name }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row items-center gap-1.5", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Checkbox, { checked, setChecked, size: 18 }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: checked ? "" : "opacity-40 pointer-events-none", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-        NumberInput,
-        {
-          width: 45,
-          height: 28,
-          fontSize: 14,
-          bounds,
-          stepSize,
-          roundTo,
-          units,
-          value,
-          setValue,
-          addToHistory: () => saveSnapshot()
-        }
-      ) })
-    ] })
-  ] });
-}
-function ColorButton({ callback, name, primary, secondary, textSize }) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    "button",
-    {
-      className: "flex pr-1 pl-2 py-0.5 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm",
-      onClick: callback,
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `text-[${textSize || 14}px]`, children: name }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row gap-1", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "div",
-            {
-              style: { backgroundColor: primary },
-              className: "w-4 h-4 rounded-sm"
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "div",
-            {
-              style: { backgroundColor: secondary },
-              className: "w-4 h-4 rounded-sm"
-            }
-          )
-        ] })
-      ]
-    }
-  );
-}
-function SettingsButton() {
-  const [settings, setSettings] = useSettings();
-  const [popup, setPopup] = reactExports.useState(false);
-  reactExports.useEffect(() => {
-    localStorage.setItem("settings", JSON.stringify(settings));
-  }, [settings]);
-  const updateTheme = (idx) => {
-    const newIdx = settings.themeIdx === idx ? (idx + 1) % DEFAULT_THEMES.length : idx;
-    setSettings((prev) => ({ ...prev, themeIdx: newIdx }));
-  };
-  const set = (key) => (state) => setSettings((prev) => ({ ...prev, [key]: state }));
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-    popup && /* @__PURE__ */ jsxRuntimeExports.jsx(
-      EditJSONPopup,
-      {
-        label: "",
-        open: popup,
-        setOpen: setPopup,
-        onEnter: () => {
-        }
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(MenuButtonTemplate, { title: "Settings", closeOnClick: false, width: 40, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-1.5", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Robot Position", label: "Displays robots's actual position", checked: settings.robotPosition, setChecked: set("robotPosition") }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Precise Path", label: "Displays robots exact path taken", checked: settings.precisePath, setChecked: set("precisePath") }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Numbered Path", label: "Displays number labels for notebook screenshots", checked: settings.numberedPath, setChecked: set("numberedPath") }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Robot Outlines", label: "Displays end positions when sim is off", checked: settings.ghostRobots, setChecked: set("ghostRobots") }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(ColorButton, { name: "Theme", primary: DEFAULT_THEMES[settings.themeIdx].primary, secondary: DEFAULT_THEMES[settings.themeIdx].secondary, callback: () => updateTheme(settings.themeIdx) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Grid Snap", label: "What to snap to while Ctrl+Dragging", value: settings.snapToGrid, setValue: (v) => v !== null && set("snapToGrid")(v), bounds: [0.1, 10], stepSize: 0.5, roundTo: 1, units: "in" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Edit Templates", keybind: "", callback: () => setPopup(true) })
-    ] }) })
-  ] });
-}
 function FieldMacros() {
   const MIN_FIELD_X = -999;
   const MIN_FIELD_Y = -999;
@@ -21512,12 +21524,12 @@ function FieldMacros() {
   const paste = (evt, setPath) => {
     const apply = (text) => {
       const { formatDef, format } = fileFormatStore.getState();
-      const parsed = convertStringToPath(formatDef, format, text);
-      if (parsed.length === 0) return;
+      const parsed2 = convertStringToPath(formatDef, format, text);
+      if (parsed2.length === 0) return;
       setPath((prev) => {
         let selectedIndex = prev.segments.findIndex((c) => c.selected);
         selectedIndex = selectedIndex === -1 ? prev.segments.length : selectedIndex + 1;
-        const toInsert = prev.segments.length === 0 && parsed[0].kind !== "start" ? [createSegment(formatDef, format, "start", { x: 0, y: 0, angle: 0 }), ...parsed] : parsed;
+        const toInsert = prev.segments.length === 0 && parsed2[0].kind !== "start" ? [createSegment(formatDef, format, "start", { x: 0, y: 0, angle: 0 }), ...parsed2] : parsed2;
         const insertStart = selectedIndex;
         const insertEnd = selectedIndex + toInsert.length;
         const inserted = [
@@ -21863,22 +21875,23 @@ function AddSegmentButton() {
   } = FieldMacros();
   const seg = (key) => formatDef.segments[key];
   const segName = (key) => String(formatDef.segments[key]?.name);
+  const segColor = (key) => FIELD_COLORS.segmentColors[key]?.[0]?.baseColor;
   const visible = (key) => seg(key) && !seg(key)?.castTo;
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigButtonTemplate, { title: "Segment", children: [
-    visible("pointDrive") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Left Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("pointDrive"), callback: () => addPointDriveSegment(null, format, { x: 0, y: 0 }, setPath, path) }) }),
-    visible("poseDrive") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Ctrl+Left Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("poseDrive"), callback: () => addPoseDriveSegment(null, format, { x: 0, y: 0, angle: 0 }, setPath, path) }) }),
+    visible("pointDrive") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Left Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("pointDrive"), color: segColor("pointDrive"), callback: () => addPointDriveSegment(null, format, { x: 0, y: 0 }, setPath, path) }) }),
+    visible("poseDrive") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Ctrl+Left Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("poseDrive"), color: segColor("poseDrive"), callback: () => addPoseDriveSegment(null, format, { x: 0, y: 0, angle: 0 }, setPath, path) }) }),
     (visible("distanceDrive") || visible("strafeDrive")) && /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
-    visible("distanceDrive") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Alt+Left Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("distanceDrive"), callback: () => addDistanceSegment(null, format, { x: 0, y: 0, angle: null }, setPath, path) }) }),
-    visible("strafeDrive") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Ctrl+Alt+Left Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("strafeDrive"), callback: () => addStrafeSegment(null, format, { x: 0, y: 0, angle: null }, setPath, path) }) }),
+    visible("distanceDrive") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Alt+Left Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("distanceDrive"), color: segColor("distanceDrive"), callback: () => addDistanceSegment(null, format, { x: 0, y: 0, angle: null }, setPath, path) }) }),
+    visible("strafeDrive") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Ctrl+Alt+Left Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("strafeDrive"), color: segColor("strafeDrive"), callback: () => addStrafeSegment(null, format, { x: 0, y: 0, angle: null }, setPath, path) }) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
-    visible("pointTurn") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Right Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("pointTurn"), callback: () => addPointTurnSegment(null, format, setPath, path) }) }),
-    visible("angleTurn") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Ctrl+Right Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("angleTurn"), callback: () => addAngleTurnSegment(null, format, setPath, path) }) }),
+    visible("pointTurn") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Right Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("pointTurn"), color: segColor("pointTurn"), callback: () => addPointTurnSegment(null, format, setPath, path) }) }),
+    visible("angleTurn") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Ctrl+Right Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("angleTurn"), color: segColor("angleTurn"), callback: () => addAngleTurnSegment(null, format, setPath, path) }) }),
     (visible("pointSwing") || visible("angleSwing")) && /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
-    visible("pointSwing") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Alt+Right Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("pointSwing"), callback: () => addPointSwingSegment(null, format, setPath, path) }) }),
-    visible("angleSwing") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Ctrl+Alt+Right Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("angleSwing"), callback: () => addAngleSwingSegment(null, format, setPath, path) }) }),
+    visible("pointSwing") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Alt+Right Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("pointSwing"), color: segColor("pointSwing"), callback: () => addPointSwingSegment(null, format, setPath, path) }) }),
+    visible("angleSwing") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Ctrl+Alt+Right Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("angleSwing"), color: segColor("angleSwing"), callback: () => addAngleSwingSegment(null, format, setPath, path) }) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
-    visible("start") && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("start"), callback: () => addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath) }),
-    visible("wait") && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("wait"), callback: () => addWaitSegment(format, setPath, path) })
+    visible("start") && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("start"), color: segColor("start"), callback: () => addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath) }),
+    visible("wait") && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("wait"), color: segColor("wait"), callback: () => addWaitSegment(format, setPath, path) })
   ] });
 }
 function EditButton() {
@@ -23032,12 +23045,20 @@ function RobotLayer({ img, pose, robotPose, robotConstants, visible, path }) {
 }
 const DOT_SPACING = 1.5;
 const DOT_RADIUS = 1.8 * FIELD_REAL_DIMENSIONS.w / FIELD_IMG_DIMENSIONS.w;
-function speedColor(t, slow2, mid, fast2) {
-  const curved = Math.pow(t, 1.5);
-  const [a, b, frac] = curved < 0.5 ? [slow2, mid, curved * 2] : [mid, fast2, (curved - 0.5) * 2];
-  return `rgb(${Math.round(a[0] + frac * (b[0] - a[0]))},${Math.round(a[1] + frac * (b[1] - a[1]))},${Math.round(a[2] + frac * (b[2] - a[2]))})`;
+const SLOW_RGB = toRGB(FIELD_COLORS.pathSlowColor);
+const MID_RGB = toRGB(FIELD_COLORS.pathMedColor);
+const FAST_RGB = toRGB(FIELD_COLORS.pathFastColor);
+const HOVER_RGB = toRGB(FIELD_COLORS.pathHoverColor);
+const HOVER_TINT = 0.45;
+function speedColor(t, slow2, mid, fast2, tint = 0) {
+  const [a, b, frac] = t < 0.5 ? [slow2, mid, t * 2] : [mid, fast2, (t - 0.5) * 2];
+  const channel = (i) => {
+    const c = a[i] + frac * (b[i] - a[i]);
+    return Math.round(c + (HOVER_RGB[i] - c) * tint);
+  };
+  return `rgb(${channel(0)},${channel(1)},${channel(2)})`;
 }
-function PathLayer({ path, img, visible, precise, colors }) {
+function PathLayer({ path, img, visible, precise }) {
   const trajectories = computedPathStore.useSelector((s) => s.segmentTrajectorys);
   const hoveredId = hoveredSegmentStore.useStore();
   const allDots = reactExports.useMemo(
@@ -23045,9 +23066,6 @@ function PathLayer({ path, img, visible, precise, colors }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [trajectories, path.segments.length]
   );
-  const slowRGB = reactExports.useMemo(() => toRGB(colors.path.strokeDark), [colors.path.strokeDark]);
-  const midRGB = reactExports.useMemo(() => toRGB(colors.path.stroke), [colors.path.stroke]);
-  const fastRGB = reactExports.useMemo(() => toRGB(colors.path.strokeLight), [colors.path.strokeLight]);
   if (visible || path.segments.length < 2) return null;
   const imgDefaultSize = (FIELD_IMG_DIMENSIONS.w + FIELD_IMG_DIMENSIONS.h) / 2;
   const imgRealSize = (img.w + img.h) / 2;
@@ -23059,7 +23077,7 @@ function PathLayer({ path, img, visible, precise, colors }) {
   const dotTransform = `translate(${tx},${ty}) scale(${sx},${-sy})`;
   return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: path.segments.map((control, idx) => {
     const hovered = hoveredId === control.id;
-    const color = hovered ? colors.path.hovered : colors.path.stroke;
+    const color = hovered ? FIELD_COLORS.pathHoverColor : FIELD_COLORS.pathBaseColor;
     if (precise) {
       const dots = allDots[idx];
       if (!dots) return null;
@@ -23069,7 +23087,7 @@ function PathLayer({ path, img, visible, precise, colors }) {
           cx: pt.x,
           cy: pt.y,
           r: DOT_RADIUS,
-          fill: hovered ? color : speedColor(pt.t, slowRGB, midRGB, fastRGB)
+          fill: speedColor(pt.t, SLOW_RGB, MID_RGB, FAST_RGB, hovered ? HOVER_TINT : 0)
         },
         i
       )) }, `precise-seg-${control.id}`);
@@ -23090,50 +23108,140 @@ function PathLayer({ path, img, visible, precise, colors }) {
     );
   }) });
 }
-const VISUAL = {
-  node: {
-    hoverRadiusMultiplier: 1.4,
-    snapStrokeWidth: 1.4
-  },
-  turnIndicator: {
-    poseDriveStartReducedFactor: 0.8,
-    activeHoveredRadiusMultiplier: 1.8,
-    activeRadiusMultiplier: 1.4,
-    hoverRadiusMultiplier: 1.2,
-    activeThickness: 5,
-    hoverThickness: 4,
-    defaultThickness: 2
-  },
-  swingIndicator: {
-    activeHoveredRadiusMultiplier: 1.5,
-    activeRadiusMultiplier: 1.3,
-    hoverRadiusMultiplier: 1.2,
-    innerRadiusOffsetFactor: 0.6,
-    activeCurveAmount: 0.45,
-    hoverCurveAmount: 0.35,
-    defaultCurveAmount: 0.25,
-    activeThickness: 5,
-    hoverThickness: 4,
-    defaultThickness: 2
-  },
-  waitIndicator: {
-    scale: 0.3,
-    activeHoveredRadiusMultiplier: 1.8,
-    activeRadiusMultiplier: 1.4,
-    hoverRadiusMultiplier: 1.2
-  },
-  numberLabel: {
-    fontSizeMultiplier: 0.9
+function shapeColor(attr, selected) {
+  return selected ? attr.selectedColor : attr.baseColor;
+}
+function shapeScale(attr, selected, hovered) {
+  return (selected ? attr.selectedScale : 1) * (hovered ? attr.hoverScale : 1);
+}
+function indicatorThickness(selected, hovered) {
+  return selected ? 5 : hovered ? 4 : 2;
+}
+function indicatorAngle(ctx, snapPose) {
+  const angle = ctx.seg.pose.angle ?? 0;
+  if (ctx.seg.kind === "pointTurn" || ctx.seg.kind === "pointSwing") {
+    const pos = findPointToFace(ctx.path, ctx.idx);
+    return calculateHeading({ x: snapPose.x, y: snapPose.y }, { x: pos.x, y: pos.y }) + angle;
   }
-};
-function ControlsLayer({ path, img, radius, format, colors, onPointerDown }) {
+  return angle;
+}
+function indicatorTipPx(ctx, snapPose, angle, r) {
+  return toPX(
+    {
+      x: snapPose.x + r * FIELD_REAL_DIMENSIONS.w / ctx.img.w * Math.sin(toRad(angle)),
+      y: snapPose.y + r * FIELD_REAL_DIMENSIONS.h / ctx.img.h * Math.cos(toRad(angle))
+    },
+    FIELD_REAL_DIMENSIONS,
+    ctx.img
+  );
+}
+function renderNode(ctx, attr) {
+  const { seg } = ctx;
+  if (seg.pose.x === null || seg.pose.y === null) return null;
+  const nodePx = toPX({ x: seg.pose.x, y: seg.pose.y }, FIELD_REAL_DIMENSIONS, ctx.img);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "circle",
+    {
+      style: { stroke: FIELD_COLORS.endBorderColor, ...seg.locked ? { cursor: "not-allowed" } : { cursor: "grab" } },
+      id: seg.id,
+      cx: nodePx.x,
+      cy: nodePx.y,
+      r: ctx.radius * shapeScale(attr, seg.selected, ctx.hovered),
+      fill: shapeColor(attr, seg.selected),
+      strokeWidth: ctx.idx === ctx.snapIdx ? 1.4 * ctx.scale : 0
+    }
+  );
+}
+function renderLine(ctx, attr) {
+  const snapPose = getBackwardsSnapPose(ctx.path, ctx.idx);
+  if (snapPose === null || snapPose.x === null || snapPose.y === null) return null;
+  const { seg } = ctx;
+  const r = ctx.radius * shapeScale(attr, seg.selected, ctx.hovered);
+  const angle = indicatorAngle(ctx, { x: snapPose.x, y: snapPose.y });
+  const basePx = toPX({ x: snapPose.x, y: snapPose.y }, FIELD_REAL_DIMENSIONS, ctx.img);
+  const tipPx = indicatorTipPx(ctx, { x: snapPose.x, y: snapPose.y }, angle, r);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "line",
+    {
+      pointerEvents: "none",
+      x1: basePx.x,
+      y1: basePx.y,
+      x2: tipPx.x,
+      y2: tipPx.y,
+      stroke: shapeColor(attr, seg.selected),
+      strokeWidth: indicatorThickness(seg.selected, ctx.hovered) * ctx.scale,
+      strokeLinecap: "round"
+    }
+  );
+}
+function renderCurve(ctx, attr) {
+  const snapPose = getBackwardsSnapPose(ctx.path, ctx.idx);
+  if (snapPose === null || snapPose.x === null || snapPose.y === null) return null;
+  const { seg } = ctx;
+  const r = ctx.radius * shapeScale(attr, seg.selected, ctx.hovered);
+  const thickness = indicatorThickness(seg.selected, ctx.hovered);
+  const angle = indicatorAngle(ctx, { x: snapPose.x, y: snapPose.y });
+  const rInner = Math.max(0, r - thickness * 0.6);
+  const basePx = toPX({ x: snapPose.x, y: snapPose.y }, FIELD_REAL_DIMENSIONS, ctx.img);
+  const tipPx = indicatorTipPx(ctx, { x: snapPose.x, y: snapPose.y }, angle, rInner);
+  const dx = tipPx.x - basePx.x;
+  const dy = tipPx.y - basePx.y;
+  const len = Math.hypot(dx, dy) || 1;
+  const nx = -dy / len;
+  const ny = dx / len;
+  const curveAmount = (seg.selected ? 0.45 : ctx.hovered ? 0.35 : 0.25) * len;
+  const mx = (basePx.x + tipPx.x) / 2;
+  const my = (basePx.y + tipPx.y) / 2;
+  const cx = mx + nx * curveAmount * -1;
+  const cy = my + ny * curveAmount * -1;
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "path",
+    {
+      pointerEvents: "none",
+      d: `M ${basePx.x} ${basePx.y} Q ${cx} ${cy} ${tipPx.x} ${tipPx.y}`,
+      fill: "none",
+      stroke: shapeColor(attr, seg.selected),
+      strokeWidth: thickness * ctx.scale,
+      strokeLinecap: "round"
+    }
+  );
+}
+function renderCircle(ctx, attr) {
+  const snapPose = getBackwardsSnapPose(ctx.path, ctx.idx);
+  if (snapPose === null || snapPose.x === null || snapPose.y === null) return null;
+  const { seg } = ctx;
+  const px = toPX({ x: snapPose.x, y: snapPose.y }, FIELD_REAL_DIMENSIONS, ctx.img);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "circle",
+    {
+      pointerEvents: "none",
+      cx: px.x,
+      cy: px.y,
+      r: ctx.radius * shapeScale(attr, seg.selected, ctx.hovered) * 0.3,
+      fill: shapeColor(attr, seg.selected)
+    }
+  );
+}
+function renderAttr(ctx, attr) {
+  switch (attr.shape) {
+    case "node":
+      return renderNode(ctx, attr);
+    case "line":
+      return renderLine(ctx, attr);
+    case "curve":
+      return renderCurve(ctx, attr);
+    case "circle":
+      return renderCircle(ctx, attr);
+  }
+}
+function ControlsLayer({ path, img, radius, onPointerDown }) {
   const imgDefaultSize = (FIELD_IMG_DIMENSIONS.w + FIELD_IMG_DIMENSIONS.h) / 2;
   const imgRealSize = (img.w + img.h) / 2;
   const scale = imgRealSize / imgDefaultSize;
   const [settings] = useSettings();
   const hoveredId = hoveredSegmentStore.useStore();
   radius = radius * scale;
-  const snap = getBackwardsSnapIdx(path, path.segments.length - 1);
+  const snapIdx = getBackwardsSnapIdx(path, path.segments.length - 1);
   const segmentNumbers = /* @__PURE__ */ new Map();
   let displayNum = 1;
   for (let i = 0; i < path.segments.length; i++) {
@@ -23143,127 +23251,13 @@ function ControlsLayer({ path, img, radius, format, colors, onPointerDown }) {
     }
   }
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-    path.segments.map((control, idx) => /* @__PURE__ */ jsxRuntimeExports.jsx("g", { onPointerDown: (e) => onPointerDown(e, control.id), children: control.visible && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-      control.pose.x !== null && control.pose.y !== null && (() => {
-        const nodePx = toPX({ x: control.pose.x, y: control.pose.y }, FIELD_REAL_DIMENSIONS, img);
-        return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "circle",
-          {
-            style: { stroke: colors.control.stroke, ...control.locked ? { cursor: "not-allowed" } : { cursor: "grab" } },
-            id: control.id,
-            cx: nodePx.x,
-            cy: nodePx.y,
-            r: hoveredId === control.id ? radius * VISUAL.node.hoverRadiusMultiplier : radius,
-            fill: control.selected ? colors.control.selected : colors.control.fill,
-            strokeWidth: idx === snap ? VISUAL.node.snapStrokeWidth * scale : 0
-          }
-        ) });
-      })(),
-      ["angleTurn", "pointTurn", "poseDrive", "start"].includes(control.kind) && (() => {
-        const snapPose = getBackwardsSnapPose(path, idx);
-        if (snapPose?.x === null || snapPose?.y === null || snapPose === null) return null;
-        const active = control.selected;
-        const hovered = hoveredId === control.id;
-        const reduced = control.kind === "poseDrive" || control.kind === "start" ? VISUAL.turnIndicator.poseDriveStartReducedFactor : 1;
-        const r = active && hovered ? radius * (VISUAL.turnIndicator.activeHoveredRadiusMultiplier * reduced) : active ? radius * (VISUAL.turnIndicator.activeRadiusMultiplier * reduced) : hovered ? radius * VISUAL.turnIndicator.hoverRadiusMultiplier : radius;
-        const thickness = active ? VISUAL.turnIndicator.activeThickness : hovered ? VISUAL.turnIndicator.hoverThickness : VISUAL.turnIndicator.defaultThickness;
-        const baseStroke = control.pose.x !== null ? colors.turn.strokePos : active ? colors.turn.selected : colors.turn.stroke;
-        const basePx = toPX({ x: snapPose.x, y: snapPose.y }, FIELD_REAL_DIMENSIONS, img);
-        let angle = control.pose.angle ?? 0;
-        if (control.kind === "pointTurn") {
-          const pos = findPointToFace(path, idx);
-          angle = calculateHeading({ x: snapPose.x, y: snapPose.y }, { x: pos.x, y: pos.y }) + angle;
-        }
-        const tipPx = toPX(
-          {
-            x: snapPose.x + r * FIELD_REAL_DIMENSIONS.w / img.w * Math.sin(toRad(angle)),
-            y: snapPose.y + r * FIELD_REAL_DIMENSIONS.h / img.h * Math.cos(toRad(angle))
-          },
-          FIELD_REAL_DIMENSIONS,
-          img
-        );
-        return /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "line",
-          {
-            pointerEvents: "none",
-            x1: basePx.x,
-            y1: basePx.y,
-            x2: tipPx.x,
-            y2: tipPx.y,
-            stroke: baseStroke,
-            strokeWidth: thickness * scale,
-            strokeLinecap: "round"
-          }
-        );
-      })(),
-      ["angleSwing", "pointSwing"].includes(control.kind) && (() => {
-        const snapPose = getBackwardsSnapPose(path, idx);
-        if (snapPose === null || snapPose.x === null || snapPose.y === null) return null;
-        const active = control.selected;
-        const hovered = hoveredId === control.id;
-        const r = active && hovered ? radius * VISUAL.swingIndicator.activeHoveredRadiusMultiplier : active ? radius * VISUAL.swingIndicator.activeRadiusMultiplier : hovered ? radius * VISUAL.swingIndicator.hoverRadiusMultiplier : radius;
-        const thickness = active ? VISUAL.swingIndicator.activeThickness : hovered ? VISUAL.swingIndicator.hoverThickness : VISUAL.swingIndicator.defaultThickness;
-        const baseStroke = active ? colors.turn.selected : colors.turn.stroke;
-        let angle = control.pose.angle ?? 0;
-        if (control.kind === "pointSwing") {
-          const pos = findPointToFace(path, idx);
-          angle = calculateHeading({ x: snapPose.x, y: snapPose.y }, { x: pos.x, y: pos.y }) + angle;
-        }
-        const curveLeft = format === "mikLib" && control.constants[0].swing_direction == "left" || format === "LemLib" && control.constants[0].lockedSide === "DriveSide::RIGHT" || format === "JAR-Template" && control.constants[0].swing_direction === "left" || format === "EZ-Template" && control.constants[0].swing === "LEFT_SWING";
-        const rInner = Math.max(0, r - thickness * VISUAL.swingIndicator.innerRadiusOffsetFactor);
-        const basePx = toPX({ x: snapPose.x, y: snapPose.y }, FIELD_REAL_DIMENSIONS, img);
-        const tipPx = toPX({
-          x: snapPose.x + rInner * FIELD_REAL_DIMENSIONS.w / img.w * Math.sin(toRad(angle)),
-          y: snapPose.y + rInner * FIELD_REAL_DIMENSIONS.h / img.h * Math.cos(toRad(angle))
-        }, FIELD_REAL_DIMENSIONS, img);
-        const dx = tipPx.x - basePx.x;
-        const dy = tipPx.y - basePx.y;
-        const len = Math.hypot(dx, dy) || 1;
-        const nx = -dy / len;
-        const ny = dx / len;
-        const curveAmount = (active ? VISUAL.swingIndicator.activeCurveAmount : hovered ? VISUAL.swingIndicator.hoverCurveAmount : VISUAL.swingIndicator.defaultCurveAmount) * len;
-        const mx = (basePx.x + tipPx.x) / 2;
-        const my = (basePx.y + tipPx.y) / 2;
-        const dir = curveLeft ? 1 : -1;
-        const cx = mx + nx * curveAmount * dir;
-        const cy = my + ny * curveAmount * dir;
-        return /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "path",
-          {
-            pointerEvents: "none",
-            d: `M ${basePx.x} ${basePx.y} Q ${cx} ${cy} ${tipPx.x} ${tipPx.y}`,
-            fill: "none",
-            stroke: baseStroke,
-            strokeWidth: thickness * scale,
-            strokeLinecap: "round"
-          }
-        );
-      })()
-    ] }) }, control.id)),
-    path.segments.map((control, idx) => {
-      if (control.kind !== "wait" || !control.visible) return null;
-      const snapPose = getBackwardsSnapPose(path, idx);
-      if (!snapPose || snapPose.x === null || snapPose.y === null) return null;
-      const active = control.selected;
-      const hovered = hoveredId === control.id;
-      const r = active && hovered ? radius * VISUAL.waitIndicator.activeHoveredRadiusMultiplier : active ? radius * VISUAL.waitIndicator.activeRadiusMultiplier : hovered ? radius * VISUAL.waitIndicator.hoverRadiusMultiplier : radius;
-      const fill = active ? toRGBA(colors.secondary, 0.6) : toRGBA(colors.secondary, 0.3);
-      const px = toPX({ x: snapPose.x, y: snapPose.y }, FIELD_REAL_DIMENSIONS, img);
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "circle",
-        {
-          pointerEvents: "none",
-          cx: px.x,
-          cy: px.y,
-          r: r * VISUAL.waitIndicator.scale,
-          fill
-        },
-        `wait-${control.id}`
-      );
+    path.segments.map((seg, idx) => {
+      const ctx = { path, idx, seg, img, radius, scale, hovered: hoveredId === seg.id, snapIdx };
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("g", { onPointerDown: (e) => onPointerDown(e, seg.id), children: seg.visible && FIELD_COLORS.segmentColors[seg.kind].map((attr, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(React.Fragment, { children: renderAttr(ctx, attr) }, i)) }, seg.id);
     }),
-    settings.numberedPath && path.segments.map((control, idx) => {
-      if (!control.visible || control.pose.x === null || control.pose.y === null) return null;
-      const pos = toPX({ x: control.pose.x, y: control.pose.y }, FIELD_REAL_DIMENSIONS, img);
+    settings.numberedPath && path.segments.map((seg, idx) => {
+      if (!seg.visible || seg.pose.x === null || seg.pose.y === null) return null;
+      const pos = toPX({ x: seg.pose.x, y: seg.pose.y }, FIELD_REAL_DIMENSIONS, img);
       const num = segmentNumbers.get(idx);
       return /* @__PURE__ */ jsxRuntimeExports.jsx(
         "text",
@@ -23273,11 +23267,11 @@ function ControlsLayer({ path, img, radius, format, colors, onPointerDown }) {
           y: pos.y,
           textAnchor: "middle",
           dominantBaseline: "central",
-          fontSize: radius * VISUAL.numberLabel.fontSizeMultiplier,
+          fontSize: radius * 0.9,
           fill: "#FFFFFF",
           children: num
         },
-        `num-${control.id}`
+        `num-${seg.id}`
       );
     })
   ] });
@@ -23675,7 +23669,7 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
         for (let i = clickedIdx + 1; i < path.segments.length; i++) {
           const s = path.segments[i];
           if (s.pose.x !== null && s.pose.y !== null) break;
-          if (["pointTurn", "angleTurn", "pointSwing", "angleSwing"].includes(s.kind) && getBackwardsSnapIdx(path, i) === clickedIdx) {
+          if (["pointTurn", "angleTurn", "pointSwing", "angleSwing", "wait"].includes(s.kind) && getBackwardsSnapIdx(path, i) === clickedIdx) {
             turnsOnTop.push(s.id);
           }
         }
@@ -23804,7 +23798,7 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
         onPointerUp: handlePointerUp,
         children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("image", { href: getFieldSrcFromKey(fieldKey), x: img.x, y: img.y, width: img.w, height: img.h }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(PathLayer, { path, img, visible: pathVisible, precise: settings.precisePath, colors: DEFAULT_THEMES[settings.themeIdx] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(PathLayer, { path, img, visible: pathVisible, precise: settings.precisePath }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
             RobotLayer,
             {
@@ -23822,8 +23816,6 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
               path,
               img,
               radius,
-              format,
-              colors: DEFAULT_THEMES[settings.themeIdx],
               onPointerDown: handleControlPointerDown
             }
           ),
@@ -24054,4 +24046,4 @@ document.addEventListener("auxclick", blockMiddleClick, { capture: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-DY2YIuGs.js.map
+//# sourceMappingURL=index-CK3bno_o.js.map
