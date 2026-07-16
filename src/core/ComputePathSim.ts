@@ -32,12 +32,18 @@ export interface EndSnapShot {
     angle: number
 }
 
+export interface SegmentTimeRange {
+    startT: number,
+    endT: number,
+}
+
 export interface PathSim {
     totalTime: number,
     trajectory: Snapshot[];
     endTrajectory: EndSnapShot[];
     segmentTrajectorys: Snapshot[][];
     segmentCumulativeDists: number[][];
+    segmentTimeRanges: SegmentTimeRange[];
     timeOffset: number;
 }
 
@@ -50,8 +56,13 @@ export const computedPathStore = createStore<PathSim>({
     endTrajectory: [],
     segmentTrajectorys: [],
     segmentCumulativeDists: [],
+    segmentTimeRanges: [],
     timeOffset: 0,
 });
+
+export function activeSegmentAtTime(path: PathSim, t: number): number {
+    return path.segmentTimeRanges.findIndex(r => t >= r.startT && t < r.endT);
+}
 
 export function precomputePath(
     robot: Robot,
@@ -67,10 +78,12 @@ export function precomputePath(
     const segmentTrajectorys: Snapshot[][] = [];
     const segmentKinds: SegmentKind[] = [];
     const segmentTargetDists: number[] = [];
+    const segmentTimeRanges: SegmentTimeRange[] = [];
 
     const dt = SIM_CONSTANTS.dt;
 
     let t = 0;
+    let segmentStartT = 0;
     let safetyIter = 0;
     const maxIter = 60 * simLengthSeconds;
 
@@ -88,6 +101,8 @@ export function precomputePath(
                 segmentTrajectorys.push([...segmentTrajectory]);
                 segmentKinds.push(kind);
                 segmentTargetDists.push(targetDist);
+                segmentTimeRanges.push({ startT: segmentStartT, endT: t });
+                segmentStartT = t;
                 segmentTrajectory.length = 0;
                 autoIdx++
             }
@@ -168,5 +183,5 @@ export function precomputePath(
 
     pathTelemetry.setState(telemetry);
 
-    return {totalTime: t, trajectory, endTrajectory, segmentTrajectorys, segmentCumulativeDists, timeOffset: 0};
+    return {totalTime: t, trajectory, endTrajectory, segmentTrajectorys, segmentCumulativeDists, segmentTimeRanges, timeOffset: 0};
 }

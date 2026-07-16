@@ -2,6 +2,7 @@ import { fileFormatStore, type FileFormat, DEFAULT_FORMAT } from "../hooks/useFi
 import { createStore } from "./Store";
 import { FORMAT_REGISTRY, mergeFormatDef, getDefaultConstants, stripFormatDefForSave, type Format, type FormatDef, type SegmentKind } from "../simulation/FormatDefinition";
 import { saveSnapshot, fileUndosStore } from "./Undo/UndoHistory";
+import { defaultRobotConstants, type RobotConstants } from "./Robot";
 import type { Path } from "./Types/Path";
 
 export const fileSaveStore = createStore(0);
@@ -51,13 +52,25 @@ function handleFileConversion(content: string): FileFormat {
     return { ...DEFAULT_FORMAT, format, formatDef: FORMAT_REGISTRY[format] as FormatDef<Format>, path };
 }
 
+function validateRobot(raw: unknown): RobotConstants {
+    if (!raw || typeof raw !== "object") return defaultRobotConstants;
+    const robot = raw as Record<string, unknown>;
+    for (const [key, def] of Object.entries(defaultRobotConstants)) {
+        const value = robot[key];
+        if (typeof value !== typeof def) return defaultRobotConstants;
+        if (typeof value === "number" && !Number.isFinite(value)) return defaultRobotConstants;
+    }
+    return raw as RobotConstants;
+}
+
 export function deserializeFile(content: string): FileFormat {
     const newline = content.indexOf("\n");
     const firstLine = newline === -1 ? content : content.slice(0, newline);
     if (firstLine.trim() !== FILE_VERSION) {
         return handleFileConversion(content);
     }
-    return JSON.parse(content.slice(newline + 1)) as FileFormat;
+    const parsed = JSON.parse(content.slice(newline + 1)) as FileFormat;
+    return { ...parsed, robot: validateRobot(parsed.robot) };
 }
 
 export async function loadFromHandle(handle: FileSystemFileHandle): Promise<void> {

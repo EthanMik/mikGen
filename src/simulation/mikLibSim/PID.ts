@@ -1,3 +1,5 @@
+import { SIM_CONSTANTS } from "../../core/ComputePathSim";
+
 export class PID {
     private accumulated_error = 0;
     private previous_error = 0;
@@ -34,7 +36,7 @@ export class PID {
         this.previous_error = error;
 
         if(Math.abs(error) < this.settle_error) {
-            this.time_spent_settled += 1/60 * 1000; // sim is run at 60 fps
+            this.time_spent_settled += SIM_CONSTANTS.dt_ms; // sim is run at 60 fps
         } else {
             this.time_spent_settled = 0;
         }
@@ -42,7 +44,7 @@ export class PID {
             this.exiting = true;
         }
 
-        this.time_spent_running += 1/60 * 1000;
+        this.time_spent_running += SIM_CONSTANTS.dt_ms;
 
         return output;
     }

@@ -34,7 +34,7 @@ export default function PathConfig() {
 
             <div
                 className="mt-[10px] flex-1 min-h-2 overflow-y-auto scrollbar-thin
-                flex-col items-center overflow-x-hidden space-y-1.5 relative"
+                flex-col items-center overflow-x-hidden space-y-0.5 relative"
                 onDrop={(e) => {
                     if (draggingIds.length === 0) return;
                     if (overIndex !== null && overIndex > 0) {

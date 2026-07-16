@@ -11,7 +11,7 @@ import ConstantsList from "./ConstantsList";
 import CycleImageButton, { type CycleImageButtonProps } from "../Util/CycleButton";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import { setupDragTransfer } from "./PathConfigUtils";
-import { activeSimSegmentStore, computedPathStore, pathTelemetry, simJumpStore } from "../../core/ComputePathSim";
+import { activeSimSegmentStore, computedPathStore, pathTelemetry, SIM_CONSTANTS, simJumpStore } from "../../core/ComputePathSim";
 import { roundNum } from "../../core/Util";
 import { hoveredSegmentStore } from "../../core/HoverStore";
 import {
@@ -22,6 +22,7 @@ import {
     type FormatConstants,
     type Format,
 } from "../../simulation/FormatDefinition";
+import { FIELD_COLORS } from "../Field/FieldColors";
 
 type ConstantListField = {
     constantsIdx: number;
@@ -163,7 +164,7 @@ const MotionList = memo(function MotionList({
         e.preventDefault();
         const computedPath = computedPathStore.getState();
         const startT = computedPath.segmentTrajectorys[index]?.[0]?.t ?? 0;
-        const percent = computedPath.totalTime > 0 ? (startT / computedPath.totalTime) * 100 : 0;
+        const percent = computedPath.totalTime > 0 ? ((startT + SIM_CONSTANTS.dt) / computedPath.totalTime) * 100 : 0;
         simJumpStore.setState(percent);
     };
 
@@ -273,7 +274,7 @@ const MotionList = memo(function MotionList({
 
     return (
         <div
-            className={`flex flex-col gap-2 mt-[1px] ${segment.locked ? "opacity-50 pointer-events-none" : ""}`}
+            className={`flex flex-col gap-0.5 mt-[1px] ${segment.locked ? "opacity-50 pointer-events-none" : ""}`}
             onClick={() => { if (selected) setOpen(!isOpen); }}
         >
             <button
@@ -294,20 +295,22 @@ const MotionList = memo(function MotionList({
                     h-[35px] gap-[12px]
                     bg-medgray
                     hover:brightness-92
-                    rounded-lg pl-4 pr-4
+                    rounded-md pl-4 pr-4
                     transition-all duration-100
                     active:scale-[0.995]
-                    ${isOpen && !selected ? "border-2 border-medlightgray" : "border-2 border-transparent"}
+                    ${isActiveSimSegment ? "border-2 border-[#535252]" : "border-2 border-transparent"}
                     ${draggingIds.includes(segmentId) ? "opacity-10" : ""}
                 `}
             >
-                <div className={`absolute left-0 top-[20%] h-[60%] w-[3px] rounded-full bg-lightgray transition-opacity duration-150 ${isActiveSimSegment ? "opacity-100" : "opacity-0"}`} />
+                <div className={`absolute -left-[2px] -inset-y-0.5 w-[5px] h-7.5 self-center rounded-md ${selected ? "brightness-150" : ""}`} style={{
+                    backgroundColor: FIELD_COLORS.segmentColors[segment.kind]?.[0]?.baseColor.replace(/,\s*[\d.]+\)$/, ", 1)")
+                }} />
 
                 <button
                     className="cursor-pointer shrink-0"
                     onClick={(e) => { e.stopPropagation(); setOpen(!isOpen); }}
                 >
-                    <img className={`w-[15px] h-[15px] transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} src={downArrow} />
+                    <img className={`w-[15px] h-[15px]  transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} src={downArrow} />
                 </button>
 
                 <button className="cursor-pointer shrink-0" onClick={(e) => { e.stopPropagation(); handleEyeOnClick(); }}>
@@ -370,9 +373,8 @@ const MotionList = memo(function MotionList({
 
             <div
                 onClick={(e) => e.stopPropagation()}
-                className={`relative flex flex-col ml-9 gap-2 ${
-                    (!isTelemetryOpen || telemetrySlice === undefined) && !isOpen ? "hidden" : ""
-                }`}
+                className={`relative flex flex-col ml-9 gap-0.5 ${(!isTelemetryOpen || telemetrySlice === undefined) && !isOpen ? "hidden" : ""
+                    }`}
             >
                 <div className="absolute left-[-16px] top-0 h-full w-[4px] rounded-full bg-medlightgray" />
 
@@ -384,7 +386,7 @@ const MotionList = memo(function MotionList({
                     </div>
                 )}
 
-                <div className={`flex flex-col gap-1 ${isOpen ? "" : "hidden"}`}>
+                <div className={`flex flex-col gap-0.5 ${isOpen ? "" : "hidden"}`}>
                     {fieldSections.map((f) => (
                         <ConstantsList
                             key={f.header}

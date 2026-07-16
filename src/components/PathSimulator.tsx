@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import play from "../assets/play.svg";
 import pause from "../assets/pause.svg";
 import { Robot } from "../core/Robot";
-import { activeSimSegmentStore, computedPathStore, pathTelemetry, precomputePath, simJumpStore, SIM_CONSTANTS, type PathSim } from "../core/ComputePathSim";
+import { activeSegmentAtTime, activeSimSegmentStore, computedPathStore, pathTelemetry, precomputePath, simJumpStore, SIM_CONSTANTS, type PathSim } from "../core/ComputePathSim";
 import { usePose } from "../hooks/usePose";
 import { clamp } from "../core/Util";
 import { useRobotVisibility } from "../hooks/useRobotVisibility";
@@ -154,13 +154,15 @@ export default function PathSimulator() {
     }, [path])
 
     useEffect(() => {
+        const adjustedTime = time + computedPath.timeOffset;
+        activeSimSegmentStore.setState(activeSegmentAtTime(computedPath, adjustedTime));
+
         const segs = computedPath.segmentTrajectorys;
         const cumDists = computedPath.segmentCumulativeDists;
         const telemetry = pathTelemetry.getState();
         if (!telemetry.length) return;
 
         const dt = SIM_CONSTANTS.dt;
-        const adjustedTime = time + computedPath.timeOffset;
 
         const updated = telemetry.map((tel, i) => {
             const seg = segs[i];
@@ -187,9 +189,6 @@ export default function PathSimulator() {
         });
 
         pathTelemetry.setState(updated);
-
-        const activeIdx = updated.findIndex(tel => tel.progressPercent > 0 && tel.progressPercent < 100);
-        activeSimSegmentStore.setState(activeIdx);
     }, [time, computedPath]);
 
     useEffect(() => {
@@ -197,7 +196,7 @@ export default function PathSimulator() {
             const target = evt.target as HTMLElement | null;
             if (target?.isContentEditable || target?.tagName === "INPUT") return;
             pauseSimulator(evt, setPlaying, setRobotVisibility)
-            scrubSimulator(evt, setValue, setPlaying, setRobotVisibility, skip, computedPath, 1 / 60, 0.25);
+            scrubSimulator(evt, setValue, setPlaying, setRobotVisibility, skip, computedPath, SIM_CONSTANTS.dt, 0.25);
         }
 
         document.addEventListener('keydown', handleKeyDown)
@@ -248,7 +247,7 @@ export default function PathSimulator() {
     }
 
     useEffect(() => {
-        const dt = 1 / 60;
+        const dt = SIM_CONSTANTS.dt;
 
         if (playing) {
             setTime(prev => (prev + dt >= computedPath.totalTime ? 0 : prev));
