@@ -10,7 +10,7 @@ import { useRobotVisibility } from "../../hooks/useRobotVisibility";
 import { PathSimMacros } from "../../macros/PathSimMacros";
 import FieldMacros from "../../macros/FieldMacros";
 import { useRobotPose } from "../../hooks/useRobotPose";
-import { DEFAULT_THEMES, getPressedPositionInch, pointerToSvg } from "./FieldUtils";
+import { getPressedPositionInch, pointerToSvg } from "./FieldUtils";
 import HoverButton from "../Util/HoverButton";
 import { useBoxSelect } from "./useBoxSelect";
 import { useMagnetSnap } from "./useMagnetSnap";
@@ -482,7 +482,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 				for (let i = clickedIdx + 1; i < path.segments.length; i++) {
 					const s = path.segments[i];
 					if (s.pose.x !== null && s.pose.y !== null) break;
-					if (["pointTurn", "angleTurn", "pointSwing", "angleSwing"].includes(s.kind) && getBackwardsSnapIdx(path, i) === clickedIdx) {
+					if (["pointTurn", "angleTurn", "pointSwing", "angleSwing", "wait"].includes(s.kind) && getBackwardsSnapIdx(path, i) === clickedIdx) {
 						turnsOnTop.push(s.id);
 					}
 				}
@@ -619,7 +619,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 			>
 				<image href={getFieldSrcFromKey(fieldKey)} x={img.x} y={img.y} width={img.w} height={img.h} />
 
-				<PathLayer path={path} img={img} visible={pathVisible} precise={settings.precisePath} colors={DEFAULT_THEMES[settings.themeIdx]} />
+				<PathLayer path={path} img={img} visible={pathVisible} precise={settings.precisePath} />
 
 				<RobotLayer
 					img={img}
@@ -634,8 +634,6 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 						path={path}
 						img={img}
 						radius={radius}
-						format={format}
-						colors={DEFAULT_THEMES[settings.themeIdx]}
 						onPointerDown={handleControlPointerDown}
 					/>
 				)}

@@ -7,7 +7,6 @@ type Settings = {
     numberedPath: boolean;
     loopPath: boolean;
     snapToGrid: number;
-    themeIdx: number;
 };
 
 const DEFAULTS: Settings = {
@@ -17,10 +16,12 @@ const DEFAULTS: Settings = {
     numberedPath: false,
     loopPath: false,
     snapToGrid: 0.5,
-    themeIdx: 0
 };
 
 const saved = localStorage.getItem("settings");
-const initial: Settings = saved ? { ...DEFAULTS, ...JSON.parse(saved) } : DEFAULTS;
+const parsed: Partial<Settings> = saved ? JSON.parse(saved) : {};
+const initial = Object.fromEntries(
+    (Object.keys(DEFAULTS) as (keyof Settings)[]).map(k => [k, parsed[k] ?? DEFAULTS[k]])
+) as Settings;
 
 export const useSettings = createSharedState<Settings>(initial);

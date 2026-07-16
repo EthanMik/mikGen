@@ -3,15 +3,26 @@ import { computedPathStore } from "../../core/ComputePathSim";
 import { hoveredSegmentStore } from "../../core/HoverStore";
 import type { Path } from "../../core/Types/Path";
 import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, toRGB, type Rectangle } from "../../core/Util";
-import { getSegmentLines, getPreciseSegmentDots, type FieldColors } from "./FieldUtils";
+import { getSegmentLines, getPreciseSegmentDots } from "./FieldUtils";
+import { FIELD_COLORS } from "./FieldColors";
 
 const DOT_SPACING = 1.5;
 const DOT_RADIUS = 1.8 * FIELD_REAL_DIMENSIONS.w / FIELD_IMG_DIMENSIONS.w;
 
-function speedColor(t: number, slow: number[], mid: number[], fast: number[]): string {
-  const curved = Math.pow(t, 1.5);
-  const [a, b, frac] = curved < 0.5 ? [slow, mid, curved * 2] : [mid, fast, (curved - 0.5) * 2];
-  return `rgb(${Math.round(a[0] + frac * (b[0] - a[0]))},${Math.round(a[1] + frac * (b[1] - a[1]))},${Math.round(a[2] + frac * (b[2] - a[2]))})`;
+const SLOW_RGB = toRGB(FIELD_COLORS.pathSlowColor);
+const MID_RGB = toRGB(FIELD_COLORS.pathMedColor);
+const FAST_RGB = toRGB(FIELD_COLORS.pathFastColor);
+const HOVER_RGB = toRGB(FIELD_COLORS.pathHoverColor);
+
+const HOVER_TINT = 0.45;
+
+function speedColor(t: number, slow: number[], mid: number[], fast: number[], tint = 0): string {
+  const [a, b, frac] = t < 0.5 ? [slow, mid, t * 2] : [mid, fast, (t - 0.5) * 2];
+  const channel = (i: number) => {
+    const c = a[i] + frac * (b[i] - a[i]);
+    return Math.round(c + (HOVER_RGB[i] - c) * tint);
+  };
+  return `rgb(${channel(0)},${channel(1)},${channel(2)})`;
 }
 
 type PathLayerProps = {
@@ -19,10 +30,9 @@ type PathLayerProps = {
   img: Rectangle;
   visible: boolean;
   precise: boolean;
-  colors: FieldColors;
 };
 
-export default function PathLayer({ path, img, visible, precise, colors }: PathLayerProps) {
+export default function PathLayer({ path, img, visible, precise }: PathLayerProps) {
   const trajectories = computedPathStore.useSelector(s => s.segmentTrajectorys);
   const hoveredId = hoveredSegmentStore.useStore();
 
@@ -31,10 +41,6 @@ export default function PathLayer({ path, img, visible, precise, colors }: PathL
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [trajectories, path.segments.length]
   );
-
-  const slowRGB = useMemo(() => toRGB(colors.path.strokeDark), [colors.path.strokeDark]);
-  const midRGB  = useMemo(() => toRGB(colors.path.stroke),     [colors.path.stroke]);
-  const fastRGB = useMemo(() => toRGB(colors.path.strokeLight), [colors.path.strokeLight]);
 
   if (visible || path.segments.length < 2) return null;
 
@@ -54,7 +60,7 @@ export default function PathLayer({ path, img, visible, precise, colors }: PathL
     <>
       {path.segments.map((control, idx) => {
         const hovered = hoveredId === control.id;
-        const color = hovered ? colors.path.hovered : colors.path.stroke;
+        const color = hovered ? FIELD_COLORS.pathHoverColor : FIELD_COLORS.pathBaseColor;
 
         if (precise) {
           const dots = allDots[idx];
@@ -67,7 +73,7 @@ export default function PathLayer({ path, img, visible, precise, colors }: PathL
                   cx={pt.x}
                   cy={pt.y}
                   r={DOT_RADIUS}
-                  fill={hovered ? color : speedColor(pt.t, slowRGB, midRGB, fastRGB)}
+                  fill={speedColor(pt.t, SLOW_RGB, MID_RGB, FAST_RGB, hovered ? HOVER_TINT : 0)}
                 />
               ))}
             </g>
