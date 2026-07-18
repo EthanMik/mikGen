@@ -20,7 +20,18 @@ export type RobotConstants = {
     expansionLeftDisabled: boolean,
     expansionRightDisabled: boolean,
     expansionRearDisabled: boolean,
-    isOmni: boolean,
+    sensorFrontX: number,
+    sensorFrontY: number,
+    sensorFrontDisabled: boolean,
+    sensorLeftX: number,
+    sensorLeftY: number,
+    sensorLeftDisabled: boolean,
+    sensorRightX: number,
+    sensorRightY: number,
+    sensorRightDisabled: boolean,
+    sensorRearX: number,
+    sensorRearY: number,
+    sensorRearDisabled: boolean,
 }
 
 export const defaultRobotConstants: RobotConstants = {
@@ -42,7 +53,18 @@ export const defaultRobotConstants: RobotConstants = {
     expansionLeftDisabled: true,
     expansionRightDisabled: true,
     expansionRearDisabled: true,
-    isOmni: false,
+    sensorFrontX: 0,
+    sensorFrontY: 0,
+    sensorFrontDisabled: true,
+    sensorLeftX: 0,
+    sensorLeftY: 0,
+    sensorLeftDisabled: true,
+    sensorRightX: 0,
+    sensorRightY: 0,
+    sensorRightDisabled: true,
+    sensorRearX: 0,
+    sensorRearY: 0,
+    sensorRearDisabled: true,
 }
 
 export class Robot {
@@ -57,7 +79,6 @@ export class Robot {
     private vRL: number = 0;
     private vRR: number = 0;
 
-    private lateralFriction: number = 0;
     private timeout: number = 0;
     private rotation: number = 0;
 
@@ -77,16 +98,23 @@ export class Robot {
         public expansionRight: number = 0,
         public expansionRear: number = 0,
 
-        public isOmnis: boolean = false,
+        public sensorFrontX: number = 0,
+        public sensorFrontY: number = 0,
+        public sensorFrontDisabled: boolean = true,
+        public sensorLeftX: number = 0,
+        public sensorLeftY: number = 0,
+        public sensorLeftDisabled: boolean = true,
+        public sensorRightX: number = 0,
+        public sensorRightY: number = 0,
+        public sensorRightDisabled: boolean = true,
+        public sensorRearX: number = 0,
+        public sensorRearY: number = 0,
+        public sensorRearDisabled: boolean = true,
+
         public lateralTau: number,
         public angularTau: number,
     ) {
         this.rotation = angle;
-        if (isOmnis) {
-            this.lateralFriction = 10;
-        } else {
-            this.lateralFriction = 50;
-        }
     }
 
     private setAngle(angle: number) {
@@ -161,7 +189,7 @@ export class Robot {
         const new_orientation_rad = toRad(this.angle) + orientation_delta_rad;
         const rightX =  Math.cos(new_orientation_rad);
         const rightY = -Math.sin(new_orientation_rad);
-        const lat_speed = (this.velX * rightX + this.velY * rightY) * Math.max(0, 1 - this.lateralFriction * dt);
+        const lat_speed = this.velX * rightX + this.velY * rightY;
 
         this.odometryUpdate(fwd_speed * dt, 0, orientation_delta_rad, fwd_speed, lat_speed);
     }

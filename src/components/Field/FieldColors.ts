@@ -138,3 +138,10 @@ export const FIELD_COLORS: FieldColors = {
         ],
     },
 };
+
+export const SENSOR_COLORS: Record<"front" | "left" | "right" | "rear", string> = {
+    front: "#aa0505",
+    left: "#1560BD",
+    right: "#058d29",
+    rear: "#c66719",
+};

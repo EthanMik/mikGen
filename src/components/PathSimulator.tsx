@@ -21,7 +21,16 @@ import loopOn from "../assets/loop.svg"
 import loopOff from "../assets/loop-disable.svg"
 
 function createRobot(): Robot {
-    const { width, height, trackwidth, speed, lateralTau, angularTau, isOmni, cogOffsetX, cogOffsetY, cogOffsetXDisabled, cogOffsetYDisabled, expansionFront, expansionLeft, expansionRight, expansionRear, expansionFrontDisabled, expansionLeftDisabled, expansionRightDisabled, expansionRearDisabled } = fileFormatStore.getState().robot;
+    const {
+        width, height, trackwidth, speed, lateralTau, angularTau,
+        cogOffsetX, cogOffsetY, cogOffsetXDisabled, cogOffsetYDisabled,
+        expansionFront, expansionLeft, expansionRight, expansionRear,
+        expansionFrontDisabled, expansionLeftDisabled, expansionRightDisabled, expansionRearDisabled,
+        sensorFrontX, sensorFrontY, sensorFrontDisabled,
+        sensorLeftX, sensorLeftY, sensorLeftDisabled,
+        sensorRightX, sensorRightY, sensorRightDisabled,
+        sensorRearX, sensorRearY, sensorRearDisabled,
+    } = fileFormatStore.getState().robot;
 
     return new Robot(
         0, // Start x
@@ -37,7 +46,18 @@ function createRobot(): Robot {
         expansionLeftDisabled ? 0 : expansionLeft,
         expansionRightDisabled ? 0 : expansionRight,
         expansionRearDisabled ? 0 : expansionRear,
-        isOmni, // Lateral Friction (higher = less drift)
+        sensorFrontX,
+        sensorFrontY,
+        sensorFrontDisabled,
+        sensorLeftX,
+        sensorLeftY,
+        sensorLeftDisabled,
+        sensorRightX,
+        sensorRightY,
+        sensorRightDisabled,
+        sensorRearX,
+        sensorRearY,
+        sensorRearDisabled,
         lateralTau,
         angularTau,
     );

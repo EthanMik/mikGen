@@ -1,5 +1,5 @@
 import React from "react";
-import RobotView from "../Util/RobotView";
+import RobotView, { type DistanceSensor } from "../Util/RobotView";
 import type { Pose } from "../../core/Types/Pose";
 import type { Path } from "../../core/Types/Path";
 import type { Rectangle } from "../../core/Util";
@@ -29,6 +29,14 @@ export default function RobotLayer({ img, pose, robotPose, robotConstants, visib
     const bgColor = format === "Holonomic" ? mecnumColor : tankColor;
     const bgTransparency: number = 0.4;
 
+    const sensors: DistanceSensor[] = (["Front", "Left", "Right", "Rear"] as const)
+        .filter(side => !robotConstants[`sensor${side}Disabled`])
+        .map(side => ({
+            face: side.toLowerCase() as DistanceSensor["face"],
+            offsetX: robotConstants[`sensor${side}X`],
+            offsetY: robotConstants[`sensor${side}Y`],
+        }));
+
     return (
         <>
             {/* Active Robot */}
@@ -49,6 +57,7 @@ export default function RobotLayer({ img, pose, robotPose, robotConstants, visib
                     rearExpansion={robotConstants.expansionRearDisabled ? 0 : robotConstants.expansionRear}
                     cogOffsetX={robotConstants.cogOffsetXDisabled ? 0 : robotConstants.cogOffsetX}
                     cogOffsetY={robotConstants.cogOffsetYDisabled ? 0 : robotConstants.cogOffsetY}
+                    sensors={sensors}
                 />
             )}
 

@@ -60,7 +60,7 @@ function loadValidatedAppState(): FileFormat {
             path: (parsed.path && Array.isArray(parsed.path.segments))
                 ? parsed.path
                 : DEFAULT_FORMAT.path,
-            robot: parsed.robot ?? DEFAULT_FORMAT.robot,
+            robot: { ...DEFAULT_FORMAT.robot, ...parsed.robot },
         };
     } catch {
         return DEFAULT_FORMAT;

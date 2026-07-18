@@ -5,7 +5,8 @@ import { changeFormat } from "../../simulation/FormatDefinition";
 import Section from "../Util/Section";
 import ConfigButtonTemplate from "./ConfigButtonTemplate";
 import { ConfigCheckboxButton } from "../Util/CheckboxButton";
-import { NumberInputButton, NumberInputCheckboxButton } from "../Util/NumberInputButton";
+import { DualNumberInputCheckboxButton, NumberInputButton, NumberInputCheckboxButton } from "../Util/NumberInputButton";
+import { SENSOR_COLORS } from "../Field/FieldColors";
 
 type ExpansionSide = "Front" | "Left" | "Right" | "Rear";
 
@@ -21,6 +22,16 @@ export default function RobotButton() {
 
     const handleExpansionToggle = (side: ExpansionSide, checked: boolean) => {
         mergeRobot({ [`expansion${side}Disabled`]: !checked });
+        saveSnapshot();
+    };
+
+    const handleSensorChange = (side: ExpansionSide, axis: "X" | "Y", v: number | null) => {
+        if (v === null) return;
+        mergeRobot({ [`sensor${side}${axis}`]: v });
+    };
+
+    const handleSensorToggle = (side: ExpansionSide, checked: boolean) => {
+        mergeRobot({ [`sensor${side}Disabled`]: !checked });
         saveSnapshot();
     };
 
@@ -62,6 +73,39 @@ export default function RobotButton() {
                             units="in"
                             checked={!robot[`expansion${side}Disabled`]}
                             setChecked={checked => handleExpansionToggle(side, checked)}
+                        />
+                    ))}
+                </Section>
+
+                <Section name="Distance Sensors" defaultCollapsed>
+                    {(["Front", "Left", "Right", "Rear"] as const).map((side) => (
+                        <DualNumberInputCheckboxButton
+                            key={side}
+                            name={side}
+                            color={SENSOR_COLORS[side.toLowerCase() as Lowercase<typeof side>]}
+                            numberInputs={[{
+                                value: robot[`sensor${side}X`],
+                                setValue: (v: number | null) => handleSensorChange(side, "X", v),
+                                bounds: [-robot.width / 2, robot.width / 2],
+                                stepSize: 0.5,
+                                roundTo: 2,
+                                units: "in",
+                                label: "X offset from tracking center",
+                                labelSpeed: "fast"
+                            },
+                            {
+                                value: robot[`sensor${side}Y`],
+                                setValue: (v: number | null) => handleSensorChange(side, "Y", v),
+                                bounds: [-robot.height / 2, robot.height / 2],
+                                stepSize: 0.5,
+                                roundTo: 2,
+                                units: "in",
+                                label: "Y offset from tracking center",
+                                labelSpeed: "fast"
+                            }]}
+
+                            checked={!robot[`sensor${side}Disabled`]}
+                            setChecked={checked => handleSensorToggle(side, checked)}
                         />
                     ))}
                 </Section>
