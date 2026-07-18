@@ -17574,10 +17574,21 @@ const defaultRobotConstants = {
   expansionLeftDisabled: true,
   expansionRightDisabled: true,
   expansionRearDisabled: true,
-  isOmni: false
+  sensorFrontX: 0,
+  sensorFrontY: 0,
+  sensorFrontDisabled: true,
+  sensorLeftX: 0,
+  sensorLeftY: 0,
+  sensorLeftDisabled: true,
+  sensorRightX: 0,
+  sensorRightY: 0,
+  sensorRightDisabled: true,
+  sensorRearX: 0,
+  sensorRearY: 0,
+  sensorRearDisabled: true
 };
 class Robot {
-  constructor(x, y, angle, width, trackwidth, height, maxSpeed, cogOffsetX = 0, cogOffsetY = 0, expansionFront = 0, expansionLeft = 0, expansionRight = 0, expansionRear = 0, isOmnis = false, lateralTau, angularTau) {
+  constructor(x, y, angle, width, trackwidth, height, maxSpeed, cogOffsetX = 0, cogOffsetY = 0, expansionFront = 0, expansionLeft = 0, expansionRight = 0, expansionRear = 0, sensorFrontX = 0, sensorFrontY = 0, sensorFrontDisabled = true, sensorLeftX = 0, sensorLeftY = 0, sensorLeftDisabled = true, sensorRightX = 0, sensorRightY = 0, sensorRightDisabled = true, sensorRearX = 0, sensorRearY = 0, sensorRearDisabled = true, lateralTau, angularTau) {
     this.x = x;
     this.y = y;
     this.angle = angle;
@@ -17591,15 +17602,21 @@ class Robot {
     this.expansionLeft = expansionLeft;
     this.expansionRight = expansionRight;
     this.expansionRear = expansionRear;
-    this.isOmnis = isOmnis;
+    this.sensorFrontX = sensorFrontX;
+    this.sensorFrontY = sensorFrontY;
+    this.sensorFrontDisabled = sensorFrontDisabled;
+    this.sensorLeftX = sensorLeftX;
+    this.sensorLeftY = sensorLeftY;
+    this.sensorLeftDisabled = sensorLeftDisabled;
+    this.sensorRightX = sensorRightX;
+    this.sensorRightY = sensorRightY;
+    this.sensorRightDisabled = sensorRightDisabled;
+    this.sensorRearX = sensorRearX;
+    this.sensorRearY = sensorRearY;
+    this.sensorRearDisabled = sensorRearDisabled;
     this.lateralTau = lateralTau;
     this.angularTau = angularTau;
     this.rotation = angle;
-    if (isOmnis) {
-      this.lateralFriction = 10;
-    } else {
-      this.lateralFriction = 50;
-    }
   }
   // Tank drive robot
   vL = 0;
@@ -17610,7 +17627,6 @@ class Robot {
   vFR = 0;
   vRL = 0;
   vRR = 0;
-  lateralFriction = 0;
   timeout = 0;
   rotation = 0;
   setAngle(angle) {
@@ -17673,7 +17689,7 @@ class Robot {
     const new_orientation_rad = toRad(this.angle) + orientation_delta_rad;
     const rightX = Math.cos(new_orientation_rad);
     const rightY = -Math.sin(new_orientation_rad);
-    const lat_speed = (this.velX * rightX + this.velY * rightY) * Math.max(0, 1 - this.lateralFriction * dt);
+    const lat_speed = this.velX * rightX + this.velY * rightY;
     this.odometryUpdate(fwd_speed * dt, 0, orientation_delta_rad, fwd_speed, lat_speed);
   }
   mecanumDrive(flCmd, frCmd, rlCmd, rrCmd, dt) {
@@ -17781,7 +17797,7 @@ function loadValidatedAppState() {
       field: parsed2.field ?? DEFAULT_FORMAT.field,
       formatDef: mergeFormatDef(FORMAT_REGISTRY[format], parsed2.formatDef ?? parsed2.defaults),
       path: parsed2.path && Array.isArray(parsed2.path.segments) ? parsed2.path : DEFAULT_FORMAT.path,
-      robot: parsed2.robot ?? DEFAULT_FORMAT.robot
+      robot: { ...DEFAULT_FORMAT.robot, ...parsed2.robot }
     };
   } catch {
     return DEFAULT_FORMAT;
@@ -18726,6 +18742,12 @@ const FIELD_COLORS = {
       }
     ]
   }
+};
+const SENSOR_COLORS = {
+  front: "#aa0505",
+  left: "#1560BD",
+  right: "#058d29",
+  rear: "#c66719"
 };
 const MotionList = reactExports.memo(function MotionList2({
   segmentId,
@@ -19682,7 +19704,38 @@ const useSimulateGroup = createSharedState([]);
 const loopOn = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20stroke='%23ffffff'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20d='M21%2012C21%2016.9706%2016.9706%2021%2012%2021C9.69494%2021%207.59227%2020.1334%206%2018.7083L3%2016M3%2012C3%207.02944%207.02944%203%2012%203C14.3051%203%2016.4077%203.86656%2018%205.29168L21%208M3%2021V16M3%2016H8M21%203V8M21%208H16'%20stroke='%23ffffff'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/g%3e%3c/svg%3e";
 const loopOff = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20version='1.1'%20id='svg1'%20sodipodi:docname='refresh-cw-alt-svgrepo-com%20(2).svg'%20inkscape:version='1.4.4%20(dcaf3e7d9e,%202026-05-05)'%20xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'%20xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:svg='http://www.w3.org/2000/svg'%3e%3cdefs%20id='defs1'%3e%3cinkscape:path-effect%20effect='fillet_chamfer'%20id='path-effect7'%20is_visible='true'%20lpeversion='1'%20nodesatellites_param='F,0,0,1,0,0,0,1%20@%20F,0,0,1,0,0,0,1%20@%20F,0,0,1,0,0,0,1%20@%20F,0,0,1,0,0,0,1'%20radius='0'%20unit='px'%20method='auto'%20mode='F'%20chamfer_steps='1'%20flexible='false'%20use_knot_distance='true'%20apply_no_radius='true'%20apply_with_radius='true'%20only_selected='false'%20hide_knots='false'%20/%3e%3cinkscape:path-effect%20effect='fillet_chamfer'%20id='path-effect3'%20is_visible='true'%20lpeversion='1'%20nodesatellites_param='F,0,0,1,0,0,0,1%20@%20F,0,0,1,0,0,0,1%20@%20F,0,0,1,0,0,0,1%20@%20F,0,0,1,0,0,0,1'%20radius='0'%20unit='px'%20method='auto'%20mode='F'%20chamfer_steps='1'%20flexible='false'%20use_knot_distance='true'%20apply_no_radius='true'%20apply_with_radius='true'%20only_selected='false'%20hide_knots='false'%20/%3e%3c/defs%3e%3csodipodi:namedview%20id='namedview1'%20pagecolor='%23505050'%20bordercolor='%23eeeeee'%20borderopacity='1'%20inkscape:showpageshadow='0'%20inkscape:pageopacity='0'%20inkscape:pagecheckerboard='0'%20inkscape:deskcolor='%23505050'%20inkscape:zoom='0.6175'%20inkscape:cx='84.210526'%20inkscape:cy='354.65587'%20inkscape:window-width='1908'%20inkscape:window-height='1023'%20inkscape:window-x='0'%20inkscape:window-y='0'%20inkscape:window-maximized='1'%20inkscape:current-layer='SVGRepo_iconCarrier'%20/%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'%20/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'%20/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20d='m%2021,12%20c%200.0184,1.334935%20-0.292807,2.658087%20-0.923795,3.889738%20m%20-4.267543,4.2239%20C%2014.138429,21.02822%2012.286723,20.973849%2011.089636,20.965646%209.8583188,20.957209%207.59227,20.1334%206,18.7083%20L%203,16%20M%203,12%20C%203.0856306,10.391704%203.1465001,9.8805864%203.816926,8.2996744%20M%208.105997,3.9471126%20C%209.762535,3.0439672%2011.630415,2.9129277%2013.093117,3.048583%2014.608416,3.1891162%2016.618465,4.0444674%2018,5.29168%20L%2021,8%20M%203,21%20v%20-5%20m%200,0%20H%208%20M%2021,3%20v%205%20m%200,0%20h%20-5'%20stroke='%23ffffff'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%20id='path1'%20sodipodi:nodetypes='cccscccccssccccccccc'%20/%3e%3cpath%20style='fill:%23000000;stroke-width:0.03'%20d='M%202.0890688,1.4089069%2021.910931,22.639676'%20id='path4'%20/%3e%3cpath%20style='fill:%23000000;stroke-width:0.03'%20d='M%201.8461539,1.7004049%2022.251012,22.785425%20Z'%20id='path5'%20/%3e%3crect%20style='fill:%23ffffff;stroke-width:0.0335846'%20id='rect6'%20width='1.899596'%20height='29.20233'%20x='-1.2514524'%20y='2.4518316'%20sodipodi:type='rect'%20ry='0.94979799'%20transform='matrix(0.71194974,-0.70223042,0.71194974,0.70223042,0,0)'%20/%3e%3c/g%3e%3c/svg%3e";
 function createRobot() {
-  const { width, height, trackwidth, speed, lateralTau, angularTau, isOmni, cogOffsetX, cogOffsetY, cogOffsetXDisabled, cogOffsetYDisabled, expansionFront, expansionLeft, expansionRight, expansionRear, expansionFrontDisabled, expansionLeftDisabled, expansionRightDisabled, expansionRearDisabled } = fileFormatStore.getState().robot;
+  const {
+    width,
+    height,
+    trackwidth,
+    speed,
+    lateralTau,
+    angularTau,
+    cogOffsetX,
+    cogOffsetY,
+    cogOffsetXDisabled,
+    cogOffsetYDisabled,
+    expansionFront,
+    expansionLeft,
+    expansionRight,
+    expansionRear,
+    expansionFrontDisabled,
+    expansionLeftDisabled,
+    expansionRightDisabled,
+    expansionRearDisabled,
+    sensorFrontX,
+    sensorFrontY,
+    sensorFrontDisabled,
+    sensorLeftX,
+    sensorLeftY,
+    sensorLeftDisabled,
+    sensorRightX,
+    sensorRightY,
+    sensorRightDisabled,
+    sensorRearX,
+    sensorRearY,
+    sensorRearDisabled
+  } = fileFormatStore.getState().robot;
   return new Robot(
     0,
     // Start x
@@ -19706,8 +19759,18 @@ function createRobot() {
     expansionLeftDisabled ? 0 : expansionLeft,
     expansionRightDisabled ? 0 : expansionRight,
     expansionRearDisabled ? 0 : expansionRear,
-    isOmni,
-    // Lateral Friction (higher = less drift)
+    sensorFrontX,
+    sensorFrontY,
+    sensorFrontDisabled,
+    sensorLeftX,
+    sensorLeftY,
+    sensorLeftDisabled,
+    sensorRightX,
+    sensorRightY,
+    sensorRightDisabled,
+    sensorRearX,
+    sensorRearY,
+    sensorRearDisabled,
     lateralTau,
     angularTau
   );
@@ -21140,10 +21203,10 @@ function MenuCheckboxButton({ name, checked, setChecked, label }) {
     /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: label ?? "", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Checkbox, { checked, setChecked, size: 18 }) })
   ] });
 }
-function NumberInputButton({ name, value, setValue, bounds, stepSize, roundTo, units, label }) {
+function NumberInputButton({ name, value, labelSpeed, setValue, bounds, stepSize, roundTo, units, label }) {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row pr-1 pl-2 items-center justify-between rounded-sm", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: name }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label, speed: labelSpeed, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
       NumberInput,
       {
         width: 45,
@@ -21180,6 +21243,30 @@ function NumberInputCheckboxButton({ name, value, setValue, bounds, stepSize, ro
           addToHistory: () => saveSnapshot()
         }
       ) })
+    ] })
+  ] });
+}
+function DualNumberInputCheckboxButton({ numberInputs, name, checked, setChecked, color }) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative flex flex-row pr-1 pl-2 items-center justify-between rounded-sm", children: [
+    color && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "absolute inset-y-0 left-0.5 w-1 h-5 self-center rounded-sm", style: { backgroundColor: color } }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: color ? { paddingLeft: "6px" } : void 0, className: "text-[14px]", children: name }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row items-center gap-1.5", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Checkbox, { checked, setChecked, size: 18 }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: checked ? "flex flex-row gap-1" : "flex flex-row gap-1 opacity-40 pointer-events-none", children: numberInputs.map((n) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-col gap-1", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: n.label, speed: n.labelSpeed, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+        NumberInput,
+        {
+          width: 38,
+          height: 28,
+          fontSize: 14,
+          bounds: n.bounds,
+          stepSize: n.stepSize,
+          roundTo: n.roundTo,
+          units: n.units,
+          value: n.value,
+          setValue: n.setValue,
+          addToHistory: () => saveSnapshot()
+        }
+      ) }) }, n.name)) })
     ] })
   ] });
 }
@@ -22704,6 +22791,14 @@ function RobotButton() {
     mergeRobot({ [`expansion${side}Disabled`]: !checked });
     saveSnapshot();
   };
+  const handleSensorChange = (side, axis, v) => {
+    if (v === null) return;
+    mergeRobot({ [`sensor${side}${axis}`]: v });
+  };
+  const handleSensorToggle = (side, checked) => {
+    mergeRobot({ [`sensor${side}Disabled`]: !checked });
+    saveSnapshot();
+  };
   const handleToggleHolonomic = (checked) => {
     const newFormat = checked ? "Holonomic" : "mikLib";
     const changed = prevFormatRef.current !== newFormat;
@@ -22735,6 +22830,38 @@ function RobotButton() {
         units: "in",
         checked: !robot[`expansion${side}Disabled`],
         setChecked: (checked) => handleExpansionToggle(side, checked)
+      },
+      side
+    )) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Section, { name: "Distance Sensors", defaultCollapsed: true, children: ["Front", "Left", "Right", "Rear"].map((side) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+      DualNumberInputCheckboxButton,
+      {
+        name: side,
+        color: SENSOR_COLORS[side.toLowerCase()],
+        numberInputs: [
+          {
+            value: robot[`sensor${side}X`],
+            setValue: (v) => handleSensorChange(side, "X", v),
+            bounds: [-robot.width / 2, robot.width / 2],
+            stepSize: 0.5,
+            roundTo: 2,
+            units: "in",
+            label: "X offset from tracking center",
+            labelSpeed: "fast"
+          },
+          {
+            value: robot[`sensor${side}Y`],
+            setValue: (v) => handleSensorChange(side, "Y", v),
+            bounds: [-robot.height / 2, robot.height / 2],
+            stepSize: 0.5,
+            roundTo: 2,
+            units: "in",
+            label: "Y offset from tracking center",
+            labelSpeed: "fast"
+          }
+        ],
+        checked: !robot[`sensor${side}Disabled`],
+        setChecked: (checked) => handleSensorToggle(side, checked)
       },
       side
     )) }),
@@ -22883,6 +23010,9 @@ function useMagnetSnap() {
   const clearSnap = () => setSnapInfo(null);
   return { snapInfo, findSnap, clearSnap };
 }
+const FIELD_WALL = 70.25;
+const SENSOR_MIN_RANGE = 20 / 25.4;
+const SENSOR_MAX_RANGE = 2e3 / 25.4;
 function toPxHeight(imgHeight, value) {
   return imgHeight / FIELD_REAL_DIMENSIONS.h * value;
 }
@@ -22904,7 +23034,8 @@ function RobotView({
   rightExpansion,
   rearExpansion,
   cogOffsetX = 0,
-  cogOffsetY = 0
+  cogOffsetY = 0,
+  sensors
 }) {
   const pxWidth = toPxWidth(img.w, width);
   const pxHeight = toPxHeight(img.h, height);
@@ -22918,6 +23049,25 @@ function RobotView({
   const pxRightExpansion = toPxWidth(img.w, rightExpansion ?? 0);
   const robotX = -pxWidth / 2;
   const robotY = -pxHeight / 2;
+  const theta = toRad(normAngle);
+  const fwdWorld = { x: Math.sin(theta), y: Math.cos(theta) };
+  const rightWorld = { x: Math.cos(theta), y: -Math.sin(theta) };
+  const sensorRays = (sensors ?? []).map((s) => {
+    const startWorldX = x + rightWorld.x * s.offsetX + fwdWorld.x * s.offsetY;
+    const startWorldY = y + rightWorld.y * s.offsetX + fwdWorld.y * s.offsetY;
+    const dirWorld = s.face === "front" ? fwdWorld : s.face === "rear" ? { x: -fwdWorld.x, y: -fwdWorld.y } : s.face === "right" ? rightWorld : { x: -rightWorld.x, y: -rightWorld.y };
+    const hits = [];
+    if (dirWorld.x !== 0) hits.push((FIELD_WALL - startWorldX) / dirWorld.x, (-FIELD_WALL - startWorldX) / dirWorld.x);
+    if (dirWorld.y !== 0) hits.push((FIELD_WALL - startWorldY) / dirWorld.y, (-FIELD_WALL - startWorldY) / dirWorld.y);
+    const dist2 = Math.min(...hits.filter((t) => t > 0));
+    const inRange = Number.isFinite(dist2) && dist2 >= SENSOR_MIN_RANGE && dist2 <= SENSOR_MAX_RANGE;
+    const startPxX = toPxWidth(img.w, s.offsetX);
+    const startPxY = -toPxHeight(img.h, s.offsetY);
+    const lenPxX = inRange ? toPxWidth(img.w, dist2) : 3;
+    const lenPxY = inRange ? toPxHeight(img.h, dist2) : 3;
+    const [endPxX, endPxY] = s.face === "front" ? [startPxX, startPxY - lenPxY] : s.face === "rear" ? [startPxX, startPxY + lenPxY] : s.face === "right" ? [startPxX + lenPxX, startPxY] : [startPxX - lenPxX, startPxY];
+    return { face: s.face, startPxX, startPxY, endPxX, endPxY };
+  });
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("g", { transform: `translate(${pos.x} ${pos.y}) rotate(${normAngle})`, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(
       "rect",
@@ -22990,7 +23140,29 @@ function RobotView({
         width: pxRightExpansion,
         height: pxHeight
       }
-    )
+    ),
+    sensorRays.map((r) => /* @__PURE__ */ jsxRuntimeExports.jsxs("g", { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "circle",
+        {
+          cx: r.startPxX,
+          cy: r.startPxY,
+          r: 2,
+          fill: "black"
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "line",
+        {
+          x1: r.startPxX,
+          y1: r.startPxY,
+          x2: r.endPxX,
+          y2: r.endPxY,
+          stroke: SENSOR_COLORS[r.face],
+          strokeWidth: 1.5
+        }
+      )
+    ] }, r.face))
   ] });
 }
 function RobotLayer({ img, pose, robotPose, robotConstants, visible, path }) {
@@ -23002,6 +23174,11 @@ function RobotLayer({ img, pose, robotPose, robotConstants, visible, path }) {
   const ghostTransparency = 0.05;
   const bgColor = format === "Holonomic" ? mecnumColor : tankColor;
   const bgTransparency = 0.4;
+  const sensors = ["Front", "Left", "Right", "Rear"].filter((side) => !robotConstants[`sensor${side}Disabled`]).map((side) => ({
+    face: side.toLowerCase(),
+    offsetX: robotConstants[`sensor${side}X`],
+    offsetY: robotConstants[`sensor${side}Y`]
+  }));
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
     pose && visible && /* @__PURE__ */ jsxRuntimeExports.jsx(
       RobotView,
@@ -23020,7 +23197,8 @@ function RobotLayer({ img, pose, robotPose, robotConstants, visible, path }) {
         rightExpansion: robotConstants.expansionRightDisabled ? 0 : robotConstants.expansionRight,
         rearExpansion: robotConstants.expansionRearDisabled ? 0 : robotConstants.expansionRear,
         cogOffsetX: robotConstants.cogOffsetXDisabled ? 0 : robotConstants.cogOffsetX,
-        cogOffsetY: robotConstants.cogOffsetYDisabled ? 0 : robotConstants.cogOffsetY
+        cogOffsetY: robotConstants.cogOffsetYDisabled ? 0 : robotConstants.cogOffsetY,
+        sensors
       }
     ),
     settings.ghostRobots && robotPose.map((p, idx) => /* @__PURE__ */ jsxRuntimeExports.jsx(React.Fragment, { children: path.segments[idx]?.visible && /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -24046,4 +24224,4 @@ document.addEventListener("auxclick", blockMiddleClick, { capture: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-CK3bno_o.js.map
+//# sourceMappingURL=index-2IH3LhC9.js.map
