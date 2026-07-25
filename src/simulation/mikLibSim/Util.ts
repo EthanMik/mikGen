@@ -13,6 +13,7 @@ export function angle_error(error: number, direction: mikConstants["turn_directi
 }
 
 export function reduce_0_to_360(angle: number) {
+    if (!Number.isFinite(angle)) return 0;
     while (!(angle >= 0 && angle < 360)) {
         if (angle < 0) { angle += 360; }
         if (angle >= 360) { angle -= 360; }
@@ -21,6 +22,7 @@ export function reduce_0_to_360(angle: number) {
 }
 
 export function reduce_negative_180_to_180(angle: number) {
+    if (!Number.isFinite(angle)) return 0;
     while (!(angle >= -180 && angle < 180)) {
         if (angle < -180) { angle += 360; }
         if (angle >= 180) { angle -= 360; }
@@ -29,6 +31,7 @@ export function reduce_negative_180_to_180(angle: number) {
 }
 
 export function reduce_negative_90_to_90(angle: number) {
+    if (!Number.isFinite(angle)) return 0;
     while (!(angle >= -90 && angle < 90)) {
         if (angle < -90) { angle += 180; }
         if (angle >= 90) { angle -= 180; }
@@ -60,8 +63,11 @@ export function clamp_max_slip(drive_output: number, current_X: number, current_
     const signed_dist = Math.cos(heading) * dx + Math.sin(heading) * dy;
     const x = Math.abs(signed_dist);
     const dist = Math.hypot(dx, dy);
+
+    if (x === 0) return drive_output;
+
     const max_slip = Math.sqrt((dist * dist) / (2 * x) * drift);
-    
+
     return clamp(drive_output, -max_slip, max_slip);
 }
 

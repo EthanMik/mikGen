@@ -29,6 +29,19 @@ export function getPressedPositionInch(evt: React.PointerEvent<SVGSVGElement>, s
     return toInch(posSvg, FIELD_REAL_DIMENSIONS, img);
 }
 
+export function insertIndexAfterSelection(segments: readonly { selected: boolean }[]): number {
+    for (let i = segments.length - 1; i >= 0; i--) {
+        if (segments[i].selected) return i + 1;
+    }
+    return segments.length;
+}
+
+export function selectedLastOrder(segments: readonly { selected: boolean }[]): number[] {
+    return segments
+        .map((_, i) => i)
+        .sort((a, b) => Number(segments[a].selected) - Number(segments[b].selected));
+}
+
 export function selectSegmentsInBox(
     path: Path,
     startSvg: Coordinate,

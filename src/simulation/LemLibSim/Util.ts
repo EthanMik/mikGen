@@ -61,5 +61,7 @@ export function getCurvature(pose: LemPose, other: LemPose): number {
     const x = Math.abs(a * other.x + other.y + c) / Math.sqrt((a * a) + 1);
     const d = Math.hypot(other.x - pose.x, other.y - pose.y);
 
+    if (d === 0) return 0;
+
     return side * (2 * x) / (d * d);
 }

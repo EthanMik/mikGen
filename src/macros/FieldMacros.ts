@@ -8,7 +8,7 @@ import type { Coordinate } from "../core/Types/Coordinate";
 import type { Pose } from "../core/Types/Pose";
 import type { Format } from "../hooks/useFileFormat";
 import { convertPathToString, convertStringToPath } from "../simulation/Conversion";
-import { pointerToSvg } from "../components/Field/FieldUtils";
+import { insertIndexAfterSelection, pointerToSvg } from "../components/Field/FieldUtils";
 import { fileFormatStore } from "../hooks/useFileFormat";
 import { saveSnapshot, redoHistory, undoHistory } from "../core/Undo/UndoHistory";
 
@@ -315,8 +315,7 @@ export default function FieldMacros() {
             if (parsed.length === 0) return;
 
             setPath(prev => {
-                let selectedIndex = prev.segments.findIndex(c => c.selected);
-                selectedIndex = selectedIndex === -1 ? prev.segments.length : selectedIndex + 1;
+                const selectedIndex = insertIndexAfterSelection(prev.segments);
 
                 const toInsert: Segment[] = prev.segments.length === 0 && parsed[0].kind !== "start"
                     ? [createSegment(formatDef, format, "start", { x: 0, y: 0, angle: 0 }), ...parsed]
@@ -365,11 +364,10 @@ export default function FieldMacros() {
 
     const addSegment = (segment: Segment, setPath: React.Dispatch<SetStateAction<Path>>) => {
         setPath(prev => {
-            let selectedIndex = prev.segments.findIndex(c => c.selected);
-            selectedIndex = selectedIndex === -1 ? selectedIndex = prev.segments.length : selectedIndex + 1;
+            const selectedIndex = insertIndexAfterSelection(prev.segments);
 
-            const selectedSegment = prev.segments.find(c => c.selected);
-            if (selectedSegment !== undefined && selectedSegment.groupId !== undefined) {
+            const selectedSegment = prev.segments[selectedIndex - 1];
+            if (selectedSegment?.selected && selectedSegment.groupId !== undefined) {
                 segment.groupId = selectedSegment.groupId;
             }
 
@@ -377,14 +375,11 @@ export default function FieldMacros() {
 
             const newControl = { ...segment, selected: !segment.locked };
 
-            const inserted =
-                selectedIndex >= 0
-                ? [
-                    ...oldControls.slice(0, selectedIndex),
-                    newControl,
-                    ...oldControls.slice(selectedIndex)
-                    ]
-                : [...oldControls, newControl];
+            const inserted = [
+                ...oldControls.slice(0, selectedIndex),
+                newControl,
+                ...oldControls.slice(selectedIndex)
+            ];
 
             return {
                 ...prev,

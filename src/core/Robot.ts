@@ -67,6 +67,10 @@ export const defaultRobotConstants: RobotConstants = {
     sensorRearDisabled: true,
 }
 
+function finiteCmd(cmd: number): number {
+    return Number.isFinite(cmd) ? cmd : 0;
+}
+
 export class Robot {
     // Tank drive robot
     private vL: number = 0;
@@ -160,8 +164,8 @@ export class Robot {
     }
 
     tankDrive(leftCmd: number, rightCmd: number, dt: number) {
-        const left = clamp(leftCmd, -1, 1);
-        const right = clamp(rightCmd, -1, 1);
+        const left = clamp(finiteCmd(leftCmd), -1, 1);
+        const right = clamp(finiteCmd(rightCmd), -1, 1);
 
         const targetVL_ft = left * this.maxSpeed;
         const targetVR_ft = right * this.maxSpeed;
@@ -184,7 +188,9 @@ export class Robot {
         const vR_in = this.vR * 12;
 
         const fwd_speed = (vL_in + vR_in) / 2;
-        const orientation_delta_rad = (vL_in - vR_in) / this.trackwidth * dt;
+        const orientation_delta_rad = this.trackwidth !== 0
+            ? (vL_in - vR_in) / this.trackwidth * dt
+            : 0;
 
         const new_orientation_rad = toRad(this.angle) + orientation_delta_rad;
         const rightX =  Math.cos(new_orientation_rad);
@@ -195,10 +201,10 @@ export class Robot {
     }
 
     mecanumDrive(flCmd: number, frCmd: number, rlCmd: number, rrCmd: number, dt: number) {
-        const fl = clamp(flCmd, -1, 1);
-        const fr = clamp(frCmd, -1, 1);
-        const rl = clamp(rlCmd, -1, 1);
-        const rr = clamp(rrCmd, -1, 1);
+        const fl = clamp(finiteCmd(flCmd), -1, 1);
+        const fr = clamp(finiteCmd(frCmd), -1, 1);
+        const rl = clamp(finiteCmd(rlCmd), -1, 1);
+        const rr = clamp(finiteCmd(rrCmd), -1, 1);
 
         const tFL = fl * this.maxSpeed;
         const tFR = fr * this.maxSpeed;
@@ -208,11 +214,11 @@ export class Robot {
         const r = (this.height + this.trackwidth) / 2;
         const targetFwd = (tFL + tFR + tRL + tRR) / 4;
         const targetLat = (tFL - tFR - tRL + tRR) / 4;
-        const targetOmega = (tFL - tFR + tRL - tRR) / (4 * r);
+        const targetOmega = r !== 0 ? (tFL - tFR + tRL - tRR) / (4 * r) : 0;
 
         const curFwd = (this.vFL + this.vFR + this.vRL + this.vRR) / 4;
         const curLat = (this.vFL - this.vFR - this.vRL + this.vRR) / 4;
-        const curOmega = (this.vFL - this.vFR + this.vRL - this.vRR) / (4 * r);
+        const curOmega = r !== 0 ? (this.vFL - this.vFR + this.vRL - this.vRR) / (4 * r) : 0;
 
         const kLat = 1 - Math.exp(-dt / this.lateralTau);
         const kAng = 1 - Math.exp(-dt / this.angularTau);

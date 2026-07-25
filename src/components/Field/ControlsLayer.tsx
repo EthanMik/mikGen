@@ -6,6 +6,7 @@ import type { Segment } from "../../core/Types/Segment";
 import { calculateHeading, toPX, toRad, FIELD_REAL_DIMENSIONS, type Rectangle, FIELD_IMG_DIMENSIONS, findPointToFace } from "../../core/Util";
 import { useSettings } from "../../hooks/useSettings";
 import { FIELD_COLORS, type SegmentAttribute } from "./FieldColors";
+import { selectedLastOrder } from "./FieldUtils";
 
 type ControlsLayerProps = {
 	path: Path;
@@ -167,6 +168,8 @@ export default function ControlsLayer({ path, img, radius, onPointerDown }: Cont
 
 	const snapIdx = getBackwardsSnapIdx(path, path.segments.length - 1);
 
+	const renderOrder = selectedLastOrder(path.segments);
+
 	const segmentNumbers = new Map<number, number>();
 	let displayNum = 1;
 	for (let i = 0; i < path.segments.length; i++) {
@@ -178,7 +181,8 @@ export default function ControlsLayer({ path, img, radius, onPointerDown }: Cont
 
 	return (
 		<>
-			{path.segments.map((seg, idx) => {
+			{renderOrder.map((idx) => {
+				const seg = path.segments[idx];
 				const ctx: ShapeCtx = { path, idx, seg, img, radius, scale, hovered: hoveredId === seg.id, snapIdx };
 				return (
 					<g key={seg.id} onPointerDown={(e) => onPointerDown(e, seg.id)}>
@@ -189,7 +193,8 @@ export default function ControlsLayer({ path, img, radius, onPointerDown }: Cont
 				);
 			})}
 
-			{settings.numberedPath && path.segments.map((seg, idx) => {
+			{settings.numberedPath && renderOrder.map((idx) => {
+				const seg = path.segments[idx];
 				if (!seg.visible || seg.pose.x === null || seg.pose.y === null) return null;
 				const pos = toPX({ x: seg.pose.x, y: seg.pose.y }, FIELD_REAL_DIMENSIONS, img);
 				const num = segmentNumbers.get(idx);

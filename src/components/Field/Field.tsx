@@ -460,7 +460,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 	const handleControlPointerDown = (evt: React.PointerEvent<SVGGElement>, controlId: string) => {
 		if (evt.button !== 0 || !svgRef.current) return;
 		evt.stopPropagation();
-		(evt.currentTarget as Element).setPointerCapture(evt.pointerId);
+		svgRef.current.setPointerCapture(evt.pointerId);
 
 		if (!dragHistoryActive.current) {
 			setPath((prev) => {

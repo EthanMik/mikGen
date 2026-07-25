@@ -20,7 +20,8 @@ export class slew {
         this.sign = Math.sign(target - current);
         this.x_intercept = current + ((this.distance_to_travel * this.sign));
         this.y_intercept = this.max_speed * this.sign;
-        this.slope = ((this.sign * this.min_speed) - this.y_intercept) / (this.x_intercept - 0 - current);
+        const run = this.x_intercept - 0 - current;
+        this.slope = run !== 0 ? ((this.sign * this.min_speed) - this.y_intercept) / run : 0;
     }
 
     public iterate(current: number) {

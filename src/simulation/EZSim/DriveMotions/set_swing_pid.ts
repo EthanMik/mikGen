@@ -44,7 +44,7 @@ export function pid_swing_set(robot: Robot, dt: number, target: number, p: EZcon
     }
 
     let opposite_output = 0;
-    const scale = swing_out / swing_p.speed;
+    const scale = swing_p.speed !== 0 ? swing_out / swing_p.speed : 0;
 
     if (swing_p.swing === "LEFT_SWING") {
         opposite_output = swing_p.opposite_speed > 0 ? (swing_p.opposite_speed * scale) : 0;

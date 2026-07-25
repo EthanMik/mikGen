@@ -63,7 +63,7 @@ export function swing_to_angle(robot: Robot, dt: number, angle: number, p: mikCo
     output = clamp_min_voltage(output, turn_p.min_voltage);
     prev_output = output;
 
-    const scale = output / turn_p.max_voltage;
+    const scale = turn_p.max_voltage !== 0 ? output / turn_p.max_voltage : 0;
 
     if (turn_p.swing_direction === "left") {
         robot.tankDrive(output / 12, (turn_p.opposite_voltage * scale) / 12, dt);
