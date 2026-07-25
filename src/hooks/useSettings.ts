@@ -7,6 +7,7 @@ type Settings = {
     numberedPath: boolean;
     loopPath: boolean;
     snapToGrid: number;
+    snappingEnabled: boolean;
 };
 
 const DEFAULTS: Settings = {
@@ -16,6 +17,7 @@ const DEFAULTS: Settings = {
     numberedPath: false,
     loopPath: false,
     snapToGrid: 0.5,
+    snappingEnabled: false
 };
 
 const saved = localStorage.getItem("settings");

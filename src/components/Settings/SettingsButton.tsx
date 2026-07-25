@@ -5,7 +5,7 @@ import { MenuKeybindButton } from "../Util/KeybindButton";
 import Section from "../Util/Section";
 import MenuButtonTemplate from "../Util/MenuButtonTemplate";
 import { MenuCheckboxButton } from "../Util/CheckboxButton";
-import { NumberInputButton } from "../Util/NumberInputButton";
+import { NumberInputButton, NumberInputCheckboxButton } from "../Util/NumberInputButton";
 // import { debugStore } from "../../simulation/Conversion";
 
 export default function SettingsButton() {
@@ -39,7 +39,7 @@ export default function SettingsButton() {
                     <MenuCheckboxButton name="Robot Outlines" label="Displays end positions when sim is off" checked={settings.ghostRobots} setChecked={set("ghostRobots")} />
 
                     <Section />
-                    <NumberInputButton name="Grid Snap" label="What to snap to while Ctrl+Dragging" value={settings.snapToGrid} setValue={v => v !== null && set("snapToGrid")(v)} bounds={[0.1, 10]} stepSize={0.5} roundTo={1} units="in" />
+                    <NumberInputCheckboxButton blocking={false} checked={settings.snappingEnabled} width={40} setChecked={set("snappingEnabled")} checkLabel="Enable snapping by default" name="Grid Snap" label="Snap increment. Hold Ctrl while dragging to invert snapping" value={settings.snapToGrid} setValue={v => v !== null && set("snapToGrid")(v)} bounds={[0.1, 10]} stepSize={0.5} roundTo={1} units="in" />
                     <Section />
                     <MenuKeybindButton name="Edit Templates" keybind={""} callback={() => setPopup(true)} />
                 </div>

@@ -12,6 +12,7 @@ type NumberInputButtonProps = {
     roundTo: number;
     units: string;
     label?: string;
+    width?: number;
     labelSpeed?: "fast" | "slow";
 };
 
@@ -38,29 +39,35 @@ export function NumberInputButton({ name, value, labelSpeed, setValue, bounds, s
 }
 
 type NumberInputCheckboxButtonProps = NumberInputButtonProps & {
+    blocking?: boolean;
+    checkLabel?: string;
     checked: boolean;
     setChecked: (v: boolean) => void;
 };
 
-export function NumberInputCheckboxButton({ name, value, setValue, bounds, stepSize, roundTo, units, checked, setChecked }: NumberInputCheckboxButtonProps) {
+export function NumberInputCheckboxButton({ name, width = 45, label, checkLabel, blocking = true, value, setValue, bounds, stepSize, roundTo, units, checked, setChecked }: NumberInputCheckboxButtonProps) {
     return (
         <div className="flex flex-row pr-1 pl-2 items-center justify-between rounded-sm">
             <span className="text-[14px]">{name}</span>
             <div className="flex flex-row items-center gap-1.5">
-                <Checkbox checked={checked} setChecked={setChecked} size={18} />
-                <div className={checked ? "" : "opacity-40 pointer-events-none"}>
-                    <NumberInput
-                        width={45}
-                        height={28}
-                        fontSize={14}
-                        bounds={bounds}
-                        stepSize={stepSize}
-                        roundTo={roundTo}
-                        units={units}
-                        value={value}
-                        setValue={setValue}
-                        addToHistory={() => saveSnapshot()}
-                    />
+                <Tooltip label={checkLabel}>
+                    <Checkbox checked={checked} setChecked={setChecked} size={18} />
+                </Tooltip>
+                <div className={checked && !blocking ? "" : "opacity-40 pointer-events-none"}>
+                    <Tooltip label={label}>
+                        <NumberInput
+                            width={width}
+                            height={28}
+                            fontSize={14}
+                            bounds={bounds}
+                            stepSize={stepSize}
+                            roundTo={roundTo}
+                            units={units}
+                            value={value}
+                            setValue={setValue}
+                            addToHistory={() => saveSnapshot()}
+                        />
+                    </Tooltip>
                 </div>
             </div>
         </div>

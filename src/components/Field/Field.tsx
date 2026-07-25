@@ -282,10 +282,11 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 
 		const dx = effectivePosInch.x - start.x;
 		const dy = effectivePosInch.y - start.y;
-		const ctrlHeld = evt.ctrlKey;
+		
+		const snapEnabled = settings.snappingEnabled !== evt.ctrlKey;
 		const snapValue = 1 / settings.snapToGrid;
 
-		if (!ctrlHeld && dx === lastAppliedDelta.current.dx && dy === lastAppliedDelta.current.dy) {
+		if (!snapEnabled && dx === lastAppliedDelta.current.dx && dy === lastAppliedDelta.current.dy) {
 			return;
 		}
 		lastAppliedDelta.current = { dx, dy };
@@ -306,7 +307,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 				let newX = sx === null ? null : sx + dx;
 				let newY = sy === null ? null : sy + dy;
 
-				if (ctrlHeld) {
+				if (snapEnabled) {
 					if (newX !== null) newX = Math.round(newX * snapValue) / snapValue;
 					if (newY !== null) newY = Math.round(newY * snapValue) / snapValue;
 				}
@@ -333,7 +334,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 						const startPos = dragStartPositions.current[c.id];
 						let newX = startPos?.x == null ? (c.pose.x ?? 0) : startPos.x + dx;
 						let newY = startPos?.y == null ? (c.pose.y ?? 0) : startPos.y + dy;
-						if (ctrlHeld) {
+						if (snapEnabled) {
 							// Snap the distance itself to the grid, keeping the drag direction
 							const mag = Math.hypot(newX - anchorPose.x, newY - anchorPose.y);
 							if (mag > 0) {
@@ -362,7 +363,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 						if (startPos) {
 							let newX = startPos.x === null ? null : startPos.x + dx;
 							let newY = startPos.y === null ? null : startPos.y + dy;
-							if (ctrlHeld) {
+							if (snapEnabled) {
 								if (newX !== null) newX = Math.round(newX * snapValue) / snapValue;
 								if (newY !== null) newY = Math.round(newY * snapValue) / snapValue;
 							}
@@ -392,7 +393,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 					const fromAnchorY = segEffY - anchorPose.y;
 					let t = fromAnchorX * hx + fromAnchorY * hy;
 					// Snap the distance itself to the grid instead of the endpoint position
-					if (ctrlHeld) t = Math.round(t * snapValue) / snapValue;
+					if (snapEnabled) t = Math.round(t * snapValue) / snapValue;
 					const newX = anchorPose.x + t * hx;
 					const newY = anchorPose.y + t * hy;
 
