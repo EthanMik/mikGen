@@ -53,7 +53,7 @@ export function NumberInputCheckboxButton({ name, width = 45, label, checkLabel,
                 <Tooltip label={checkLabel}>
                     <Checkbox checked={checked} setChecked={setChecked} size={18} />
                 </Tooltip>
-                <div className={checked && !blocking ? "" : "opacity-40 pointer-events-none"}>
+                <div className={checked || !blocking ? "" : "opacity-40 pointer-events-none"}>
                     <Tooltip label={label}>
                         <NumberInput
                             width={width}

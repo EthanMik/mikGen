@@ -5,7 +5,7 @@ import { MenuKeybindButton } from "../Util/KeybindButton";
 import Section from "../Util/Section";
 import MenuButtonTemplate from "../Util/MenuButtonTemplate";
 import { MenuCheckboxButton } from "../Util/CheckboxButton";
-import { NumberInputButton, NumberInputCheckboxButton } from "../Util/NumberInputButton";
+import { NumberInputCheckboxButton } from "../Util/NumberInputButton";
 // import { debugStore } from "../../simulation/Conversion";
 
 export default function SettingsButton() {
