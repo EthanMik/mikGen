@@ -148,7 +148,7 @@ export default function ConfigButtonTemplate({ title, tooltip, children, onOpen,
                         </>
                     ))}
                     <img
-                        className={`w-[12px] h-[12px] transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                        className={`w-[12px] h-[12px] transition-transform duration-150 ${isOpen ? "rotate-180" : ""}`}
                         src={downArrow}
                     />
 
@@ -156,7 +156,7 @@ export default function ConfigButtonTemplate({ title, tooltip, children, onOpen,
             </button>
             </Tooltip>
 
-            <div ref={boxRef} className="overflow-hidden min-h-0 transition-[height] duration-200">
+            <div ref={boxRef} className="overflow-hidden min-h-0 transition-[height] duration-150">
                 <div ref={bodyRef}>
                     <div className="relative flex flex-col gap-1 bg-medgray px-2 py-2 rounded-b-sm">
                         {children}
