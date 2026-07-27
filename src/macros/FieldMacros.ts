@@ -12,6 +12,7 @@ import { convertPathToString, convertStringToPath } from "../simulation/Conversi
 import { insertIndexAfterSelection, invertAllSelection, pointerToSvg, setAllSelection } from "../components/Field/FieldUtils";
 import { fileFormatStore } from "../hooks/useFileFormat";
 import { saveSnapshot, redoHistory, undoHistory } from "../core/Undo/UndoHistory";
+import { queueFieldImg } from "../hooks/useFieldImg";
 
 export default function FieldMacros() {
     const MIN_FIELD_X = -999;
@@ -410,18 +411,18 @@ export default function FieldMacros() {
         });
     }
     
-    const fieldZoomWheel = (evt: WheelEvent, setImg: React.Dispatch<SetStateAction<Rectangle>>, svgRef: React.RefObject<SVGSVGElement | null>) => {
+    const fieldZoomWheel = (evt: WheelEvent, svgRef: React.RefObject<SVGSVGElement | null>) => {
         if (evt.shiftKey || !evt.ctrlKey || svgRef.current === null) return;
 
         evt.preventDefault();
         evt.stopPropagation();
-  
+
         const cursorPos = pointerToSvg(evt, svgRef.current);
-  
-        const zoomSpeed = 1; 
+
+        const zoomSpeed = 1;
         const delta = -evt.deltaY * zoomSpeed;
-  
-        setImg((prev) => {
+
+        queueFieldImg((prev) => {
             const aspectRatio = prev.w / prev.h;
 
             const newW = Math.max(100, prev.w + delta);
@@ -447,16 +448,16 @@ export default function FieldMacros() {
         });        
     }
 
-    const fieldPanWheel = (evt: WheelEvent, setImg: React.Dispatch<SetStateAction<Rectangle>>) => {
+    const fieldPanWheel = (evt: WheelEvent) => {
         if (evt.shiftKey || evt.ctrlKey) return;
 
         evt.preventDefault();
-        
+
         const panSpeed = 1.0;
         const dx = -evt.deltaX * panSpeed;
         const dy = -evt.deltaY * panSpeed;
 
-        setImg((prev) => ({
+        queueFieldImg((prev) => ({
             ...prev,
             x: clamp(prev.x + dx, -9999, 9999),
             y: clamp(prev.y + dy, -9999, 9999),

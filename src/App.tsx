@@ -10,6 +10,7 @@ import Field from "./components/Field/Field";
 import { ScaleContext } from "./contexts/ScaleContext";
 import { fileFormatStore } from "./hooks/useFileFormat";
 import { useFieldImg } from "./hooks/useFieldImg";
+import { invalidateSvgCtm } from "./components/Field/FieldUtils";
 import HoverButton from "./components/Util/HoverButton";
 import threeDots from "./assets/three-dots.svg";
 import lines from "./assets/lines.svg";
@@ -30,8 +31,11 @@ export default function App() {
   const cachedFieldW = useRef(0);
   const cachedRightW = useRef(0);
 
-  const [img, setImg] = useFieldImg();
-  const isFieldPanned = img.x !== 0 || img.y !== 0 || img.w !== FIELD_IMG_DIMENSIONS.w || img.h !== FIELD_IMG_DIMENSIONS.h;
+  // Selecting the boolean instead of the rectangle keeps a pan or zoom from re-rendering the
+  // whole app (Config, PathConfig and its rows, ControlConfig, PathSimulator) on every frame
+  const isFieldPanned = useFieldImg.useSelector(
+    img => img.x !== 0 || img.y !== 0 || img.w !== FIELD_IMG_DIMENSIONS.w || img.h !== FIELD_IMG_DIMENSIONS.h
+  );
 
   const [scale, setScale] = useState(1);
   const [showConfig, setShowConfig] = useState(true);
@@ -57,6 +61,8 @@ export default function App() {
     if (!viewport || !content) return;
 
     const compute = () => {
+      // Anything that resizes or rescales the layout moves the field svg on screen
+      invalidateSvgCtm();
       const mode = viewModeStore.getState();
       const prev = content.style.transform;
       content.style.transform = "scale(1)";
@@ -106,9 +112,11 @@ export default function App() {
     ro.observe(content);
 
     window.addEventListener("resize", compute);
+    window.addEventListener("scroll", invalidateSvgCtm, true);
     return () => {
       ro.disconnect();
       window.removeEventListener("resize", compute);
+      window.removeEventListener("scroll", invalidateSvgCtm, true);
     };
   }, []);
 
@@ -156,7 +164,7 @@ export default function App() {
             {isFieldPanned && (
               <HoverButton
                 src={homeButton}
-                onClick={() => setImg(FIELD_IMG_DIMENSIONS)}
+                onClick={() => useFieldImg.setState(FIELD_IMG_DIMENSIONS)}
                 className="fixed top-[90px] right-[10px] z-50 w-[33px] h-[33px]"
                 imgClassName="w-5 h-5"
               />

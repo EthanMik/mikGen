@@ -1,39 +1,14 @@
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { createStore } from "./Store";
 
+/**
+ * A module-level value every caller shares, exposed as a `[value, setValue]` pair.
+ * Backed by createStore, so the same hook also carries getState/setState/subscribe/useSelector
+ * for callers that need to read or write outside React, or subscribe to one derived field.
+ */
 export function createSharedState<T>(initialValue: T) {
-  let state = initialValue;
-  const listeners = new Set<Dispatch<SetStateAction<T>>>();
+  const store = createStore(initialValue);
 
-  const setState: Dispatch<SetStateAction<T>> = (next) => {
-    const prevState = state;
-    
-    if (typeof next === "function") {
-      const updater = next as (prev: T) => T;
-      state = updater(state);
-    } else {
-      state = next;
-    }
+  const useSharedState = () => [store.useStore(), store.setState] as const;
 
-    if (state === prevState) return;
-
-    for (const listener of listeners) {
-      listener(state);
-    }
-  };
-
-  const useSharedState = () => {
-    const [localState, setLocalState] = useState<T>(state);
-
-    useEffect(() => {
-      listeners.add(setLocalState);
-      setLocalState(state);
-      return () => {
-        listeners.delete(setLocalState);
-      };
-    }, []);
-
-    return [localState, setState] as const;
-  };
-
-  return useSharedState;
+  return Object.assign(useSharedState, store);
 }

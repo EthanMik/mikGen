@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode, useEffect } from "react";
+import { useRef, useState, type ReactNode, useEffect, useLayoutEffect } from "react";
 import downArrow from "../../assets/down-arrow.svg";
 import Tooltip from "../Util/Tooltip";
 
@@ -27,6 +27,43 @@ export default function ConfigButtonTemplate({ title, tooltip, children, onOpen,
     const flashTimeoutRef = useRef<number | null>(null);
     const blockNextContextMenu = useRef(false);
     const containerRef = useRef<HTMLDivElement>(null);
+    const boxRef = useRef<HTMLDivElement>(null);
+    const bodyRef = useRef<HTMLDivElement>(null);
+    const mounted = useRef(false);
+
+    // The panel animates its own height in px rather than a 0fr/1fr grid row.
+    // An fr row only resolves exactly at the endpoints: mid-transition the
+    // container sizes itself from the content instead of the row, so its box
+    // runs taller than what gets painted and the background shows through.
+    useLayoutEffect(() => {
+        const box = boxRef.current;
+        const body = bodyRef.current;
+        if (!box || !body) return;
+
+        if (!mounted.current) {
+            mounted.current = true;
+            box.style.height = isOpen ? "auto" : "0px";
+            return;
+        }
+
+        if (isOpen) {
+            // offsetHeight, not getBoundingClientRect: the config column sits
+            // under a transform: scale, and we need layout px here.
+            box.style.height = `${body.offsetHeight}px`;
+            const settle = (e: TransitionEvent) => {
+                // let the panel track its content once it has finished opening
+                if (e.propertyName === "height" && e.target === box) box.style.height = "auto";
+            };
+            box.addEventListener("transitionend", settle);
+            return () => box.removeEventListener("transitionend", settle);
+        }
+
+        // freeze the current height (works from "auto" or from mid-animation),
+        // then force a reflow so the collapse has something to animate from
+        box.style.height = `${box.offsetHeight}px`;
+        void box.offsetHeight;
+        box.style.height = "0px";
+    }, [isOpen]);
 
     useEffect(() => {
         const handleContextMenu = (e: MouseEvent) => {
@@ -119,12 +156,15 @@ export default function ConfigButtonTemplate({ title, tooltip, children, onOpen,
             </button>
             </Tooltip>
 
-            <div className={`grid transition-[grid-template-rows,margin-bottom] duration-200
-            ${isOpen ? "grid-rows-[1fr] mb-2" : "grid-rows-[0fr] mb-0"}`}>
-                <div className="overflow-hidden">
+            <div ref={boxRef} className="overflow-hidden min-h-0 transition-[height] duration-200">
+                <div ref={bodyRef}>
                     <div className="relative flex flex-col gap-1 bg-medgray px-2 py-2 rounded-b-sm">
                         {children}
                     </div>
+                    {/* The gap below the panel lives inside the clipped area rather than being a
+                        margin, so it is revealed by the same animation and the background behind it
+                        only shows once the panel is fully open. */}
+                    <div className="h-2" />
                 </div>
             </div>
         </div>

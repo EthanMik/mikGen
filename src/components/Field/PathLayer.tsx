@@ -1,9 +1,9 @@
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import { computedPathStore } from "../../core/ComputePathSim";
 import { hoveredSegmentStore } from "../../core/HoverStore";
 import type { Path } from "../../core/Types/Path";
 import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, toRGB, type Rectangle } from "../../core/Util";
-import { getSegmentLines, getPreciseSegmentDots } from "./FieldUtils";
+import { getSegmentPointsInch, getPreciseSegmentDots, pointsToSvg } from "./FieldUtils";
 import { FIELD_COLORS } from "./FieldColors";
 
 const DOT_SPACING = 1.5;
@@ -25,6 +25,29 @@ function speedColor(t: number, slow: number[], mid: number[], fast: number[], ti
   return `rgb(${channel(0)},${channel(1)},${channel(2)})`;
 }
 
+type Dot = { x: number; y: number; t: number };
+
+/**
+ * A segment's dots live in inch space and the enclosing group carries the zoom/pan transform,
+ * so nothing here depends on img. Memoized because a long path is thousands of circles that
+ * would otherwise be rebuilt on every pan frame.
+ */
+const PreciseDots = memo(function PreciseDots({ dots, hovered }: { dots: Dot[]; hovered: boolean }) {
+  return (
+    <>
+      {dots.map((pt, i) => (
+        <circle
+          key={i}
+          cx={pt.x}
+          cy={pt.y}
+          r={DOT_RADIUS}
+          fill={speedColor(pt.t, SLOW_RGB, MID_RGB, FAST_RGB, hovered ? HOVER_TINT : 0)}
+        />
+      ))}
+    </>
+  );
+});
+
 type PathLayerProps = {
   path: Path;
   img: Rectangle;
@@ -40,6 +63,12 @@ export default function PathLayer({ path, img, visible, precise }: PathLayerProp
     () => path.segments.map((_, idx) => getPreciseSegmentDots(idx, DOT_SPACING)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [trajectories, path.segments.length]
+  );
+
+  // Cached against the path so panning and zooming only re-run the cheap inch -> pixel mapping
+  const allPoints = useMemo(
+    () => path.segments.map((_, idx) => getSegmentPointsInch(idx, path)),
+    [path]
   );
 
   if (visible || path.segments.length < 2) return null;
@@ -67,26 +96,18 @@ export default function PathLayer({ path, img, visible, precise }: PathLayerProp
           if (!dots) return null;
           return (
             <g key={`precise-seg-${control.id}`} transform={dotTransform}>
-              {dots.map((pt, i) => (
-                <circle
-                  key={i}
-                  cx={pt.x}
-                  cy={pt.y}
-                  r={DOT_RADIUS}
-                  fill={speedColor(pt.t, SLOW_RGB, MID_RGB, FAST_RGB, hovered ? HOVER_TINT : 0)}
-                />
-              ))}
+              <PreciseDots dots={dots} hovered={hovered} />
             </g>
           );
         }
 
-        const segPts = getSegmentLines(idx, path, img, false);
-        if (!segPts) return null;
+        const points = allPoints[idx];
+        if (!points) return null;
 
         return (
           <polyline
             key={`hover-seg-${control.id}`}
-            points={segPts}
+            points={pointsToSvg(points, img)}
             fill="none"
             stroke={color}
             strokeDasharray={`${10 * scale}, ${7 * scale}`}

@@ -10,7 +10,7 @@ import { useRobotVisibility } from "../../hooks/useRobotVisibility";
 import { PathSimMacros } from "../../macros/PathSimMacros";
 import FieldMacros from "../../macros/FieldMacros";
 import { useRobotPose } from "../../hooks/useRobotPose";
-import { deselectControls, getPressedPositionInch, pointerToSvg, selectControlInPath, selectionCount } from "./FieldUtils";
+import { deselectControls, getPressedPositionInch, invalidateSvgCtm, pointerToSvg, selectControlInPath, selectionCount } from "./FieldUtils";
 import { segmentControls } from "../../core/Types/Bezier";
 import HoverButton from "../Util/HoverButton";
 import { useBoxSelect } from "./useBoxSelect";
@@ -21,7 +21,8 @@ import ControlsLayer from "./ControlsLayer";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import { resolveHeading, getBackwardsSnapPose, getBackwardsSnapIdx, distanceToPosition, getSegmentDistance, type Path } from "../../core/Types/Path";
 import { useSettings } from "../../hooks/useSettings";
-import { useFieldImg } from "../../hooks/useFieldImg";
+import { queueFieldImg, useFieldImg } from "../../hooks/useFieldImg";
+import { consumeSpacePan, markSpacePan, useSpaceHeld } from "../../hooks/useSpaceHeld";
 
 const controlDragKey = (segmentId: string, controlIdx: number) => `${segmentId}:c${controlIdx}`;
 
@@ -109,7 +110,8 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 	const pendingTurnCycleRef = useRef<string | null>(null);
 	const suppressClickFallbackRef = useRef(false);
 
-	const [middleMouseDown, setMiddleMouseDown] = useState(false)
+	const [spaceHeld] = useSpaceHeld();
+	const [isPanning, setIsPanning] = useState(false)
 	const fieldDragRef = useRef<Coordinate>({ x: 0, y: 0 });
 	const isFieldDragging = useRef(false);
 
@@ -209,13 +211,51 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		setRobotVisibility,
 	]);
 
+	// Space turns a left drag into a field pan. Held state is global because PathSimulator has to
+	// know, on release, whether the press was a pan or a tap that should toggle playback.
+	useEffect(() => {
+		const isTyping = (evt: KeyboardEvent) => {
+			const target = evt.target as HTMLElement | null;
+			return target?.isContentEditable || target?.tagName === "INPUT" || target?.tagName === "TEXTAREA";
+		};
+
+		const onKeyDown = (evt: KeyboardEvent) => {
+			if (evt.code !== "Space" || isTyping(evt)) return;
+			// Stops the page scrolling and stops Space from activating whatever button has focus
+			evt.preventDefault();
+			useSpaceHeld.setState(true);
+		};
+
+		const onKeyUp = (evt: KeyboardEvent) => {
+			if (evt.code !== "Space") return;
+			useSpaceHeld.setState(false);
+		};
+
+		// Losing focus means the matching keyup never arrives, so clear both or Space sticks down
+		// and the stale pan mark swallows the next tap
+		const onBlur = () => {
+			useSpaceHeld.setState(false);
+			consumeSpacePan();
+		};
+
+		document.addEventListener("keydown", onKeyDown);
+		document.addEventListener("keyup", onKeyUp);
+		window.addEventListener("blur", onBlur);
+
+		return () => {
+			document.removeEventListener("keydown", onKeyDown);
+			document.removeEventListener("keyup", onKeyUp);
+			window.removeEventListener("blur", onBlur);
+		};
+	}, []);
+
 	useEffect(() => {
 		const svg = svgRef.current;
 		if (svg === null) return;
 
 		const onWheel = (evt: WheelEvent) => {
-			fieldZoomWheel(evt, setImg, svgRef);
-			fieldPanWheel(evt, setImg);
+			fieldZoomWheel(evt, svgRef);
+			fieldPanWheel(evt);
 		};
 
 		svg.addEventListener("wheel", onWheel, { passive: false });
@@ -227,21 +267,30 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 
 
 	const handleFieldPointerDown = (evt: React.PointerEvent<SVGSVGElement>) => {
-		if (evt.button !== 1) return;
+		const spacePan = evt.button === 0 && spaceHeld;
+		if (evt.button !== 1 && !spacePan) return;
 
 		evt.preventDefault();
 		svgRef.current?.setPointerCapture(evt.pointerId);
 
+		// Marking on press, not on movement, so Space + click with no drag still counts as a pan
+		// and does not fall through to a play/pause toggle when Space is released
+		if (spacePan) markSpacePan();
+
+		isFieldDragging.current = true;
+		setIsPanning(true);
 		fieldDragRef.current = { x: evt.clientX, y: evt.clientY };
 	};
 
 	const handleFieldDrag = (evt: React.PointerEvent<SVGSVGElement>) => {
-		if (!(evt.buttons & 4)) return;
+		// Gated on the ref rather than spaceHeld, so letting go of Space mid-drag keeps panning
+		const spacePan = (evt.buttons & 1) !== 0 && isFieldDragging.current;
+		if (!(evt.buttons & 4) && !spacePan) return;
 
 		const dx = evt.clientX - fieldDragRef.current.x;
 		const dy = evt.clientY - fieldDragRef.current.y;
 
-		setImg((prev) => ({
+		queueFieldImg((prev) => ({
 			...prev,
 			x: prev.x + dx,
 			y: prev.y + dy,
@@ -452,6 +501,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		dragStartPointerInch.current = null;
 		dragStartPositions.current = {};
 		isFieldDragging.current = false;
+		setIsPanning(false);
 	}
 
 	const selectSegment = (controlId: string, shifting: boolean) => {
@@ -493,6 +543,8 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 
 	const handleControlPointerDown = (evt: React.PointerEvent<SVGGElement>, controlId: string) => {
 		if (evt.button !== 0 || !svgRef.current) return;
+		// Bail before stopPropagation so the press bubbles up and starts a pan instead
+		if (spaceHeld) return;
 		evt.stopPropagation();
 		svgRef.current.setPointerCapture(evt.pointerId);
 
@@ -562,6 +614,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 
 	const handleControlPointPointerDown = (evt: React.PointerEvent<SVGCircleElement>, segmentId: string, controlIdx: number) => {
 		if (evt.button !== 0 || !svgRef.current) return;
+		if (spaceHeld) return;
 		evt.stopPropagation();
 		svgRef.current.setPointerCapture(evt.pointerId);
 
@@ -645,7 +698,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 	};
 
 	const handlePointerUp = (evt: React.PointerEvent<SVGSVGElement>) => {
-		setMiddleMouseDown(false);
+		setIsPanning(false);
 		if (shiftPendingSelectRef.current !== null && !dragDidMove.current) {
 			selectSegment(shiftPendingSelectRef.current, true);
 		}
@@ -663,7 +716,13 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 	};
 
 	return (
-		<div tabIndex={0} className="select-none" onMouseLeave={() => { endDrag(); cancelBoxSelect(); }}>
+		<div
+			tabIndex={0}
+			// The nodes and handles set their own cursor inline, so panning has to override the
+			// whole subtree rather than just the svg
+			className={`select-none${isPanning ? " field-pan-active" : spaceHeld ? " field-pan-ready" : ""}`}
+			onMouseLeave={() => { endDrag(); cancelBoxSelect(); }}
+		>
 			<input
 				ref={hiddenInputRef}
 				data-paste-proxy=""
@@ -675,14 +734,15 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 				viewBox={`${-Math.floor((canvasWidth - FIELD_IMG_DIMENSIONS.w) / 2)} 0 ${canvasWidth} ${FIELD_IMG_DIMENSIONS.h}`}
 				width={canvasWidth}
 				height={FIELD_IMG_DIMENSIONS.h}
-				className={`${drag.dragging ? "cursor-grabbing" : middleMouseDown ? "cursor-grab" : isBoxSelecting ? "cursor-crosshair" : "cursor-default"}`}
+				className={`${drag.dragging ? "cursor-grabbing" : isBoxSelecting ? "cursor-crosshair" : "cursor-default"}`}
 				onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
 				onPointerDown={(e) => {
-					if (e.button === 1) {
-						e.preventDefault();
-						setMiddleMouseDown(true);
-					}
+					// Cheap once per gesture, and guarantees the cached matrix matches the current layout
+					invalidateSvgCtm();
+					if (e.button === 1) e.preventDefault();
 					handleFieldPointerDown(e);
+					// While Space is held the field only pans, so no segment is added and no box select starts
+					if (spaceHeld) return;
 					handleBackgroundPointerDown(e);
 				}}
 				onPointerMove={(e) => {

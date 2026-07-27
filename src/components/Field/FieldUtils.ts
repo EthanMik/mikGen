@@ -8,13 +8,28 @@ import { resolveBezier, sampleBezier, segmentControls } from "../../core/Types/B
 
 export const BEZIER_RENDER_STEPS = 30;
 
+let ctmCache: { svg: SVGSVGElement; inverse: DOMMatrix } | null = null;
+
+/**
+ * Drops the cached screen matrix. Reading it forces a layout flush, so it is kept across a
+ * gesture (the svg itself never moves while panning, zooming, or dragging a node) and cleared
+ * whenever the page or app scale could have moved it.
+ */
+export function invalidateSvgCtm() {
+    ctmCache = null;
+}
+
 export function pointerToSvg(evt: React.PointerEvent | React.MouseEvent<SVGSVGElement> | WheelEvent, svg: SVGSVGElement): Coordinate {
-    const ctm = svg.getScreenCTM();
-    if (ctm) {
+    if (ctmCache === null || ctmCache.svg !== svg) {
+        const ctm = svg.getScreenCTM();
+        if (ctm) ctmCache = { svg, inverse: ctm.inverse() };
+    }
+
+    if (ctmCache !== null) {
         const pt = svg.createSVGPoint();
         pt.x = evt.clientX;
         pt.y = evt.clientY;
-        const p = pt.matrixTransform(ctm.inverse());
+        const p = pt.matrixTransform(ctmCache.inverse);
         return { x: p.x, y: p.y };
     }
 
@@ -187,18 +202,7 @@ export function selectionCount(segments: readonly Segment[]): number {
     );
 }
 
-export const getPreciseSegmentLines = (idx: number, img: Rectangle): string | null => {
-    const points: string[] = [];
-    const segPts = computedPathStore.getState().segmentTrajectorys[idx];
-    if (segPts === undefined) return null;
-    for (const rawPt of segPts) {
-        const point = toPX({ x: rawPt.x, y: rawPt.y }, FIELD_REAL_DIMENSIONS, img);
-        points.push(`${point.x},${point.y}`);
-    }
-    return points.join(" ");
-}
-
-export const getPreciseSegmentDots = (idx: number, spacing: number): { x: number, y: number, t: number }[] | null => {
+export const getPreciseSegmentDots =(idx: number, spacing: number): { x: number, y: number, t: number }[] | null => {
     const segPts = computedPathStore.getState().segmentTrajectorys[idx];
     if (segPts === undefined || segPts.length === 0) return null;
 
@@ -231,12 +235,13 @@ function getLead(m: any): number {
     return 0;
 }
 
-export const getSegmentLines = (idx: number, path: Path, img: Rectangle, precise = false): string | null => {
+/**
+ * The polyline for a segment in real-world inches. Nothing here depends on the zoom/pan
+ * rectangle, so callers can cache it against the path and only run toPX per frame.
+ * toPX is affine, so sampling in inches and mapping after is identical to sampling in pixels.
+ */
+export const getSegmentPointsInch = (idx: number, path: Path): Coordinate[] | null => {
     if (idx <= 0) return null;
-
-    if (precise) {
-        return getPreciseSegmentLines(idx, img);
-    }
 
     const m = path.segments[idx];
     if (m.pose.x === null || m.pose.y === null) return null;
@@ -244,47 +249,49 @@ export const getSegmentLines = (idx: number, path: Path, img: Rectangle, precise
     const startPose = getBackwardsSnapPose(path, idx - 1);
     if (startPose === null || startPose.x === null || startPose.y === null) return null;
 
-    const pStart = toPX({ x: startPose.x, y: startPose.y }, FIELD_REAL_DIMENSIONS, img);
-    const pEnd = toPX({ x: m.pose.x, y: m.pose.y }, FIELD_REAL_DIMENSIONS, img);
+    const start = { x: startPose.x, y: startPose.y };
+    const end = { x: m.pose.x, y: m.pose.y };
 
     if (m.kind === "bezierCurve") {
         const bezier = resolveBezier(path, idx);
         if (bezier === null) return null;
-        return sampleBezier(bezier, BEZIER_RENDER_STEPS)
-            .map(pt => {
-                const px = toPX(pt, FIELD_REAL_DIMENSIONS, img);
-                return `${px.x},${px.y}`;
-            })
-            .join(" ");
+        return sampleBezier(bezier, BEZIER_RENDER_STEPS);
     }
 
     if ((m.kind === "poseDrive" && m.format === "Holonomic") || m.kind === "pointDrive" || m.kind === "distanceDrive" || m.kind === "strafeDrive") {
-        return `${pStart.x},${pStart.y} ${pEnd.x},${pEnd.y}`;
+        return [start, end];
     }
 
     const lead = getLead(m);
-    if (m.kind !== "poseDrive") return "";
+    if (m.kind !== "poseDrive") return [];
 
     const ΘEnd = m.pose.angle ?? 0;
 
-    const h = Math.sqrt(
-        (pStart.x - pEnd.x) * (pStart.x - pEnd.x) + (pStart.y - pEnd.y) * (pStart.y - pEnd.y)
-    );
+    const h = Math.hypot(start.x - end.x, start.y - end.y);
 
-    const x1 = pEnd.x - h * Math.sin(toRad(ΘEnd)) * lead;
-    const y1 = pEnd.y + h * Math.cos(toRad(ΘEnd)) * lead;
+    // Inches are y-up while pixels are y-down, so the control point offset flips sign on y
+    const x1 = end.x - h * Math.sin(toRad(ΘEnd)) * lead;
+    const y1 = end.y - h * Math.cos(toRad(ΘEnd)) * lead;
 
-    const boomerangPts: string[] = [];
+    const boomerangPts: Coordinate[] = [];
     const steps = 20;
 
     for (let i = 0; i <= steps; i++) {
         const t = i / steps;
 
-        const x = (1 - t) * ((1 - t) * pStart.x + t * x1) + t * ((1 - t) * x1 + t * pEnd.x);
-        const y = (1 - t) * ((1 - t) * pStart.y + t * y1) + t * ((1 - t) * y1 + t * pEnd.y);
-
-        boomerangPts.push(`${x},${y}`);
+        boomerangPts.push({
+            x: (1 - t) * ((1 - t) * start.x + t * x1) + t * ((1 - t) * x1 + t * end.x),
+            y: (1 - t) * ((1 - t) * start.y + t * y1) + t * ((1 - t) * y1 + t * end.y),
+        });
     }
 
-    return boomerangPts.join(" ");
+    return boomerangPts;
 };
+
+export const pointsToSvg = (points: Coordinate[], img: Rectangle): string =>
+    points
+        .map(pt => {
+            const px = toPX(pt, FIELD_REAL_DIMENSIONS, img);
+            return `${px.x},${px.y}`;
+        })
+        .join(" ");

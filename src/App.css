@@ -18,3 +18,7 @@
     font-family: sans-serif;
   }
 }
+
+/* Field nodes and bezier handles set cursor inline, so a pan has to win over the whole subtree */
+.field-pan-ready, .field-pan-ready * { cursor: grab !important; }
+.field-pan-active, .field-pan-active * { cursor: grabbing !important; }

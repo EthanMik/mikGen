@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { hoveredSegmentStore } from "../../core/HoverStore";
 import type { Path } from "../../core/Types/Path";
 import { getBackwardsSnapIdx, getBackwardsSnapPose } from "../../core/Types/Path";
 import type { Segment } from "../../core/Types/Segment";
-import { resolveBezier, segmentControls } from "../../core/Types/Bezier";
+import { resolveBezier, segmentControls, type Bezier } from "../../core/Types/Bezier";
 import { calculateHeading, toPX, toRad, FIELD_REAL_DIMENSIONS, type Rectangle, FIELD_IMG_DIMENSIONS, findPointToFace } from "../../core/Util";
 import { useSettings } from "../../hooks/useSettings";
 import { controlAttributes, FIELD_COLORS, type SegmentAttribute } from "./FieldColors";
@@ -17,10 +17,23 @@ type ControlsLayerProps = {
 	onControlPointerDown: (e: React.PointerEvent<SVGCircleElement>, id: string, controlIdx: number) => void;
 };
 
+/**
+ * Everything a segment's shapes need that depends only on the path, not on the zoom/pan
+ * rectangle. getBackwardsSnapPose, findPointToFace and resolveBezier each walk the path, and
+ * the shapes used to call them several times per segment per render, so this is cached once
+ * per path and reused across every pan and zoom frame.
+ */
+type SegGeom = {
+	snapPose: { x: number; y: number } | null;
+	indicatorAngle: number | null;
+	bezier: Bezier | null;
+};
+
 type ShapeCtx = {
 	path: Path;
 	idx: number;
 	seg: Segment;
+	geom: SegGeom;
 	img: Rectangle;
 	radius: number;
 	scale: number;
@@ -28,6 +41,28 @@ type ShapeCtx = {
 	snapIdx: number | null;
 	onControlPointerDown: ControlsLayerProps["onControlPointerDown"];
 };
+
+/** Null when the kind has an optional heading and none is set, so nothing is drawn. */
+function computeIndicatorAngle(path: Path, idx: number, seg: Segment, snapPose: { x: number; y: number }): number | null {
+	const angle = seg.pose.angle;
+	if (seg.kind === "pointTurn" || seg.kind === "pointSwing") {
+		const pos = findPointToFace(path, idx);
+		return calculateHeading({ x: snapPose.x, y: snapPose.y }, { x: pos.x, y: pos.y }) + (angle ?? 0);
+	}
+	return angle;
+}
+
+function computeSegGeoms(path: Path): SegGeom[] {
+	return path.segments.map((seg, idx) => {
+		const raw = getBackwardsSnapPose(path, idx);
+		const snapPose = raw !== null && raw.x !== null && raw.y !== null ? { x: raw.x, y: raw.y } : null;
+		return {
+			snapPose,
+			indicatorAngle: snapPose === null ? null : computeIndicatorAngle(path, idx, seg, snapPose),
+			bezier: seg.kind === "bezierCurve" ? resolveBezier(path, idx) : null,
+		};
+	});
+}
 
 function shapeColor(attr: SegmentAttribute, selected: boolean): string {
 	return selected ? attr.selectedColor : attr.baseColor;
@@ -39,16 +74,6 @@ function shapeScale(attr: SegmentAttribute, selected: boolean, hovered: boolean)
 
 function indicatorThickness(selected: boolean, hovered: boolean): number {
 	return selected ? 5 : hovered ? 4 : 2;
-}
-
-/** Null when the kind has an optional heading and none is set, so nothing is drawn. */
-function indicatorAngle(ctx: ShapeCtx, snapPose: { x: number, y: number }): number | null {
-	const angle = ctx.seg.pose.angle;
-	if (ctx.seg.kind === "pointTurn" || ctx.seg.kind === "pointSwing") {
-		const pos = findPointToFace(ctx.path, ctx.idx);
-		return calculateHeading({ x: snapPose.x, y: snapPose.y }, { x: pos.x, y: pos.y }) + (angle ?? 0);
-	}
-	return angle;
 }
 
 function indicatorTipPx(ctx: ShapeCtx, snapPose: { x: number, y: number }, angle: number, r: number) {
@@ -80,16 +105,16 @@ function renderNode(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
 }
 
 function renderLine(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
-	const snapPose = getBackwardsSnapPose(ctx.path, ctx.idx);
-	if (snapPose === null || snapPose.x === null || snapPose.y === null) return null;
+	const snapPose = ctx.geom.snapPose;
+	if (snapPose === null) return null;
 
 	const { seg } = ctx;
 	const r = ctx.radius * shapeScale(attr, seg.selected, ctx.hovered);
-	const angle = indicatorAngle(ctx, { x: snapPose.x, y: snapPose.y });
+	const angle = ctx.geom.indicatorAngle;
 	if (angle === null) return null;
 
-	const basePx = toPX({ x: snapPose.x, y: snapPose.y }, FIELD_REAL_DIMENSIONS, ctx.img);
-	const tipPx = indicatorTipPx(ctx, { x: snapPose.x, y: snapPose.y }, angle, r);
+	const basePx = toPX(snapPose, FIELD_REAL_DIMENSIONS, ctx.img);
+	const tipPx = indicatorTipPx(ctx, snapPose, angle, r);
 
 	return (
 		<line
@@ -103,18 +128,18 @@ function renderLine(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
 }
 
 function renderCurve(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
-	const snapPose = getBackwardsSnapPose(ctx.path, ctx.idx);
-	if (snapPose === null || snapPose.x === null || snapPose.y === null) return null;
+	const snapPose = ctx.geom.snapPose;
+	if (snapPose === null) return null;
 
 	const { seg } = ctx;
 	const r = ctx.radius * shapeScale(attr, seg.selected, ctx.hovered);
 	const thickness = indicatorThickness(seg.selected, ctx.hovered);
-	const angle = indicatorAngle(ctx, { x: snapPose.x, y: snapPose.y });
+	const angle = ctx.geom.indicatorAngle;
 	if (angle === null) return null;
 
 	const rInner = Math.max(0, r - (thickness * 0.6));
-	const basePx = toPX({ x: snapPose.x, y: snapPose.y }, FIELD_REAL_DIMENSIONS, ctx.img);
-	const tipPx = indicatorTipPx(ctx, { x: snapPose.x, y: snapPose.y }, angle, rInner);
+	const basePx = toPX(snapPose, FIELD_REAL_DIMENSIONS, ctx.img);
+	const tipPx = indicatorTipPx(ctx, snapPose, angle, rInner);
 
 	const dx = tipPx.x - basePx.x;
 	const dy = tipPx.y - basePx.y;
@@ -140,11 +165,11 @@ function renderCurve(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
 }
 
 function renderCircle(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
-	const snapPose = getBackwardsSnapPose(ctx.path, ctx.idx);
-	if (snapPose === null || snapPose.x === null || snapPose.y === null) return null;
+	const snapPose = ctx.geom.snapPose;
+	if (snapPose === null) return null;
 
 	const { seg } = ctx;
-	const px = toPX({ x: snapPose.x, y: snapPose.y }, FIELD_REAL_DIMENSIONS, ctx.img);
+	const px = toPX(snapPose, FIELD_REAL_DIMENSIONS, ctx.img);
 	return (
 		<circle
 			pointerEvents="none"
@@ -163,7 +188,7 @@ function renderControls(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode 
 	const control = segmentControls(seg)[i];
 	if (!control || !control.visible || control.x === null || control.y === null) return null;
 
-	const bezier = resolveBezier(ctx.path, ctx.idx);
+	const bezier = ctx.geom.bezier;
 	if (bezier === null) return null;
 
 	const anchor = i === 0 ? bezier.p0 : bezier.p1;
@@ -229,6 +254,8 @@ export default function ControlsLayer({ path, img, radius, onPointerDown, onCont
 
 	const snapIdx = getBackwardsSnapIdx(path, path.segments.length - 1);
 
+	const geoms = useMemo(() => computeSegGeoms(path), [path]);
+
 	const renderOrder = selectedLastOrder(path.segments);
 
 	const segmentNumbers = new Map<number, number>();
@@ -244,7 +271,7 @@ export default function ControlsLayer({ path, img, radius, onPointerDown, onCont
 		<>
 			{renderOrder.map((idx) => {
 				const seg = path.segments[idx];
-				const ctx: ShapeCtx = { path, idx, seg, img, radius, scale, hovered: hoveredId === seg.id, snapIdx, onControlPointerDown };
+				const ctx: ShapeCtx = { path, idx, seg, geom: geoms[idx], img, radius, scale, hovered: hoveredId === seg.id, snapIdx, onControlPointerDown };
 				return (
 					<g key={seg.id} onPointerDown={(e) => onPointerDown(e, seg.id)}>
 						{seg.visible && selectedLastAttrs(seg).map(({ attr, key }) => (

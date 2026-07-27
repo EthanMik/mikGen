@@ -50,7 +50,6 @@ export default function FieldButton() {
                     name={group.name}
                     collapsed={openGroup !== group.id}
                     onToggle={() => setOpenGroup(prev => (prev === group.id ? null : group.id))}
-                    highlight={openGroup !== group.id && activeGroup === group.id}
                 >
                     {group.items.map(c => (
                         <ConfigCheckButton

@@ -19,7 +19,7 @@ export default function Section({ name = "", children, defaultCollapsed = false,
         onToggle?.();
     };
 
-    const bar = <div className="w-full h-[2px] mt-0.5 rounded-sm bg-medlightgray" />;
+    const bar = <div className="left-1 right-1 h-[2px] shrink-0 rounded-sm bg-medlightgray" />;
 
     const line = (clickable: boolean) => (
         <div className="flex flex-col">

@@ -1,5 +1,6 @@
 import type { SetStateAction } from "react";
 import type { PathSim } from "../core/ComputePathSim";
+import { consumeSpacePan } from "../hooks/useSpaceHeld";
 
 export function PathSimMacros() {
     function toggleRobotVisibility(
@@ -11,23 +12,47 @@ export function PathSimMacros() {
         }
     }
 
-    /** Using key "P" to start and stop simulator */
+    const togglePlaying = (
+        setPlaying: React.Dispatch<React.SetStateAction<boolean>>,
+        setVisibility: React.Dispatch<SetStateAction<boolean>>,
+    ) => {
+        setPlaying((v) => {
+            const newState = !v;
+            if (newState) {
+                setVisibility(true);
+            }
+            return newState;
+        });
+    };
+
+    /** Using key "K" to start and stop simulator */
     const pauseSimulator = (
         evt: KeyboardEvent,
         setPlaying: React.Dispatch<React.SetStateAction<boolean>>,
         setVisibility: React.Dispatch<SetStateAction<boolean>>,
     ) => {
-        if (evt.key.toLowerCase() === "k" || evt.key === " ") {
+        if (evt.key.toLowerCase() === "k") {
             evt.preventDefault();
-            setPlaying((v) => {
-                const newState = !v;
-                if (newState) {
-                    setVisibility(true);
-                }
-                return newState;
-            });
+            togglePlaying(setPlaying, setVisibility);
             evt.stopPropagation();
         }
+    };
+
+    /**
+     * Space toggles on release, not on press, because holding it pans the field. A press that
+     * panned is swallowed here, so only a plain tap reaches playback.
+     */
+    const releaseSimulator = (
+        evt: KeyboardEvent,
+        setPlaying: React.Dispatch<React.SetStateAction<boolean>>,
+        setVisibility: React.Dispatch<SetStateAction<boolean>>,
+    ) => {
+        if (evt.code !== "Space") return;
+        if (consumeSpacePan()) return;
+
+        evt.preventDefault();
+        togglePlaying(setPlaying, setVisibility);
+        evt.stopPropagation();
     };
 
     const scrubSimulator = (
@@ -75,6 +100,7 @@ export function PathSimMacros() {
     return {
         toggleRobotVisibility,
         pauseSimulator,
+        releaseSimulator,
         scrubSimulator
     };
 }

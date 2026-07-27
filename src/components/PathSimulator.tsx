@@ -86,7 +86,7 @@ export default function PathSimulator() {
     const [simulatedGroups] = useSimulateGroup();
     const simJump = simJumpStore.useStore();
 
-    const { pauseSimulator, scrubSimulator } = PathSimMacros();
+    const { pauseSimulator, releaseSimulator, scrubSimulator } = PathSimMacros();
 
     const segmentGeoKey = useMemo(() =>
         path.segments.map(s => {
@@ -219,10 +219,18 @@ export default function PathSimulator() {
             scrubSimulator(evt, setValue, setPlaying, setRobotVisibility, skip, computedPath, SIM_CONSTANTS.dt, 0.25);
         }
 
+        const handleKeyUp = (evt: KeyboardEvent) => {
+            const target = evt.target as HTMLElement | null;
+            if (target?.isContentEditable || target?.tagName === "INPUT") return;
+            releaseSimulator(evt, setPlaying, setRobotVisibility)
+        }
+
         document.addEventListener('keydown', handleKeyDown)
+        document.addEventListener('keyup', handleKeyUp)
 
         return () => {
             document.removeEventListener('keydown', handleKeyDown)
+            document.removeEventListener('keyup', handleKeyUp)
         }
     }, [computedPath]);
 

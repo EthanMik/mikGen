@@ -5,11 +5,12 @@ import type { Segment } from "./Segment";
 
 /**
  * Paths saved before bezier segments existed have no `controls`, so always read through this.
+ * Only bezier segments have controls; any left on another kind are stale and read as empty.
  * Lives here rather than in Segment.ts so that reading controls does not pull the format
  * registry into a module that loads before it is initialized.
  */
 export function segmentControls(seg: Segment): ControlPoint[] {
-    return seg.controls ?? [];
+    return seg.kind === "bezierCurve" ? seg.controls ?? [] : [];
 }
 
 /** Slot 0 sits a third along the chord, slot 1 two thirds, giving an even default curve. */
