@@ -343,9 +343,8 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
                             started = true;
                         }
                         DEBUG_printRobotState(robot, dt);
-                        // Tank ignores the end heading; only holonomic tries to land on it
-                        const endAngle = seg.format === "Holonomic" ? seg.pose.angle : null;
-                        const output = simFn(robot, dt, x, y, endAngle, k, points);
+                        // A commanded heading is what the follower lands on; null leaves it on the exit tangent
+                        const output = simFn(robot, dt, x, y, seg.pose.angle, k, points);
                         if (output) DEBUG_printSegmentEnd(idx, formatDef, kind);
                         return [output, kind, targetDist];
                     }

@@ -117,7 +117,7 @@ export function follow_path(robot: Robot, dt: number, points: Coordinate[], end_
 
     if (drive_error < DRIVE_LARGE_SETTLE_ERROR) {
         if (!heading_locked) {
-            // Holonomic can be asked to land on a heading; tank just holds the final tangent
+            // A commanded end heading wins; without one the final tangent is held
             const target = end_angle ?? final_tangent;
             locked_heading = target + (drive_p.drive_direction === "reversed" && end_angle === null ? 180 : 0);
             heading_locked = true;

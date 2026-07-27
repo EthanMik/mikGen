@@ -81,6 +81,13 @@ export const FIELD_COLORS: FieldColors = {
                 hoverScale: 1.4,
                 selectedScale: 1,
             },
+            {
+                shape: "line",
+                baseColor: toRGBA("#a06d07", 1),
+                selectedColor: toRGBA("#a08407", 1),
+                hoverScale: 1.2,
+                selectedScale: 1.12,
+            },
         ],
         strafeDrive: [
             {
@@ -89,6 +96,13 @@ export const FIELD_COLORS: FieldColors = {
                 selectedColor: toRGBA("#63a007", 0.75),
                 hoverScale: 1.4,
                 selectedScale: 1,
+            },
+            {
+                shape: "line",
+                baseColor: toRGBA("#77a007", 1),
+                selectedColor: toRGBA("#63a007", 1),
+                hoverScale: 1.2,
+                selectedScale: 1.12,
             },
         ],
         pointTurn: [

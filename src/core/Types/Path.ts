@@ -85,8 +85,8 @@ export function propagateStates(path: Path): RobotState[] {
                 if (x === null || y === null) break;
                 const bezier = resolveBezier(path, i);
                 pos = { x, y };
-                // Only holonomic can land on a commanded heading; tank follows the exit tangent
-                if (seg.format === "Holonomic" && angle !== null) {
+                // A commanded angle is the heading the follower ends the curve on; without one it exits on the tangent
+                if (angle !== null) {
                     heading = angle;
                 } else if (bezier !== null) {
                     const tangent = bezierTangentAt(bezier, 1);
