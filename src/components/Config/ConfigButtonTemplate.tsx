@@ -119,10 +119,10 @@ export default function ConfigButtonTemplate({ title, tooltip, children, onOpen,
             </button>
             </Tooltip>
 
-            <div className={`grid transition-[grid-template-rows] duration-200 ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}
-            ${isOpen ? "mb-2" : ""}`}>
+            <div className={`grid transition-[grid-template-rows,margin-bottom] duration-200
+            ${isOpen ? "grid-rows-[1fr] mb-2" : "grid-rows-[0fr] mb-0"}`}>
                 <div className="overflow-hidden">
-                    <div className={`relative flex flex-col gap-1 bg-medgray px-2 py-2 ${isOpen ? "rounded-b-sm" : ""}`}>
+                    <div className="relative flex flex-col gap-1 bg-medgray px-2 py-2 rounded-b-sm">
                         {children}
                     </div>
                 </div>

@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef } from "react";
-import { fieldMap, useField, type FieldType } from "../../hooks/useFileFormat";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { DEFAULT_FIELD_KEY, FIELD_GROUPS, getFieldGroupId, useField, type FieldType } from "../../hooks/useFileFormat";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import Section from "../Util/Section";
 import ConfigButtonTemplate from "./ConfigButtonTemplate";
+import { ConfigCheckButton } from "../Util/CheckButton";
 
 const imageCache = new Set<string>();
 
@@ -14,53 +15,27 @@ function preloadImage(src: string) {
     img.decode().catch(() => {});
 }
 
-fieldMap.forEach(f => preloadImage(f.src));
-
-type FieldSection = { name: string; items: typeof fieldMap };
-
-const fieldSections = fieldMap.reduce<FieldSection[]>((acc, c) => {
-    if (c.key === "separator") {
-        acc.push({ name: c.name, items: [] });
-    } else {
-        acc[acc.length - 1]?.items.push(c);
-    }
-    return acc;
-}, []);
-
-type FieldItemProps = { name: string; selected: boolean; onClick: () => void };
-
-function FieldItem({ name, selected, onClick }: FieldItemProps) {
-    return (
-        <button
-            type="button"
-            className={`flex items-center justify-between w-full px-2 py-1 bg-medgray hover:brightness-92 cursor-pointer rounded-sm ${selected ? "bg-medlightgray" : ""}`}
-            onClick={onClick}
-        >
-            <span className="text-[14px]">{name}</span>
-            {selected && (
-                <svg width="15" height="12" viewBox="0 0 15 12" fill="none">
-                    <path
-                        d="M1 6.5L5.66752 10.7433C6.11058 11.1461 6.8059 11.0718 7.15393 10.5846L14 1"
-                        stroke="white"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                    />
-                </svg>
-            )}
-        </button>
-    );
+function preloadGroup(id: string) {
+    FIELD_GROUPS.find(g => g.id === id)?.items.forEach(i => preloadImage(i.src));
 }
 
 export default function FieldButton() {
     const [fieldKey, setFieldKey] = useField();
     const fieldWhenMenuOpened = useRef<FieldType>(fieldKey);
+    const activeGroup = getFieldGroupId(fieldKey);
+    const [openGroup, setOpenGroup] = useState<string | null>(activeGroup);
 
     useEffect(() => {
-        if (fieldKey === undefined) setFieldKey(fieldMap[0].key);
+        if (fieldKey === undefined) setFieldKey(DEFAULT_FIELD_KEY);
     }, [fieldKey, setFieldKey]);
+
+    useEffect(() => {
+        if (openGroup !== null) preloadGroup(openGroup);
+    }, [openGroup]);
 
     const handleOpen = useCallback(() => {
         fieldWhenMenuOpened.current = fieldKey;
+        setOpenGroup(getFieldGroupId(fieldKey));
     }, [fieldKey]);
 
     const handleClose = useCallback(() => {
@@ -69,22 +44,24 @@ export default function FieldButton() {
 
     return (
         <ConfigButtonTemplate title="Field" onOpen={handleOpen} onClose={handleClose}>
-            {fieldSections.map(section =>
-                section.items.length > 0 ? (
-                    <Section key={section.name} name={section.name} defaultCollapsed={section.name !== "Override"}>
-                        {section.items.map(c => (
-                            <FieldItem
-                                key={c.key}
-                                name={c.name}
-                                selected={fieldKey === c.key}
-                                onClick={() => setFieldKey(c.key)}
-                            />
-                        ))}
-                    </Section>
-                ) : (
-                    <Section key={section.name} name={section.name} />
-                )
-            )}
+            {FIELD_GROUPS.map(group => (
+                <Section
+                    key={group.id}
+                    name={group.name}
+                    collapsed={openGroup !== group.id}
+                    onToggle={() => setOpenGroup(prev => (prev === group.id ? null : group.id))}
+                    highlight={openGroup !== group.id && activeGroup === group.id}
+                >
+                    {group.items.map(c => (
+                        <ConfigCheckButton
+                            key={c.key}
+                            name={c.name}
+                            checked={fieldKey === c.key}
+                            setChecked={() => setFieldKey(c.key)}
+                        />
+                    ))}
+                </Section>
+            ))}
         </ConfigButtonTemplate>
     );
 }

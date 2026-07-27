@@ -18,13 +18,13 @@ export type FieldType =
     "highstakes-vexu-match" |
     "highstakes-vexu-skills" |
 
-    "empty" | "separator";
+    "empty";
 
 export const VALID_FIELDS = new Set<FieldType>([
     "pushback-v5-match", "pushback-v5-skills", "pushback-vexu-match",
     "override-v5-match", "override-v5-skills", "override-vexu-match", "override-vexu-skills",
     "highstakes-v5-match", "highstakes-v5-skills", "highstakes-vexu-match", "highstakes-vexu-skills",
-    "empty", "separator",
+    "empty",
 ]);
 
 export type FileFormat = {
