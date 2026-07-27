@@ -19,3 +19,9 @@ Docs:
 - Readthedocs.io showing all the keybinds
 
 
+bezer:
+
+- cant magnet snap controls
+- plus button is not centered
+- controls UI is shit
+- control points are not appearing on the control config

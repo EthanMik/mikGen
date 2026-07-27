@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type React from "react";
 import { clamp, FIELD_IMG_DIMENSIONS, normalizeDeg, type Rectangle } from "../core/Util";
-import { distanceToPosition, getSegmentDistance, type Path } from "../core/Types/Path";
+import { distanceToPosition, getBackwardsSnapPose, getSegmentDistance, type Path } from "../core/Types/Path";
 import type { SetStateAction } from "react";
 import { createSegment, type Segment } from "../core/Types/Segment";
+import { seedControls, segmentControls } from "../core/Types/Bezier";
 import type { Coordinate } from "../core/Types/Coordinate";
 import type { Pose } from "../core/Types/Pose";
 import type { Format } from "../hooks/useFileFormat";
 import { convertPathToString, convertStringToPath } from "../simulation/Conversion";
-import { insertIndexAfterSelection, pointerToSvg } from "../components/Field/FieldUtils";
+import { insertIndexAfterSelection, invertAllSelection, pointerToSvg, setAllSelection } from "../components/Field/FieldUtils";
 import { fileFormatStore } from "../hooks/useFileFormat";
 import { saveSnapshot, redoHistory, undoHistory } from "../core/Undo/UndoHistory";
 
@@ -40,23 +41,24 @@ export default function FieldMacros() {
 
         evt.preventDefault();
 
+        const nudge = <T extends { x: number | null; y: number | null }>(p: T): T => ({
+            ...p,
+            x: p.x !== null ? clamp(p.x + xScale, MIN_FIELD_X, MAX_FIELD_X) : p.x,
+            y: p.y !== null ? clamp(p.y + yScale, MIN_FIELD_Y, MAX_FIELD_Y) : p.y,
+        });
+
         setPath(prev => {
-            const newSegments = prev.segments.map((c) =>
-                c.selected
-                    ? {
-                        ...c,
-                        pose: {
-                            ...c.pose,
-                            x: c.pose.x !== null
-                                ? clamp(c.pose.x + xScale, MIN_FIELD_X, MAX_FIELD_X)
-                                : c.pose.x,
-                            y: c.pose.y !== null
-                                ? clamp(c.pose.y + yScale, MIN_FIELD_Y, MAX_FIELD_Y)
-                                : c.pose.y,
-                        },
-                    }
-                    : c
-            );
+            const newSegments = prev.segments.map((c) => {
+                const controls = segmentControls(c);
+                const moved = {
+                    ...c,
+                    // Bezier controls select like segments, so the arrow keys move them too
+                    controls: controls.some(ctrl => ctrl.selected)
+                        ? controls.map(ctrl => ctrl.selected ? nudge(ctrl) : ctrl)
+                        : controls,
+                };
+                return c.selected ? { ...moved, pose: nudge(c.pose) } : moved;
+            });
 
             return { ...prev, segments: newSegments };
         });
@@ -157,17 +159,7 @@ export default function FieldMacros() {
         setPath: React.Dispatch<React.SetStateAction<Path>>,
     ) {
         if (evt === null || evt.key === "Escape") {
-            setPath((prev) => {
-                const newSegments = prev.segments.map((c) => ({
-                    ...c,
-                    selected: false,
-                }));
-                
-                return {
-                    ...prev,
-                    segments: newSegments,
-                };
-            });
+            setPath((prev) => setAllSelection(prev, false));
         }
     }
 
@@ -178,17 +170,7 @@ export default function FieldMacros() {
     ) {
         if (evt === null || (!evt.shiftKey && evt.ctrlKey && evt.key.toLowerCase() === "a")) {
             if (evt !== null) evt.preventDefault();
-            setPath((prev) => {
-                const newSegments = prev.segments.map((c) => ({
-                    ...c,
-                    selected: true,
-                }));
-
-                return {
-                    ...prev,
-                    segments: newSegments,
-                };
-            });
+            setPath((prev) => setAllSelection(prev, true));
         }
     }
 
@@ -198,17 +180,7 @@ export default function FieldMacros() {
     ) {
         if (evt === null || (evt.shiftKey && evt.ctrlKey && evt.key.toLowerCase() === "a")) {
             if (evt !== null) evt.preventDefault();
-            setPath((prev) => {
-                const newSegments = prev.segments.map((c) => ({
-                    ...c,
-                    selected: !c.selected,
-                }));
-
-                return {
-                    ...prev,
-                    segments: newSegments,
-                };
-            });
+            setPath((prev) => invertAllSelection(prev));
         }
     }
 
@@ -219,6 +191,20 @@ export default function FieldMacros() {
     ) {
         if (evt === null || (evt.key === "Backspace" || evt.key === "Delete")) {
             setPath((prev) => {
+                // Deleting a segment takes its controls with it, so segments win a mixed
+                // selection. Controls are only deleted on their own when nothing else is selected.
+                const hasSelectedSegment = prev.segments.some(s => !s.locked && s.selected);
+                const hasSelectedControl = prev.segments.some(s => !s.locked && segmentControls(s).some(c => c.selected));
+                if (hasSelectedControl && !hasSelectedSegment) {
+                    return {
+                        ...prev,
+                        segments: prev.segments.map(s => s.locked ? s : {
+                            ...s,
+                            controls: segmentControls(s).filter(c => !c.selected),
+                        }),
+                    };
+                }
+
                 const allSelected = prev.segments.length > 0 && prev.segments.every((s) => s.selected);
 
                 const newSegments = prev.segments.filter((c, i) => {
@@ -384,7 +370,7 @@ export default function FieldMacros() {
             return {
                 ...prev,
                 segments: inserted.map(c =>
-                    c === newControl ? c : { ...c, selected: false }
+                    c === newControl ? c : { ...c, selected: false, controls: segmentControls(c).map(ctrl => ({ ...ctrl, selected: false })) }
                 ),
             };
         });
@@ -485,7 +471,7 @@ export default function FieldMacros() {
 
     /** Left click */
     const addPointDriveSegment = (evt: React.MouseEvent<Element> | null, format: Format, position: Coordinate, setPath: React.Dispatch<SetStateAction<Path>>, path: Path) => {
-        if (evt !== null && !(!evt.ctrlKey && !evt.altKey && evt.button === 0)) return;
+        if (evt !== null && !(!evt.ctrlKey && !evt.altKey && !evt.shiftKey && evt.button === 0)) return;
         const formatDef = fileFormatStore.getState().formatDef;
         if (formatDef.segments["pointDrive"]?.castTo) return;
         if (path.segments.length === 0) return addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath);
@@ -555,6 +541,25 @@ export default function FieldMacros() {
         addSegment(createSegment(formatDef, format, "angleSwing", { x: null, y: null, angle: 0 }), setPath);
     }
 
+    /** Shift + Left click */
+    const addBezierSegment = (evt: React.MouseEvent<Element> | null, format: Format, position: Pose, setPath: React.Dispatch<SetStateAction<Path>>, path: Path) => {
+        if (evt !== null && !(evt.shiftKey && !evt.ctrlKey && !evt.altKey && evt.button === 0)) return;
+        const formatDef = fileFormatStore.getState().formatDef;
+        if (formatDef.segments["bezierCurve"]?.castTo) return;
+        if (path.segments.length === 0) return addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath);
+
+        const end = { x: position.x ?? 0, y: position.y ?? 0 };
+        const insertIdx = insertIndexAfterSelection(path.segments);
+        const startPose = getBackwardsSnapPose(path, insertIdx - 1);
+        const start = startPose !== null && startPose.x !== null && startPose.y !== null
+            ? { x: startPose.x, y: startPose.y }
+            : end;
+
+        const segment = createSegment(formatDef, format, "bezierCurve", { x: end.x, y: end.y, angle: null });
+        segment.controls = seedControls(start, end);
+        addSegment(segment, setPath);
+    }
+
     const addWaitSegment = (format: Format, setPath: React.Dispatch<SetStateAction<Path>>, path: Path) => {
         const formatDef = fileFormatStore.getState().formatDef;
         if (formatDef.segments["wait"]?.castTo) return;
@@ -584,6 +589,7 @@ export default function FieldMacros() {
         addAngleSwingSegment,
         addPointSwingSegment,
         addStrafeSegment,
+        addBezierSegment,
         addWaitSegment,
         addDistanceSegment,
         addStartSegment,

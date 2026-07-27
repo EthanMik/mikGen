@@ -381,6 +381,11 @@ export const EZTemplateDef = {
 
         strafeDrive: {
             castTo: "distanceDrive"
+        },
+
+        bezierCurve: {
+            name: "Follow Path",
+            castTo: "pointDrive"
         }
 
 

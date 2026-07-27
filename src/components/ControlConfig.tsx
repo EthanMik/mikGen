@@ -5,6 +5,7 @@ import { saveSnapshot } from "../core/Undo/UndoHistory";
 import { normalizeDeg } from "../core/Util";
 import { useFormat, usePath } from "../hooks/useFileFormat";
 import type { Segment } from "../core/Types/Segment";
+import { segmentControls } from "../core/Types/Bezier";
 import type { SegmentConstants, Format } from "../simulation/FormatDefinition";
 
 import NumberInput from "./Util/NumberInput";
@@ -46,14 +47,30 @@ function MirrorControl({
 }: MirrorControlProps) {
     const [ path, setPath ] = usePath();
 
+    // Controls mirror like segments do, each on its own selection
+    const mirrorControls = (c: Segment, axis: MirrorDirection): Segment => {
+        const controls = segmentControls(c);
+        if (!controls.some(ctrl => ctrl.selected)) return c;
+        return {
+            ...c,
+            controls: controls.map(ctrl => !ctrl.selected ? ctrl : axis === "x"
+                ? { ...ctrl, x: ctrl.x != null ? -ctrl.x : null }
+                : { ...ctrl, y: ctrl.y != null ? -ctrl.y : null }),
+        };
+    };
+
+    const hasSelection = () =>
+        path.segments.some(m => m.selected || segmentControls(m).some(ctrl => ctrl.selected));
+
     const mirrorX = () => {
-        const hasSelected = path.segments.some(m => m.selected);
+        const hasSelected = hasSelection();
         setPath(prev => ({
             ...prev,
             segments: prev.segments.map(c => {
-                if (!c.selected) return c;
+                const withControls = mirrorControls(c, "x");
+                if (!c.selected) return withControls;
                 const posed = {
-                    ...c, pose: {
+                    ...withControls, pose: {
                         ...c.pose, angle: c.pose.angle != null ? normalizeDeg(360 - c.pose.angle) : null,
                         x: c.pose.x != null ? -c.pose.x : null
                     }
@@ -65,14 +82,15 @@ function MirrorControl({
     }
 
     const mirrorY = () => {
-        const hasSelected = path.segments.some(m => m.selected);
+        const hasSelected = hasSelection();
         setPath(prev => ({
             ...prev,
             segments: prev.segments.map(c => {
-                if (!c.selected) return c;
+                const withControls = mirrorControls(c, "y");
+                if (!c.selected) return withControls;
                 const isPointBased = c.kind === "pointTurn" || c.kind === "pointSwing";
                 const posed = {
-                    ...c, pose: {
+                    ...withControls, pose: {
                         ...c.pose, angle: c.pose.angle != null ? normalizeDeg(isPointBased ? 360 - c.pose.angle : 180 - c.pose.angle) : null,
                         y: c.pose.y != null ? -c.pose.y : null
                     }
@@ -108,7 +126,27 @@ export default function ControlConfig() {
     const [ path, setPath ] = usePath();
     const [ format ] = useFormat();
 
-    const selectedSegment = path.segments.find((s) => s.selected)?.kind;
+    // Controls are selectable like segments, so when one owns the selection the X/Y inputs
+    // drive it instead. Controls carry no heading or distance, so those inputs grey out.
+    const selectedControls = path.segments.flatMap(s =>
+        segmentControls(s).map((c, i) => ({ segId: s.id, idx: i, control: c })).filter(r => r.control.selected)
+    );
+    const soleControl = path.segments.some(s => s.selected) || selectedControls.length !== 1
+        ? null
+        : selectedControls[0];
+
+    const selectedSegment = soleControl ? "bezierControl" : path.segments.find((s) => s.selected)?.kind;
+
+    const updateControlPos = (patch: { x?: number | null; y?: number | null }) => {
+        if (!soleControl) return;
+        setPath(prev => ({
+            ...prev,
+            segments: prev.segments.map(s => s.id !== soleControl.segId ? s : {
+                ...s,
+                controls: segmentControls(s).map((c, i) => i === soleControl.idx ? { ...c, ...patch } : c),
+            }),
+        }));
+    };
 
     const getDistance = (): number | null => {
         const selectedIdx = path.segments.findIndex((s) => s.selected);
@@ -135,6 +173,7 @@ export default function ControlConfig() {
     }
 
     const getXValue = (): number | null => {
+        if (soleControl) return soleControl.control.x;
         const selectedCount = path.segments.filter(c => c.selected).length;
         if (selectedCount !== 1) return null;
         const x: number | null | undefined = path.segments.find(c => c.selected)?.pose.x;
@@ -143,6 +182,7 @@ export default function ControlConfig() {
     }
 
     const getYValue = (): number | null => {
+        if (soleControl) return soleControl.control.y;
         const selectedCount = path.segments.filter(c => c.selected).length;
         if (selectedCount !== 1) return null;
         const y: number | null | undefined = path.segments.find(c => c.selected)?.pose.y;
@@ -151,6 +191,7 @@ export default function ControlConfig() {
     }
 
     const getHeadingValue = (): number | null => {
+        if (soleControl) return null;
         const selectedCount = path.segments.filter(c => c.selected).length;
         if (selectedCount !== 1) return null;
         const heading: number | null | undefined = path.segments.find(c => c.selected)?.pose.angle;
@@ -159,6 +200,8 @@ export default function ControlConfig() {
     }
 
     const updateXValue = (newX: number | null) => {
+        if (soleControl) return updateControlPos({ x: newX });
+
         const selectedCount = path.segments.filter(c => c.selected).length;
         if (selectedCount !== 1) return;
 
@@ -182,6 +225,8 @@ export default function ControlConfig() {
     }
 
     const updateYValue = (newY: number | null) => {
+        if (soleControl) return updateControlPos({ y: newY });
+
         const selectedCount = path.segments.filter(c => c.selected).length;
         if (selectedCount !== 1) return
 
@@ -205,6 +250,8 @@ export default function ControlConfig() {
     }
 
     const updateHeadingValue = (newHeading: number | null) => {
+        if (soleControl) return;
+
         const selectedCount = path.segments.filter(c => c.selected).length;
         if (selectedCount !== 1) return
 
@@ -215,7 +262,10 @@ export default function ControlConfig() {
             selectedSegment.kind === "pointTurn"
         ) return;
 
-        if (newHeading === null && selectedSegment.kind !== "poseDrive" && selectedSegment.kind !== "distanceDrive" && selectedSegment.kind !== "strafeDrive") return;
+        // Kinds whose heading is optional can be cleared back to null without changing kind
+        const headingOptional = selectedSegment.kind === "poseDrive" || selectedSegment.kind === "distanceDrive"
+            || selectedSegment.kind === "strafeDrive" || selectedSegment.kind === "bezierCurve";
+        if (newHeading === null && !headingOptional) return;
         if (newHeading !== null) newHeading = normalizeDeg(newHeading);
         setPath(prev => {
                 let kind = selectedSegment.kind;
@@ -294,7 +344,7 @@ export default function ControlConfig() {
                 </>
             }
 
-            <div className={`flex items-center gap-2 ${(selectedSegment === "pointSwing" || selectedSegment === "pointTurn" || selectedSegment === "wait") ? "opacity-50 pointer-events-none" : ""}`}>
+            <div className={`flex items-center gap-2 ${(selectedSegment === "pointSwing" || selectedSegment === "pointTurn" || selectedSegment === "wait" || selectedSegment === "bezierControl") ? "opacity-50 pointer-events-none" : ""}`}>
                 <span style={{ fontSize: 20 }}>θ</span>
                 <NumberInput
                     width={80}

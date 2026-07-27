@@ -1,6 +1,9 @@
 import { getUnequalKeys, normalizeDeg, roundOff } from "../../core/Util";
-import { type FormatDef, type NumberInputGroup, type CycleButtonField, type SegmentKind } from "../FormatDefinition";
+import { type FormatDef, type NumberInputGroup, type CycleButtonField, type SegmentKind, type ActionButtonField } from "../FormatDefinition";
 import type { Pose } from "../../core/Types/Pose";
+import { bezierEndpoints, chordControlPosition, segmentControls } from "../../core/Types/Bezier";
+import { createControlPoint } from "../../core/Types/Pose";
+import plus from "../../assets/plus.svg";
 import ccw from "../../assets/ccw.svg";
 import cw from "../../assets/cw.svg";
 import cwccw from "../../assets/cwwcw.svg";
@@ -16,6 +19,7 @@ import { turn_to_point } from "./DriveMotions/TurnToPoint";
 import { turn_to_angle } from "./DriveMotions/TurnToAngle";
 import { swing_to_angle } from "./DriveMotions/SwingToAngle";
 import { swing_to_point } from "./DriveMotions/SwingToPoint";
+import { follow_path, reset_follow_path } from "./DriveMotions/FollowPath";
 
 export interface mikConstants {
     max_voltage: number;
@@ -185,6 +189,23 @@ const turnFaceButton: CycleButton = {
     poseEffect: (val) => ({ angle: val === "180" ? 180 : 0 }),
 };
 
+/** Appends a bezier control at the free chord slot. A no-op once both controls exist. */
+const addControlButton: ActionButtonField = {
+    srcImg: plus,
+    label: "Add Control",
+    onPress: (path, idx) => {
+        const seg = path.segments[idx];
+        const controls = segmentControls(seg);
+        if (controls.length >= 2) return undefined;
+
+        const ends = bezierEndpoints(path, idx);
+        if (ends === null) return undefined;
+
+        const pos = chordControlPosition(ends.p0, ends.p1, controls.length);
+        return { controls: [...controls, createControlPoint(pos.x, pos.y)] };
+    },
+};
+
 export const mikLibDef = {
     constants: [kMikDrive],
     kMaxSpeed: 12,
@@ -345,6 +366,24 @@ export const mikLibDef = {
             ],
         },
 
+        bezierCurve: {
+            name: "Follow Path",
+            defaults: [kMikDrive, kMikHeading],
+            toStringTemplate: "chassis.follow_path({${c1x}, ${c1y}}, {${c2x}, ${c2y}}, {${x}, ${y}}, ${kBuilder});",
+            simFn: (robot, dt, _x, _y, angle, constants, points) => follow_path(robot, dt, points ?? [], angle, constants),
+            simReset: reset_follow_path,
+            slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
+            cycleButtons: [
+                { constantsIdx: 0, ...driveDirectionButton },
+            ],
+            actionButtons: [addControlButton],
+            numberInputs: [
+                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikDriveExitConditionsSettings] },
+                { constantsIdx: 0, headerName: "Drive Constants", fields: [...mikPIDConstantsSettings] },
+                { constantsIdx: 1, headerName: "Heading Constants", fields: [...mikPIDConstantsSettings] },
+            ],
+        },
+
         strafeDrive: {
             castTo: "distanceDrive"
         }
@@ -433,7 +472,7 @@ function kMikBuilder(kDefault: mikConstants[], constants: mikConstants[], pose?:
 
     let constantsList: string[] = [];
 
-    if (pose?.angle !== null && (kind === "distanceDrive" || kind === "strafeDrive")) {
+    if (pose?.angle !== null && (kind === "distanceDrive" || kind === "strafeDrive" || kind === "bezierCurve")) {
         constantsList.push(`.heading = ${roundOff(pose?.angle, 2)}`);
     }
 

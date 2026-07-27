@@ -4,6 +4,9 @@ import { getBackwardsSnapPose, type Path } from "../../core/Types/Path";
 import type { Segment } from "../../core/Types/Segment";
 import { FIELD_REAL_DIMENSIONS, toInch, toPX, toRad, type Rectangle } from "../../core/Util";
 import { fileFormatStore } from "../../hooks/useFileFormat";
+import { resolveBezier, sampleBezier, segmentControls } from "../../core/Types/Bezier";
+
+export const BEZIER_RENDER_STEPS = 30;
 
 export function pointerToSvg(evt: React.PointerEvent | React.MouseEvent<SVGSVGElement> | WheelEvent, svg: SVGSVGElement): Coordinate {
     const ctm = svg.getScreenCTM();
@@ -36,10 +39,15 @@ export function insertIndexAfterSelection(segments: readonly { selected: boolean
     return segments.length;
 }
 
-export function selectedLastOrder(segments: readonly { selected: boolean }[]): number[] {
+export function selectedLastOrder(
+    segments: readonly { selected: boolean; controls?: readonly { selected: boolean }[] }[],
+): number[] {
+    // A selected control lifts its whole segment, so the handle being dragged is never buried
+    const isSelected = (i: number) =>
+        segments[i].selected || (segments[i].controls ?? []).some(c => c.selected);
     return segments
         .map((_, i) => i)
-        .sort((a, b) => Number(segments[a].selected) - Number(segments[b].selected));
+        .sort((a, b) => Number(isSelected(a)) - Number(isSelected(b)));
 }
 
 export function selectSegmentsInBox(
@@ -62,17 +70,121 @@ export function selectSegmentsInBox(
             snap.y >= minY && snap.y <= maxY;
     }
 
+    const withinBox = (x: number | null, y: number | null): boolean =>
+        x !== null && y !== null && x >= minX && x <= maxX && y >= minY && y <= maxY;
+
     return {
         ...path,
         segments: path.segments.map(s => ({
             ...s,
             selected: !s.locked && s.visible &&
-                ((s.pose.x !== null && s.pose.y !== null &&
-                    s.pose.x >= minX && s.pose.x <= maxX &&
-                    s.pose.y >= minY && s.pose.y <= maxY) ||
-                    snapWithinBox(s))
+                (withinBox(s.pose.x, s.pose.y) || snapWithinBox(s)),
+            controls: segmentControls(s).map(c => ({
+                ...c,
+                selected: !s.locked && s.visible && c.visible && withinBox(c.x, c.y),
+            })),
         }))
     };
+}
+
+export type ControlSelectMode = "exclusive" | "toggle" | "range";
+
+/** Every bezier control in path order, so a range select can span segments. */
+function flatControlRefs(segments: readonly Segment[]): { segId: string; idx: number }[] {
+    const refs: { segId: string; idx: number }[] = [];
+    for (const s of segments) segmentControls(s).forEach((_, i) => refs.push({ segId: s.id, idx: i }));
+    return refs;
+}
+
+/**
+ * Applies a control selection using the same rules segments follow: an exclusive click
+ * clears everything else (segments included), ctrl toggles just this one, shift ranges
+ * over the flat control list. Shared by the field handles and the controls list.
+ */
+export function selectControlInPath(path: Path, segmentId: string, controlIdx: number, mode: ControlSelectMode): Path {
+    const refs = flatControlRefs(path.segments);
+    const clicked = refs.findIndex(r => r.segId === segmentId && r.idx === controlIdx);
+    if (clicked === -1) return path;
+
+    const wasSelected = (flatIdx: number): boolean => {
+        const ref = refs[flatIdx];
+        const seg = path.segments.find(s => s.id === ref.segId);
+        return seg ? (segmentControls(seg)[ref.idx]?.selected ?? false) : false;
+    };
+
+    let isNextSelected: (flatIdx: number) => boolean;
+    if (mode === "toggle") {
+        const willSelect = !wasSelected(clicked);
+        isNextSelected = (i) => i === clicked ? willSelect : wasSelected(i);
+    } else if (mode === "range") {
+        let anchor = -1;
+        for (let i = refs.length - 1; i >= 0; i--) if (wasSelected(i)) { anchor = i; break; }
+        if (anchor === -1) anchor = clicked;
+        const lo = Math.min(anchor, clicked);
+        const hi = Math.max(anchor, clicked);
+        isNextSelected = (i) => i >= lo && i <= hi;
+    } else {
+        isNextSelected = (i) => i === clicked;
+    }
+
+    let flatIdx = 0;
+    return {
+        ...path,
+        segments: path.segments.map(s => ({
+            ...s,
+            // Only an exclusive click takes selection away from the segments
+            selected: mode === "exclusive" ? false : s.selected,
+            controls: segmentControls(s).map(c => ({
+                ...c,
+                selected: !s.locked && isNextSelected(flatIdx++),
+            })),
+        })),
+    };
+}
+
+/** Selects or clears every segment and every control at once (Escape, Ctrl+A). */
+export function setAllSelection(path: Path, selected: boolean): Path {
+    return {
+        ...path,
+        segments: path.segments.map(s => ({
+            ...s,
+            selected,
+            controls: segmentControls(s).map(c => ({ ...c, selected })),
+        })),
+    };
+}
+
+/** Flips the selection of every segment and every control (Ctrl+Shift+A). */
+export function invertAllSelection(path: Path): Path {
+    return {
+        ...path,
+        segments: path.segments.map(s => ({
+            ...s,
+            selected: !s.selected,
+            controls: segmentControls(s).map(c => ({ ...c, selected: !c.selected })),
+        })),
+    };
+}
+
+/** Clears selection on every control, used whenever a segment is selected exclusively. */
+export function deselectControls(segments: readonly Segment[]): Segment[] {
+    return segments.map(s => {
+        const controls = segmentControls(s);
+        if (!controls.some(c => c.selected)) return s;
+        return { ...s, controls: controls.map(c => ({ ...c, selected: false })) };
+    });
+}
+
+export function hasSelectedControl(segments: readonly Segment[]): boolean {
+    return segments.some(s => segmentControls(s).some(c => c.selected));
+}
+
+/** Total selected items across both segments and controls. */
+export function selectionCount(segments: readonly Segment[]): number {
+    return segments.reduce(
+        (n, s) => n + (s.selected ? 1 : 0) + segmentControls(s).filter(c => c.selected).length,
+        0,
+    );
 }
 
 export const getPreciseSegmentLines = (idx: number, img: Rectangle): string | null => {
@@ -134,6 +246,17 @@ export const getSegmentLines = (idx: number, path: Path, img: Rectangle, precise
 
     const pStart = toPX({ x: startPose.x, y: startPose.y }, FIELD_REAL_DIMENSIONS, img);
     const pEnd = toPX({ x: m.pose.x, y: m.pose.y }, FIELD_REAL_DIMENSIONS, img);
+
+    if (m.kind === "bezierCurve") {
+        const bezier = resolveBezier(path, idx);
+        if (bezier === null) return null;
+        return sampleBezier(bezier, BEZIER_RENDER_STEPS)
+            .map(pt => {
+                const px = toPX(pt, FIELD_REAL_DIMENSIONS, img);
+                return `${px.x},${px.y}`;
+            })
+            .join(" ");
+    }
 
     if ((m.kind === "poseDrive" && m.format === "Holonomic") || m.kind === "pointDrive" || m.kind === "distanceDrive" || m.kind === "strafeDrive") {
         return `${pStart.x},${pStart.y} ${pEnd.x},${pEnd.y}`;

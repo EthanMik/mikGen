@@ -2,7 +2,7 @@ import { toRGBA } from "../../core/Util";
 import type { SegmentKind } from "../../simulation/FormatDefinition";
 
 export type SegmentAttribute = {
-    shape: "line" | "curve" | "circle" | "node";
+    shape: "line" | "curve" | "circle" | "node" | "control";
 
     baseColor: string;
     selectedColor: string;
@@ -127,6 +127,36 @@ export const FIELD_COLORS: FieldColors = {
                 selectedScale: 1.3,
             },
         ],
+        bezierCurve: [
+            {
+                shape: "node",
+                baseColor: toRGBA("#a31fe5", 0.5),
+                selectedColor: toRGBA("#ad41d8", 0.75),
+                hoverScale: 1.4,
+                selectedScale: 1,
+            },
+            {
+                shape: "line",
+                baseColor: toRGBA("#a31fe5", 1),
+                selectedColor: toRGBA("#ad41d8", 1),
+                hoverScale: 1.2,
+                selectedScale: 1.12,
+            },
+            {
+                shape: "control",
+                baseColor: toRGBA("#a641d8", 0.4),
+                selectedColor: toRGBA("#a641d8", 0.75),
+                hoverScale: 1.4,
+                selectedScale: 1,
+            },
+            {
+                shape: "control",
+                baseColor: toRGBA("#a641d8", 0.4),
+                selectedColor: toRGBA("#a641d8", 0.75),
+                hoverScale: 1.4,
+                selectedScale: 1,
+            },
+        ],
         wait: [
             {
                 shape: "circle",
@@ -138,6 +168,14 @@ export const FIELD_COLORS: FieldColors = {
         ],
     },
 };
+
+/**
+ * The "control" attributes in kind order, one per bezier control point.
+ * Shared by the field handles and the dropdown row bars so they never drift apart.
+ */
+export function controlAttributes(): SegmentAttribute[] {
+    return FIELD_COLORS.segmentColors.bezierCurve.filter(a => a.shape === "control");
+}
 
 export const SENSOR_COLORS: Record<"front" | "left" | "right" | "rear", string> = {
     front: "#aa0505",

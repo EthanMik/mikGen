@@ -4,7 +4,17 @@ export interface Pose {
     angle: number | null
 }
 
-export interface PoseState { 
+/** A bezier control point. Structurally a Pose, so it works anywhere a Pose is taken. */
+export interface ControlPoint extends Pose {
+    selected: boolean,
+    visible: boolean
+}
+
+export function createControlPoint(x: number, y: number): ControlPoint {
+    return { x, y, angle: null, selected: false, visible: true };
+}
+
+export interface PoseState {
   x: number | null,
   y: number | null, 
   angle: number | null, 

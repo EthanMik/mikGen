@@ -190,6 +190,11 @@ export const reveilLibDef = {
             castTo: "pointDrive"
         },
 
+        bezierCurve: {
+            name: "Follow Path",
+            castTo: "pointDrive"
+        },
+
         angleSwing: {
             castTo: "angleTurn"
         },

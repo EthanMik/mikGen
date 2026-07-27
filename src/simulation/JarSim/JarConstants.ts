@@ -270,6 +270,11 @@ export const JarTemplateDef = {
 
         strafeDrive: {
             castTo: "distanceDrive"
+        },
+
+        bezierCurve: {
+            name: "Follow Path",
+            castTo: "pointDrive"
         }
 
 

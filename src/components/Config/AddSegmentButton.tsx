@@ -23,6 +23,7 @@ export default function AddSegmentButton() {
         addStartSegment,
         addWaitSegment,
         addStrafeSegment,
+        addBezierSegment,
     } = FieldMacros();
 
     const seg = (key: SegmentKind) => formatDef.segments[key];
@@ -37,6 +38,9 @@ export default function AddSegmentButton() {
             </Tooltip>}
             {visible("poseDrive") && <Tooltip label="Ctrl+Left Click" placement="right" speed="fast">
                 <ConfigKeybindButton name={segName("poseDrive")} color={segColor("poseDrive")} callback={() => addPoseDriveSegment(null, format, { x: 0, y: 0, angle: 0 }, setPath, path)} />
+            </Tooltip>}
+            {visible("bezierCurve") && <Tooltip label="Shift+Left Click" placement="right" speed="fast">
+                <ConfigKeybindButton name={segName("bezierCurve")} color={segColor("bezierCurve")} callback={() => addBezierSegment(null, format, { x: 0, y: 0, angle: null }, setPath, path)} />
             </Tooltip>}
             {(visible("distanceDrive") || visible("strafeDrive")) && <Section />}
             {visible("distanceDrive") && <Tooltip label="Alt+Left Click" placement="right" speed="fast">

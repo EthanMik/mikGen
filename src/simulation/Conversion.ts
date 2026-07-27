@@ -3,10 +3,18 @@ import type { Robot } from "../core/Robot";
 import { distanceToPosition, getSegmentDistance, type Path } from "../core/Types/Path";
 import { findPointToFace, makeId, roundOff, toDeg } from "../core/Util";
 import type { Segment } from "../core/Types/Segment";
+import { createControlPoint, type ControlPoint } from "../core/Types/Pose";
+import { polylineLength, resolveBezier, sampleBezier } from "../core/Types/Bezier";
 import type { Format } from "./FormatDefinition";
 import type { FormatDef, SegmentConstants, SegmentDef, SegmentKind, SimFn } from "./FormatDefinition";
 import { angle_error } from "./mikLibSim/Util";
 import { createStore } from "../core/Store";
+
+/** Bezier samples handed to the simulator as the path to follow. */
+const BEZIER_SIM_SAMPLES = 100;
+
+/** Template placeholders that carry a bare number, so they parse back as one. */
+const COORD_PLACEHOLDERS = new Set(['x', 'y', 'angle', 'distance', 'time', 'c1x', 'c1y', 'c2x', 'c2y']);
 
 export function convertPathToString<F extends Format, Segs extends Partial<Record<SegmentKind, SegmentDef<F>>>>(formatDef: FormatDef<F, Segs>, path: Path, selected = false): string {
     let pathString = '';
@@ -45,6 +53,16 @@ export function convertPathToString<F extends Format, Segs extends Partial<Recor
             .replace(/\$\{angle\}/g, angle)
             .replace(/\$\{distance\}/g, distance)
             .replace(/\$\{time\}/g, time);
+
+        if (kind === "bezierCurve") {
+            // Always emitted as a cubic, so a segment with fewer controls is degree elevated first
+            const bezier = resolveBezier(path, idx);
+            line = line
+                .replace(/\$\{c1x\}/g, roundOff(bezier?.c1.x, 2))
+                .replace(/\$\{c1y\}/g, roundOff(bezier?.c1.y, 2))
+                .replace(/\$\{c2x\}/g, roundOff(bezier?.c2.x, 2))
+                .replace(/\$\{c2y\}/g, roundOff(bezier?.c2.y, 2));
+        }
 
         for (const key of Object.keys(mergedK)) {
             line = line.replace(new RegExp(`\\$\\{${key}\\}`, 'g'), String(mergedK[key]));
@@ -114,7 +132,7 @@ export function templateToRegex(template: string): { regex: RegExp; groups: stri
 
     t = t.replace(/\$\{([^}]+)\}/g, (_, name: string) => {
         groups.push(name);
-        return name === 'x' || name === 'y' || name === 'angle' || name === 'distance' || name === 'time' ? '__COORD__' : '__FIELD__';
+        return COORD_PLACEHOLDERS.has(name) ? '__COORD__' : '__FIELD__';
     });
 
     t = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -160,7 +178,7 @@ function parseSegmentLine<F extends Format>(
     }
 
     for (const [name, value] of Object.entries(captured)) {
-        if (name === 'x' || name === 'y' || name === 'angle' || name === 'distance' || name === 'time' || name === 'kBuilder' || !value) continue;
+        if (COORD_PLACEHOLDERS.has(name) || name === 'kBuilder' || !value) continue;
         const num = parseFloat(value);
         const parsed: unknown = isNaN(num) ? value.trim() : num;
         for (const k of constants) {
@@ -171,6 +189,19 @@ function parseSegmentLine<F extends Format>(
     const parsedDistance = 'distance' in captured && captured.distance !== '' ? parseFloat(captured.distance) : undefined;
     const parsedTime = 'time' in captured && captured.time !== '' ? parseFloat(captured.time) : undefined;
 
+    const num = (key: string) => {
+        const parsed = key in captured ? parseFloat(captured[key]) : NaN;
+        return isNaN(parsed) ? null : parsed;
+    };
+    const controls: ControlPoint[] = [];
+    if (kind === "bezierCurve") {
+        for (const [cx, cy] of [['c1x', 'c1y'], ['c2x', 'c2y']]) {
+            const px = num(cx);
+            const py = num(cy);
+            if (px !== null && py !== null) controls.push(createControlPoint(px, py));
+        }
+    }
+
     return {
         id: makeId(10),
         selected: false, disabled: false, locked: false, visible: true,
@@ -178,6 +209,7 @@ function parseSegmentLine<F extends Format>(
         kind,
         pose: { x, y, angle },
         constants,
+        controls,
         distance: parsedDistance !== undefined && !isNaN(parsedDistance) ? parsedDistance : 0,
         time: parsedTime !== undefined && !isNaN(parsedTime) ? parsedTime : 0,
     };
@@ -296,6 +328,30 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
                     }
                 );
                 break;
+
+            case "bezierCurve": {
+                const bezier = resolveBezier(path, idx);
+                if (bezier === null) break;
+                const points = sampleBezier(bezier, BEZIER_SIM_SAMPLES);
+                const arcLength = polylineLength(points);
+                auton.push(
+                    (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
+                        if (!started) {
+                            simReset?.();
+                            DEBUG_printSegmentStart(idx, formatDef, kind);
+                            targetDist = arcLength;
+                            started = true;
+                        }
+                        DEBUG_printRobotState(robot, dt);
+                        // Tank ignores the end heading; only holonomic tries to land on it
+                        const endAngle = seg.format === "Holonomic" ? seg.pose.angle : null;
+                        const output = simFn(robot, dt, x, y, endAngle, k, points);
+                        if (output) DEBUG_printSegmentEnd(idx, formatDef, kind);
+                        return [output, kind, targetDist];
+                    }
+                );
+                break;
+            }
 
             case "strafeDrive":
             case "distanceDrive": {

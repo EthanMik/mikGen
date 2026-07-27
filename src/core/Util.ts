@@ -2,6 +2,7 @@
 
 import type { Coordinate } from "./Types/Coordinate";
 import { getBackwardsSnapPose, type Path } from "./Types/Path";
+import { resolveBezier } from "./Types/Bezier";
 import type { Pose } from "./Types/Pose";
 
 export interface Rectangle {
@@ -96,6 +97,11 @@ export function findPointToFace(path: Path, idx: number): Coordinate {
     for (let i = idx; i < path.segments.length; i++) {
         const seg = path.segments[i];
         if (seg.kind === "strafeDrive") continue;
+        if (seg.kind === "bezierCurve") {
+            // Face where the curve starts heading, not its far endpoint
+            const bezier = resolveBezier(path, i);
+            if (bezier !== null) { turnToPos = { x: bezier.c1.x, y: bezier.c1.y, angle: null }; break; }
+        }
         if (seg.pose.x !== null && seg.pose.y !== null) { turnToPos = seg.pose; break; }
     }
 

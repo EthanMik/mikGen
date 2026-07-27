@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Coordinate } from "../../core/Types/Coordinate";
 import type { Path } from "../../core/Types/Path";
+import { segmentControls } from "../../core/Types/Bezier";
 import { FIELD_REAL_DIMENSIONS, toPX, type Rectangle } from "../../core/Util";
 
 const SNAP_THRESHOLD_INCH = 3;
@@ -19,21 +20,33 @@ export function useMagnetSnap() {
     let snapX: number | null = null;
     let snapY: number | null = null;
 
-    for (const seg of path.segments) {
-      if (seg.selected || seg.locked || !seg.visible) continue;
-      if (seg.pose.x === null || seg.pose.y === null) continue;
+    const consider = (x: number | null, y: number | null) => {
+      if (x === null || y === null) return;
 
-      const dx = Math.abs(posInch.x - seg.pose.x);
-      const dy = Math.abs(posInch.y - seg.pose.y);
+      const dx = Math.abs(posInch.x - x);
+      const dy = Math.abs(posInch.y - y);
 
       if (dx < bestXDist) {
         bestXDist = dx;
-        snapX = seg.pose.x;
+        snapX = x;
       }
       if (dy < bestYDist) {
         bestYDist = dy;
-        snapY = seg.pose.y;
+        snapY = y;
       }
+    };
+
+    for (const seg of path.segments) {
+      if (seg.locked || !seg.visible) continue;
+
+      // Bezier controls are snap targets in their own right, just like segment nodes
+      for (const control of segmentControls(seg)) {
+        if (control.selected || !control.visible) continue;
+        consider(control.x, control.y);
+      }
+
+      if (seg.selected) continue;
+      consider(seg.pose.x, seg.pose.y);
     }
 
     if (snapX !== null || snapY !== null) {

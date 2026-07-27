@@ -18,11 +18,15 @@ import {
     updatePathConstants,
     updatePathConstantsByKind,
     updateDefaultConstants,
+    type ActionButtonField,
     type ConstantsRecord,
     type FormatConstants,
     type Format,
 } from "../../simulation/FormatDefinition";
 import { FIELD_COLORS } from "../Field/FieldColors";
+import { deselectControls } from "../Field/FieldUtils";
+import ControlsList from "./ControlsList";
+import Tooltip from "../Util/Tooltip";
 
 type ConstantListField = {
     constantsIdx: number;
@@ -67,6 +71,7 @@ const MotionList = memo(function MotionList({
     const segDef = formatDef.segments[segment?.kind];
     const name = segDef?.name ?? "";
 
+    const actionButtons = segDef?.actionButtons ?? [];
     const sliderDef = segDef?.slider;
     const sliderKey = sliderDef ? String(sliderDef.key) : "";
     const sliderConstantsIdx = sliderDef?.constantsIdx ?? 0;
@@ -77,10 +82,11 @@ const MotionList = memo(function MotionList({
     const [isTelemetryOpen, setTelemetryOpen] = useState(false);
     const [isOpen, setOpen] = useState(false);
 
+    // Exclusive and range selects take ownership from the controls; ctrl only toggles its own row
     const normalSelect = () => {
         updatePath(prev => ({
             ...prev,
-            segments: prev.segments.map(s =>
+            segments: deselectControls(prev.segments).map(s =>
                 s.id === segmentId ? { ...s, selected: true } : { ...s, selected: false }
             ),
         }));
@@ -100,7 +106,7 @@ const MotionList = memo(function MotionList({
 
     const shiftSelect = () => {
         updatePath(prev => {
-            const segments = prev.segments;
+            const segments = deselectControls(prev.segments);
             const clickedIdx = segments.findIndex(s => s.id === segmentId);
             if (clickedIdx === -1) return prev;
 
@@ -237,6 +243,17 @@ const MotionList = memo(function MotionList({
         };
     }), [field]);
 
+    const handleActionPress = (action: ActionButtonField) => {
+        updatePath(prev => {
+            const idx = prev.segments.findIndex(s => s.id === segmentId);
+            if (idx === -1) return prev;
+            const patch = action.onPress(prev, idx);
+            if (!patch) return prev;
+            return { ...prev, segments: prev.segments.map((s, i) => i === idx ? { ...s, ...patch } : s) };
+        });
+        saveSnapshot();
+    };
+
     const directionField = useMemo<CycleImageButtonProps[]>(() => {
         if (!segment || !segDef) return [];
         return (segDef.cycleButtons ?? []).map(btn => ({
@@ -353,7 +370,7 @@ const MotionList = memo(function MotionList({
                     </div>
                 )}
 
-                {directionField.length > 0 && (
+                {(directionField.length > 0 || actionButtons.length > 0) && (
                     <div onClick={(e) => e.stopPropagation()} className="ml-auto flex flex-row items-center gap-2.5">
                         {directionField.map((f) => (
                             <CycleImageButton
@@ -367,40 +384,56 @@ const MotionList = memo(function MotionList({
                                 value={f.value}
                             />
                         ))}
+                        {actionButtons.map((action) => (
+                            <Tooltip key={action.label} label={action.label}>
+                                <button
+                                    className="cursor-pointer shrink-0 flex items-center"
+                                    onClick={(e) => { e.stopPropagation(); handleActionPress(action); }}
+                                >
+                                    <img className="w-[20px] h-[20px]" src={action.srcImg} />
+                                </button>
+                            </Tooltip>
+                        ))}
                     </div>
                 )}
             </button>
 
             <div
                 onClick={(e) => e.stopPropagation()}
-                className={`relative flex flex-col ml-9 gap-0.5 ${(!isTelemetryOpen || telemetrySlice === undefined) && !isOpen ? "hidden" : ""
+                className={`relative flex flex-col gap-0.5 ${(!isTelemetryOpen || telemetrySlice === undefined) && !isOpen ? "hidden" : ""
                     }`}
             >
-                <div className="absolute left-[-16px] top-0 h-full w-[4px] rounded-full bg-medlightgray" />
-
                 {isTelemetryOpen && telemetrySlice !== undefined && (
-                    <div className="flex pl-1.5 gap-2 text-left">
+                    <div className="flex ml-5 gap-2 text-left text-[14px]">
                         <span>Time: {roundNum(telemetrySlice.totalTime)}<span className="text-[8px] text-lightgray align-super leading-none"> s</span></span>
                         <span>Distance: {roundNum(telemetrySlice.totalDistance)}<span className="text-[8px] text-lightgray align-super leading-none"> {telemetrySlice.units}</span></span>
                         <span>Traveled: {roundNum(telemetrySlice.progressRaw)}<span className="text-[8px] text-lightgray align-super leading-none"> {telemetrySlice.units}</span>  {roundNum(telemetrySlice.progressPercent)}<span className="text-[10px] text-lightgray align-super leading-none"> %</span></span>
                     </div>
                 )}
 
-                <div className={`flex flex-col gap-0.5 ${isOpen ? "" : "hidden"}`}>
-                    {fieldSections.map((f) => (
-                        <ConstantsList
-                            key={f.header}
-                            header={f.header}
-                            fields={f.fields}
-                            values={f.values}
-                            isOpenGlobal={false}
-                            onChange={f.onChange}
-                            onReset={f.onReset}
-                            onSetDefault={f.onSetDefault}
-                            onApply={f.onApply}
-                            defaults={f.defaults}
-                        />
-                    ))}
+                <div className={`flex flex-col ml-9 gap-0.5 ${isOpen ? "" : "hidden"}`}>
+                    <div className="flex mt-0.5">
+                        <ControlsList segmentId={segmentId} />
+                    </div>
+
+                    <div className="relative flex flex-col gap-0.5">
+                        <div className="absolute left-[-16px] top-1 bottom-1 w-[4px] rounded-full bg-medlightgray" />
+
+                        {fieldSections.map((f) => (
+                            <ConstantsList
+                                key={f.header}
+                                header={f.header}
+                                fields={f.fields}
+                                values={f.values}
+                                isOpenGlobal={false}
+                                onChange={f.onChange}
+                                onReset={f.onReset}
+                                onSetDefault={f.onSetDefault}
+                                onApply={f.onApply}
+                                defaults={f.defaults}
+                            />
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>

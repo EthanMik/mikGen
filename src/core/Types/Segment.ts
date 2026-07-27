@@ -1,6 +1,6 @@
 import { getDefaultConstants, type SegmentKind } from "../../simulation/FormatDefinition";
 import { makeId } from "../Util";
-import { type Pose } from "./Pose";
+import { type ControlPoint, type Pose } from "./Pose";
 import type { Format, FormatDef, SegmentConstants } from "../../simulation/FormatDefinition";
 
 export type Segment<F extends Format = Format> = {
@@ -16,6 +16,8 @@ export type Segment<F extends Format = Format> = {
   constants: SegmentConstants<F>;
   distance: number;
   time: number;
+  /** Bezier control points, empty for every other kind. Read via segmentControls in Bezier.ts. */
+  controls: ControlPoint[];
 };
 
 export function createSegment<F extends Format>(formatDef: FormatDef<Format>, format: F, kind: SegmentKind, pose: Pose): Segment<F> {
@@ -30,6 +32,7 @@ export function createSegment<F extends Format>(formatDef: FormatDef<Format>, fo
     kind,
     time: 0,
     distance: 0,
+    controls: [],
     constants: getDefaultConstants(formatDef, format, kind)
   }
 }

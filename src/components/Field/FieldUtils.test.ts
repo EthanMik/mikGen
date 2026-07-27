@@ -43,4 +43,12 @@ describe("selectedLastOrder", () => {
     it("keeps relative order within the selected and unselected groups", () => {
         expect(selectedLastOrder(segs(false, true, false, true, false))).toEqual([0, 2, 4, 1, 3]);
     });
+
+    it("lifts a segment whose bezier control is selected", () => {
+        const withControl = [
+            { selected: false, controls: [{ selected: true }] },
+            { selected: false },
+        ];
+        expect(selectedLastOrder(withControl)).toEqual([1, 0]);
+    });
 });

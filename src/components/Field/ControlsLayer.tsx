@@ -3,9 +3,10 @@ import { hoveredSegmentStore } from "../../core/HoverStore";
 import type { Path } from "../../core/Types/Path";
 import { getBackwardsSnapIdx, getBackwardsSnapPose } from "../../core/Types/Path";
 import type { Segment } from "../../core/Types/Segment";
+import { resolveBezier, segmentControls } from "../../core/Types/Bezier";
 import { calculateHeading, toPX, toRad, FIELD_REAL_DIMENSIONS, type Rectangle, FIELD_IMG_DIMENSIONS, findPointToFace } from "../../core/Util";
 import { useSettings } from "../../hooks/useSettings";
-import { FIELD_COLORS, type SegmentAttribute } from "./FieldColors";
+import { controlAttributes, FIELD_COLORS, type SegmentAttribute } from "./FieldColors";
 import { selectedLastOrder } from "./FieldUtils";
 
 type ControlsLayerProps = {
@@ -13,6 +14,7 @@ type ControlsLayerProps = {
 	img: Rectangle;
 	radius: number;
 	onPointerDown: (e: React.PointerEvent<SVGGElement>, id: string) => void;
+	onControlPointerDown: (e: React.PointerEvent<SVGCircleElement>, id: string, controlIdx: number) => void;
 };
 
 type ShapeCtx = {
@@ -24,6 +26,7 @@ type ShapeCtx = {
 	scale: number;
 	hovered: boolean;
 	snapIdx: number | null;
+	onControlPointerDown: ControlsLayerProps["onControlPointerDown"];
 };
 
 function shapeColor(attr: SegmentAttribute, selected: boolean): string {
@@ -38,11 +41,12 @@ function indicatorThickness(selected: boolean, hovered: boolean): number {
 	return selected ? 5 : hovered ? 4 : 2;
 }
 
-function indicatorAngle(ctx: ShapeCtx, snapPose: { x: number, y: number }): number {
-	const angle = ctx.seg.pose.angle ?? 0;
+/** Null when the kind has an optional heading and none is set, so nothing is drawn. */
+function indicatorAngle(ctx: ShapeCtx, snapPose: { x: number, y: number }): number | null {
+	const angle = ctx.seg.pose.angle;
 	if (ctx.seg.kind === "pointTurn" || ctx.seg.kind === "pointSwing") {
 		const pos = findPointToFace(ctx.path, ctx.idx);
-		return calculateHeading({ x: snapPose.x, y: snapPose.y }, { x: pos.x, y: pos.y }) + angle;
+		return calculateHeading({ x: snapPose.x, y: snapPose.y }, { x: pos.x, y: pos.y }) + (angle ?? 0);
 	}
 	return angle;
 }
@@ -82,6 +86,8 @@ function renderLine(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
 	const { seg } = ctx;
 	const r = ctx.radius * shapeScale(attr, seg.selected, ctx.hovered);
 	const angle = indicatorAngle(ctx, { x: snapPose.x, y: snapPose.y });
+	if (angle === null) return null;
+
 	const basePx = toPX({ x: snapPose.x, y: snapPose.y }, FIELD_REAL_DIMENSIONS, ctx.img);
 	const tipPx = indicatorTipPx(ctx, { x: snapPose.x, y: snapPose.y }, angle, r);
 
@@ -104,6 +110,7 @@ function renderCurve(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
 	const r = ctx.radius * shapeScale(attr, seg.selected, ctx.hovered);
 	const thickness = indicatorThickness(seg.selected, ctx.hovered);
 	const angle = indicatorAngle(ctx, { x: snapPose.x, y: snapPose.y });
+	if (angle === null) return null;
 
 	const rInner = Math.max(0, r - (thickness * 0.6));
 	const basePx = toPX({ x: snapPose.x, y: snapPose.y }, FIELD_REAL_DIMENSIONS, ctx.img);
@@ -149,16 +156,70 @@ function renderCircle(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
 	);
 }
 
+function renderControls(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
+	const { seg } = ctx;
+
+	const i = controlAttributes().indexOf(attr);
+	const control = segmentControls(seg)[i];
+	if (!control || !control.visible || control.x === null || control.y === null) return null;
+
+	const bezier = resolveBezier(ctx.path, ctx.idx);
+	if (bezier === null) return null;
+
+	const anchor = i === 0 ? bezier.p0 : bezier.p1;
+	const anchorPx = toPX(anchor, FIELD_REAL_DIMENSIONS, ctx.img);
+	const controlPx = toPX({ x: control.x, y: control.y }, FIELD_REAL_DIMENSIONS, ctx.img);
+
+	return (
+		<>
+			<line
+				pointerEvents="none"
+				x1={anchorPx.x} y1={anchorPx.y} x2={controlPx.x} y2={controlPx.y}
+				stroke={"#00000035"}
+				strokeWidth={1 * ctx.scale}
+			/>
+			<circle
+				style={seg.locked ? { cursor: "not-allowed" } : { cursor: "grab" }}
+				cx={controlPx.x}
+				cy={controlPx.y}
+				r={ctx.radius * shapeScale(attr, control.selected, ctx.hovered) * 0.5}
+				fill={shapeColor(attr, control.selected)}
+				onPointerDown={(e) => { e.stopPropagation(); ctx.onControlPointerDown(e, seg.id, i); }}
+			/>
+		</>
+	);
+}
+
+/**
+ * Draw order within one segment. A shape is hit-tested by what is painted last, so whichever
+ * of the node or the controls is selected has to come last or you cannot grab it when they overlap.
+ */
+function selectedLastAttrs(seg: Segment): { attr: SegmentAttribute; key: number }[] {
+	const attrs = FIELD_COLORS.segmentColors[seg.kind];
+	const controlAttrs = controlAttributes();
+	const controls = segmentControls(seg);
+
+	const isSelected = (attr: SegmentAttribute): boolean => {
+		if (attr.shape !== "control") return seg.selected;
+		return controls[controlAttrs.indexOf(attr)]?.selected ?? false;
+	};
+
+	return attrs
+		.map((attr, key) => ({ attr, key }))
+		.sort((a, b) => Number(isSelected(a.attr)) - Number(isSelected(b.attr)) || a.key - b.key);
+}
+
 function renderAttr(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
 	switch (attr.shape) {
 		case "node": return renderNode(ctx, attr);
 		case "line": return renderLine(ctx, attr);
 		case "curve": return renderCurve(ctx, attr);
 		case "circle": return renderCircle(ctx, attr);
+		case "control": return renderControls(ctx, attr);
 	}
 }
 
-export default function ControlsLayer({ path, img, radius, onPointerDown }: ControlsLayerProps) {
+export default function ControlsLayer({ path, img, radius, onPointerDown, onControlPointerDown }: ControlsLayerProps) {
 	const imgDefaultSize = (FIELD_IMG_DIMENSIONS.w + FIELD_IMG_DIMENSIONS.h) / 2;
 	const imgRealSize = (img.w + img.h) / 2
 	const scale = imgRealSize / imgDefaultSize;
@@ -183,11 +244,11 @@ export default function ControlsLayer({ path, img, radius, onPointerDown }: Cont
 		<>
 			{renderOrder.map((idx) => {
 				const seg = path.segments[idx];
-				const ctx: ShapeCtx = { path, idx, seg, img, radius, scale, hovered: hoveredId === seg.id, snapIdx };
+				const ctx: ShapeCtx = { path, idx, seg, img, radius, scale, hovered: hoveredId === seg.id, snapIdx, onControlPointerDown };
 				return (
 					<g key={seg.id} onPointerDown={(e) => onPointerDown(e, seg.id)}>
-						{seg.visible && FIELD_COLORS.segmentColors[seg.kind].map((attr, i) => (
-							<React.Fragment key={i}>{renderAttr(ctx, attr)}</React.Fragment>
+						{seg.visible && selectedLastAttrs(seg).map(({ attr, key }) => (
+							<React.Fragment key={key}>{renderAttr(ctx, attr)}</React.Fragment>
 						))}
 					</g>
 				);

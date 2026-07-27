@@ -201,6 +201,11 @@ export const LemLibDef = {
             castTo: "pointDrive"
         },
 
+        bezierCurve: {
+            name: "Follow Path",
+            castTo: "pointDrive"
+        },
+
         pointDrive: {
             name: "Move to Point",
             defaults: [kLemLinear, kLemAngular],

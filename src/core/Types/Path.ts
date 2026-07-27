@@ -1,4 +1,5 @@
 import { calculateHeading, findPointToFace, toRad } from "../Util";
+import { bezierTangentAt, resolveBezier } from "./Bezier";
 import type { Coordinate } from "./Coordinate";
 import { type Segment } from "./Segment";
 
@@ -77,6 +78,20 @@ export function propagateStates(path: Path): RobotState[] {
                 }
                 pos = target;
                 heading = seg.kind === "poseDrive" && angle !== null ? angle : (bearing ?? heading);
+                break;
+            }
+
+            case "bezierCurve": {
+                if (x === null || y === null) break;
+                const bezier = resolveBezier(path, i);
+                pos = { x, y };
+                // Only holonomic can land on a commanded heading; tank follows the exit tangent
+                if (seg.format === "Holonomic" && angle !== null) {
+                    heading = angle;
+                } else if (bezier !== null) {
+                    const tangent = bezierTangentAt(bezier, 1);
+                    heading = calculateHeading({ x: 0, y: 0 }, tangent);
+                }
                 break;
             }
 

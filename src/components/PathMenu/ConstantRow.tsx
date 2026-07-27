@@ -38,7 +38,7 @@ export default function ConstantRow({
 } : ConstantRowProps) {
     return (
         <div className={`flex flex-row items-center
-            justify-between h-[35px] pr-1 pl-1 gap-1 rounded-lg
+            justify-between h-[35px] pr-1 pl-1 rounded-lg
 
             hover:brightness-90
             transition-all duration-100
@@ -46,15 +46,15 @@ export default function ConstantRow({
             ${selected ? "bg-medlightgray" : ""}`}
         >
             <button
-                className={`w-[200px] text-left text-[15px] ${labelColor} ${onToggleSelect ? "cursor-pointer" : "cursor-default"}`}
+                className={`w-[200px] text-left text-[14px] ${labelColor} ${onToggleSelect ? "cursor-pointer" : "cursor-default"}`}
                 onClick={onToggleSelect}
             >
                 {label}
             </button>
             <NumberInput
-                width={48}
-                height={28}
-                fontSize={16}
+                width={43}
+                height={27}
+                fontSize={14}
                 value={typeof value === 'number' ? value : typeof value === 'boolean' ? (value ? 1 : 0) : null}
                 setValue={onChange}
                 units={units}

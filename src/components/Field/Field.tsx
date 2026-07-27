@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { Coordinate } from "../../core/Types/Coordinate";
 import homeButton from "../../assets/home.svg";
-import { type Segment } from "../../core/Types/Segment";
+import type { Segment } from "../../core/Types/Segment";
 import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, toInch, toRGBA } from "../../core/Util";
 import { usePath, useFormat, useField, getFieldSrcFromKey, fileFormatStore, updatePath } from "../../hooks/useFileFormat";
 import { usePathVisibility } from "../../hooks/usePathVisibility";
@@ -10,7 +10,8 @@ import { useRobotVisibility } from "../../hooks/useRobotVisibility";
 import { PathSimMacros } from "../../macros/PathSimMacros";
 import FieldMacros from "../../macros/FieldMacros";
 import { useRobotPose } from "../../hooks/useRobotPose";
-import { getPressedPositionInch, pointerToSvg } from "./FieldUtils";
+import { deselectControls, getPressedPositionInch, pointerToSvg, selectControlInPath, selectionCount } from "./FieldUtils";
+import { segmentControls } from "../../core/Types/Bezier";
 import HoverButton from "../Util/HoverButton";
 import { useBoxSelect } from "./useBoxSelect";
 import { useMagnetSnap } from "./useMagnetSnap";
@@ -21,6 +22,8 @@ import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import { resolveHeading, getBackwardsSnapPose, getBackwardsSnapIdx, distanceToPosition, getSegmentDistance, type Path } from "../../core/Types/Path";
 import { useSettings } from "../../hooks/useSettings";
 import { useFieldImg } from "../../hooks/useFieldImg";
+
+const controlDragKey = (segmentId: string, controlIdx: number) => `${segmentId}:c${controlIdx}`;
 
 export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }: { showRightPanel?: boolean; canvasWidth?: number }) {
 	const [img, setImg] = useFieldImg();
@@ -121,7 +124,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		moveControl, moveHeading, deleteControl, unselectPath, selectPath,
 		selectInversePath, undo, redo, addPointDriveSegment, addStartSegment,
 		addPointTurnSegment, addPoseDriveSegment, addAngleTurnSegment, addDistanceSegment, addStrafeSegment,
-		addAngleSwingSegment, addPointSwingSegment, fieldZoomKeyboard, fieldZoomWheel,
+		addAngleSwingSegment, addPointSwingSegment, addBezierSegment, fieldZoomKeyboard, fieldZoomWheel,
 		fieldPanWheel, cut, paste, copy,
 	} = FieldMacros();
 
@@ -262,8 +265,16 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		let effectivePosInch = posInch;
 
 		if (shiftHeld) {
-			const refSeg = path.segments.find(s => s.selected && !s.locked);
-			const refStart = refSeg ? dragStartPositions.current[refSeg.id] : null;
+			// A control drives the snap just like a segment node when it owns the selection
+			let refKey: string | null = path.segments.find(s => s.selected && !s.locked)?.id ?? null;
+			if (refKey === null) {
+				for (const s of path.segments) {
+					if (s.locked) continue;
+					const i = segmentControls(s).findIndex(c => c.selected);
+					if (i !== -1) { refKey = controlDragKey(s.id, i); break; }
+				}
+			}
+			const refStart = refKey !== null ? dragStartPositions.current[refKey] : null;
 			if (refStart && refStart.x !== null && refStart.y !== null) {
 				const rawDx = posInch.x - start.x;
 				const rawDy = posInch.y - start.y;
@@ -293,26 +304,37 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 
 		if (dx !== 0 || dy !== 0) dragDidMove.current = true;
 
+		const applyDelta = (startPos: { x: number | null; y: number | null } | undefined) => {
+			if (!startPos) return null;
+			let newX = startPos.x === null ? null : startPos.x + dx;
+			let newY = startPos.y === null ? null : startPos.y + dy;
+			if (snapEnabled) {
+				if (newX !== null) newX = Math.round(newX * snapValue) / snapValue;
+				if (newY !== null) newY = Math.round(newY * snapValue) / snapValue;
+			}
+			return { x: newX, y: newY };
+		};
+
 		setPath(prev => {
-			// First pass: move all non-distance segments by delta
+			// First pass: move all non-distance segments and any selected bezier controls by delta
 			const firstPass: Segment[] = prev.segments.map((c) => {
-				if (c.kind === "distanceDrive" || c.kind === "strafeDrive") return c;
-				if (!c.selected || c.locked) return c;
+				const controls = segmentControls(c);
+				const movedControls = controls.some(ctrl => ctrl.selected) && !c.locked
+					? controls.map((ctrl, i) => {
+						if (!ctrl.selected) return ctrl;
+						const moved = applyDelta(dragStartPositions.current[controlDragKey(c.id, i)]);
+						return moved ? { ...ctrl, x: moved.x, y: moved.y } : ctrl;
+					})
+					: controls;
+				const withControls = movedControls === controls ? c : { ...c, controls: movedControls };
 
-				const startPos = dragStartPositions.current[c.id];
-				if (!startPos) return c;
-				const sx = startPos.x;
-				const sy = startPos.y;
+				if (c.kind === "distanceDrive" || c.kind === "strafeDrive") return withControls;
+				if (!c.selected || c.locked) return withControls;
 
-				let newX = sx === null ? null : sx + dx;
-				let newY = sy === null ? null : sy + dy;
+				const moved = applyDelta(dragStartPositions.current[c.id]);
+				if (!moved) return withControls;
 
-				if (snapEnabled) {
-					if (newX !== null) newX = Math.round(newX * snapValue) / snapValue;
-					if (newY !== null) newY = Math.round(newY * snapValue) / snapValue;
-				}
-
-				return { ...c, pose: { ...c.pose, x: newX, y: newY } };
+				return { ...withControls, pose: { ...c.pose, x: moved.x, y: moved.y } };
 			});
 
 			// Second pass: update distance/strafe segments
@@ -439,22 +461,34 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 				.map((c) => c.id);
 
 			let nextSelectedIds: string[];
-			if (!shifting && prevSelectedIds.length <= 1) {
+			let exclusive = false;
+			// Counts controls too, so a node picked out of a mixed group extends rather than collapses
+			if (!shifting && selectionCount(prevSegment.segments) <= 1) {
 				nextSelectedIds = [controlId];
+				exclusive = true;
 			} else if (shifting && prevSegment.segments.find((c) => c.id === controlId && c.selected)) {
 				nextSelectedIds = prevSelectedIds.filter((c) => c !== controlId);
 			} else {
 				nextSelectedIds = [...prevSelectedIds, controlId];
 			}
 
+			// Only an exclusive pick takes selection away from the controls. Extending a
+			// multi-selection keeps them, so a mixed segment + control group drags together.
+			const segments = exclusive ? deselectControls(prevSegment.segments) : prevSegment.segments;
+
 			return {
 				...prevSegment,
-				segments: prevSegment.segments.map((c) => ({
+				segments: segments.map((c) => ({
 					...c,
 					selected: !c.locked && nextSelectedIds.includes(c.id),
 				})),
 			};
 		});
+	};
+
+	/** Selects one bezier control exclusively, clearing every segment and every other control. */
+	const selectControl = (segmentId: string, controlIdx: number) => {
+		setPath((prev) => selectControlInPath(prev, segmentId, controlIdx, "exclusive"));
 	};
 
 	const handleControlPointerDown = (evt: React.PointerEvent<SVGGElement>, controlId: string) => {
@@ -506,11 +540,19 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 			}
 		}
 
+		snapshotDragStart(posSvg);
+	};
+
+	/** Records the pointer origin plus every segment and control position the drag may move. */
+	const snapshotDragStart = (posSvg: Coordinate) => {
 		const startInch = toInch(posSvg, FIELD_REAL_DIMENSIONS, img);
 		dragStartPointerInch.current = structuredClone(startInch);
 		const startPositions: Record<string, { x: number | null; y: number | null }> = {};
 		for (const s of path.segments) {
 			startPositions[s.id] = { x: s.pose.x, y: s.pose.y };
+			segmentControls(s).forEach((c, i) => {
+				startPositions[controlDragKey(s.id, i)] = { x: c.x, y: c.y };
+			});
 		}
 		dragStartPositions.current = startPositions;
 
@@ -518,10 +560,41 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		setDrag({ dragging: true, lastPos: posSvg });
 	};
 
+	const handleControlPointPointerDown = (evt: React.PointerEvent<SVGCircleElement>, segmentId: string, controlIdx: number) => {
+		if (evt.button !== 0 || !svgRef.current) return;
+		evt.stopPropagation();
+		svgRef.current.setPointerCapture(evt.pointerId);
+
+		if (!dragHistoryActive.current) {
+			setPath((prev) => {
+				dragStartSnapshot.current = structuredClone(prev);
+				return prev;
+			});
+			dragStartPushed.current = false;
+			dragHistoryActive.current = true;
+			dragDidMove.current = false;
+		}
+
+		if (!drag.dragging) {
+			const seg = path.segments.find(s => s.id === segmentId);
+			const alreadySelected = segmentControls(seg ?? ({} as Segment))[controlIdx]?.selected ?? false;
+			if (evt.ctrlKey) {
+				setPath(prev => selectControlInPath(prev, segmentId, controlIdx, "toggle"));
+			} else if (evt.shiftKey) {
+				setPath(prev => selectControlInPath(prev, segmentId, controlIdx, "range"));
+			} else if (!(alreadySelected && selectionCount(path.segments) > 1)) {
+				// Grabbing a handle already inside a group keeps the group so it drags together
+				selectControl(segmentId, controlIdx);
+			}
+		}
+
+		snapshotDragStart(pointerToSvg(evt, svgRef.current));
+	};
+
 	const endSelection = () => {
 		setPath((prev) => ({
 			...prev,
-			segments: prev.segments.map((c) => ({ ...c, selected: false })),
+			segments: deselectControls(prev.segments).map((c) => ({ ...c, selected: false })),
 		}));
 	};
 
@@ -531,7 +604,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		const isBareLeftClick = evt.button === 0 && !evt.ctrlKey && !evt.altKey && !evt.shiftKey && !evt.metaKey;
 
 		if (isBareLeftClick) {
-			const selectedCount = path.segments.filter((c) => c.selected).length;
+			const selectedCount = selectionCount(path.segments);
 			if (selectedCount > 1) {
 				endSelection();
 				suppressClickFallbackRef.current = true;
@@ -547,7 +620,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 			return;
 		}
 
-		const selectedCount = path.segments.filter((c) => c.selected).length;
+		const selectedCount = selectionCount(path.segments);
 		if (selectedCount > 1) {
 			endSelection();
 			return;
@@ -568,6 +641,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		addAngleTurnSegment(evt, format, setPath, path);
 		addPointSwingSegment(evt, format, setPath, path);
 		addAngleSwingSegment(evt, format, setPath, path);
+		addBezierSegment(evt, format, { x: pos.x, y: pos.y, angle: null }, setPath, path);
 	};
 
 	const handlePointerUp = (evt: React.PointerEvent<SVGSVGElement>) => {
@@ -636,6 +710,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 						img={img}
 						radius={radius}
 						onPointerDown={handleControlPointerDown}
+						onControlPointerDown={handleControlPointPointerDown}
 					/>
 				)}
 				{boxSelectRect && (

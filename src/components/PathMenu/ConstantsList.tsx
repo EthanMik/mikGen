@@ -87,11 +87,13 @@ const ConstantsList = memo(function ConstantsList({
         <div className="flex flex-col">
             <button
                 className={`
-                flex items-center w-[410px] h-[35px] rounded-lg justify-between
+                flex items-center w-[410px] mt-1 h-[29px] rounded-sm justify-between
                 hover:brightness-90
                 transition-all duration-100
                 active:scale-[0.995]
-                relative
+                relative text-[14px]
+                outline-2
+                ${open ? "outline-medlightgray" : "outline-transparent"}
             `}
                 onClick={() => setOpen(!open)}
             >
@@ -175,8 +177,8 @@ const ConstantsList = memo(function ConstantsList({
 
             {open && (
                 <div className="relative">
-                    <div className="absolute left-[10px] top-0 h-full w-[4px] rounded-full bg-medlightgray" />
-                    <div className="grid grid-cols-2 min-w-0 pl-5 gap-x-1 gap-y-0.5 mt-0.5 w-[400px]">
+                    {/* <div className="absolute left-[10px] top-0 h-full w-[4px] rounded-full bg-medlightgray" /> */}
+                    <div className="grid grid-cols-2 min-w-0 pl-5 gap-x-1 mt-1.5 w-[400px]">
                         {fields.map((f) => (
                             <ConstantRow
                                 key={f.key}
