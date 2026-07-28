@@ -379,7 +379,12 @@ export const mikLibDef = {
             actionButtons: [addControlButton],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikDriveExitConditionsSettings] },
-                { constantsIdx: 0, headerName: "Drive Constants", fields: [...mikPIDConstantsSettings] },
+                {
+                    constantsIdx: 0, headerName: "Drive Constants", fields: [
+                        ...mikPIDConstantsSettings,
+                        { key: "drift", label: "Drift", units: "", input: { bounds: [0, 100], stepSize: 1, roundTo: 1 } },
+                    ]
+                },
                 { constantsIdx: 1, headerName: "Heading Constants", fields: [...mikPIDConstantsSettings] },
             ],
         },

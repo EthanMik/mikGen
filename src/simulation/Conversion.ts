@@ -10,8 +10,9 @@ import type { FormatDef, SegmentConstants, SegmentDef, SegmentKind, SimFn } from
 import { angle_error } from "./mikLibSim/Util";
 import { createStore } from "../core/Store";
 
-/** Bezier samples handed to the simulator as the path to follow. */
-const BEZIER_SIM_SAMPLES = 100;
+/** Bezier samples handed to the simulator as the path to follow. Fine enough that a follower can
+ *  resample it down to inch spacing without the chords showing through. */
+const BEZIER_SIM_SAMPLES = 400;
 
 /** Template placeholders that carry a bare number, so they parse back as one. */
 const COORD_PLACEHOLDERS = new Set(['x', 'y', 'angle', 'distance', 'time', 'c1x', 'c1y', 'c2x', 'c2y']);

@@ -125,3 +125,37 @@ export function polylineLength(points: Coordinate[]): number {
     }
     return total;
 }
+
+/**
+ * Redistributes a polyline so consecutive points sit `spacing` inches apart, letting a follower treat
+ * an index step as a known arc length. The true end point is always kept, so the final gap is whatever
+ * is left over.
+ */
+export function resamplePolyline(points: Coordinate[], spacing: number): Coordinate[] {
+    if (points.length < 2 || !(spacing > 0)) return points;
+
+    const resampled: Coordinate[] = [points[0]];
+    let carried = 0;
+
+    for (let i = 1; i < points.length; i++) {
+        const prev = points[i - 1];
+        const next = points[i];
+        const chord = Math.hypot(next.x - prev.x, next.y - prev.y);
+        if (chord === 0) continue;
+
+        // Walk this chord dropping a point every `spacing`, carrying the remainder into the next chord
+        for (let along = spacing - carried; along < chord; along += spacing) {
+            const t = along / chord;
+            resampled.push({ x: prev.x + (next.x - prev.x) * t, y: prev.y + (next.y - prev.y) * t });
+        }
+        carried = (carried + chord) % spacing;
+    }
+
+    const end = points[points.length - 1];
+    const last = resampled[resampled.length - 1];
+    // A point landing all but exactly on the end would otherwise leave a zero length final step
+    if (Math.hypot(end.x - last.x, end.y - last.y) < spacing * 1e-6) resampled[resampled.length - 1] = end;
+    else resampled.push(end);
+
+    return resampled;
+}
