@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import FileRenamePopup from "./FileRenamePopup";
-import { usePath, useFileFormat, fileFormatStore, type FileFormat } from "../../hooks/useFileFormat";
+import { updatePath, fileFormatStore, type FileFormat } from "../../hooks/useFileFormat";
 import { defaultRobotConstants } from "../../core/Robot";
 import { saveSnapshot, undoHistory, fileUndosStore } from "../../core/Undo/UndoHistory";
 import { FORMAT_REGISTRY, mergeFormatDef, type FormatDef } from "../../simulation/FormatDefinition";
@@ -15,14 +15,13 @@ export default function FileButton() {
     const underlineRef = useRef<((val: boolean) => void) | undefined>(undefined);
 
     const [popupOpen, setPopupOpen] = useState(false);
-    const [path, setPath] = usePath();
-    const [fileFormat] = useFileFormat();
-    const { format, field } = fileFormat;
+    // File state is only needed when a menu action fires, so read it at call time instead of
+    // subscribing this always-mounted menu to every store write
+    const setPath = updatePath;
     const [isSaved, setIsSaved] = useState(true);
     const skipSave = useRef(true);
 
     const historyLength = undoHistory.useSelector(h => h.length);
-    const fileText = fileFormat;
     const [label, setLabel] = useState("");
 
     useEffect(() => {
@@ -30,6 +29,7 @@ export default function FileButton() {
     }, [isSaved]);
 
     const getFileName = (fileName = ""): string => {
+        const { path, format } = fileFormatStore.getState();
         const pathName = fileName === "" ? path.name : fileName;
         if (pathName === "" || pathName === null || pathName === undefined) {
             return format.slice(0, 3) + "Path";
@@ -76,6 +76,7 @@ export default function FileButton() {
     const handleNewFile = () => {
         if (fileUndosStore.getState() > 1) handleSaveAs();
 
+        const { format, field } = fileFormatStore.getState();
         const newFileFormat = {
             format,
             field,
@@ -170,7 +171,7 @@ export default function FileButton() {
             const handle = fileHandleStore.getState();
             if (handle) {
                 const writable = await handle.createWritable();
-                await writable.write(serializeFile(fileText));
+                await writable.write(serializeFile(fileFormatStore.getState()));
                 await writable.close();
                 setIsSaved(true);
                 fileUndosStore.setState(0);
@@ -207,7 +208,7 @@ export default function FileButton() {
             setPath(prev => ({ ...prev, name: savedFileName }));
 
             const writable = await handle.createWritable();
-            await writable.write(serializeFile(fileText));
+            await writable.write(serializeFile(fileFormatStore.getState()));
             await writable.close();
             setIsSaved(true);
             fileUndosStore.setState(0);
@@ -230,7 +231,7 @@ export default function FileButton() {
     };
 
     const handleDownload = () => {
-        downloadText(serializeFile(fileText), `${getFileName()}.txt`);
+        downloadText(serializeFile(fileFormatStore.getState()), `${getFileName()}.txt`);
         setIsSaved(true);
     };
 
@@ -238,7 +239,7 @@ export default function FileButton() {
         setLabel("Download As:");
         const name = await requestFileName();
         if (name === null) return;
-        downloadText(serializeFile(fileText), `${getFileName(name)}.txt`);
+        downloadText(serializeFile(fileFormatStore.getState()), `${getFileName(name)}.txt`);
         setIsSaved(true);
     };
 

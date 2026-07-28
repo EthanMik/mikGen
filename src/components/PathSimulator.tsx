@@ -14,11 +14,28 @@ import { convertPathToSim } from "../simulation/Conversion";
 import { useRobotPose } from "../hooks/useRobotPose";
 import { useSettings } from "../hooks/useSettings";
 import { useSimulateGroup } from "../hooks/useSimulateGroup";
+import { useRafThrottle } from "../hooks/useRafThrottle";
 import Tooltip from "./Util/Tooltip";
 import closedEye from "../assets/eye-closed.svg"
 import openEye from "../assets/eye-open.svg"
 import loopOn from "../assets/loop.svg"
 import loopOff from "../assets/loop-disable.svg"
+import type { Segment } from "../core/Types/Segment";
+
+// Segments are immutable (every write path spreads into new objects), so object identity
+// implies content and the geometry string can be cached per segment instance.
+const geoKeyCache = new WeakMap<Segment, string>();
+
+function segmentGeoString(s: Segment): string {
+    let key = geoKeyCache.get(s);
+    if (key === undefined) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { selected, locked, visible, disabled, groupId, ...rest } = s;
+        key = JSON.stringify(rest);
+        geoKeyCache.set(s, key);
+    }
+    return key;
+}
 
 function createRobot(): Robot {
     const {
@@ -66,6 +83,8 @@ function createRobot(): Robot {
 export default function PathSimulator() {
     const [value, setValue] = useState<number>(0);
     const [time, setTime] = useState<number>(0);
+    const timeRef = useRef(time);
+    timeRef.current = time;
     const [pose, setPose] = usePose()
     const [, setRobotPose] = useRobotPose();
     const robot = fileFormatStore.useSelector(s => s.robot);
@@ -88,12 +107,13 @@ export default function PathSimulator() {
 
     const { pauseSimulator, releaseSimulator, scrubSimulator } = PathSimMacros();
 
+    // Caps the full sim recompute at once per animation frame. Drag pointermoves and the
+    // effect cascade they trigger can request several recomputes per frame; only the last
+    // one per frame produces pixels, so the rest are pure waste.
+    const scheduleRecompute = useRafThrottle();
+
     const segmentGeoKey = useMemo(() =>
-        path.segments.map(s => {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { selected, locked, visible, disabled, groupId, ...rest } = s;
-            return JSON.stringify(rest);
-        }).join('|'),
+        path.segments.map(segmentGeoString).join('|'),
         [path.segments]
     );
 
@@ -105,7 +125,11 @@ export default function PathSimulator() {
         if (loopingRef.current && playingRef.current) {
             // While looping, jump to the segment but keep the robot running.
             setValue(simJump);
-            setTime((simJump / 100) * computedPathRef.current.totalTime);
+            const jumpTime = (simJump / 100) * computedPathRef.current.totalTime;
+            setTime(jumpTime);
+            // Keep the playback loop's ref in sync so a tick between now and the next render
+            // does not resume from the pre-jump time
+            timeRef.current = jumpTime;
         } else {
             setPlaying(false);
             setValue(simJump);
@@ -114,47 +138,49 @@ export default function PathSimulator() {
     }, [simJump, setRobotVisibility]);
 
     useEffect(() => {
-        if (path.segments.length === 0) {
-            computedPathStore.setState(precomputePath(createRobot(), convertPathToSim(formatDef, path)));
+        scheduleRecompute(() => {
+            if (path.segments.length === 0) {
+                computedPathStore.setState(precomputePath(createRobot(), convertPathToSim(formatDef, path)));
 
-            setRobotPose(computedPath.endTrajectory);
-            setPlaying(false);
-            setTime(0);
-            setValue(0);
-            setRobotVisibility(false);
-            setPose({ x: 0, y: 0, angle: 0 });
-            return;
-        }
-
-        const pathSim = precomputePath(createRobot(), convertPathToSim(formatDef, path));
-        // const pathSim = cullSimulatedPath(fullSim);
-        computedPathStore.setState(pathSim);
-
-        setRobotPose(pathSim.endTrajectory);
-
-        if (!robotVisible) {
-            setPlaying(false);
-            return;
-        };
-
-        if (!pathSim.trajectory.length || pathSim.totalTime <= 0) {
-            if (robotVisible) {
-                const start = path.segments[0];
-                if (start?.kind === "start" && start.pose.x !== null && start.pose.y !== null) {
-                    setPose({ x: start.pose.x, y: start.pose.y, angle: start.pose.angle ?? 0 });
-                }
+                setRobotPose(computedPath.endTrajectory);
+                setPlaying(false);
+                setTime(0);
+                setValue(0);
+                setRobotVisibility(false);
+                setPose({ x: 0, y: 0, angle: 0 });
+                return;
             }
-            return;
-        }
 
-        const clampedTime = clamp(time, 0, pathSim.totalTime);
-        if (clampedTime !== time) setTime(clampedTime);
+            const pathSim = precomputePath(createRobot(), convertPathToSim(formatDef, path));
+            // const pathSim = cullSimulatedPath(fullSim);
+            computedPathStore.setState(pathSim);
 
-        if (robotVisible) forceSnapTime(pathSim, clampedTime);
+            setRobotPose(pathSim.endTrajectory);
 
-        skip.current = true;
-        setValue((clampedTime / pathSim.totalTime) * 100);
+            if (!robotVisible) {
+                setPlaying(false);
+                return;
+            };
 
+            if (!pathSim.trajectory.length || pathSim.totalTime <= 0) {
+                if (robotVisible) {
+                    const start = path.segments[0];
+                    if (start?.kind === "start" && start.pose.x !== null && start.pose.y !== null) {
+                        setPose({ x: start.pose.x, y: start.pose.y, angle: start.pose.angle ?? 0 });
+                    }
+                }
+                return;
+            }
+
+            const clampedTime = clamp(time, 0, pathSim.totalTime);
+            if (clampedTime !== time) setTime(clampedTime);
+
+            if (robotVisible) forceSnapTime(pathSim, clampedTime);
+
+            skip.current = true;
+            setValue((clampedTime / pathSim.totalTime) * 100);
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [segmentGeoKey, robot, robotVisible, simulatedGroups]);
 
 
@@ -208,7 +234,9 @@ export default function PathSimulator() {
             return { ...tel, progressRaw, progressPercent };
         });
 
-        pathTelemetry.setState(updated);
+        // The map preserves element identity when nothing changed; skip the store write so idle
+        // frames do not poll every subscriber's selector
+        if (updated.some((u, i) => u !== telemetry[i])) pathTelemetry.setState(updated);
     }, [time, computedPath]);
 
     useEffect(() => {
@@ -216,7 +244,7 @@ export default function PathSimulator() {
             const target = evt.target as HTMLElement | null;
             if (target?.isContentEditable || target?.tagName === "INPUT") return;
             pauseSimulator(evt, setPlaying, setRobotVisibility)
-            scrubSimulator(evt, setValue, setPlaying, setRobotVisibility, skip, computedPath, SIM_CONSTANTS.dt, 0.25);
+            scrubSimulator(evt, setValue, setPlaying, setRobotVisibility, skip, computedPathRef.current, SIM_CONSTANTS.dt, 0.25);
         }
 
         const handleKeyUp = (evt: KeyboardEvent) => {
@@ -232,7 +260,9 @@ export default function PathSimulator() {
             document.removeEventListener('keydown', handleKeyDown)
             document.removeEventListener('keyup', handleKeyUp)
         }
-    }, [computedPath]);
+        // Everything captured is identity-stable (setters, refs, pure macros), so register once
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const setPathPercent = (path: PathSim, percent: number) => {
         if (!path.trajectory.length) return;
@@ -275,42 +305,42 @@ export default function PathSimulator() {
     }
 
     useEffect(() => {
-        const dt = SIM_CONSTANTS.dt;
-
-        if (playing) {
-            setTime(prev => (prev + dt >= computedPath.totalTime ? 0 : prev));
-        }
-
         if (!playing) return;
 
+        // Pressing play at the end restarts from 0
+        if (timeRef.current + SIM_CONSTANTS.dt >= computedPathRef.current.totalTime) {
+            setTime(0);
+            timeRef.current = 0;
+        }
+
+        let raf = 0;
         let last = performance.now();
 
-        const interval = setInterval(() => {
-            const now = performance.now();
+        const tick = (now: number) => {
             const dtSec = (now - last) / 1000;
             last = now;
 
-            setTime(prevTime => {
-                const path = computedPathRef.current;
-                const nextTime = prevTime + dtSec;
-                const clamped = Math.min(nextTime, path.totalTime);
+            const path = computedPathRef.current;
+            const clamped = Math.min(timeRef.current + dtSec, path.totalTime);
 
+            if (clamped >= path.totalTime && !loopingRef.current) {
                 setPathTime(path, clamped);
+                setTime(clamped);
+                timeRef.current = clamped;
+                setPlaying(false);
+                return;
+            }
 
-                if (clamped >= path.totalTime) {
-                    if (loopingRef.current) {
-                        setPathTime(path, 0);
-                        return 0;
-                    }
-                    clearInterval(interval);
-                    setPlaying(false);
-                }
+            const next = clamped >= path.totalTime ? 0 : clamped;
+            setPathTime(path, next);
+            setTime(next);
+            timeRef.current = next;
+            raf = requestAnimationFrame(tick);
+        };
 
-                return clamped;
-            });
-        }, 1000 / 60);
-
-        return () => clearInterval(interval);
+        raf = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(raf);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [playing]);
 
     return (

@@ -5,7 +5,7 @@ import clockClose from "../../assets/clock-close.svg";
 import clockOpen from "../../assets/clock-open.svg";
 import downArrow from "../../assets/down-arrow.svg";
 import Slider from "../Util/Slider";
-import { useFormatDef, fileFormatStore, updatePath } from "../../hooks/useFileFormat";
+import { useFormatDef, fileFormatStore, selectSegmentById, updatePath } from "../../hooks/useFileFormat";
 import type { ConstantField } from "./ConstantRow";
 import ConstantsList from "./ConstantsList";
 import CycleImageButton, { type CycleImageButtonProps } from "../Util/CycleButton";
@@ -64,7 +64,7 @@ const MotionList = memo(function MotionList({
     draggingIds = [],
     shrink = false,
 }: MotionListProps) {
-    const segment = fileFormatStore.useSelector(s => s.path.segments.find(seg => seg.id === segmentId))!;
+    const segment = fileFormatStore.useSelector(s => selectSegmentById(s, segmentId))!;
     const formatDef = useFormatDef();
     const isActiveSimSegment = activeSimSegmentStore.useSelector(s => s === index);
 

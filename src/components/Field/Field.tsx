@@ -1,15 +1,13 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Coordinate } from "../../core/Types/Coordinate";
 import homeButton from "../../assets/home.svg";
 import type { Segment } from "../../core/Types/Segment";
 import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, toInch, toRGBA } from "../../core/Util";
 import { usePath, useFormat, useField, getFieldSrcFromKey, fileFormatStore, updatePath } from "../../hooks/useFileFormat";
 import { usePathVisibility } from "../../hooks/usePathVisibility";
-import { usePose } from "../../hooks/usePose";
 import { useRobotVisibility } from "../../hooks/useRobotVisibility";
 import { PathSimMacros } from "../../macros/PathSimMacros";
 import FieldMacros from "../../macros/FieldMacros";
-import { useRobotPose } from "../../hooks/useRobotPose";
 import { deselectControls, getPressedPositionInch, invalidateSvgCtm, pointerToSvg, selectControlInPath, selectionCount } from "./FieldUtils";
 import { segmentControls } from "../../core/Types/Bezier";
 import HoverButton from "../Util/HoverButton";
@@ -38,11 +36,15 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 	const [path, setPath] = usePath();
 	pathRef.current = path;
 
-	// Key built from non-distance segment poses only. When it changes, reposition all distance segments.
-	const nonDistancePoseKey = useMemo(() =>
+	// Key covering every input the reposition effect reads: anchor poses come from non-distance
+	// segments, while a distance segment's own distance and heading angle feed resolveHeading
+	// and distanceToPosition. When it changes, reposition all distance segments.
+	const repositionKey = useMemo(() =>
 		path.segments
-			.filter(s => s.kind !== "distanceDrive" && s.kind !== "strafeDrive")
-			.map(s => `${s.id}:${s.pose.x},${s.pose.y},${s.pose.angle}`)
+			.map(s =>
+				s.kind === "distanceDrive" || s.kind === "strafeDrive"
+					? `${s.id}:${s.kind}:d${s.distance},a${s.pose.angle}`
+					: `${s.id}:${s.kind}:${s.pose.x},${s.pose.y},${s.pose.angle}`)
 			.join('|'),
 		[path.segments]
 	);
@@ -83,10 +85,9 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 
 			return changed ? { ...prev, segments } : prev;
 		});
-	}, [nonDistancePoseKey, setPath]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [repositionKey]);
 
-	const [pose] = usePose();
-	const [robotPose] = useRobotPose();
 	const robot = fileFormatStore.useSelector(s => s.robot);
 	const [robotVisible, setRobotVisibility] = useRobotVisibility();
 	const [pathVisible] = usePathVisibility();
@@ -422,7 +423,9 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 						// Not selected: keep absolute position, update signed distance from moved anchor
 						const newDist = getSegmentDistance({ ...prev, segments: next }, segIdx, 0)
 							?? Math.hypot((c.pose.x ?? 0) - anchorPose.x, (c.pose.y ?? 0) - anchorPose.y);
-						next[segIdx] = { ...c, distance: newDist };
+						if (Math.abs(newDist - c.distance) > 0.001) {
+							next[segIdx] = { ...c, distance: newDist };
+						}
 					}
 					continue;
 				}
@@ -476,7 +479,11 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 				const geomDist = getSegmentDistance(prev, segIdx, c.kind === "strafeDrive" ? 90 : 0) ?? c.distance;
 				const newPos = distanceToPosition({ ...prev, segments: next }, segIdx, geomDist, c.kind === "strafeDrive" ? 90 : 0);
 				if (!newPos) continue;
-				next[segIdx] = { ...c, pose: { ...c.pose, x: newPos.x, y: newPos.y }, distance: geomDist };
+				if (Math.abs(newPos.x - (c.pose.x ?? 0)) > 0.001
+					|| Math.abs(newPos.y - (c.pose.y ?? 0)) > 0.001
+					|| Math.abs(geomDist - c.distance) > 0.001) {
+					next[segIdx] = { ...c, pose: { ...c.pose, x: newPos.x, y: newPos.y }, distance: geomDist };
+				}
 			}
 
 			return { ...prev, segments: next };
@@ -644,6 +651,19 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		snapshotDragStart(pointerToSvg(evt, svgRef.current));
 	};
 
+	// Stable wrappers so the memoized ControlsLayer's props keep identity across Field renders;
+	// the refs always point at the latest closures, so behavior is unchanged
+	const controlPointerDownImpl = useRef(handleControlPointerDown);
+	controlPointerDownImpl.current = handleControlPointerDown;
+	const stableControlPointerDown = useCallback(
+		(e: React.PointerEvent<SVGGElement>, id: string) => controlPointerDownImpl.current(e, id), []);
+
+	const controlPointPointerDownImpl = useRef(handleControlPointPointerDown);
+	controlPointPointerDownImpl.current = handleControlPointPointerDown;
+	const stableControlPointPointerDown = useCallback(
+		(e: React.PointerEvent<SVGCircleElement>, id: string, controlIdx: number) =>
+			controlPointPointerDownImpl.current(e, id, controlIdx), []);
+
 	const endSelection = () => {
 		setPath((prev) => ({
 			...prev,
@@ -758,8 +778,6 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 
 				<RobotLayer
 					img={img}
-					pose={pose}
-					robotPose={robotPose}
 					robotConstants={robot}
 					visible={robotVisible}
 					path={path}
@@ -769,8 +787,8 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 						path={path}
 						img={img}
 						radius={radius}
-						onPointerDown={handleControlPointerDown}
-						onControlPointerDown={handleControlPointPointerDown}
+						onPointerDown={stableControlPointerDown}
+						onControlPointerDown={stableControlPointPointerDown}
 					/>
 				)}
 				{boxSelectRect && (

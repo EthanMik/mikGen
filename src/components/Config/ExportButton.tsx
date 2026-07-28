@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import ConfigButtonTemplate from "./ConfigButtonTemplate";
 import { ConfigCheckboxButton } from "../Util/CheckboxButton";
 import Tooltip from "../Util/Tooltip";
-import { fileFormatStore, usePath } from "../../hooks/useFileFormat";
+import { fileFormatStore } from "../../hooks/useFileFormat";
 import { convertPathToString, templateToRegex } from "../../simulation/Conversion";
 import type { FormatDef, Format, SegmentDef, SegmentKind } from "../../simulation/FormatDefinition";
 import type { Path } from "../../core/Types/Path";
@@ -421,7 +421,9 @@ export default function ExportButton() {
     const [consoleLines, setConsoleLines] = useState<string[]>([]);
     const [mergeMode, setMergeMode] = useState(true);
     const [replaceMode, setReplaceMode] = useState(false);
-    const [path,] = usePath();
+    // Only the name is needed reactively; handlers read the full path via getState() at call
+    // time, so this stays out of the every-drag-frame render path
+    const pathName = fileFormatStore.useSelector(s => s.path.name);
 
     const mode = handle ? "writeInterface" : currentExportDir ? "folderView" : "default";
 
@@ -476,7 +478,7 @@ export default function ExportButton() {
         log(`// [${name}]`);
         log("chassis.drive(2);");
         log(`// [${name}]`);
-    }, [handle, path.name]);
+    }, [handle, pathName]);
 
     const replaceInFile = async () => {
         if (!handle) return;

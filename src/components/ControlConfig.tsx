@@ -3,7 +3,7 @@ import flipVertical from "../assets/flip-vertical.svg";
 import { distanceToPosition, getSegmentDistance } from "../core/Types/Path";
 import { saveSnapshot } from "../core/Undo/UndoHistory";
 import { normalizeDeg } from "../core/Util";
-import { useFormat, usePath } from "../hooks/useFileFormat";
+import { fileFormatStore, updatePath, useFormat, usePath } from "../hooks/useFileFormat";
 import type { Segment } from "../core/Types/Segment";
 import { segmentControls } from "../core/Types/Bezier";
 import type { SegmentConstants, Format } from "../simulation/FormatDefinition";
@@ -45,7 +45,9 @@ function MirrorControl({
     src,
     mirrorDirection
 }: MirrorControlProps) {
-    const [ path, setPath ] = usePath();
+    // The path is only needed inside click handlers; reading it at call time keeps both
+    // mounted mirror buttons from re-rendering on every path write
+    const setPath = updatePath;
 
     // Controls mirror like segments do, each on its own selection
     const mirrorControls = (c: Segment, axis: MirrorDirection): Segment => {
@@ -60,7 +62,7 @@ function MirrorControl({
     };
 
     const hasSelection = () =>
-        path.segments.some(m => m.selected || segmentControls(m).some(ctrl => ctrl.selected));
+        fileFormatStore.getState().path.segments.some(m => m.selected || segmentControls(m).some(ctrl => ctrl.selected));
 
     const mirrorX = () => {
         const hasSelected = hasSelection();

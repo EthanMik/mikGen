@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { fileFormatStore, usePath } from "../../hooks/useFileFormat";
+import { fileFormatStore, updatePath } from "../../hooks/useFileFormat";
 import Section from "../Util/Section";
 import FieldMacros from "../../macros/FieldMacros";
 import MenuButtonTemplate from "../Util/MenuButtonTemplate";
@@ -7,9 +7,10 @@ import { MenuKeybindButton } from "../Util/KeybindButton";
 
 export default function EditButton() {
     const flashRef = useRef<(() => void) | undefined>(undefined);
-    const fileFormat = fileFormatStore.useStore();
-    const pathRef = useRef(fileFormat.path);
-    const [, setPath] = usePath();
+    // The path is only needed when a menu action fires, so read it at call time instead of
+    // subscribing this always-mounted menu to every store write
+    const getPath = () => fileFormatStore.getState().path;
+    const setPath = updatePath;
 
     const {
         copy,
@@ -29,9 +30,9 @@ export default function EditButton() {
         const handleKeyDown = (evt: KeyboardEvent) => {
             const target = evt.target as HTMLElement | null;
             if (target?.isContentEditable || target?.tagName === "INPUT") return;
-            copy(evt, pathRef.current, triggerFlash, true);
-            copy(evt, pathRef.current, triggerFlash);
-            cut(evt, pathRef.current, setPath);
+            copy(evt, fileFormatStore.getState().path, triggerFlash, true);
+            copy(evt, fileFormatStore.getState().path, triggerFlash);
+            cut(evt, fileFormatStore.getState().path, setPath);
         };
 
         document.addEventListener('keydown', handleKeyDown);
@@ -45,9 +46,9 @@ export default function EditButton() {
                 <MenuKeybindButton name={"Redo"} keybind={"Ctrl+Y"} callback={() => redo(null)} />
                 <Section />
 
-                <MenuKeybindButton name={"Cut"} keybind={"Ctrl+X"} callback={() => cut(null, pathRef.current, setPath)} />
-                <MenuKeybindButton name={"Copy/Export"} keybind={"Ctrl+C"} callback={() => copy(null, pathRef.current, triggerFlash)} />
-                <MenuKeybindButton name={"Copy All"} keybind={"Ctrl+⇧C"} callback={() => copy(null, pathRef.current, triggerFlash, true)} />
+                <MenuKeybindButton name={"Cut"} keybind={"Ctrl+X"} callback={() => cut(null, getPath(), setPath)} />
+                <MenuKeybindButton name={"Copy/Export"} keybind={"Ctrl+C"} callback={() => copy(null, getPath(), triggerFlash)} />
+                <MenuKeybindButton name={"Copy All"} keybind={"Ctrl+⇧C"} callback={() => copy(null, getPath(), triggerFlash, true)} />
                 <MenuKeybindButton name={"Paste"} keybind={"Ctrl+V"} callback={() => paste(null, setPath)} />
                 <MenuKeybindButton name={"Delete"} keybind={"⌫"} callback={() => deleteControl(null, setPath)} />
                 <Section />

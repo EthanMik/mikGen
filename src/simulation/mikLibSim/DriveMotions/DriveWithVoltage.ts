@@ -1,4 +1,5 @@
 import type { Robot } from "../../../core/Robot";
+import { debugStore } from "../../Conversion";
 import { PID } from "../PID";
 
 let drivePID: PID;
@@ -45,19 +46,23 @@ export function drive_with_voltage(robot: Robot, dt: number, left_voltage: numbe
     
     seconds += dt
 
-    output += seconds.toFixed(2) + ", " + angle.toFixed(1) + "\n";
-    outputd += seconds.toFixed(2) + ", " + ((angle - prev_angle) / dt).toFixed(2) + "\n";
+    if (debugStore.getState()) {
+        output += seconds.toFixed(2) + ", " + angle.toFixed(1) + "\n";
+        outputd += seconds.toFixed(2) + ", " + ((angle - prev_angle) / dt).toFixed(2) + "\n";
+    }
 
     prev_angle = angle;
 
     // console.log(seconds, angle);
 
     if (drivePID.isSettled()) {
-        console.log("output");
-        console.log(output)
-        console.log("outputd");
-        console.log(outputd);
-        console.log("\n");
+        if (debugStore.getState()) {
+            console.log("output");
+            console.log(output)
+            console.log("outputd");
+            console.log(outputd);
+            console.log("\n");
+        }
         reset_drive_with_voltage();
         return true;
     }

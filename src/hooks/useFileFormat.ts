@@ -1,6 +1,7 @@
 import { createStore } from "../core/Store";
 import { DEFAULT_FORMAT, DEFAULT_FIELD_KEY, VALIDATED_APP_STATE, type FileFormat, type FieldType } from "./appStateDefaults";
 import type { Path } from "../core/Types/Path";
+import type { Segment } from "../core/Types/Segment";
 import type { Format, FormatDef } from "../simulation/FormatDefinition";
 import type { RobotConstants } from "../core/Robot";
 
@@ -37,12 +38,7 @@ export function useFileFormat() {
 
 export function usePath() {
     const path = fileFormatStore.useSelector(s => s.path);
-    const setPath = (next: Path | ((prev: Path) => Path)) =>
-        fileFormatStore.setState(prev => ({
-            ...prev,
-            path: typeof next === "function" ? next(prev.path) : next,
-        }));
-    return [path, setPath] as const;
+    return [path, updatePath] as const;
 }
 
 export function updatePath(next: Path | ((prev: Path) => Path)) {
@@ -50,6 +46,20 @@ export function updatePath(next: Path | ((prev: Path) => Path)) {
         ...prev,
         path: typeof next === "function" ? next(prev.path) : next,
     }));
+}
+
+// Selectors run for every subscriber on every store notification, so per-row segment lookups
+// need to be O(1). The map is built once per segments array (arrays are immutable, identity
+// implies membership) and shared by all rows.
+const segmentIndexCache = new WeakMap<Segment[], Map<string, Segment>>();
+
+export function selectSegmentById(s: FileFormat, id: string): Segment | undefined {
+    let byId = segmentIndexCache.get(s.path.segments);
+    if (!byId) {
+        byId = new Map(s.path.segments.map(seg => [seg.id, seg]));
+        segmentIndexCache.set(s.path.segments, byId);
+    }
+    return byId.get(id);
 }
 
 type FieldEntry = { key: FieldType; src: string; name: string };
@@ -96,18 +106,22 @@ export function getFieldGroupId(key: FieldType): string {
     return FIELD_GROUPS.find(g => g.items.some(i => i.key === key))?.id ?? FIELD_GROUPS[0].id;
 }
 
+export function updateField(next: FieldType) {
+    fileFormatStore.setState(prev => ({ ...prev, field: next }));
+}
+
 export function useField() {
     const field = fileFormatStore.useSelector(s => s.field);
-    const setField = (next: FieldType) =>
-        fileFormatStore.setState(prev => ({ ...prev, field: next }));
-    return [field, setField] as const;
+    return [field, updateField] as const;
+}
+
+export function updateFormat(next: Format) {
+    fileFormatStore.setState(prev => ({ ...prev, format: next }));
 }
 
 export function useFormat() {
     const format = fileFormatStore.useSelector(s => s.format);
-    const setFormat = (next: Format) =>
-        fileFormatStore.setState(prev => ({ ...prev, format: next }));
-    return [format, setFormat] as const;
+    return [format, updateFormat] as const;
 }
 
 export function mergeRobot(patch: Partial<RobotConstants>) {

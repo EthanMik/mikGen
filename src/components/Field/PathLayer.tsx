@@ -55,7 +55,10 @@ type PathLayerProps = {
   precise: boolean;
 };
 
-export default function PathLayer({ path, img, visible, precise }: PathLayerProps) {
+// Memoized so Field renders with an unchanged path and viewport (pose frames, box select,
+// drag-state flips) skip rebuilding the dots. Live updates during drags are unaffected:
+// the trajectory subscription below re-renders this component directly.
+export default memo(function PathLayer({ path, img, visible, precise }: PathLayerProps) {
   const trajectories = computedPathStore.useSelector(s => s.segmentTrajectorys);
   const hoveredId = hoveredSegmentStore.useStore();
 
@@ -118,4 +121,4 @@ export default function PathLayer({ path, img, visible, precise }: PathLayerProp
       })}
     </>
   );
-}
+});

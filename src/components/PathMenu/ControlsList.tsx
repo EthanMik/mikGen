@@ -2,7 +2,7 @@ import { memo } from "react";
 import eyeOpen from "../../assets/eye-open.svg";
 import eyeClosed from "../../assets/eye-closed.svg";
 import trash from "../../assets/trash.svg";
-import { fileFormatStore, updatePath } from "../../hooks/useFileFormat";
+import { fileFormatStore, selectSegmentById, updatePath } from "../../hooks/useFileFormat";
 import { segmentControls } from "../../core/Types/Bezier";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import { controlAttributes } from "../Field/FieldColors";
@@ -15,7 +15,7 @@ type ControlsListProps = {
 }
 
 const ControlsList = memo(function ControlsList({ segmentId, width = 429 }: ControlsListProps) {
-    const segment = fileFormatStore.useSelector(s => s.path.segments.find(seg => seg.id === segmentId));
+    const segment = fileFormatStore.useSelector(s => selectSegmentById(s, segmentId));
     const controls = segment ? segmentControls(segment) : [];
 
     const select = (controlIdx: number, mode: ControlSelectMode) => {

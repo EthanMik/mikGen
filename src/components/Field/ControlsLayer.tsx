@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { memo, useMemo } from "react";
 import { hoveredSegmentStore } from "../../core/HoverStore";
 import type { Path } from "../../core/Types/Path";
 import { getBackwardsSnapIdx, getBackwardsSnapPose } from "../../core/Types/Path";
@@ -244,7 +244,10 @@ function renderAttr(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
 	}
 }
 
-export default function ControlsLayer({ path, img, radius, onPointerDown, onControlPointerDown }: ControlsLayerProps) {
+// Memoized (with stable handler props from Field) so Field renders that leave the path and
+// viewport untouched, like pose animation frames and box-select updates, skip the full
+// per-segment shape render
+export default memo(function ControlsLayer({ path, img, radius, onPointerDown, onControlPointerDown }: ControlsLayerProps) {
 	const imgDefaultSize = (FIELD_IMG_DIMENSIONS.w + FIELD_IMG_DIMENSIONS.h) / 2;
 	const imgRealSize = (img.w + img.h) / 2
 	const scale = imgRealSize / imgDefaultSize;
@@ -303,4 +306,4 @@ export default function ControlsLayer({ path, img, radius, onPointerDown, onCont
 			})}
 		</>
 	);
-}
+});
