@@ -1,14 +1,21 @@
-import { describe, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { Robot } from "../../../core/Robot";
 import { bezierPointAt, bezierTangentAt, sampleBezier, type Bezier } from "../../../core/Types/Bezier";
 import type { Coordinate } from "../../../core/Types/Coordinate";
 import { toDeg, toRad } from "../../../core/Util";
 import { kMikDrive, kMikHeading, type mikConstants } from "../MikConstants";
-import { reduce_negative_180_to_180 } from "../Util";
+import { reduce_negative_180_to_180, reduce_negative_90_to_90 } from "../Util";
 
 const dt = 1 / 60;
+/** 20s at 60hz. Every motion here exits far sooner; hitting this means it never settled. */
 const MAX_TICKS = 60 * 20;
+/** Reaching the end means landing inside the drive settle error the motion claims to settle on. */
+const POSITION_TOLERANCE = 2;
+const HEADING_TOLERANCE = 3;
+/** Matches the sample count Conversion.ts hands the simulator. */
 const SAMPLES = 400;
+/** Ticks allowed for a robot seeded off the curve to rejoin it. */
+const REJOIN_TICKS = 60;
 
 type Pose = { x: number, y: number, angle: number };
 
@@ -46,29 +53,45 @@ function crossTrack(points: Coordinate[], x: number, y: number): number {
     return best;
 }
 
-async function run(
-    b: Bezier,
-    opts: {
-        start?: Pose,
-        end_angle?: number | null,
-        drive?: Partial<mikConstants>,
-        heading?: Partial<mikConstants>,
-    } = {},
-) {
+type Result = {
+    done: boolean,
+    ticks: number,
+    dist: number,
+    /** Off the expected end heading. */
+    headErr: number,
+    /** Off the expected end heading axis, so a robot that finished back first still reads as aligned. */
+    axisErr: number,
+    maxCrossTrack: number,
+    /** Cross track once the robot has had REJOIN_TICKS to get back onto the curve. */
+    lateCrossTrack: number,
+    /** Signed travel along the robot's own heading, sampled only while outside the settle radius. */
+    minForwardStep: number,
+    maxForwardStep: number,
+    finite: boolean,
+};
+
+type FollowPath = (robot: Robot, dt: number, points: Coordinate[], end_angle: number | null, p: mikConstants[]) => boolean;
+
+/** A fresh module per motion, since follow_path keeps its PIDs, path and flags in module state. */
+async function freshFollowPath(): Promise<FollowPath> {
     vi.resetModules();
     const { follow_path } = await import("./FollowPath");
+    return follow_path;
+}
 
+function constants(drive: Partial<mikConstants>, heading: Partial<mikConstants>): mikConstants[] {
+    return [{ ...kMikDrive, ...drive }, { ...kMikHeading, ...heading }];
+}
+
+function simulate(followPath: FollowPath, robot: Robot, b: Bezier, end_angle: number | null, k: mikConstants[]): Result {
     const points = sampleBezier(b, SAMPLES);
-    const reverse = opts.drive?.drive_direction === "reversed";
-    const startPose = opts.start ?? { ...bezierPointAt(b, 0), angle: tangentDeg(b, 0) + (reverse ? 180 : 0) };
-    const robot = makeRobot(startPose);
-    const k: mikConstants[] = [{ ...kMikDrive, ...opts.drive }, { ...kMikHeading, ...opts.heading }];
-    const end_angle = opts.end_angle ?? null;
-    const expectedHeading = end_angle ?? tangentDeg(b, 1) + (reverse ? 180 : 0);
+    const reversed = k[0].drive_direction === "reversed";
+    const expectedHeading = end_angle ?? tangentDeg(b, 1) + (reversed ? 180 : 0);
 
     let done = false;
     let ticks = 0;
     let maxCrossTrack = 0;
+    let lateCrossTrack = 0;
     let minForwardStep = Infinity;
     let maxForwardStep = -Infinity;
 
@@ -78,7 +101,7 @@ async function run(
         const prevAngle = robot.getAngle();
         const prevEndDist = Math.hypot(b.p1.x - prevX, b.p1.y - prevY);
 
-        done = follow_path(robot, dt, points, end_angle, k);
+        done = followPath(robot, dt, points, end_angle, k);
         ticks++;
 
         if (prevEndDist > 6) {
@@ -86,70 +109,264 @@ async function run(
             minForwardStep = Math.min(minForwardStep, step);
             maxForwardStep = Math.max(maxForwardStep, step);
         }
-        maxCrossTrack = Math.max(maxCrossTrack, crossTrack(points, robot.getX(), robot.getY()));
+
+        const off = crossTrack(points, robot.getX(), robot.getY());
+        maxCrossTrack = Math.max(maxCrossTrack, off);
+        if (ticks > REJOIN_TICKS) lateCrossTrack = Math.max(lateCrossTrack, off);
     }
 
     return {
         done,
         ticks,
-        x: robot.getX(),
-        y: robot.getY(),
-        angle: robot.getAngle(),
         dist: Math.hypot(b.p1.x - robot.getX(), b.p1.y - robot.getY()),
         headErr: Math.abs(reduce_negative_180_to_180(robot.getAngle() - expectedHeading)),
+        axisErr: Math.abs(reduce_negative_90_to_90(robot.getAngle() - expectedHeading)),
         maxCrossTrack,
+        lateCrossTrack,
         minForwardStep,
         maxForwardStep,
+        finite: Number.isFinite(robot.getX()) && Number.isFinite(robot.getY()) && Number.isFinite(robot.getAngle()),
     };
 }
 
-function show(name: string, r: Awaited<ReturnType<typeof run>>) {
-    console.log(
-        `${name.padEnd(38)} done=${r.done} ticks=${String(r.ticks).padStart(4)} ` +
-        `pos=(${r.x.toFixed(2)}, ${r.y.toFixed(2)}) ang=${r.angle.toFixed(2)} ` +
-        `dist=${r.dist.toFixed(2)} headErr=${r.headErr.toFixed(2)} xtrack=${r.maxCrossTrack.toFixed(2)} ` +
-        `fwdStep=[${r.minForwardStep.toFixed(2)}, ${r.maxForwardStep.toFixed(2)}]`
-    );
+async function run(
+    b: Bezier,
+    opts: {
+        start?: Pose,
+        end_angle?: number | null,
+        drive?: Partial<mikConstants>,
+        heading?: Partial<mikConstants>,
+    } = {},
+): Promise<Result> {
+    const followPath = await freshFollowPath();
+    const reversed = opts.drive?.drive_direction === "reversed";
+    const start = opts.start ?? { ...bezierPointAt(b, 0), angle: tangentDeg(b, 0) + (reversed ? 180 : 0) };
+    return simulate(followPath, makeRobot(start), b, opts.end_angle ?? null, constants(opts.drive ?? {}, opts.heading ?? {}));
 }
 
-describe("probe", () => {
-    it("scenarios", async () => {
-        show("near straight", await run(curves.nearStraight));
-        show("gentle", await run(curves.gentle));
-        show("s-curve", await run(curves.sCurve));
-        show("tight 90", await run(curves.tight90));
-        show("long", await run(curves.long, { drive: { timeout: 8000 } }));
-        show("hairpin", await run(curves.hairpin));
+function expectReached(
+    result: Result,
+    tolerance: { dist?: number, heading?: number, directionFree?: boolean } = {},
+) {
+    expect(result.done).toBe(true);
+    expect(result.ticks).toBeLessThan(MAX_TICKS);
+    expect(result.finite).toBe(true);
+    expect(result.dist).toBeLessThan(tolerance.dist ?? POSITION_TOLERANCE);
+    // On "fastest" the follower may finish back first, so only the heading axis is pinned
+    const headErr = tolerance.directionFree ? result.axisErr : result.headErr;
+    expect(headErr).toBeLessThan(tolerance.heading ?? HEADING_TOLERANCE);
+}
 
-        show("gentle, end angle 0", await run(curves.gentle, { end_angle: 0 }));
-        show("gentle, end angle 90", await run(curves.gentle, { end_angle: 90 }));
-        show("tight90, end angle 45", await run(curves.tight90, { end_angle: 45 }));
+describe("follow_path tracks the curve", () => {
+    const cases: { name: string, curve: Bezier, drive?: Partial<mikConstants>, xtrack: number }[] = [
+        { name: "a near straight curve", curve: curves.nearStraight, xtrack: 1 },
+        { name: "a gentle 90 degree curve", curve: curves.gentle, xtrack: 2 },
+        { name: "an s-curve", curve: curves.sCurve, xtrack: 2 },
+        { name: "a tight 90 degree curve", curve: curves.tight90, xtrack: 2 },
+        { name: "a 130in curve", curve: curves.long, drive: { timeout: 8000 }, xtrack: 1.5 },
+        { name: "a hairpin back on itself", curve: curves.hairpin, xtrack: 4 },
+    ];
 
-        show("reversed gentle", await run(curves.gentle, { drive: { drive_direction: "reversed" } }));
-        show("reversed s-curve", await run(curves.sCurve, { drive: { drive_direction: "reversed" } }));
-        show("fastest, robot facing away", await run(curves.gentle, {
-            start: { x: 0, y: 0, angle: 180 }, drive: { drive_direction: "fastest" },
-        }));
-        show("forwards forced", await run(curves.gentle, { drive: { drive_direction: "forwards" } }));
+    it.each(cases)("lands on the end of $name without leaving it", async ({ curve, drive, xtrack }) => {
+        const result = await run(curve, { drive });
 
-        show("start 12in off path", await run(curves.gentle, { start: { x: -12, y: 12, angle: 0 } }));
-        show("start 12in off, s-curve", await run(curves.sCurve, { start: { x: 12, y: 6, angle: 0 } }));
-        show("start past the end", await run(curves.gentle, { start: { x: 30, y: 56, angle: 0 } }));
-        show("start mid path", await run(curves.gentle, { start: { x: 6, y: 30, angle: 30 } }));
-        show("start facing sideways", await run(curves.gentle, { start: { x: 0, y: 0, angle: 90 } }));
+        expectReached(result);
+        expect(result.maxCrossTrack).toBeLessThan(xtrack);
+    });
+});
 
-        show("max_voltage 4", await run(curves.gentle, { drive: { max_voltage: 4 } }));
-        show("max_voltage 12", await run(curves.gentle, { drive: { max_voltage: 12 } }));
-        show("min_voltage 3", await run(curves.gentle, { drive: { min_voltage: 3 } }));
-        show("min_voltage 3 exit 6", await run(curves.gentle, { drive: { min_voltage: 3, exit_error: 6 } }));
-        show("slew 0", await run(curves.gentle, { drive: { slew: 0 } }));
-        show("drift 0", await run(curves.gentle, { drive: { drift: 0 } }));
-        show("drift 0.5", await run(curves.gentle, { drive: { drift: 0.5 } }));
-        show("kp 3 kd 20", await run(curves.gentle, { drive: { kp: 3, kd: 20 } }));
-        show("kp 0.6", await run(curves.gentle, { drive: { kp: 0.6, timeout: 8000 } }));
-        show("heading kp 0.8", await run(curves.gentle, { heading: { kp: 0.8 } }));
-        show("heading max 4", await run(curves.gentle, { heading: { max_voltage: 4 } }));
-        show("timeout 500", await run(curves.long, { drive: { timeout: 500 } }));
-        show("tight settle", await run(curves.gentle, { drive: { settle_error: 0.5, settle_time: 300, timeout: 8000 } }));
+describe("follow_path end heading", () => {
+    it("rides the exit tangent when no angle is commanded", async () => {
+        // The gentle curve exits pointing back up +y, so the tangent is the only thing that can place it
+        expectReached(await run(curves.gentle));
+    });
+
+    it("holds a commanded angle that matches the exit tangent", async () => {
+        expectReached(await run(curves.gentle, { end_angle: 0 }), { heading: 1 });
+    });
+
+    it("holds a commanded angle 45 off the exit tangent", async () => {
+        // Rotating at the end trades away some position, since the settle law only closes error
+        // along the robot's own heading
+        expectReached(await run(curves.tight90, { end_angle: 45 }), { dist: 4 });
+    });
+
+    it("holds a commanded angle square to the exit tangent", async () => {
+        expectReached(await run(curves.gentle, { end_angle: 90 }), { dist: 6 });
+    });
+});
+
+describe("follow_path drive direction", () => {
+    it("never travels backwards when forced forwards", async () => {
+        const result = await run(curves.gentle, { drive: { drive_direction: "forwards" } });
+
+        expectReached(result);
+        expect(result.minForwardStep).toBeGreaterThan(-0.01);
+    });
+
+    it("travels backwards the whole way and ends back first when reversed", async () => {
+        const result = await run(curves.sCurve, { drive: { drive_direction: "reversed" } });
+
+        expectReached(result);
+        expect(result.maxForwardStep).toBeLessThan(0.01);
+    });
+
+    it("drives a path behind it back first on fastest instead of spinning around", async () => {
+        const result = await run(curves.gentle, {
+            start: { x: 0, y: 0, angle: 180 },
+            drive: { drive_direction: "fastest" },
+        });
+
+        expectReached(result, { directionFree: true });
+        expect(result.maxForwardStep).toBeLessThan(0.1);
+        // It really did finish on its back end rather than turning to face the tangent
+        expect(result.headErr).toBeGreaterThan(90);
+    });
+
+    it("drives forwards on fastest when it already faces the path", async () => {
+        const result = await run(curves.gentle, { drive: { drive_direction: "fastest" } });
+
+        expectReached(result);
+        expect(result.minForwardStep).toBeGreaterThan(-0.1);
+    });
+});
+
+describe("follow_path recovery", () => {
+    it("rejoins the curve after starting 12in off it", async () => {
+        const result = await run(curves.gentle, {
+            start: { x: -12, y: 12, angle: 0 },
+            drive: { drive_direction: "forwards" },
+        });
+
+        expectReached(result);
+        expect(result.lateCrossTrack).toBeLessThan(3);
+    });
+
+    it("rejoins an s-curve after starting 12in off it", async () => {
+        const result = await run(curves.sCurve, {
+            start: { x: 12, y: 6, angle: 0 },
+            drive: { drive_direction: "forwards" },
+        });
+
+        expectReached(result);
+        expect(result.lateCrossTrack).toBeLessThan(3);
+    });
+
+    it("picks the curve up from the middle instead of driving back to its start", async () => {
+        const result = await run(curves.gentle, { start: { x: 6, y: 30, angle: 30 } });
+
+        expectReached(result, { directionFree: true });
+        expect(result.lateCrossTrack).toBeLessThan(3);
+    });
+
+    it("comes back to the end pose after starting past it", async () => {
+        // No arc is left to follow from out here, so the settle law does the work and leaves
+        // more error than a normal run
+        const result = await run(curves.gentle, { start: { x: 30, y: 56, angle: 0 } });
+
+        expectReached(result, { dist: 4, directionFree: true });
+    });
+
+    it("turns onto the curve when it starts square to it", async () => {
+        expectReached(await run(curves.gentle, { start: { x: 0, y: 0, angle: 90 } }));
+    });
+});
+
+describe("follow_path tuning constants", () => {
+    const cases: { name: string, drive?: Partial<mikConstants>, heading?: Partial<mikConstants> }[] = [
+        { name: "max_voltage 4", drive: { max_voltage: 4 } },
+        { name: "max_voltage 12", drive: { max_voltage: 12 } },
+        { name: "min_voltage 3", drive: { min_voltage: 3 } },
+        { name: "slew 0 (no ramp)", drive: { slew: 0 } },
+        { name: "slew 6 (fast ramp)", drive: { slew: 6 } },
+        { name: "drift 0 (no slip clamp)", drive: { drift: 0 } },
+        { name: "drift 0.5 (tight slip clamp)", drive: { drift: 0.5, timeout: 8000 } },
+        { name: "drift 5 (loose slip clamp)", drive: { drift: 5 } },
+        { name: "aggressive drive PID", drive: { kp: 3, kd: 20 } },
+        { name: "sluggish drive PID", drive: { kp: 0.6, timeout: 8000 } },
+        { name: "aggressive heading PID", heading: { kp: 0.8 } },
+        { name: "heading capped at 4v", heading: { max_voltage: 4 } },
+        { name: "tight settle window", drive: { settle_error: 0.5, settle_time: 300, timeout: 8000 } },
+    ];
+
+    it.each(cases)("still lands on the end with $name", async ({ drive, heading }) => {
+        expectReached(await run(curves.gentle, { drive, heading }));
+    });
+
+    it("takes longer to arrive at a lower max_voltage", async () => {
+        const slow = await run(curves.gentle, { drive: { max_voltage: 4 } });
+        const fast = await run(curves.gentle, { drive: { max_voltage: 12 } });
+
+        expectReached(slow);
+        expectReached(fast);
+        expect(slow.ticks).toBeGreaterThan(fast.ticks);
+    });
+
+    it("runs the curve faster without the slip clamp", async () => {
+        const clamped = await run(curves.gentle, { drive: { drift: 2 } });
+        const loose = await run(curves.gentle, { drive: { drift: 0 } });
+
+        expectReached(clamped);
+        expectReached(loose);
+        expect(loose.ticks).toBeLessThan(clamped.ticks);
+    });
+});
+
+describe("follow_path exit conditions", () => {
+    it("gives up on timeout, short of the end", async () => {
+        const result = await run(curves.long, { drive: { timeout: 500 } });
+
+        expect(result.done).toBe(true);
+        expect(result.finite).toBe(true);
+        // 500ms at 60hz, plus the tick that trips it
+        expect(result.ticks).toBeLessThan(40);
+        expect(result.dist).toBeGreaterThan(POSITION_TOLERANCE);
+    });
+
+    it("exits early on the crossed line once min_voltage is set", async () => {
+        const settled = await run(curves.gentle, { drive: { min_voltage: 3, exit_error: 0 } });
+        const early = await run(curves.gentle, { drive: { min_voltage: 3, exit_error: 6 } });
+
+        expectReached(settled);
+        expect(early.done).toBe(true);
+        expect(early.ticks).toBeLessThan(settled.ticks);
+        expect(early.dist).toBeGreaterThan(settled.dist);
+        expect(early.dist).toBeLessThan(8);
+    });
+
+    it("returns immediately for a path it cannot follow", async () => {
+        const followPath = await freshFollowPath();
+        const robot = makeRobot({ x: 0, y: 0, angle: 0 });
+
+        expect(followPath(robot, dt, [], null, constants({}, {}))).toBe(true);
+        expect(followPath(robot, dt, [{ x: 0, y: 0 }], null, constants({}, {}))).toBe(true);
+    });
+
+    it("settles out on a zero length path instead of hanging", async () => {
+        const followPath = await freshFollowPath();
+        const robot = makeRobot({ x: 12, y: 12, angle: 0 });
+        const flat = [{ x: 12, y: 12 }, { x: 12, y: 12 }];
+
+        let ticks = 0;
+        while (!followPath(robot, dt, flat, null, constants({}, {})) && ticks < MAX_TICKS) ticks++;
+
+        // Only the settle_time window, and the pose survives the degenerate tangent
+        expect(ticks).toBeLessThan(30);
+        expect(Number.isFinite(robot.getX()) && Number.isFinite(robot.getY()) && Number.isFinite(robot.getAngle())).toBe(true);
+    });
+});
+
+describe("follow_path state between motions", () => {
+    it("resets itself so a second path on the same module still lands", async () => {
+        const followPath = await freshFollowPath();
+        const robot = makeRobot({ ...bezierPointAt(curves.gentle, 0), angle: tangentDeg(curves.gentle, 0) });
+
+        const first = simulate(followPath, robot, curves.gentle, null, constants({}, {}));
+        // Picks up where the first left off, so the second curve starts at the first one's end
+        const second = simulate(followPath, robot, curves.tight90 ,null, constants({ timeout: 8000 }, {}));
+
+        expectReached(first);
+        expect(second.done).toBe(true);
+        expect(second.finite).toBe(true);
     });
 });

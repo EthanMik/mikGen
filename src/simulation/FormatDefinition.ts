@@ -70,6 +70,8 @@ export type SegmentDef<F extends Format = Format> = {
     toStringTemplate?: string;
     name?: string;
     castTo?: SegmentKind
+    /** Heading a newly placed segment starts on. Left unset, kinds with an optional heading start with none. */
+    defaultHeading?: number;
     simFn?: SegmentFactory<F>;
     simReset?: () => void;
     cycleButtons?: CycleButtonField<F>[];

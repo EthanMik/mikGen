@@ -556,7 +556,8 @@ export default function FieldMacros() {
             ? { x: startPose.x, y: startPose.y }
             : end;
 
-        const segment = createSegment(formatDef, format, "bezierCurve", { x: end.x, y: end.y, angle: null });
+        const angle = formatDef.segments["bezierCurve"]?.defaultHeading ?? null;
+        const segment = createSegment(formatDef, format, "bezierCurve", { x: end.x, y: end.y, angle });
         segment.controls = seedControls(start, end);
         addSegment(segment, setPath);
     }

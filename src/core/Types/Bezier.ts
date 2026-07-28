@@ -134,8 +134,11 @@ export function polylineLength(points: Coordinate[]): number {
 export function resamplePolyline(points: Coordinate[], spacing: number): Coordinate[] {
     if (points.length < 2 || !(spacing > 0)) return points;
 
+    const epsilon = spacing * 1e-9;
     const resampled: Coordinate[] = [points[0]];
-    let carried = 0;
+    // Distance walked since the last point was emitted, carried across source points so spacing
+    // stays uniform instead of restarting at every vertex
+    let since = 0;
 
     for (let i = 1; i < points.length; i++) {
         const prev = points[i - 1];
@@ -143,18 +146,20 @@ export function resamplePolyline(points: Coordinate[], spacing: number): Coordin
         const chord = Math.hypot(next.x - prev.x, next.y - prev.y);
         if (chord === 0) continue;
 
-        // Walk this chord dropping a point every `spacing`, carrying the remainder into the next chord
-        for (let along = spacing - carried; along < chord; along += spacing) {
+        let along = 0;
+        while (since + (chord - along) >= spacing - epsilon) {
+            along += spacing - since;
             const t = along / chord;
             resampled.push({ x: prev.x + (next.x - prev.x) * t, y: prev.y + (next.y - prev.y) * t });
+            since = 0;
         }
-        carried = (carried + chord) % spacing;
+        since += chord - along;
     }
 
     const end = points[points.length - 1];
     const last = resampled[resampled.length - 1];
     // A point landing all but exactly on the end would otherwise leave a zero length final step
-    if (Math.hypot(end.x - last.x, end.y - last.y) < spacing * 1e-6) resampled[resampled.length - 1] = end;
+    if (resampled.length > 1 && Math.hypot(end.x - last.x, end.y - last.y) < epsilon) resampled[resampled.length - 1] = end;
     else resampled.push(end);
 
     return resampled;

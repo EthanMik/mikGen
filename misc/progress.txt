@@ -1,7 +1,7 @@
 Live Progress Txt
 
 Bugs:
-
+When in holonomic format and running a mix of holonomic and tank motions it kaputs
 
 Todo:
 - add example paths
