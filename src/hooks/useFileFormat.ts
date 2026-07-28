@@ -3,6 +3,12 @@ import { DEFAULT_FORMAT, DEFAULT_FIELD_KEY, VALIDATED_APP_STATE, type FileFormat
 import type { Path } from "../core/Types/Path";
 import type { Format, FormatDef } from "../simulation/FormatDefinition";
 import type { RobotConstants } from "../core/Robot";
+
+import pushbackIcon from "../assets/pushbackball.svg"
+import highstakesIcon from "../assets/highstakesring.svg"
+import overrideIcon from "../assets/overridecup.svg"
+
+
 import pushbackVEXUMatchField from "../assets/pushback-match.png";
 import pushbackSkillsField from "../assets/pushback-skills.png";
 import pushbackV5MatchField from "../assets/pushback-matchv5.png";
@@ -47,11 +53,11 @@ export function updatePath(next: Path | ((prev: Path) => Path)) {
 }
 
 type FieldEntry = { key: FieldType; src: string; name: string };
-type FieldGroup = { id: string; name: string; items: FieldEntry[] };
+type FieldGroup = { id: string; icon: string; name: string; items: FieldEntry[] };
 
 export const FIELD_GROUPS: FieldGroup[] = [
     {
-        id: "override", name: "Override", items: [
+        id: "override", icon: overrideIcon, name: "Override", items: [
             { key: DEFAULT_FIELD_KEY, src: overrideV5MatchField, name: "V5 Match" },
             { key: "override-v5-skills", src: overrideV5SkillsField, name: "V5 Skills" },
             { key: "override-vexu-match", src: overrideVEXUMatchField, name: "VEXU Match" },
@@ -59,14 +65,14 @@ export const FIELD_GROUPS: FieldGroup[] = [
         ]
     },
     {
-        id: "pushback", name: "Push Back", items: [
+        id: "pushback", icon: pushbackIcon, name: "Push Back", items: [
             { key: "pushback-v5-match", src: pushbackV5MatchField, name: "V5 Match" },
             { key: "pushback-v5-skills", src: pushbackSkillsField, name: "V5 Skills" },
             { key: "pushback-vexu-match", src: pushbackVEXUMatchField, name: "VEXU Match" },
         ]
     },
     {
-        id: "highstakes", name: "High Stakes", items: [
+        id: "highstakes", icon: highstakesIcon, name: "High Stakes", items: [
             { key: "highstakes-v5-match", src: highstakesV5MatchField, name: "V5 Match" },
             { key: "highstakes-v5-skills", src: highstakesV5SkillsField, name: "V5 Skills" },
             { key: "highstakes-vexu-match", src: highstakesVEXUMatchField, name: "VEXU Match" },
@@ -74,7 +80,7 @@ export const FIELD_GROUPS: FieldGroup[] = [
         ]
     },
     {
-        id: "misc", name: "Misc", items: [
+        id: "misc",  icon: "", name: "Misc", items: [
             { key: "empty", src: emptyField, name: "Empty" },
         ]
     },

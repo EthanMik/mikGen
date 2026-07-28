@@ -7,10 +7,11 @@ type SectionProps = {
     defaultCollapsed?: boolean;
     collapsed?: boolean;
     onToggle?: () => void;
-    highlight?: boolean;
+    icon?: string;
+    iconClassName?: string;
 };
 
-export default function Section({ name = "", children, defaultCollapsed = false, collapsed: collapsedProp, onToggle, highlight = false }: SectionProps) {
+export default function Section({ name = "", children, defaultCollapsed = false, collapsed: collapsedProp, onToggle, icon, iconClassName = "" }: SectionProps) {
     const [uncontrolledCollapsed, setCollapsed] = useState(defaultCollapsed);
     const collapsed = collapsedProp ?? uncontrolledCollapsed;
 
@@ -18,37 +19,51 @@ export default function Section({ name = "", children, defaultCollapsed = false,
         if (collapsedProp === undefined) setCollapsed(c => !c);
         onToggle?.();
     };
-
-    const bar = <div className="left-1 right-1 h-[2px] shrink-0 rounded-sm bg-medlightgray" />;
-
+            
     const line = (clickable: boolean) => (
         <div className="flex flex-col">
             {(clickable || name.length > 0) && (
                 <div
-                    className={`flex items-center gap-2 mt-1 mb-1 rounded-sm ${clickable ? "cursor-pointer group/sep" : ""} ${highlight ? "brightness-140" : ""}`}
+                    className={`
+                        flex items-center gap-2 mt-0.5 mb-0.5
+                        rounded-sm 
+                        hover:brightness-90
+                        transition-all duration-100
+                        active:scale-[0.995]
+                        relative text-[14px]
+                        outline-2      
+                        ${!collapsed ? "outline-medlightgray" : "outline-transparent"}
+                        ${clickable ? "cursor-pointer group/sep" : ""}`
+                    }
                     onClick={clickable ? toggle : undefined}
                 >
                     {clickable && (
                         <img
                             src={downArrow}
-                            className={`w-[12px] h-[12px] opacity-40 group-hover/sep:opacity-100 transition-all duration-200 ${collapsed ? "-rotate-90" : ""}`}
+                            className={`w-[12px] h-[12px] ml-1.5 shrink-0 transition-all duration-200 ${collapsed ? "-rotate-90" : ""}`}
                         />
                     )}
                     {name.length > 0 && (
-                        <span className={`text-[14px] whitespace-nowrap transition-colors ${clickable ? "text-gray-400 group-hover/sep:text-white" : "text-gray-400"}`}>
+                        <span className={`text-[14px] mt-0.5 mb-0.5 whitespace-nowrap transition-colors `}>
                             {name}
                         </span>
                     )}
+                    {icon && (
+                        <img
+                            src={icon}
+                            className={`w-4 h-4 ml-auto mr-2 shrink-0 ${iconClassName}`}
+                        />
+                    )}
                 </div>
             )}
-            {(!clickable || !collapsed) && bar}
+            {(!clickable) && <div className={`flex-1 border-t text-medlightgray`} />}
         </div>
     );
 
     if (!children) return line(false);
 
     return (
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2 mb-1">
             {line(true)}
             {!collapsed && children}
         </div>

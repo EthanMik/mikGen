@@ -93,6 +93,7 @@ const ConstantsList = memo(function ConstantsList({
                 active:scale-[0.995]
                 relative text-[14px]
                 outline-2
+                cursor-pointer
                 ${open ? "outline-medlightgray" : "outline-transparent"}
             `}
                 onClick={() => setOpen(!open)}

@@ -48,6 +48,7 @@ export default function FieldButton() {
                 <Section
                     key={group.id}
                     name={group.name}
+                    icon={group.icon}
                     collapsed={openGroup !== group.id}
                     onToggle={() => setOpenGroup(prev => (prev === group.id ? null : group.id))}
                 >
