@@ -25,33 +25,34 @@ export default function Section({ name = "", children, defaultCollapsed = false,
             {(clickable || name.length > 0) && (
                 <div
                     className={`
-                        flex items-center gap-2 mt-0.5 mb-0.5
-                        rounded-sm 
+                        flex items-center mt-1 h-[29px] rounded-sm justify-between
                         hover:brightness-90
                         transition-all duration-100
                         active:scale-[0.995]
                         relative text-[14px]
-                        outline-2      
+                        outline-2
                         ${!collapsed ? "outline-medlightgray" : "outline-transparent"}
                         ${clickable ? "cursor-pointer group/sep" : ""}`
                     }
                     onClick={clickable ? toggle : undefined}
                 >
-                    {clickable && (
-                        <img
-                            src={downArrow}
-                            className={`w-[12px] h-[12px] ml-1.5 shrink-0 transition-all duration-200 ${collapsed ? "-rotate-90" : ""}`}
-                        />
-                    )}
-                    {name.length > 0 && (
-                        <span className={`text-[14px] mt-0.5 mb-0.5 whitespace-nowrap transition-colors `}>
-                            {name}
-                        </span>
-                    )}
+                    <div className="flex pl-2 gap-2 items-center">
+                        {clickable && (
+                            <img
+                                src={downArrow}
+                                className={`w-[12px] h-[12px] shrink-0 transition-transform duration-200 ${collapsed ? "-rotate-90" : ""}`}
+                            />
+                        )}
+                        {name.length > 0 && (
+                            <span className="whitespace-nowrap transition-colors">
+                                {name}
+                            </span>
+                        )}
+                    </div>
                     {icon && (
                         <img
                             src={icon}
-                            className={`w-4 h-4 ml-auto mr-2 shrink-0 ${iconClassName}`}
+                            className={`w-4 h-4 mr-2 shrink-0 ${iconClassName}`}
                         />
                     )}
                 </div>
@@ -63,9 +64,9 @@ export default function Section({ name = "", children, defaultCollapsed = false,
     if (!children) return line(false);
 
     return (
-        <div className="flex flex-col gap-2 mb-1">
+        <div className="flex flex-col">
             {line(true)}
-            {!collapsed && children}
+            {!collapsed && <div className="flex flex-col mt-1.5 ml-0.5 gap-1">{children}</div>}
         </div>
     );
 }

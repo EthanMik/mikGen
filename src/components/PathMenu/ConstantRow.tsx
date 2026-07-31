@@ -38,9 +38,9 @@ export default function ConstantRow({
 } : ConstantRowProps) {
     return (
         <div className={`flex flex-row items-center
-            justify-between h-[35px] pr-1 pl-1 rounded-lg
+            justify-between h-[32px] pr-1.5 pl-1.5 rounded-md
 
-            hover:brightness-90
+            hover:brightness-86
             transition-all duration-100
             active:scale-[0.995]
             ${selected ? "bg-medlightgray" : ""}`}

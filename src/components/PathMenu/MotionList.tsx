@@ -295,7 +295,7 @@ const MotionList = memo(function MotionList({
             className={`relative flex flex-col gap-0.5 mt-[1px] pl-4 ${segment.locked ? "opacity-50 pointer-events-none" : ""}`}
             onClick={() => { if (selected) setOpen(!isOpen); }}
         >
-            <div className={`absolute left-0 top-0 h-[35px] transition-opacity duration-200 flex items-center pointer-events-none ${isActiveSimSegment ? "opacity-100" : "opacity-0"}`}>
+            <div className={`absolute left-0 top-0 h-[35px] brightness-80 transition-opacity duration-200 flex items-center pointer-events-none ${isActiveSimSegment ? "opacity-100" : "opacity-0"}`}>
                 <img className="w-2" src={play} />
             </div>
 

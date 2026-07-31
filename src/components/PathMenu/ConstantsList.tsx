@@ -179,7 +179,7 @@ const ConstantsList = memo(function ConstantsList({
             {open && (
                 <div className="relative">
                     {/* <div className="absolute left-[10px] top-0 h-full w-[4px] rounded-full bg-medlightgray" /> */}
-                    <div className="grid grid-cols-2 min-w-0 pl-5 gap-x-1 mt-1.5 w-[400px]">
+                    <div className="grid grid-cols-2 min-w-0 pl-5 gap-x-1 mt-1.5 w-[400px] gap-[3px]">
                         {fields.map((f) => (
                             <ConstantRow
                                 key={f.key}
