@@ -4,6 +4,7 @@ import eyeClosed from "../../assets/eye-closed.svg";
 import clockClose from "../../assets/clock-close.svg";
 import clockOpen from "../../assets/clock-open.svg";
 import downArrow from "../../assets/down-arrow.svg";
+import play from "../../assets/play.svg";
 import Slider from "../Util/Slider";
 import { useFormatDef, fileFormatStore, selectSegmentById, updatePath } from "../../hooks/useFileFormat";
 import type { ConstantField } from "./ConstantRow";
@@ -291,9 +292,13 @@ const MotionList = memo(function MotionList({
 
     return (
         <div
-            className={`flex flex-col gap-0.5 mt-[1px] ${segment.locked ? "opacity-50 pointer-events-none" : ""}`}
+            className={`relative flex flex-col gap-0.5 mt-[1px] pl-4 ${segment.locked ? "opacity-50 pointer-events-none" : ""}`}
             onClick={() => { if (selected) setOpen(!isOpen); }}
         >
+            <div className={`absolute left-0 top-0 h-[35px] transition-opacity duration-200 flex items-center pointer-events-none ${isActiveSimSegment ? "opacity-100" : "opacity-0"}`}>
+                <img className="w-2" src={play} />
+            </div>
+
             <button
                 draggable={draggable && !segment.locked}
                 onDragStart={(e) => {
@@ -315,7 +320,7 @@ const MotionList = memo(function MotionList({
                     rounded-md pl-4 pr-4
                     transition-all duration-100
                     active:scale-[0.995]
-                    ${isActiveSimSegment ? "border-2 border-[#535252]" : "border-2 border-transparent"}
+                    ${isOpen ? "border-2 border-[#535252]" : "border-2 border-transparent"}
                     ${draggingIds.includes(segmentId) ? "opacity-10" : ""}
                 `}
             >

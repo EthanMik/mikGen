@@ -29,11 +29,11 @@ export default function PathConfig() {
     const name = pathName || FORMAT_REGISTRY[format].formatPathName;
 
     return (
-        <div className="bg-medgray w-[500px] h-[650px] rounded-lg p-[15px] flex flex-col">
+        <div className="bg-medgray w-[500px] h-[650px] rounded-lg p-4 flex flex-col">
             <PathConfigHeader name={name} isOpen={isOpen} setOpen={setOpen} isTelemetryOpen={isTelemetryOpen} onTelemetryToggle={() => setTelemetryOpen(p => !p)} onRename={n => updatePath(prev => ({ ...prev, name: n }))} />
 
             <div
-                className="mt-[10px] flex-1 min-h-2 overflow-y-auto scrollbar-thin
+                className="mt-2 -ml-2 flex-1 min-h-2 overflow-y-auto scrollbar-thin
                 flex-col items-center overflow-x-hidden space-y-0.5 relative"
                 onDrop={(e) => {
                     if (draggingIds.length === 0) return;
@@ -72,7 +72,7 @@ export default function PathConfig() {
                             )}
 
                             {showDropIndicator && (
-                                <div className="absolute -top-1 left-2 w-[435px] h-[1px] bg-white rounded-full pointer-events-none z-10" />
+                                <div className="absolute -top-1 left-[20px] w-[435px] h-[1px] bg-white rounded-full pointer-events-none z-10" />
                             )}
 
                             <MotionList
@@ -105,7 +105,7 @@ export default function PathConfig() {
                     }}
                 >
                     {overIndex === segmentIds.length && draggingIds.length > 0 && (
-                        <div className="absolute -top-1 left-2 w-[435px] h-[1px] bg-white rounded-full pointer-events-none z-10" />
+                        <div className="absolute -top-1 left-[15px] w-[435px] h-[1px] bg-white rounded-full pointer-events-none z-10" />
                     )}
                 </div>
             </div>
