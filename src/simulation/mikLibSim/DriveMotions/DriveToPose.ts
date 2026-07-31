@@ -82,9 +82,11 @@ export function drive_to_pose(robot: Robot, dt: number, x: number, y: number, an
         drive_error *= Math.sign(Math.cos(toRad(reduce_negative_180_to_180(toDeg(Math.atan2(carrot_X - robot.getX(), carrot_Y - robot.getY())) - robot.getAngle()))));
     }
 
+    console.log("before", heading_error)
     if (drive_p.drive_direction === "fastest") {
         heading_error = reduce_negative_90_to_90(heading_error);
     }
+    console.log("after", heading_error)
 
     let drive_output = drivePID.compute(drive_error);
     let heading_output = headingPID.compute(heading_error);
@@ -96,10 +98,10 @@ export function drive_to_pose(robot: Robot, dt: number, x: number, y: number, an
     drive_output = clamp_max_slip(drive_output, robot.getX(), robot.getY(), current_angle, carrot_X, carrot_Y, drive_p.drift);
     drive_output = overturn_scaling(drive_output, heading_output, drive_max_speed);
 
+    drive_output = clamp_min_voltage(drive_output, drive_p.min_voltage);
+
     if (drive_p.drive_direction === "forwards" && !settling) drive_output = Math.max(drive_output, 0);
     else if (drive_p.drive_direction === "reversed" && !settling) drive_output = Math.min(drive_output, 0);
-
-    drive_output = clamp_min_voltage(drive_output, drive_p.min_voltage);
 
     prev_drive_output = drive_output;
 

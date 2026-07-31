@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { useFormat, type Format } from "../../hooks/useFileFormat";
+import { mergeRobot, useFormat, type Format } from "../../hooks/useFileFormat";
 import { changeFormat } from "../../simulation/FormatDefinition";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import ConfigButtonTemplate from "./ConfigButtonTemplate";
@@ -25,6 +25,7 @@ export default function FormatButton() {
     const handleClickItem = (newFormat: Format) => {
         const changed = prevFormatRef.current !== newFormat;
         changeFormat(newFormat);
+        mergeRobot({ holonomicRobot: newFormat === "Holonomic" });
         if (changed) saveSnapshot();
         prevFormatRef.current = newFormat;
     };

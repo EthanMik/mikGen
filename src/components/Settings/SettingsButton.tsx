@@ -6,12 +6,12 @@ import Section from "../Util/Section";
 import MenuButtonTemplate from "../Util/MenuButtonTemplate";
 import { MenuCheckboxButton } from "../Util/CheckboxButton";
 import { NumberInputCheckboxButton } from "../Util/NumberInputButton";
-// import { debugStore } from "../../simulation/Conversion";
+import { debugStore } from "../../simulation/Conversion";
 
 export default function SettingsButton() {
     const [settings, setSettings] = useSettings();
     const [popup, setPopup] = useState(false);
-    // const debug = debugStore.useStore();
+    const debug = debugStore.useStore();
 
     useEffect(() => {
         localStorage.setItem("settings", JSON.stringify(settings));
@@ -31,7 +31,7 @@ export default function SettingsButton() {
 
             <MenuButtonTemplate title="Settings" closeOnClick={false} width={40}>
                 <div className="flex flex-col gap-1.5">
-                    {/* <MenuCheckboxButton name="Position Logs" label="Prints robot position to console" checked={debug} setChecked={(state: boolean) => { debugStore.setState(state); }} /> */}
+                    <MenuCheckboxButton name="Position Logs" label="Prints robot position to console" checked={debug} setChecked={(state: boolean) => { debugStore.setState(state); }} />
 
                     <MenuCheckboxButton name="Robot Position" label="Displays robots's actual position" checked={settings.robotPosition} setChecked={set("robotPosition")} />
                     <MenuCheckboxButton name="Precise Path" label="Displays robots exact path taken" checked={settings.precisePath} setChecked={set("precisePath")} />

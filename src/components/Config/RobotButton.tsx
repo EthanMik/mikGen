@@ -39,6 +39,7 @@ export default function RobotButton() {
         const newFormat = checked ? "Holonomic" : "mikLib";
         const changed = prevFormatRef.current !== newFormat;
         changeFormat(newFormat);
+        mergeRobot({ holonomicRobot: checked });
         if (changed) saveSnapshot();
         prevFormatRef.current = newFormat;
     };

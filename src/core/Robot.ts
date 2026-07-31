@@ -2,6 +2,7 @@ import type { Pose } from "./Types/Pose";
 import { clamp, normalizeDeg, toDeg, toRad } from "./Util";
 
 export type RobotConstants = {
+    holonomicRobot: boolean,
     width: number,
     height: number,
     speed: number,
@@ -35,6 +36,7 @@ export type RobotConstants = {
 }
 
 export const defaultRobotConstants: RobotConstants = {
+    holonomicRobot: false,
     width: 14,
     height: 14,
     speed: 6,
@@ -85,6 +87,8 @@ export class Robot {
 
     private timeout: number = 0;
     private rotation: number = 0;
+
+    public holonomicRobot: boolean = false;
 
     constructor(
         private x: number,
@@ -164,6 +168,11 @@ export class Robot {
     }
 
     tankDrive(leftCmd: number, rightCmd: number, dt: number) {
+        if (this.holonomicRobot) {
+            this.mecanumDrive(leftCmd, rightCmd, leftCmd, rightCmd, dt);
+            return;
+        }
+
         const left = clamp(finiteCmd(leftCmd), -1, 1);
         const right = clamp(finiteCmd(rightCmd), -1, 1);
 

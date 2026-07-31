@@ -35,7 +35,6 @@ type Result = {
     dist: number,
     headErr: number,
     maxHeadingDev: number,
-    /** Signed travel along the robot's own heading, sampled only while outside SETTLE_RADIUS. */
     minForwardStep: number,
     maxForwardStep: number,
     finite: boolean,
@@ -251,6 +250,20 @@ describe("drive_to_pose exit conditions", () => {
         expect(early.dist).toBeGreaterThan(settled.dist);
         expect(early.dist).toBeLessThan(SETTLE_RADIUS + POSITION_TOLERANCE);
     });
+    
+    it("exits early on the crossed line large min_voltage is set", async () => {
+        const target = { x: 24, y: 24, angle: 0 };
+        const settled = await run(ORIGIN, target, { min_voltage: 8, exit_error: 0 });
+        const early = await run(ORIGIN, target, { min_voltage: 8, exit_error: 6 });
+
+        expectReached(settled);
+        expect(early.done).toBe(true);
+        expect(early.ticks).toBeLessThan(settled.ticks);
+        expect(early.dist).toBeGreaterThan(settled.dist);
+        expect(early.dist).toBeLessThan(SETTLE_RADIUS + POSITION_TOLERANCE);
+    });
+
+
 
     it("settles immediately when already on the pose", async () => {
         const result = await run(ORIGIN, { x: 0, y: 0, angle: 0 });

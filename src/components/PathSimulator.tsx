@@ -39,6 +39,7 @@ function segmentGeoString(s: Segment): string {
 
 function createRobot(): Robot {
     const {
+        holonomicRobot,
         width, height, trackwidth, speed, lateralTau, angularTau,
         cogOffsetX, cogOffsetY, cogOffsetXDisabled, cogOffsetYDisabled,
         expansionFront, expansionLeft, expansionRight, expansionRear,
@@ -49,7 +50,7 @@ function createRobot(): Robot {
         sensorRearX, sensorRearY, sensorRearDisabled,
     } = fileFormatStore.getState().robot;
 
-    return new Robot(
+    const robot = new Robot(
         0, // Start x
         0, // Start y
         0, // Start angle
@@ -78,6 +79,10 @@ function createRobot(): Robot {
         lateralTau,
         angularTau,
     );
+
+    robot.holonomicRobot = holonomicRobot;
+
+    return robot;
 }
 
 export default function PathSimulator() {

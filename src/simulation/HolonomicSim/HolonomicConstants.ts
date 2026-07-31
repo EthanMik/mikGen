@@ -1,7 +1,7 @@
 import type { FormatDef, NumberInputGroup } from "../FormatDefinition";
 import { kMikDrive, kMikHeading, mikDriveExitConditionsSettings, mikLibDef, mikPIDConstantsSettings } from "../mikLibSim/MikConstants";
 import { holonomic_follow_path, reset_holonomic_follow_path } from "./DriveMotions/HolonomicFollowPath";
-import { holonomic_to_pose } from "./DriveMotions/HolonomicToPose";
+import { holonomic_to_pose, reset_holonomic_to_pose } from "./DriveMotions/HolonomicToPose";
 import { strafe_distance } from "./DriveMotions/StrafeDistance";
 
 /** Exit conditions and PID groups are shared by every holonomic drive segment. */
@@ -39,6 +39,7 @@ export const holonomicDef = {
             defaults: [kMikDrive, kMikHeading],
             toStringTemplate: "chassis.holonomic_to_pose(${x}, ${y}, ${angle}, ${kBuilder});",
             simFn: (robot, dt, x, y, angle, constants) => holonomic_to_pose(robot, dt, x, y, angle ?? 0, constants),
+            simReset: reset_holonomic_to_pose,
             slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
             cycleButtons: [],
             numberInputs: [...holonomicNumberInputs],
