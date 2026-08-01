@@ -7,9 +7,9 @@ import { clamp_max_slip, clamp_min_voltage, is_line_settled, left_voltage_scalin
 const DRIVE_LARGE_SETTLE_ERROR = 6;
 const BOOMERANG_MIN_VOLTAGE = 6;
 
-let crossed_line: boolean = false;
-let prev_crossed_line: boolean = false;
+let start_line_settled: boolean = false;
 let prev_drive_output: number = 0;
+let prev_slew_output: number = 0;
 let settling: boolean = false;
 let drive_max_speed: number = 0;
 let drivePID: PID;
@@ -20,9 +20,9 @@ let start = true;
 function reset_drive_to_pose() {
     drivePID.reset();
     headingPID.reset();
-    crossed_line = false;
-    prev_crossed_line = false;
+    start_line_settled = false;
     prev_drive_output = 0;
+    prev_slew_output = 0;
     settling = false;
     start = true;
 }
@@ -31,40 +31,37 @@ export function drive_to_pose(robot: Robot, dt: number, x: number, y: number, an
     const drive_p = p[0];
     const heading_p = p[1];
     
+    if (drive_p.drive_direction === "reversed") angle = normalizeDeg(angle + 180);
+
     if (start) {
         drivePID = new PID(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
         headingPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
         drive_max_speed = drive_p.max_voltage;
         start = false;
-        prev_crossed_line = is_line_settled(x, y, angle, robot.getX(), robot.getY(), drive_p.exit_error);
+        start_line_settled = is_line_settled(x, y, angle, robot.getX(), robot.getY(), drive_p.exit_error);
     }
 
     if (drivePID.isSettled()) {
         reset_drive_to_pose();
         return true;
     }
-
-    if (drive_p.drive_direction === "reversed") angle = normalizeDeg(angle + 180);
-
+ 
     const target_distance = Math.hypot(x - robot.getX(), y - robot.getY());
 
     let carrot_X = x - Math.sin(toRad(angle)) * (drive_p.lead * target_distance);
     let carrot_Y = y - Math.cos(toRad(angle)) * (drive_p.lead * target_distance);
 
-    if (target_distance < DRIVE_LARGE_SETTLE_ERROR && !settling) {
+    if (target_distance < Math.max(DRIVE_LARGE_SETTLE_ERROR, drive_p.exit_error) && !settling) {
         settling = true;
         drive_max_speed = Math.max(Math.abs(prev_drive_output), BOOMERANG_MIN_VOLTAGE);
     }
     
     const line_settled = is_line_settled(x, y, angle, robot.getX(), robot.getY(), drive_p.exit_error);
-    const carrot_settled = is_line_settled(x, y, angle, carrot_X, carrot_Y, drive_p.exit_error);
-    crossed_line = line_settled === carrot_settled;
-    
-    if (!(crossed_line == prev_crossed_line) && settling && drive_p.min_voltage > 0) {
+
+    if (line_settled !== start_line_settled && settling && drive_p.min_voltage > 0) {
         reset_drive_to_pose();
         return true;
     }
-    prev_crossed_line = crossed_line;
 
     let drive_error = Math.hypot(carrot_X - robot.getX(), carrot_Y - robot.getY());
     let current_angle = robot.getAngle();
@@ -82,11 +79,9 @@ export function drive_to_pose(robot: Robot, dt: number, x: number, y: number, an
         drive_error *= Math.sign(Math.cos(toRad(reduce_negative_180_to_180(toDeg(Math.atan2(carrot_X - robot.getX(), carrot_Y - robot.getY())) - robot.getAngle()))));
     }
 
-    console.log("before", heading_error)
     if (drive_p.drive_direction === "fastest") {
         heading_error = reduce_negative_90_to_90(heading_error);
     }
-    console.log("after", heading_error)
 
     let drive_output = drivePID.compute(drive_error);
     let heading_output = headingPID.compute(heading_error);
@@ -94,14 +89,16 @@ export function drive_to_pose(robot: Robot, dt: number, x: number, y: number, an
     heading_output = clamp(heading_output, -heading_p.max_voltage, heading_p.max_voltage);
 
     drive_output = clamp(drive_output, -drive_max_speed, drive_max_speed);
-    drive_output = slew_scaling(drive_output, prev_drive_output, drive_p.slew * (dt / 0.01), !settling);
+    drive_output = slew_scaling(drive_output, prev_slew_output, drive_p.slew * (dt / 0.01), !settling);
+    prev_slew_output = drive_output;
+
     drive_output = clamp_max_slip(drive_output, robot.getX(), robot.getY(), current_angle, carrot_X, carrot_Y, drive_p.drift);
     drive_output = overturn_scaling(drive_output, heading_output, drive_max_speed);
 
-    drive_output = clamp_min_voltage(drive_output, drive_p.min_voltage);
-
     if (drive_p.drive_direction === "forwards" && !settling) drive_output = Math.max(drive_output, 0);
     else if (drive_p.drive_direction === "reversed" && !settling) drive_output = Math.min(drive_output, 0);
+
+    drive_output = clamp_min_voltage(drive_output, drive_p.min_voltage);
 
     prev_drive_output = drive_output;
 

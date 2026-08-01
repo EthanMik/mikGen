@@ -75,9 +75,9 @@ export function overturn_scaling(drive_output: number, heading_output: number, m
     const overturn = Math.abs(heading_output) + Math.abs(drive_output) - max_speed;
     if (overturn > 0) {
         if (drive_output > 0) {
-            return drive_output - overturn;
+            return Math.max(drive_output - overturn, 0);
         } else if (drive_output < 0) {
-            return drive_output + overturn;
+            return Math.min(drive_output + overturn, 0);
         }
     }
     return drive_output;

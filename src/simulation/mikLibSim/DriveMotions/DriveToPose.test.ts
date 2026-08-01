@@ -228,6 +228,38 @@ describe("drive_to_pose tuning constants", () => {
     });
 });
 
+describe("drive_to_pose min voltage", () => {
+    // A pose off at 45 degrees: the robot has to turn most of the way to it before it can drive,
+    // which is when the heading output is large enough to eat the whole drive output
+    const corner: Pose = { x: 24, y: 24, angle: 0 };
+
+    it("does not back away from a pose it is still turning towards", async () => {
+        const result = await run(ORIGIN, corner, { min_voltage: 8, slew: 2 });
+
+        expectReached(result);
+        expect(result.minForwardStep).toBeGreaterThan(-0.01);
+    });
+
+    it("lands in the same place ramped as it does with the ramp off", async () => {
+        const ramped = await run(ORIGIN, corner, { min_voltage: 8, slew: 2 });
+        const instant = await run(ORIGIN, corner, { min_voltage: 8, slew: 0 });
+
+        expectReached(ramped);
+        expectReached(instant);
+        expect(Math.abs(ramped.dist - instant.dist)).toBeLessThan(1);
+    });
+
+    it("drives the same pose the same way whether or not forwards is forced", async () => {
+        const fastest = await run(ORIGIN, corner, { min_voltage: 8, slew: 2 });
+        const forwards = await run(ORIGIN, corner, { min_voltage: 8, slew: 2, drive_direction: "forwards" });
+
+        expectReached(fastest);
+        expectReached(forwards);
+        expect(Math.abs(fastest.dist - forwards.dist)).toBeLessThan(1);
+        expect(Math.abs(fastest.ticks - forwards.ticks)).toBeLessThan(10);
+    });
+});
+
 describe("drive_to_pose exit conditions", () => {
     it("gives up on timeout, short of the pose", async () => {
         const result = await run(ORIGIN, { x: 0, y: 96, angle: 0 }, { timeout: 500 });

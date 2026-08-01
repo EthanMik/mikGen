@@ -8,16 +8,14 @@ import { clamp_max_slip, clamp_min_voltage, is_line_settled, left_voltage_scalin
 
 const DRIVE_LARGE_SETTLE_ERROR = 6;
 const BOOMERANG_MIN_VOLTAGE = 6;
-/** Inches between path points, so an index step is a known arc length. */
 const POINT_DENSITY = 1;
-/** Inches along the path past the closest point that the carrot sits. */
 const LOOKAHEAD_DISTANCE = 8;
 
 let path_points: Coordinate[] = [];
 let path_lengths: number[] = [];
-let crossed_line: boolean = false;
-let prev_crossed_line: boolean = false;
+let start_line_settled: boolean = false;
 let prev_drive_output: number = 0;
+let prev_slew_output: number = 0;
 let settling: boolean = false;
 let drive_max_speed: number = 0;
 let drivePID: PID;
@@ -30,9 +28,9 @@ export function reset_follow_path() {
     headingPID?.reset();
     path_points = [];
     path_lengths = [];
-    crossed_line = false;
-    prev_crossed_line = false;
+    start_line_settled = false;
     prev_drive_output = 0;
+    prev_slew_output = 0;
     settling = false;
     start = true;
 }
@@ -75,6 +73,7 @@ export function follow_path(robot: Robot, dt: number, points: Coordinate[], end_
     const drive_p = p[0];
     const heading_p = p[1];
 
+    const first_tick = start;
     if (start) {
         path_points = resamplePolyline(points, POINT_DENSITY);
         path_lengths = cumulativeLengths(path_points);
@@ -83,6 +82,7 @@ export function follow_path(robot: Robot, dt: number, points: Coordinate[], end_
         drive_max_speed = drive_p.max_voltage;
         settling = false;
         prev_drive_output = 0;
+        prev_slew_output = 0;
         start = false;
     }
 
@@ -97,8 +97,6 @@ export function follow_path(robot: Robot, dt: number, points: Coordinate[], end_
 
     const reversed = drive_p.drive_direction === "reversed";
 
-    // A commanded heading is what the robot lands on either way; without one it rides the exit
-    // tangent, back first when reversed. The second flip pairs with the reversed current_angle below.
     let settle_heading = end_angle ?? normalizeDeg(final_tangent + (reversed ? 180 : 0));
     if (reversed) settle_heading = normalizeDeg(settle_heading + 180);
 
@@ -110,26 +108,18 @@ export function follow_path(robot: Robot, dt: number, points: Coordinate[], end_
     const remaining_arc = path_lengths[last] - path_lengths[closest];
     const target_distance = Math.hypot(end.x - robot.getX(), end.y - robot.getY());
 
-    // Both, not just the arc: a robot sitting off to the side of the end has no arc left but is still
-    // far from the pose, and the settle law only closes error along its own heading
     if (remaining_arc < DRIVE_LARGE_SETTLE_ERROR && target_distance < DRIVE_LARGE_SETTLE_ERROR && !settling) {
         settling = true;
         drive_max_speed = Math.max(Math.abs(prev_drive_output), BOOMERANG_MIN_VOLTAGE);
     }
 
-    // The exit plane is fixed by the direction the path arrives from, whichever way the robot drives it
     const line_settled = is_line_settled(end.x, end.y, final_tangent, robot.getX(), robot.getY(), drive_p.exit_error);
-    const carrot_settled = is_line_settled(end.x, end.y, final_tangent, carrot_X, carrot_Y, drive_p.exit_error);
-    crossed_line = line_settled === carrot_settled;
+    if (first_tick) start_line_settled = line_settled;
 
-    if (!(crossed_line == prev_crossed_line) && settling && drive_p.min_voltage > 0) {
+    if (line_settled !== start_line_settled && settling && drive_p.min_voltage > 0) {
         reset_follow_path();
         return true;
     }
-    prev_crossed_line = crossed_line;
-
-    // Carrot distance plus the arc left beyond it, so the PID decelerates into the end of the path
-    // rather than holding a constant lookahead sized error
     let drive_error = Math.hypot(carrot_X - robot.getX(), carrot_Y - robot.getY()) + (path_lengths[last] - path_lengths[carrotIdx]);
     let current_angle = robot.getAngle();
     if (reversed) current_angle = current_angle + 180;
@@ -146,8 +136,6 @@ export function follow_path(robot: Robot, dt: number, points: Coordinate[], end_
         drive_error *= Math.sign(Math.cos(toRad(reduce_negative_180_to_180(toDeg(Math.atan2(carrot_X - robot.getX(), carrot_Y - robot.getY())) - robot.getAngle()))));
     }
 
-    // Halving the heading error is what lets the robot pick its own end: the drive error already
-    // carries the sign, so the nearer end swings toward the carrot instead of spinning around
     if (drive_p.drive_direction === "fastest") {
         heading_error = reduce_negative_90_to_90(heading_error);
     }
@@ -158,7 +146,9 @@ export function follow_path(robot: Robot, dt: number, points: Coordinate[], end_
     heading_output = clamp(heading_output, -heading_p.max_voltage, heading_p.max_voltage);
 
     drive_output = clamp(drive_output, -drive_max_speed, drive_max_speed);
-    drive_output = slew_scaling(drive_output, prev_drive_output, drive_p.slew * (dt / 0.01), !settling);
+    drive_output = slew_scaling(drive_output, prev_slew_output, drive_p.slew * (dt / 0.01), !settling);
+    prev_slew_output = drive_output;
+
     drive_output = clamp_max_slip(drive_output, robot.getX(), robot.getY(), current_angle, carrot_X, carrot_Y, drive_p.drift);
     drive_output = overturn_scaling(drive_output, heading_output, drive_max_speed);
 

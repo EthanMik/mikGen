@@ -1,5 +1,24 @@
 import { describe, it, expect } from "vitest";
-import { clamp_max_slip, reduce_negative_180_to_180 } from "./Util";
+import { clamp_max_slip, overturn_scaling, reduce_negative_180_to_180 } from "./Util";
+
+describe("overturn_scaling", () => {
+    it("leaves an output that fits inside the max alone", () => {
+        expect(overturn_scaling(4, 3, 8)).toBe(4);
+        expect(overturn_scaling(-4, 3, 8)).toBe(-4);
+    });
+
+    it("cuts the drive by whatever the pair draws past the max", () => {
+        expect(overturn_scaling(6, 4, 8)).toBe(4);
+        expect(overturn_scaling(-6, 4, 8)).toBe(-4);
+    });
+
+    it("stops the cut at zero rather than reversing the drive", () => {
+        // A turn on its own past the max, which used to leave a negative remainder and send the
+        // robot away from its target while it was still turning towards it
+        expect(overturn_scaling(4, 10, 8)).toBe(0);
+        expect(overturn_scaling(-4, 10, 8)).toBe(0);
+    });
+});
 
 describe("clamp_max_slip", () => {
     it("leaves the output alone when the robot is already on the target", () => {
