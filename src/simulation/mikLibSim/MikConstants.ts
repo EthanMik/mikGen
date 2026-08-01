@@ -82,6 +82,7 @@ export const kMikHeading: mikConstants = {
     ki: 0,
     kd: 1,
     starti: 0,
+    slew: 0,
 
     exit_error: 0,
     settle_error: 1,
@@ -99,6 +100,7 @@ export const kMikTurn: mikConstants = {
     ki: 0.03,
     kd: 3,
     starti: 15,
+    slew: 0,
 
     exit_error: 0,
     settle_error: 1,
@@ -116,6 +118,7 @@ export const kMikSwing: mikConstants = {
     ki: 0.01,
     kd: 2,
     starti: 15,
+    slew: 0,
 
     exit_error: 0,
     settle_error: 1,
