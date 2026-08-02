@@ -102,8 +102,12 @@ export function follow_path(robot: Robot, dt: number, points: Coordinate[], end_
 
     const closest = closestIdx(path_points, robot.getX(), robot.getY());
     const carrotIdx = carrotIdxFrom(closest);
-    let carrot_X = path_points[carrotIdx].x;
-    let carrot_Y = path_points[carrotIdx].y;
+    const look = path_points[carrotIdx];
+    const look_prev = path_points[carrotIdx - 1];
+    const look_tangent = Math.atan2(look.x - look_prev.x, look.y - look_prev.y);
+    const look_distance = Math.hypot(look.x - robot.getX(), look.y - robot.getY());
+    let carrot_X = look.x - Math.sin(look_tangent) * (drive_p.lead * look_distance);
+    let carrot_Y = look.y - Math.cos(look_tangent) * (drive_p.lead * look_distance);
 
     const remaining_arc = path_lengths[last] - path_lengths[closest];
     const target_distance = Math.hypot(end.x - robot.getX(), end.y - robot.getY());
@@ -149,7 +153,9 @@ export function follow_path(robot: Robot, dt: number, points: Coordinate[], end_
     drive_output = slew_scaling(drive_output, prev_slew_output, drive_p.slew * (dt / 0.01), !settling);
     prev_slew_output = drive_output;
 
-    drive_output = clamp_max_slip(drive_output, robot.getX(), robot.getY(), current_angle, carrot_X, carrot_Y, drive_p.drift);
+    const slip_X = settling ? carrot_X : look.x;
+    const slip_Y = settling ? carrot_Y : look.y;
+    drive_output = clamp_max_slip(drive_output, robot.getX(), robot.getY(), current_angle, slip_X, slip_Y, drive_p.drift);
     drive_output = overturn_scaling(drive_output, heading_output, drive_max_speed);
 
     if (drive_p.drive_direction === "forwards" && !settling) drive_output = Math.max(drive_output, 0);

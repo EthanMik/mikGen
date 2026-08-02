@@ -280,6 +280,8 @@ describe("follow_path tuning constants", () => {
         { name: "slew 0 (no ramp)", drive: { slew: 0 } },
         { name: "slew 6 (fast ramp)", drive: { slew: 6 } },
         { name: "drift 0 (no slip clamp)", drive: { drift: 0 } },
+        { name: "lead 0 (carrot on the path)", drive: { lead: 0 } },
+        { name: "lead 0.8 (carrot deep behind the lookahead)", drive: { lead: 0.8 } },
         { name: "drift 0.5 (tight slip clamp)", drive: { drift: 0.5, timeout: 8000 } },
         { name: "drift 5 (loose slip clamp)", drive: { drift: 5 } },
         { name: "aggressive drive PID", drive: { kp: 3, kd: 20 } },
