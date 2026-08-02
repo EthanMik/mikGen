@@ -32,7 +32,7 @@ const ConstantsList = memo(function ConstantsList({
 }: ConstantsListProps) {
     const [open, setOpen] = useState(false);
     const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
-    const [applied, setApplied] = useState(false);
+    const [appliedValues, setAppliedValues] = useState<ConstantsRecord>({});
     const skipNextHistoryChange = useRef(false);
     const historyLength = undoHistory.useSelector((h) => h.length);
 
@@ -41,7 +41,7 @@ const ConstantsList = memo(function ConstantsList({
             skipNextHistoryChange.current = false;
             return;
         }
-        setApplied(false);
+        setAppliedValues({});
     }, [historyLength]);
 
     useEffect(() => {
@@ -73,6 +73,12 @@ const ConstantsList = memo(function ConstantsList({
         }
         return result;
     };
+
+    const pendingApplyVals = hasSelection ? buildSelectedPartial(values) : values;
+
+    const isApplied = Object.entries(pendingApplyVals).every(
+        ([key, val]) => key in appliedValues && deepEqual(appliedValues[key], val)
+    );
 
     const toggleKey = (key: string) => {
         setSelectedKeys(prev => {
@@ -156,15 +162,14 @@ const ConstantsList = memo(function ConstantsList({
                             className={`
                         bg-medgray px-2 rounded-sm
                         transition-all duration-100 active:scale-[0.995]
-                        ${applied ? "opacity-40 cursor-not-allowed" : "hover:bg-medgray_hover cursor-pointer active:bg-medgray_hover/70"}
+                        ${isApplied ? "opacity-40 cursor-not-allowed" : "hover:bg-medgray_hover cursor-pointer active:bg-medgray_hover/70"}
                         `}
                             onClick={(e) => {
                                 e.stopPropagation();
-                                if (applied) return;
+                                if (isApplied) return;
                                 skipNextHistoryChange.current = true;
-                                setApplied(true);
-                                const vals = hasSelection ? buildSelectedPartial(values) : values;
-                                onApply(vals);
+                                setAppliedValues(prev => ({ ...prev, ...pendingApplyVals }));
+                                onApply(pendingApplyVals);
                                 saveSnapshot();
                             }}
                         >
