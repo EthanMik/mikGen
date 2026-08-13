@@ -181,7 +181,6 @@ const swingDirectionButton: CycleButton = {
     ],
 };
 
-// Pose-backed: cycles the point turn/swing angle offset stored in pose.angle
 const turnFaceButton: CycleButton = {
     key: "angle_offset",
     keyValues: [
@@ -192,7 +191,6 @@ const turnFaceButton: CycleButton = {
     poseEffect: (val) => ({ angle: val === "180" ? 180 : 0 }),
 };
 
-/** Appends a bezier control at the free chord slot. A no-op once both controls exist. */
 const addControlButton: ActionButtonField = {
     srcImg: plus,
     label: "Add Control",
@@ -419,7 +417,8 @@ function kMikBuilder(kDefault: mikConstants[], constants: mikConstants[], pose?:
             case "exit_error": return `.exit_error = ${roundOff(value as number, 2)}`;
             case "drive_direction":
                 if (value === "fastest") return "";
-                return `.direction = ${value}`;
+                // mikLib's directionType only accepts forward/reverse spellings, not the constants' raw values
+                return `.direction = ${value === "reversed" ? "reverse" : "forward"}`;
             case "wait": return `.wait = ${value ? "true" : "false"}`;
         }
         return "";
@@ -528,7 +527,8 @@ function kMikParser(kDefault: mikConstants[], kBuilderStr: string, kind: Segment
             "cw": "cw", "ccw": "ccw",
         };
         const driveDirectionMap: { [key: string]: mikConstants["drive_direction"]; } = {
-            "fwd": "forwards", "forward": "forwards", "reverse": "reversed",
+            "fwd": "forwards", "forward": "forwards", "directionType::fwd": "forwards",
+            "reverse": "reversed", "directionType::rev": "reversed",
         };
 
 
