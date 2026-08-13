@@ -182,6 +182,13 @@ function parseSegmentLine<F extends Format>(
         if (COORD_PLACEHOLDERS.has(name) || name === 'kBuilder' || !value) continue;
         const num = parseFloat(value);
         const parsed: unknown = isNaN(num) ? value.trim() : num;
+        // ${idx:key} placeholders address one constants group by position instead of broadcasting by key
+        const indexed = name.match(/^(\d+):(\w+)$/);
+        if (indexed) {
+            const group = constants[Number(indexed[1])] as unknown as Record<string, unknown> | undefined;
+            if (group && indexed[2] in group) group[indexed[2]] = parsed;
+            continue;
+        }
         for (const k of constants) {
             if (name in k) (k as unknown as Record<string, unknown>)[name] = parsed;
         }

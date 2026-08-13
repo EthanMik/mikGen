@@ -1,10 +1,17 @@
 import type { FormatDef, NumberInputGroup } from "../FormatDefinition";
-import { kMikDrive, kMikHeading, mikDriveExitConditionsSettings, mikLibDef, mikPIDConstantsSettings } from "../mikLibSim/MikConstants";
+import { kMikDrive, kMikHeading, mikDriveExitConditionsSettings, mikLibDef, mikPIDConstantsSettings, type mikConstants } from "../mikLibSim/MikConstants";
 import { holonomic_follow_path, reset_holonomic_follow_path } from "./DriveMotions/HolonomicFollowPath";
 import { holonomic_to_pose, reset_holonomic_to_pose } from "./DriveMotions/HolonomicToPose";
 import { strafe_distance } from "./DriveMotions/StrafeDistance";
 
-/** Exit conditions and PID groups are shared by every holonomic drive segment. */
+export const kTranslational: mikConstants = {
+    ...kMikDrive,
+    kp: 1.2,
+    kd: 0,
+    slew: 0,
+}
+
+
 const holonomicNumberInputs = [
     {
         constantsIdx: 0, headerName: "Exit Conditions", fields: [
@@ -27,6 +34,14 @@ const holonomicNumberInputs = [
             { key: "settle_time", label: "Settle Time", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 1 } },
         ]
     },
+    {
+        constantsIdx: 2, headerName: "Translational Constants", fields: [
+            { key: "kp", label: "kP", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
+            { key: "ki", label: "kI", units: "", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
+            { key: "kd", label: "kD", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
+            { key: "starti", units: "", label: "Starti", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
+        ]
+    },
 ] satisfies NumberInputGroup<"Holonomic">[];
 
 export const holonomicDef = {
@@ -36,7 +51,7 @@ export const holonomicDef = {
         ...mikLibDef.segments,
         poseDrive: {
             name: "Holonomic to Pose",
-            defaults: [kMikDrive, kMikHeading],
+            defaults: [kMikDrive, kMikHeading, kTranslational],
             toStringTemplate: "chassis.holonomic_to_pose(${x}, ${y}, ${angle}, ${kBuilder});",
             simFn: (robot, dt, x, y, angle, constants) => holonomic_to_pose(robot, dt, x, y, angle ?? 0, constants),
             simReset: reset_holonomic_to_pose,
