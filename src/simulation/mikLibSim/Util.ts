@@ -60,7 +60,7 @@ export function clamp_max_slip(drive_output: number, current_X: number, current_
     const dx = desired_X - current_X;
     const dy = desired_Y - current_Y;
 
-    const signed_dist = Math.cos(heading) * dx + Math.sin(heading) * dy;
+    const signed_dist = Math.cos(heading) * dx - Math.sin(heading) * dy;
     const x = Math.abs(signed_dist);
     const dist = Math.hypot(dx, dy);
 
