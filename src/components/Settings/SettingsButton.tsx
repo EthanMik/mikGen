@@ -34,7 +34,7 @@ export default function SettingsButton() {
                     <MenuCheckboxButton name="Position Logs" label="Prints robot position to console" checked={debug} setChecked={(state: boolean) => { debugStore.setState(state); }} />
 
                     <MenuCheckboxButton name="Robot Position" label="Displays robots's actual position" checked={settings.robotPosition} setChecked={set("robotPosition")} />
-                    <MenuCheckboxButton name="Precise Path" label="Displays robots exact path taken" checked={settings.precisePath} setChecked={set("precisePath")} />
+                    <MenuCheckboxButton name="Precise Path" label="Displays robots exact path taken (P)" checked={settings.precisePath} setChecked={set("precisePath")} />
                     <MenuCheckboxButton name="Numbered Path" label="Displays number labels for notebook screenshots" checked={settings.numberedPath} setChecked={set("numberedPath")} />
                     <MenuCheckboxButton name="Robot Outlines" label="Displays end positions when sim is off" checked={settings.ghostRobots} setChecked={set("ghostRobots")} />
 

@@ -151,6 +151,37 @@ export type SegmentFactory<F extends Format = Format> = (
 export type ConstantValue = number | boolean | string;
 export type ConstantsRecord = Record<string, ConstantValue>;
 
+/**
+ * Rebuilds a saved constants array on top of the current one, entry by entry and key by key.
+ * A file saved before a segment kind grew a constants entry (or an entry grew a key) comes back
+ * short, and the motions index into it blind; every load path funnels through here so they can't.
+ */
+export function mergeSavedConstants(
+    current: SegmentConstants<Format> | undefined,
+    saved: unknown,
+): SegmentConstants<Format> | undefined {
+    if (!current) return saved as SegmentConstants<Format> | undefined;
+    if (!Array.isArray(saved)) return current;
+    return current.map((def, i) =>
+        saved[i] && typeof saved[i] === "object"
+            ? { ...(def as object), ...(saved[i] as object) }
+            : { ...(def as object) }
+    ) as SegmentConstants<Format>;
+}
+
+/** Fills every segment's constants out to the current format definition, keeping the saved values. */
+export function normalizePathConstants(formatDef: FormatDef<Format> | undefined, format: Format, path: Path): Path {
+    return {
+        ...path,
+        segments: path.segments.map(seg => {
+            const defaults = getDefaultConstants(formatDef, format, seg.kind);
+            if (!defaults) return seg;
+            const constants = mergeSavedConstants(defaults, seg.constants);
+            return constants ? { ...seg, constants } : seg;
+        }),
+    };
+}
+
 export function mergeFormatDef(registry: FormatDef<Format>, saved: unknown): FormatDef<Format> {
     if (!saved || typeof saved !== 'object') return registry;
     const s = saved as Record<string, unknown>;
@@ -159,6 +190,7 @@ export function mergeFormatDef(registry: FormatDef<Format>, saved: unknown): For
         const reg = segs[k as SegmentKind];
         if (reg) segs[k as SegmentKind] = {
             ...reg, ...(v as object),
+            defaults: mergeSavedConstants(reg.defaults, (v as { defaults?: unknown }).defaults),
             simFn: reg.simFn,
             simReset: reg.simReset,
             cycleButtons: reg.cycleButtons,

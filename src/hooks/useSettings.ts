@@ -1,6 +1,6 @@
 import { createSharedState } from "../core/SharedState";
 
-type Settings = {
+export type Settings = {
     ghostRobots: boolean;
     robotPosition: boolean;
     precisePath: boolean;

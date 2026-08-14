@@ -92,7 +92,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 	const [robotVisible, setRobotVisibility] = useRobotVisibility();
 	const [pathVisible] = usePathVisibility();
 	const [format] = useFormat();
-	const [settings,] = useSettings();
+	const [settings, setSettings] = useSettings();
 
 	const startDrag = useRef(false);
 	const radius = 15;
@@ -131,7 +131,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		fieldPanWheel, cut, paste, copy,
 	} = FieldMacros();
 
-	const { toggleRobotVisibility } = PathSimMacros();
+	const { toggleRobotVisibility, togglePrecisePath } = PathSimMacros();
 
 	const hiddenInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -175,6 +175,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 
 			fieldZoomKeyboard(evt, setImg);
 			toggleRobotVisibility(evt, setRobotVisibility);
+			togglePrecisePath(evt, setSettings);
 		};
 
 		const handleWheelDown = (evt: WheelEvent) => {
@@ -206,10 +207,12 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		redo,
 		fieldZoomKeyboard,
 		toggleRobotVisibility,
+		togglePrecisePath,
 		cut,
 		copy,
 		setImg,
 		setRobotVisibility,
+		setSettings,
 	]);
 
 	// Space turns a left drag into a field pan. Held state is global because PathSimulator has to

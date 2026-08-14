@@ -3,8 +3,8 @@ import FileRenamePopup from "./FileRenamePopup";
 import { updatePath, fileFormatStore, type FileFormat } from "../../hooks/useFileFormat";
 import { defaultRobotConstants } from "../../core/Robot";
 import { saveSnapshot, undoHistory, fileUndosStore } from "../../core/Undo/UndoHistory";
-import { FORMAT_REGISTRY, mergeFormatDef, type FormatDef } from "../../simulation/FormatDefinition";
-import { deserializeFile, loadFromHandle, fileSaveStore, fileHandleStore, dirHandleStore, serializeFile } from "../../core/FileUtils";
+import { FORMAT_REGISTRY } from "../../simulation/FormatDefinition";
+import { deserializeToState, loadFromHandle, fileSaveStore, fileHandleStore, dirHandleStore, serializeFile } from "../../core/FileUtils";
 import MenuButtonTemplate from "../Util/MenuButtonTemplate";
 import { MenuKeybindButton } from "../Util/KeybindButton";
 import Section from "../Util/Section";
@@ -144,12 +144,7 @@ export default function FileButton() {
             const reader = new FileReader();
             reader.onload = (e) => {
                 const content = e.target?.result as string;
-                const parsed = deserializeFile(content);
-                fileFormatStore.setState({
-                    ...parsed,
-                    formatDef: mergeFormatDef(FORMAT_REGISTRY[parsed.format] as FormatDef<typeof parsed.format>, parsed.formatDef),
-                    path: { ...parsed.path, name: fileName },
-                });
+                fileFormatStore.setState(deserializeToState(content, fileName));
                 saveSnapshot();
                 fileUndosStore.setState(0);
             };

@@ -1,6 +1,6 @@
 import { defaultRobotConstants, type RobotConstants } from "../core/Robot"
 import type { Path } from "../core/Types/Path"
-import { FORMAT_REGISTRY, mergeFormatDef, type FormatDef } from "../simulation/FormatDefinition"
+import { FORMAT_REGISTRY, mergeFormatDef, normalizePathConstants, type FormatDef } from "../simulation/FormatDefinition"
 import type { Format } from "../simulation/FormatDefinition"
 
 export type FieldType =
@@ -53,13 +53,15 @@ function loadValidatedAppState(): FileFormat {
         const parsed = JSON.parse(saved);
         console.log(parsed);
         const format: Format = parsed.format ?? DEFAULT_FORMAT.format;
+        const formatDef = mergeFormatDef(FORMAT_REGISTRY[format] as FormatDef<Format>, parsed.formatDef ?? parsed.defaults);
+        const path = (parsed.path && Array.isArray(parsed.path.segments))
+            ? normalizePathConstants(formatDef, format, parsed.path)
+            : DEFAULT_FORMAT.path;
         return {
             format,
             field: parsed.field ?? DEFAULT_FORMAT.field,
-            formatDef: mergeFormatDef(FORMAT_REGISTRY[format] as FormatDef<Format>, parsed.formatDef ?? parsed.defaults),
-            path: (parsed.path && Array.isArray(parsed.path.segments))
-                ? parsed.path
-                : DEFAULT_FORMAT.path,
+            formatDef,
+            path,
             robot: { ...DEFAULT_FORMAT.robot, ...parsed.robot },
         };
     } catch {

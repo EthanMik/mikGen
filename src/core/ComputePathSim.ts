@@ -3,10 +3,12 @@ import type { Robot } from "./Robot";
 import { createStore } from "./Store";
 import { normalizeDeg } from "./Util";
 
+// dt is the robot's fixed 10ms control tick. precomputePath rewrites it from getControlDt so the
+// playback code stays in step.
 export const SIM_CONSTANTS = {
     seconds: 99,
-    dt: 1/60, // Sim is run at 60 hertz
-    dt_ms: 1/60 * 1000,
+    dt: 0.01,
+    dt_ms: 10,
 };
 
 export interface SegmentTelemetry {
@@ -80,22 +82,25 @@ export function precomputePath(
     const segmentTargetDists: number[] = [];
     const segmentTimeRanges: SegmentTimeRange[] = [];
 
-    const dt = SIM_CONSTANTS.dt;
+    const dt = robot.getControlDt();
+    SIM_CONSTANTS.dt = dt;
+    SIM_CONSTANTS.dt_ms = dt * 1000;
 
     let t = 0;
     let segmentStartT = 0;
     let safetyIter = 0;
-    const maxIter = 60 * simLengthSeconds;
+    const maxIter = Math.ceil(simLengthSeconds / dt);
 
     while (safetyIter < maxIter) {
 
         if (autoIdx < auton.length) {
+            const before = robot.getTime();
             const [done, kind, targetDist] = auton[autoIdx](robot, dt);
             if (done) {
                 endTrajectory.push({
-                    x: robot.getX(),
-                    y: robot.getY(),
-                    angle: robot.getAngle(),
+                    x: robot.getTrueX(),
+                    y: robot.getTrueY(),
+                    angle: robot.getTrueAngle(),
                 });
 
                 segmentTrajectorys.push([...segmentTrajectory]);
@@ -107,29 +112,30 @@ export function precomputePath(
                 autoIdx++
             }
 
-        }
+            // Ticks that never drove the robot advance by dt
+            const stepped = robot.getTime() - before;
 
-        if (autoIdx >= auton.length) break;
-        // {
-        //     if (Math.abs(robot.getXVelocity()) < 0.01 && Math.abs(robot.getYVelocity()) < 0.01) break;
-        //     robot.tankDrive(0, 0, dt);
-        // }
+            if (autoIdx >= auton.length) break;
 
-        segmentTrajectory.push({
-            t,
-            x: robot.getX(),
-            y: robot.getY(),
-            angle: robot.getAngle(),
-        });
+            // Snapshots record the true pose: the controller may believe the sensed one, but the
+            // field shows where the robot really is
+            segmentTrajectory.push({
+                t,
+                x: robot.getTrueX(),
+                y: robot.getTrueY(),
+                angle: robot.getTrueAngle(),
+            });
 
-        trajectory.push({
-            t,
-            x: robot.getX(),
-            y: robot.getY(),
-            angle: robot.getAngle(),
-        });
+            trajectory.push({
+                t,
+                x: robot.getTrueX(),
+                y: robot.getTrueY(),
+                angle: robot.getTrueAngle(),
+            });
 
-        t += dt;
+            t += stepped > 1e-9 ? stepped : dt;
+        } else break;
+
         safetyIter++;
     }
 

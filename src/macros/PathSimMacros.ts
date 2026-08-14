@@ -1,14 +1,24 @@
 import type { SetStateAction } from "react";
 import type { PathSim } from "../core/ComputePathSim";
+import type { Settings } from "../hooks/useSettings";
 import { consumeSpacePan } from "../hooks/useSpaceHeld";
 
 export function PathSimMacros() {
     function toggleRobotVisibility(
         evt: KeyboardEvent,
         setVisibility: React.Dispatch<SetStateAction<boolean>>,
-    ) {        
+    ) {
         if (evt.key.toLowerCase() === "r" && !evt.ctrlKey) {
             setVisibility((v) => !v);
+        }
+    }
+
+    function togglePrecisePath(
+        evt: KeyboardEvent,
+        setSettings: React.Dispatch<SetStateAction<Settings>>,
+    ) {
+        if (evt.key.toLowerCase() === "p" && !evt.ctrlKey) {
+            setSettings((prev) => ({ ...prev, precisePath: !prev.precisePath }));
         }
     }
 
@@ -99,6 +109,7 @@ export function PathSimMacros() {
 
     return {
         toggleRobotVisibility,
+        togglePrecisePath,
         pauseSimulator,
         releaseSimulator,
         scrubSimulator

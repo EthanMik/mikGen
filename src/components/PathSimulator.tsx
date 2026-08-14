@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import play from "../assets/play.svg";
 import pause from "../assets/pause.svg";
-import { Robot } from "../core/Robot";
+import { extrasFromConstants, Robot } from "../core/Robot";
 import { activeSegmentAtTime, activeSimSegmentStore, computedPathStore, pathTelemetry, precomputePath, simJumpStore, SIM_CONSTANTS, type PathSim } from "../core/ComputePathSim";
 import { usePose } from "../hooks/usePose";
 import { clamp } from "../core/Util";
@@ -38,6 +38,7 @@ function segmentGeoString(s: Segment): string {
 }
 
 function createRobot(): Robot {
+    const robotConstants = fileFormatStore.getState().robot;
     const {
         holonomicRobot,
         width, height, trackwidth, speed, lateralTau, angularTau,
@@ -48,7 +49,7 @@ function createRobot(): Robot {
         sensorLeftX, sensorLeftY, sensorLeftDisabled,
         sensorRightX, sensorRightY, sensorRightDisabled,
         sensorRearX, sensorRearY, sensorRearDisabled,
-    } = fileFormatStore.getState().robot;
+    } = robotConstants;
 
     const robot = new Robot(
         0, // Start x
@@ -78,6 +79,7 @@ function createRobot(): Robot {
         sensorRearDisabled,
         lateralTau,
         angularTau,
+        extrasFromConstants(robotConstants),
     );
 
     robot.holonomicRobot = holonomicRobot;
@@ -386,7 +388,7 @@ export default function PathSimulator() {
             }
             <span className="block w-10 ">{time.toFixed(2)}s</span>
             <div className="flex flex-row items-center gap-1.5">
-                <Tooltip label="Toggle Robot Visibility" placement="top" speed="fast">
+                <Tooltip label="Toggle Robot Visibility (R)" placement="top" speed="fast">
                     <Checkbox checked={robotVisible} setChecked={setRobotVisibility} size={22} checkedSvg={openEye} uncheckedSvg={closedEye}/>
                 </Tooltip>
                 <Tooltip label="Loop Path" placement="top" speed="fast">

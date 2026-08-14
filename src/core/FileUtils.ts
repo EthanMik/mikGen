@@ -1,6 +1,6 @@
 import { fileFormatStore, type FileFormat, DEFAULT_FORMAT } from "../hooks/useFileFormat";
 import { createStore } from "./Store";
-import { FORMAT_REGISTRY, mergeFormatDef, getDefaultConstants, stripFormatDefForSave, type Format, type FormatDef, type SegmentKind } from "../simulation/FormatDefinition";
+import { FORMAT_REGISTRY, mergeFormatDef, getDefaultConstants, normalizePathConstants, stripFormatDefForSave, type Format, type FormatDef, type SegmentKind } from "../simulation/FormatDefinition";
 import { saveSnapshot, fileUndosStore } from "./Undo/UndoHistory";
 import { defaultRobotConstants, type RobotConstants } from "./Robot";
 import type { Path } from "./Types/Path";
@@ -52,15 +52,21 @@ function handleFileConversion(content: string): FileFormat {
     return { ...DEFAULT_FORMAT, format, formatDef: FORMAT_REGISTRY[format] as FormatDef<Format>, path };
 }
 
+/**
+ * Per-key merge, never all-or-nothing: a file saved before a constant existed keeps every value
+ * it does have and picks up defaults for the rest, instead of losing its whole robot config.
+ */
 function validateRobot(raw: unknown): RobotConstants {
     if (!raw || typeof raw !== "object") return defaultRobotConstants;
     const robot = raw as Record<string, unknown>;
+    const merged: Record<string, unknown> = { ...defaultRobotConstants };
     for (const [key, def] of Object.entries(defaultRobotConstants)) {
         const value = robot[key];
-        if (typeof value !== typeof def) return defaultRobotConstants;
-        if (typeof value === "number" && !Number.isFinite(value)) return defaultRobotConstants;
+        if (typeof value !== typeof def) continue;
+        if (typeof value === "number" && !Number.isFinite(value)) continue;
+        merged[key] = value;
     }
-    return raw as RobotConstants;
+    return merged as RobotConstants;
 }
 
 export function deserializeFile(content: string): FileFormat {
@@ -71,6 +77,21 @@ export function deserializeFile(content: string): FileFormat {
     }
     const parsed = JSON.parse(content.slice(newline + 1)) as FileFormat;
     return { ...parsed, robot: validateRobot(parsed.robot) };
+}
+
+/**
+ * The one way file content becomes store state. Merges the saved format def over the registry and
+ * fills every segment's constants out to the current shape, so a file saved before a motion grew
+ * a constants entry cannot crash the sim. Every load entry point must go through here.
+ */
+export function deserializeToState(content: string, fileName: string): FileFormat {
+    const parsed = deserializeFile(content);
+    const formatDef = mergeFormatDef(FORMAT_REGISTRY[parsed.format] as FormatDef<typeof parsed.format>, parsed.formatDef);
+    return {
+        ...parsed,
+        formatDef,
+        path: normalizePathConstants(formatDef, parsed.format, { ...parsed.path, name: fileName }),
+    };
 }
 
 export async function loadFromHandle(handle: FileSystemFileHandle): Promise<void> {
@@ -93,12 +114,7 @@ export async function loadFromHandle(handle: FileSystemFileHandle): Promise<void
     const file = await handle.getFile();
     const content = await file.text();
     const fileName = handle.name.replace(/\.[^/.]+$/, "");
-    const parsed = deserializeFile(content);
-    fileFormatStore.setState({
-        ...parsed,
-        formatDef: mergeFormatDef(FORMAT_REGISTRY[parsed.format] as FormatDef<typeof parsed.format>, parsed.formatDef),
-        path: { ...parsed.path, name: fileName },
-    });
+    fileFormatStore.setState(deserializeToState(content, fileName));
     saveSnapshot();
     fileUndosStore.setState(0);
     fileHandleStore.setState(handle);
@@ -117,12 +133,7 @@ export async function loadFileFromEvent(event: React.ChangeEvent<HTMLInputElemen
             const reader = new FileReader();
             reader.onload = (e) => {
                 const content = e.target?.result as string;
-                const parsed = deserializeFile(content);
-                fileFormatStore.setState({
-                    ...parsed,
-                    formatDef: mergeFormatDef(FORMAT_REGISTRY[parsed.format] as FormatDef<typeof parsed.format>, parsed.formatDef),
-                    path: { ...parsed.path, name: fileName },
-                });
+                fileFormatStore.setState(deserializeToState(content, fileName));
                 saveSnapshot();
                 fileUndosStore.setState(0);
             };
