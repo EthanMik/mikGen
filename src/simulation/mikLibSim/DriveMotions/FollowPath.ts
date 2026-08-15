@@ -171,7 +171,7 @@ export function follow_path(robot: Robot, dt: number, points: Coordinate[], end_
     heading_output = clamp(heading_output, -heading_p.max_voltage, heading_p.max_voltage);
     drive_output = clamp(drive_output, -max_speed, max_speed);
 
-    if (!settling) drive_output = slew_scaling(drive_output, prev_slew_output, drive_p.slew * (dt / 0.01));
+    if (!settling) drive_output = slew_scaling(drive_output, prev_slew_output, drive_p.slew);
     prev_slew_output = drive_output;
 
     // Held to the chased point rather than to a carrot led off it

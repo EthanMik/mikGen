@@ -150,7 +150,7 @@ export const mikPIDConstantsSettings: Fields = [
     { key: "ki", label: "kI", units: "", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
     { key: "kd", label: "kD", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
     { key: "starti", units: "", label: "Starti", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
-    { key: "slew", units: "volt/10ms", label: "Slew", input: { bounds: [0, 100], stepSize: .1, roundTo: 2 } },
+    { key: "slew", units: "volt/tick", label: "Slew", input: { bounds: [0, 100], stepSize: .1, roundTo: 2 } },
 ];
 
 type CycleButton = Omit<CycleButtonField<"mikLib">, "constantsIdx">;

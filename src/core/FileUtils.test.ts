@@ -82,21 +82,10 @@ describe("loading a file saved before poseDrive grew translational constants", (
         const { deserializeToState } = await import("./FileUtils");
         const { convertPathToSim } = await import("../simulation/Conversion");
         const { precomputePath } = await import("./ComputePathSim");
-        const { Robot } = await import("./Robot");
+        const { Robot, defaultRobotConstants } = await import("./Robot");
 
         const state = deserializeToState(staleFile, "Push-Back-AWP");
-        const robot = new Robot(
-            0, 0, 0,
-            13.5, 12, 15, 6,
-            0, 0,
-            0, 0, 0, 0,
-            0, 0, true,
-            0, 0, true,
-            0, 0, true,
-            0, 0, true,
-            0.2, 0.1,
-        );
-        robot.holonomicRobot = true;
+        const robot = new Robot({ ...defaultRobotConstants, width: 13.5, height: 15, holonomicRobot: true });
 
         const sim = precomputePath(robot, convertPathToSim(state.formatDef, state.path));
         expect(sim.totalTime).toBeGreaterThan(0);

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { Robot } from "../../../core/Robot";
+import { defaultRobotConstants, Robot } from "../../../core/Robot";
 import { toRad } from "../../../core/Util";
 import { kMikDrive, kMikHeading, type mikConstants } from "../MikConstants";
 import { reduce_negative_180_to_180 } from "../Util";
@@ -16,17 +16,7 @@ const SETTLE_RADIUS = 6;
 type Pose = { x: number, y: number, angle: number };
 
 function makeRobot(pose: Pose) {
-    return new Robot(
-        pose.x, pose.y, pose.angle,
-        14, 12, 14, 6,
-        0, 0,
-        0, 0, 0, 0,
-        0, 0, true,
-        0, 0, true,
-        0, 0, true,
-        0, 0, true,
-        0.2, 0.1,
-    );
+    return new Robot(defaultRobotConstants, pose);
 }
 
 type Result = {
@@ -46,6 +36,12 @@ type DriveToPose = (robot: Robot, dt: number, x: number, y: number, angle: numbe
 async function freshDriveToPose(): Promise<DriveToPose> {
     vi.resetModules();
     const { drive_to_pose } = await import("./DriveToPose");
+    // The PID clock reads SIM_CONSTANTS, which only precomputePath writes and resetModules puts
+    // back to its default. Keep it in step with the dt driven here so settle and timeout
+    // windows count real milliseconds.
+    const { SIM_CONSTANTS } = await import("../../../core/ComputePathSim");
+    SIM_CONSTANTS.dt = dt;
+    SIM_CONSTANTS.dt_ms = dt * 1000;
     return drive_to_pose;
 }
 

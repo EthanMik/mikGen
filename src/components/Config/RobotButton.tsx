@@ -7,27 +7,8 @@ import ConfigButtonTemplate from "./ConfigButtonTemplate";
 import { ConfigCheckboxButton } from "../Util/CheckboxButton";
 import { DualNumberInputCheckboxButton, NumberInputButton, NumberInputCheckboxButton } from "../Util/NumberInputButton";
 import { SENSOR_COLORS } from "../Field/FieldColors";
-import type { RobotConstants } from "../../core/Robot";
 
 type ExpansionSide = "Front" | "Left" | "Right" | "Rear";
-
-type ExtraRow = {
-    name: string;
-    key: keyof RobotConstants;
-    disabledKey: keyof RobotConstants;
-    bounds: [number, number];
-    stepSize: number;
-    roundTo: number;
-    units: string;
-    label: string;
-};
-
-// Fidelity effects the sim can layer on top of the ideal robot. Each maps to a RobotExtras field.
-// The control loop itself is not configurable: the sim always ticks at 10ms.
-const EXTRA_ROWS: ExtraRow[] = [
-    { name: "Latency", key: "latencyMs", disabledKey: "latencyDisabled", bounds: [0, 100], stepSize: 5, roundTo: 0, units: "ms", label: "Sensing delay between where the robot really is and the pose the controller reads" },
-    { name: "Odom Drift", key: "odomDrift", disabledKey: "odomDriftDisabled", bounds: [0, 5], stepSize: 0.1, roundTo: 1, units: "%", label: "Controller reads integrated wheel odometry with this scale error instead of the true pose; includes IMU drift and sensor noise" },
-];
 
 export default function RobotButton() {
     const [format] = useFormat();
@@ -136,21 +117,28 @@ export default function RobotButton() {
                 </Section>
 
                 <Section name="Extras" defaultCollapsed>
-                    {EXTRA_ROWS.map((row) => (
-                        <NumberInputCheckboxButton
-                            key={row.key}
-                            name={row.name}
-                            label={row.label}
-                            value={robot[row.key] as number}
-                            setValue={v => v !== null && mergeRobot({ [row.key]: v })}
-                            bounds={row.bounds}
-                            stepSize={row.stepSize}
-                            roundTo={row.roundTo}
-                            units={row.units}
-                            checked={!robot[row.disabledKey]}
-                            setChecked={checked => { mergeRobot({ [row.disabledKey]: !checked }); saveSnapshot(); }}
-                        />
-                    ))}
+                    <NumberInputButton
+                        name="Update Rate"
+                        label="How often the simulated control loop runs. Slew and PID gains are per tick, so changing this changes how the robot responds"
+                        value={robot.updateHz}
+                        setValue={v => v !== null && mergeRobot({ updateHz: v })}
+                        bounds={[10, 200]}
+                        stepSize={5}
+                        roundTo={0}
+                        units="Hz"
+                    />
+                    <NumberInputCheckboxButton
+                        name="Latency"
+                        label="Sensing delay between where the robot really is and the pose the controller reads"
+                        value={robot.latencyMs}
+                        setValue={v => v !== null && mergeRobot({ latencyMs: v })}
+                        bounds={[0, 100]}
+                        stepSize={5}
+                        roundTo={0}
+                        units="ms"
+                        checked={!robot.latencyDisabled}
+                        setChecked={checked => { mergeRobot({ latencyDisabled: !checked }); saveSnapshot(); }}
+                    />
                 </Section>
             </div>
         </ConfigButtonTemplate>

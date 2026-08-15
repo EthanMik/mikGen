@@ -51,8 +51,8 @@ export function strafe_distance(robot: Robot, dt: number, distance: number, head
     drive_output = clamp(drive_output, -drive_p.max_voltage, drive_p.max_voltage);
     heading_output = clamp(heading_output, -heading_p.max_voltage, heading_p.max_voltage);
 
-    drive_output = slew_scaling(drive_output, prev_drive_output ?? 0, drive_p.slew * (dt / 0.01), Math.abs(drive_error) > drive_p.settle_error);
-    heading_output = slew_scaling(heading_output, prev_heading_output ?? 0, heading_p.slew * (dt / 0.01));
+    drive_output = slew_scaling(drive_output, prev_drive_output ?? 0, drive_p.slew, Math.abs(drive_error) > drive_p.settle_error);
+    heading_output = slew_scaling(heading_output, prev_heading_output ?? 0, heading_p.slew);
 
     drive_output = clamp_min_voltage(drive_output, drive_p.min_voltage);
 

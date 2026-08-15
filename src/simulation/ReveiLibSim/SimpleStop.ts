@@ -37,7 +37,8 @@ export class SimpleStop {
     dt: number
   ): StopState {
     if (this.timeout !== null && this.timeout > 0) {
-      this.timeElsapsed += (dt / 1000);
+      // dt is seconds and the timeout is milliseconds, matching brakeElapsed in the segment files
+      this.timeElsapsed += (dt * 1000);
       if (this.timeElsapsed > this.timeout) return "EXIT";
     }
 

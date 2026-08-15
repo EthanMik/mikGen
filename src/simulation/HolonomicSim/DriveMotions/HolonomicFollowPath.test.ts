@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { Robot } from "../../../core/Robot";
+import { defaultRobotConstants, Robot } from "../../../core/Robot";
 import { bezierPointAt, bezierTangentAt, sampleBezier, type Bezier } from "../../../core/Types/Bezier";
 import type { Coordinate } from "../../../core/Types/Coordinate";
 import { toDeg } from "../../../core/Util";
@@ -22,17 +22,7 @@ const SWING_TICKS = 45;
 type Pose = { x: number, y: number, angle: number };
 
 function makeRobot(pose: Pose) {
-    return new Robot(
-        pose.x, pose.y, pose.angle,
-        14, 12, 14, 6,
-        0, 0,
-        0, 0, 0, 0,
-        0, 0, true,
-        0, 0, true,
-        0, 0, true,
-        0, 0, true,
-        0.2, 0.1,
-    );
+    return new Robot(defaultRobotConstants, pose);
 }
 
 const curves = {
@@ -91,6 +81,12 @@ type HolonomicFollowPath = (robot: Robot, dt: number, points: Coordinate[], end_
 async function freshHolonomicFollowPath(): Promise<HolonomicFollowPath> {
     vi.resetModules();
     const { holonomic_follow_path } = await import("./HolonomicFollowPath");
+    // The PID clock reads SIM_CONSTANTS, which only precomputePath writes and resetModules puts
+    // back to its default. Keep it in step with the dt driven here so settle and timeout
+    // windows count real milliseconds.
+    const { SIM_CONSTANTS } = await import("../../../core/ComputePathSim");
+    SIM_CONSTANTS.dt = dt;
+    SIM_CONSTANTS.dt_ms = dt * 1000;
     return holonomic_follow_path;
 }
 

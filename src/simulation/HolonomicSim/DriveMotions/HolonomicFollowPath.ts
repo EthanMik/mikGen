@@ -247,8 +247,8 @@ export function holonomic_follow_path(robot: Robot, dt: number, points: Coordina
     trans_output = clamp(trans_output, -drive_p.max_voltage, drive_p.max_voltage);
 
     // Slew only the drive term. Correction is left free to react on the tick it is needed.
-    drive_output = slew_scaling(drive_output, prev_drive_output, drive_p.slew * (dt / 0.01), Math.abs(drive_error) > drive_p.settle_error);
-    turn_output = slew_scaling(turn_output, prev_turn_output, heading_p.slew * (dt / 0.01));
+    drive_output = slew_scaling(drive_output, prev_drive_output, drive_p.slew, Math.abs(drive_error) > drive_p.settle_error);
+    turn_output = slew_scaling(turn_output, prev_turn_output, heading_p.slew);
 
     drive_output = clamp_min_voltage(drive_output, drive_p.min_voltage);
     turn_output = clamp_min_voltage(turn_output, heading_p.min_voltage);

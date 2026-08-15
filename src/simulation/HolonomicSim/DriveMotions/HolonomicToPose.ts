@@ -77,8 +77,8 @@ export function holonomic_to_pose(robot: Robot, dt: number, x: number, y: number
     turn_output = clamp(turn_output, -heading_p.max_voltage, heading_p.max_voltage);
     trans_output = clamp(trans_output, -drive_p.max_voltage, drive_p.max_voltage);
 
-    drive_output = slew_scaling(drive_output, prev_drive_output, drive_p.slew * (dt / 0.01), Math.abs(drive_error) > drive_p.settle_error);
-    turn_output = slew_scaling(turn_output, prev_turn_output, heading_p.slew * (dt / 0.01));
+    drive_output = slew_scaling(drive_output, prev_drive_output, drive_p.slew, Math.abs(drive_error) > drive_p.settle_error);
+    turn_output = slew_scaling(turn_output, prev_turn_output, heading_p.slew);
 
     drive_output = clamp_min_voltage(drive_output, drive_p.min_voltage);
     turn_output = clamp_min_voltage(turn_output, drive_p.min_voltage);

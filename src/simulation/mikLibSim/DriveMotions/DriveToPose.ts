@@ -89,7 +89,7 @@ export function drive_to_pose(robot: Robot, dt: number, x: number, y: number, an
     heading_output = clamp(heading_output, -heading_p.max_voltage, heading_p.max_voltage);
 
     drive_output = clamp(drive_output, -drive_max_speed, drive_max_speed);
-    drive_output = slew_scaling(drive_output, prev_slew_output, drive_p.slew * (dt / 0.01), !settling);
+    drive_output = slew_scaling(drive_output, prev_slew_output, drive_p.slew, !settling);
     prev_slew_output = drive_output;
 
     drive_output = clamp_max_slip(drive_output, robot.getX(), robot.getY(), current_angle, carrot_X, carrot_Y, drive_p.drift);

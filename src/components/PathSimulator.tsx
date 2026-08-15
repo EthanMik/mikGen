@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import play from "../assets/play.svg";
 import pause from "../assets/pause.svg";
-import { extrasFromConstants, Robot } from "../core/Robot";
-import { activeSegmentAtTime, activeSimSegmentStore, computedPathStore, pathTelemetry, precomputePath, simJumpStore, SIM_CONSTANTS, type PathSim } from "../core/ComputePathSim";
+import { Robot } from "../core/Robot";
+import { activeSegmentAtTime, activeSimSegmentStore, computedPathStore, pathTelemetry, precomputePath, simJumpStore, SIM_CONSTANTS, type PathSim, type Snapshot } from "../core/ComputePathSim";
 import { usePose } from "../hooks/usePose";
-import { clamp } from "../core/Util";
+import { clamp, normalizeDeg, shortAngleDelta } from "../core/Util";
 import { useRobotVisibility } from "../hooks/useRobotVisibility";
 import Checkbox from "./Util/Checkbox";
 import Slider from "./Util/Slider";
@@ -37,54 +37,26 @@ function segmentGeoString(s: Segment): string {
     return key;
 }
 
+function poseAtPercent(path: PathSim, percent: number): Snapshot {
+    const trajectory = path.trajectory;
+    const at = clamp(percent, 0, 1) * (trajectory.length - 1);
+    const i = Math.floor(at);
+    const from = trajectory[i];
+    const to = trajectory[i + 1];
+    if (!to) return from;
+
+    const frac = at - i;
+    const mix = (u: number, v: number) => u + (v - u) * frac;
+    return {
+        t: mix(from.t, to.t),
+        x: mix(from.x, to.x),
+        y: mix(from.y, to.y),
+        angle: normalizeDeg(from.angle + shortAngleDelta(from.angle, to.angle) * frac),
+    };
+}
+
 function createRobot(): Robot {
-    const robotConstants = fileFormatStore.getState().robot;
-    const {
-        holonomicRobot,
-        width, height, trackwidth, speed, lateralTau, angularTau,
-        cogOffsetX, cogOffsetY, cogOffsetXDisabled, cogOffsetYDisabled,
-        expansionFront, expansionLeft, expansionRight, expansionRear,
-        expansionFrontDisabled, expansionLeftDisabled, expansionRightDisabled, expansionRearDisabled,
-        sensorFrontX, sensorFrontY, sensorFrontDisabled,
-        sensorLeftX, sensorLeftY, sensorLeftDisabled,
-        sensorRightX, sensorRightY, sensorRightDisabled,
-        sensorRearX, sensorRearY, sensorRearDisabled,
-    } = robotConstants;
-
-    const robot = new Robot(
-        0, // Start x
-        0, // Start y
-        0, // Start angle
-        width, // Width (inches)
-        trackwidth, // Track width (inches)
-        height, // Height (inches)
-        speed, // Speed (ft/s)
-        cogOffsetXDisabled ? 0 : cogOffsetX, // CoG lateral offset (inches)
-        cogOffsetYDisabled ? 0 : cogOffsetY, // CoG longitudinal offset (inches)
-        expansionFrontDisabled ? 0 : expansionFront,
-        expansionLeftDisabled ? 0 : expansionLeft,
-        expansionRightDisabled ? 0 : expansionRight,
-        expansionRearDisabled ? 0 : expansionRear,
-        sensorFrontX,
-        sensorFrontY,
-        sensorFrontDisabled,
-        sensorLeftX,
-        sensorLeftY,
-        sensorLeftDisabled,
-        sensorRightX,
-        sensorRightY,
-        sensorRightDisabled,
-        sensorRearX,
-        sensorRearY,
-        sensorRearDisabled,
-        lateralTau,
-        angularTau,
-        extrasFromConstants(robotConstants),
-    );
-
-    robot.holonomicRobot = holonomicRobot;
-
-    return robot;
+    return new Robot(fileFormatStore.getState().robot);
 }
 
 export default function PathSimulator() {
@@ -274,10 +246,7 @@ export default function PathSimulator() {
     const setPathPercent = (path: PathSim, percent: number) => {
         if (!path.trajectory.length) return;
 
-        percent = clamp(percent, 0, 100) / 100;
-
-        const idx = Math.floor(percent * (path.trajectory.length - 1));
-        const snap = path.trajectory[idx];
+        const snap = poseAtPercent(path, clamp(percent, 0, 100) / 100);
         setTime(snap.t);
 
         setPose({ x: snap.x, y: snap.y, angle: snap.angle })
@@ -286,15 +255,8 @@ export default function PathSimulator() {
     const forceSnapTime = (path: PathSim, t: number) => {
         if (!path.trajectory.length) return;
 
-        const percent = (t / path.totalTime);
-        const idx = Math.floor(percent * (path.trajectory.length - 1));
-        try {
-            const snap = path.trajectory[idx];
-            setPose({ x: snap.x, y: snap.y, angle: snap.angle })
-        } catch {
-            return;
-        }
-
+        const snap = poseAtPercent(path, t / path.totalTime);
+        setPose({ x: snap.x, y: snap.y, angle: snap.angle })
     };
 
     const setPathTime = (path: PathSim, t: number) => {
@@ -305,9 +267,7 @@ export default function PathSimulator() {
         const percent = (t / path.totalTime);
         setValue(percent * 100);
 
-        const idx = Math.floor(percent * (path.trajectory.length - 1));
-        const snap = path.trajectory[idx];
-
+        const snap = poseAtPercent(path, percent);
         setPose({ x: snap.x, y: snap.y, angle: snap.angle })
     }
 

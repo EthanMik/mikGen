@@ -82,8 +82,8 @@ export function drive_to_point(robot: Robot, dt: number, x: number, y: number, p
     drive_output = clamp(drive_output, -Math.abs(heading_scale_factor) * drive_p.max_voltage, Math.abs(heading_scale_factor) * drive_p.max_voltage);
     heading_output = clamp(heading_output, -heading_p.max_voltage, heading_p.max_voltage);
 
-    drive_output = slew_scaling(drive_output, prev_drive_output, drive_p.slew * (dt / 0.01), !heading_locked);
-    heading_output = slew_scaling(heading_output, prev_heading_output, heading_p.slew * (dt / 0.01));
+    drive_output = slew_scaling(drive_output, prev_drive_output, drive_p.slew, !heading_locked);
+    heading_output = slew_scaling(heading_output, prev_heading_output, heading_p.slew);
 
     if (drive_p.drive_direction === "forwards" && !heading_locked) drive_output = Math.max(drive_output, 0);
     else if (drive_p.drive_direction === "reversed" && !heading_locked) drive_output = Math.min(drive_output, 0);

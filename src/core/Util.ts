@@ -51,6 +51,11 @@ export function rotatePoint(point: Coordinate, angle: number): Coordinate {
 
 export function normalizeDeg(angle: number) { return ((angle % 360) + 360) % 360; }
 
+/** Signed shortest way round from a to b, in degrees. Use to blend between two headings. */
+export function shortAngleDelta(a: number, b: number): number {
+    return ((((b - a) % 360) + 540) % 360) - 180;
+}
+
 export function clamp(value: number, min: number, max: number) {
     return Math.min(Math.max(value, min), max);
 }

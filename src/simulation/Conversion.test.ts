@@ -15,7 +15,7 @@ vi.hoisted(() => {
 // Loaded first: FormatDefinition and useFileFormat import each other, and the registry only
 // initializes when the cycle is entered from the useFileFormat side, as the app does
 import "../hooks/useFileFormat";
-import { Robot } from "../core/Robot";
+import { defaultRobotConstants, Robot } from "../core/Robot";
 import type { Path } from "../core/Types/Path";
 import type { Coordinate } from "../core/Types/Coordinate";
 import { createControlPoint } from "../core/Types/Pose";
@@ -655,17 +655,7 @@ describe("convertPathToSim", () => {
     });
 
     it("runs a real mikLib start and turn to completion", () => {
-        const robot = new Robot(
-            0, 0, 0,
-            14, 12, 14, 6,
-            0, 0,
-            0, 0, 0, 0,
-            0, 0, true,
-            0, 0, true,
-            0, 0, true,
-            0, 0, true,
-            0.2, 0.1,
-        );
+        const robot = new Robot(defaultRobotConstants);
         const auton = convertPathToSim(mikDef, mkPath([
             mikSeg("start", { x: 0, y: 0, angle: 0 }),
             mikSeg("angleTurn", { x: null, y: null, angle: 90 }),

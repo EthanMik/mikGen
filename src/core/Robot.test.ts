@@ -1,20 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { Robot } from "./Robot";
+import { defaultRobotConstants, Robot } from "./Robot";
 
 const dt = 1 / 60;
 
 function makeRobot(trackwidth = 12, height = 14) {
-    return new Robot(
-        0, 0, 0,
-        14, trackwidth, height, 6,
-        0, 0,
-        0, 0, 0, 0,
-        0, 0, true,
-        0, 0, true,
-        0, 0, true,
-        0, 0, true,
-        0.2, 0.1,
-    );
+    return new Robot({ ...defaultRobotConstants, trackwidth, height });
 }
 
 function poseIsFinite(robot: Robot) {

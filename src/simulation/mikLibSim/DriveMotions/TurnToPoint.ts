@@ -61,7 +61,7 @@ export function turn_to_point(robot: Robot, dt: number, x: number, y: number, of
     }
 
     output = clamp(output, -turn_p.max_voltage, turn_p.max_voltage);
-    output = slew_scaling(output, prev_output ?? 0, turn_p.slew * (dt / 0.01), Math.abs(error) > 15);
+    output = slew_scaling(output, prev_output ?? 0, turn_p.slew, Math.abs(error) > 15);
     output = clamp_min_voltage(output, turn_p.min_voltage);
     prev_output = output;
 

@@ -59,7 +59,7 @@ export function swing_to_angle(robot: Robot, dt: number, angle: number, p: mikCo
     }
 
     output = clamp(output, -turn_p.max_voltage, turn_p.max_voltage);
-    output = slew_scaling(output, prev_output ?? 0, turn_p.slew * (dt / 0.01), Math.abs(error) > turn_p.starti);
+    output = slew_scaling(output, prev_output ?? 0, turn_p.slew, Math.abs(error) > turn_p.starti);
     output = clamp_min_voltage(output, turn_p.min_voltage);
     prev_output = output;
 
