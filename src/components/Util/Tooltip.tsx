@@ -1,5 +1,6 @@
-import { Fragment, type ReactNode, useRef, useState } from "react";
+import { Fragment, type ReactNode, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { clamp } from "../../core/Util";
 
 type TooltipPlacement = "top" | "bottom" | "left" | "right";
 
@@ -10,6 +11,14 @@ type TooltipProps = {
     keybind?: boolean,
     children: ReactNode;
 };
+
+// A label wider than this wraps onto another row instead of running off the window
+const MAX_WIDTH = 240;
+// Fixed positioning shrinks a box to the space left between its left edge and the window, so a
+// tooltip near an edge would wrap on its own. max-content sizes it to the label and lets MAX_WIDTH
+// be the only thing that wraps it
+const SIZING: React.CSSProperties = { width: "max-content", maxWidth: MAX_WIDTH };
+const VIEWPORT_MARGIN = 6;
 
 function computeStyle(rect: DOMRect, placement: TooltipPlacement): React.CSSProperties {
     const gap = 4;
@@ -39,11 +48,25 @@ const slideClass: Record<TooltipPlacement, string> = {
 
 export default function Tooltip({ label, placement = "top", keybind = false, children, speed = "slow" }: TooltipProps) {
     const ref = useRef<HTMLDivElement>(null);
+    const tipRef = useRef<HTMLDivElement>(null);
     const hideTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
     const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties | null>(null);
     const [visible, setVisible] = useState(false);
 
     const openDelay = speed === "slow" ? 600 : 100;
+
+    // A wrapped label is wide enough to run past the window when its anchor sits near an edge,
+    // so the centered placements get nudged back in once the wrapped width is known. Written to
+    // the node instead of state since the left in tooltipStyle stays put and React leaves it alone
+    useLayoutEffect(() => {
+        const tip = tipRef.current;
+        if (!tip || !tooltipStyle || (placement !== "top" && placement !== "bottom")) return;
+        const center = tooltipStyle.left as number;
+        const half = tip.offsetWidth / 2;
+        const min = VIEWPORT_MARGIN + half;
+        const max = window.innerWidth - VIEWPORT_MARGIN - half;
+        tip.style.left = `${clamp(center, min, Math.max(min, max))}px`;
+    }, [tooltipStyle, placement]);
 
     function handleMouseEnter() {
         clearTimeout(hideTimer.current);
@@ -65,9 +88,10 @@ export default function Tooltip({ label, placement = "top", keybind = false, chi
                     </div>
                     {tooltipStyle && createPortal(
                         <div
+                            ref={tipRef}
                             className={`
                                 pointer-events-none flex items-center gap-1 px-2 py-1
-                                bg-medgray_hover rounded-sm border-medgrayoffset border whitespace-nowrap
+                                bg-medgray_hover rounded-sm border-medgrayoffset border break-words
                                 duration-150
                                 ${centerClass[placement]}
                                 ${visible
@@ -75,9 +99,9 @@ export default function Tooltip({ label, placement = "top", keybind = false, chi
                                     : `opacity-0 ${slideClass[placement]} delay-100`
                                 }
                             `}
-                            style={{ ...tooltipStyle, transitionDelay: visible ? `${openDelay}ms` : "100ms" }}
+                            style={{ ...tooltipStyle, ...SIZING, transitionDelay: visible ? `${openDelay}ms` : "100ms" }}
                         >
-                            <span className={`text-[10px] ${keybind ? "text-lightgray" : "text-verylightgray"}`}>{label}</span>
+                            <span className={`text-[10px] leading-snug ${keybind ? "text-lightgray" : "text-verylightgray"}`}>{label}</span>
                         </div>,
                         document.body
                     )}

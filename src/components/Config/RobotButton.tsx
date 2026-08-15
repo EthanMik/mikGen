@@ -119,7 +119,7 @@ export default function RobotButton() {
                 <Section name="Extras" defaultCollapsed>
                     <NumberInputButton
                         name="Update Rate"
-                        label="How often the simulated control loop runs. Slew and PID gains are per tick, so changing this changes how the robot responds"
+                        label="How often the simulation updates. Slew and PID gains are affected by this"
                         value={robot.updateHz}
                         setValue={v => v !== null && mergeRobot({ updateHz: v })}
                         bounds={[10, 200]}
@@ -129,7 +129,7 @@ export default function RobotButton() {
                     />
                     <NumberInputCheckboxButton
                         name="Latency"
-                        label="Sensing delay between where the robot really is and the pose the controller reads"
+                        label="Adds a delay between when the algorithm gets robot's actual position"
                         value={robot.latencyMs}
                         setValue={v => v !== null && mergeRobot({ latencyMs: v })}
                         bounds={[0, 100]}

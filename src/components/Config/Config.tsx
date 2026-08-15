@@ -15,7 +15,7 @@ type ConfigProps = { fillHeight?: boolean };
 export default function Config({ fillHeight = false }: ConfigProps) {
     const dirHandle = dirHandleStore.useStore();
     return (
-        <div className={`flex pr-[6px] flex-col gap-2 pl-[6px] ${fillHeight ? "h-full" : ""}`}>
+        <div className={`flex flex-col gap-2 ${fillHeight ? "h-full" : ""}`}>
             <div className="w-[180px] flex items-center bg-medgray rounded-sm px-1 py-0.5 gap-1">
                 <FileButton />
                 <EditButton />

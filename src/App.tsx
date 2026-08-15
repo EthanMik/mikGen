@@ -17,6 +17,13 @@ import lines from "./assets/lines.svg";
 import marker from "./assets/marker.svg";
 import homeButton from "./assets/home.svg";
 
+// Everything on screen sits on one 8px grid: the window edges, the gaps between the
+// config panel, field, simulator and the right hand panels
+const EDGE = 8;
+const CONFIG_W = 180;
+// button size plus a gap on both sides, so the floating popout buttons stack on the same grid
+const BUTTON_STEP = 33 + EDGE;
+
 export default function App() {
   const pathName = fileFormatStore.useSelector(s => s.path.name);
 
@@ -75,8 +82,8 @@ export default function App() {
       if (fw > 0) cachedFieldW.current = fw;
       if (rw > 0) cachedRightW.current = rw;
 
-      const autoConfig = vw - 16 > cachedFieldW.current + cachedRightW.current;
-      const autoRight = vw - 16 > cachedFieldW.current + 250;
+      const autoConfig = vw - EDGE * 2 > cachedFieldW.current + cachedRightW.current;
+      const autoRight = vw - EDGE * 2 > cachedFieldW.current + 250;
       const nextShowConfig = mode === "standard" ? true : (mode === "collapsed-config" || mode === "fully-collapsed" ? false : autoConfig);
       const nextShowRight = mode === "standard" ? true : (mode === "collapsed-list" || mode === "fully-collapsed" ? false : autoRight);
       setShowConfig(nextShowConfig);
@@ -89,8 +96,7 @@ export default function App() {
 
       if (cw <= 0 || ch <= 0) return;
 
-      const padding = 16;
-      const CONFIG_W = 196;
+      const padding = EDGE * 2;
       const fullyCollapsedNext = !nextShowConfig && !nextShowRight;
 
       if (fullyCollapsedNext) {
@@ -98,7 +104,7 @@ export default function App() {
         setScale(s);
         setCanvasWidth(Math.round(vw / s));
       } else {
-        const totalCw = (nextShowConfig ? CONFIG_W : 0) + cw;
+        const totalCw = (nextShowConfig ? CONFIG_W + EDGE : 0) + cw;
         setScale(clamp(Math.min((vw - padding) / totalCw, (vh - padding) / ch), 0.75, 2));
         setCanvasWidth(FIELD_IMG_DIMENSIONS.w);
       }
@@ -131,7 +137,7 @@ export default function App() {
         <HoverButton
           src={threeDots}
           onClick={() => setConfigPopout(v => !v)}
-          className={`fixed top-[10px] left-[10px] z-50 w-[33px] h-[33px]${showConfig ? " hidden" : ""}`}
+          className={`fixed top-2 left-2 z-50 w-[33px] h-[33px]${showConfig ? " hidden" : ""}`}
           imgClassName="w-5 h-5"
         />
         <div
@@ -140,8 +146,8 @@ export default function App() {
             !showConfig && !configPopout
               ? { display: "none" }
               : showConfig
-              ? { top: "10px", left: "10px", transform: `scale(${scale})`, transformOrigin: "top left", zIndex: 10 }
-              : { top: "52px", left: "10px", transform: "scale(0.85)", transformOrigin: "top left", height: "calc((100vh - 62px) / 0.85)", zIndex: 50 }
+              ? { top: `${EDGE}px`, left: `${EDGE}px`, transform: `scale(${scale})`, transformOrigin: "top left", zIndex: 10 }
+              : { top: `${EDGE + BUTTON_STEP}px`, left: `${EDGE}px`, transform: "scale(0.85)", transformOrigin: "top left", height: `calc((100vh - ${EDGE * 2 + BUTTON_STEP}px) / 0.85)`, zIndex: 50 }
           }
         >
           <Config fillHeight={!showConfig} />
@@ -152,26 +158,28 @@ export default function App() {
             <HoverButton
               src={lines}
               onClick={() => setPathConfigPopout(v => !v)}
-              className="fixed top-[10px] right-[10px] z-50 w-[33px] h-[33px]"
+              className="fixed top-2 right-2 z-50 w-[33px] h-[33px]"
               imgClassName="w-5 h-5"
             />
             <HoverButton
               src={marker}
               onClick={() => setControlConfigPopout(v => !v)}
-              className="fixed top-[50px] right-[10px] z-50 w-[33px] h-[33px]"
+              className="fixed right-2 z-50 w-[33px] h-[33px]"
+              style={{ top: `${EDGE + BUTTON_STEP}px` }}
               imgClassName="w-5 h-5"
             />
             {isFieldPanned && (
               <HoverButton
                 src={homeButton}
                 onClick={() => useFieldImg.setState(FIELD_IMG_DIMENSIONS)}
-                className="fixed top-[90px] right-[10px] z-50 w-[33px] h-[33px]"
+                className="fixed right-2 z-50 w-[33px] h-[33px]"
+                style={{ top: `${EDGE + BUTTON_STEP * 2}px` }}
                 imgClassName="w-5 h-5"
               />
             )}
             <div
-              className="fixed right-[10px] z-50 flex flex-col gap-2"
-              style={{ top: isFieldPanned ? "130px" : "97px", transform: "scale(0.85)", transformOrigin: "top right" }}
+              className="fixed right-2 z-50 flex flex-col gap-2"
+              style={{ top: `${EDGE + BUTTON_STEP * (isFieldPanned ? 3 : 2)}px`, transform: "scale(0.85)", transformOrigin: "top right" }}
             >
               <div className={pathConfigPopout ? "" : "hidden"}>
                 <PathConfig />
@@ -184,16 +192,16 @@ export default function App() {
         )}
         <div
           ref={contentRef}
-          style={{ transform: `scale(${scale})`, transformOrigin: fullyCollapsed ? "center" : "top left", marginLeft: showConfig ? `${10 + 196 * scale}px` : undefined }}
+          style={{ transform: `scale(${scale})`, transformOrigin: fullyCollapsed ? "center" : "top left", marginLeft: fullyCollapsed ? undefined : showConfig ? `${EDGE + (CONFIG_W + EDGE) * scale}px` : `${EDGE}px`, marginTop: fullyCollapsed ? undefined : `${EDGE}px` }}
           className="inline-flex w-max h-max"
         >
           <div className="inline-flex">
-            <div ref={fieldRef} className={`flex flex-col gap-[10px] ml-[4px] pt-[10px]${fullyCollapsed ? " items-center" : ""}`}>
+            <div ref={fieldRef} className={`flex flex-col gap-2${fullyCollapsed ? " items-center" : ""}`}>
               <Field showRightPanel={showRightPanel} canvasWidth={canvasWidth} />
               <PathSimulator />
             </div>
             {showRightPanel && (
-              <div ref={rightPanelRef} className="flex flex-col gap-[10px] pt-[10px] pl-[10px]">
+              <div ref={rightPanelRef} className="flex flex-col gap-2 pl-2">
                 <PathConfig />
                 <ControlConfig />
               </div>
