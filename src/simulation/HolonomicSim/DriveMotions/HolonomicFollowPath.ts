@@ -1,13 +1,9 @@
 import type { Robot } from "../../../core/Robot";
-import { resamplePolyline } from "../../../core/Types/Bezier";
 import type { Coordinate } from "../../../core/Types/Coordinate";
 import { clamp, toDeg, toRad } from "../../../core/Util";
 import { type mikConstants } from "../../mikLibSim/MikConstants";
 import { PID } from "../../mikLibSim/PID";
 import { clamp_min_voltage, is_line_settled, reduce_negative_180_to_180, slew_scaling } from "../../mikLibSim/Util";
-
-/** Inches between path points, so an index step is a known arc length. */
-const POINT_DENSITY = 1;
 
 /**
  * TUNE. Scales the inward force held on a curve: output = scale * v_tangential^2 * curvature.
@@ -23,18 +19,20 @@ const TRANSLATIONAL_KI = 0;
 const TRANSLATIONAL_KD = 0;
 const TRANSLATIONAL_STARTI = 0;
 
-/** Points either side of the sample used for curvature. A 1" spacing is too noisy for a 3-point stencil. */
-const CURVATURE_STENCIL = 3;
+/** Inches either side of the sample the curvature stencil spans. Too narrow a window and the three
+ *  point stencil reads the sampling of the curve rather than its shape. */
+const CURVATURE_WINDOW = 3;
 
 /** Inches from either end of the path where translational correction regains full 2D authority. */
 const FULL_CORRECTION_ZONE = 1.0;
 
 /**
- * Points past the closest point used only for the heading target. 0 matches Pedro. Raising it
- * restores the early rotation into bends that the carrot used to give, without putting a lookahead
- * back into the path geometry.
+ * Inches past the foot point used only for the heading target. Gives the early rotation into bends
+ * that the carrot used to, without putting a lookahead back into the path geometry. 0 matches Pedro;
+ * an inch is what the old 1in point spacing handed over for free, by reading the tangent off the
+ * chord leaving the nearest vertex rather than off the foot itself.
  */
-const HEADING_PREVIEW_POINTS = 0;
+const HEADING_PREVIEW = 1;
 
 let path_points: Coordinate[] = [];
 let path_lengths: number[] = [];
@@ -94,7 +92,7 @@ function closestIdx(points: Coordinate[], x: number, y: number): number {
 
 /**
  * Refines the best vertex to a continuous foot point by projecting onto the two adjacent segments.
- * Without a lookahead to smooth it over, the 1" quantization of a raw vertex lands directly in the
+ * Without a lookahead to smooth it over, the quantization of a raw vertex lands directly in the
  * cross-track error.
  */
 function refineClosest(idx: number, x: number, y: number): { point: Coordinate; s: number } {
@@ -120,27 +118,58 @@ function refineClosest(idx: number, x: number, y: number): { point: Coordinate; 
     return best;
 }
 
-/** Heading of the path at a point, taken off the chord leaving it. Compass convention, degrees. */
-function tangentAt(idx: number): number {
-    const from = path_points[Math.min(idx, path_points.length - 2)];
-    const to = path_points[Math.min(idx, path_points.length - 2) + 1];
-    return toDeg(Math.atan2(to.x - from.x, to.y - from.y));
+/** Total arc length of the path. */
+function pathLength(): number {
+    return path_lengths[path_lengths.length - 1];
+}
+
+/**
+ * Index of the chord an arc length falls on, so every lookup below is keyed by distance rather than
+ * by index. Nothing here assumes the points are evenly spaced, so the path is followed exactly as it
+ * arrives however densely the curve behind it was sampled.
+ */
+function chordIdxAt(s: number): number {
+    const arc = clamp(s, 0, pathLength());
+    let i = 0;
+    while (i < path_points.length - 2 && path_lengths[i + 1] < arc) i++;
+    return i;
+}
+
+/** Point on the path at an arc length along it, interpolated within the chord it falls on. */
+function pointAtArc(s: number): Coordinate {
+    const arc = clamp(s, 0, pathLength());
+    const i = chordIdxAt(arc);
+    const chord = path_lengths[i + 1] - path_lengths[i];
+    const t = chord > 0 ? (arc - path_lengths[i]) / chord : 0;
+    return {
+        x: path_points[i].x + (path_points[i + 1].x - path_points[i].x) * t,
+        y: path_points[i].y + (path_points[i + 1].y - path_points[i].y) * t,
+    };
+}
+
+/** Heading of the path at an arc length along it, taken off the chord it falls on. Compass degrees. */
+function tangentAt(s: number): number {
+    const i = chordIdxAt(s);
+    return toDeg(Math.atan2(path_points[i + 1].x - path_points[i].x, path_points[i + 1].y - path_points[i].y));
 }
 
 /** The same tangent as a field-relative bearing, radians CCW from +x, matching the drive mixing. */
-function tangentBearingAt(idx: number): number {
-    const i = Math.min(idx, path_points.length - 2);
+function tangentBearingAt(s: number): number {
+    const i = chordIdxAt(s);
     return Math.atan2(path_points[i + 1].y - path_points[i].y, path_points[i + 1].x - path_points[i].x);
 }
 
-/** Signed curvature from a symmetric stencil; positive is a left-hand bend. */
-function curvatureAt(idx: number): number {
-    if (path_points.length < 2 * CURVATURE_STENCIL + 1) return 0;
-    const i = clamp(idx, CURVATURE_STENCIL, path_points.length - 1 - CURVATURE_STENCIL);
-    const prev = path_points[i - CURVATURE_STENCIL];
-    const cur = path_points[i];
-    const next = path_points[i + CURVATURE_STENCIL];
-    const h = CURVATURE_STENCIL * POINT_DENSITY;
+/** Signed curvature from a symmetric stencil, spanned by arc length; positive is a left-hand bend. */
+function curvatureAt(s: number): number {
+    const total = pathLength();
+    const h = Math.min(CURVATURE_WINDOW, total / 2);
+    if (h < 1e-9) return 0;
+
+    // Held a window in from either end, so the stencil never runs off the path and reads flat
+    const center = clamp(s, h, total - h);
+    const prev = pointAtArc(center - h);
+    const cur = pointAtArc(center);
+    const next = pointAtArc(center + h);
 
     const dx = (next.x - prev.x) / (2 * h);
     const dy = (next.y - prev.y) / (2 * h);
@@ -174,7 +203,7 @@ export function holonomic_follow_path(robot: Robot, dt: number, points: Coordina
     const heading_p = p[1];
 
     if (start) {
-        path_points = resamplePolyline(points, POINT_DENSITY);
+        path_points = points;
         path_lengths = cumulativeLengths(path_points);
         drivePID = new PID(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
         turnPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, drive_p.timeout, 0);
@@ -184,7 +213,7 @@ export function holonomic_follow_path(robot: Robot, dt: number, points: Coordina
         have_prev_pose = false;
 
         const end = path_points[path_points.length - 1];
-        prev_line_settled = is_line_settled(end.x, end.y, tangentAt(path_points.length - 1), robot.getX(), robot.getY(), drive_p.exit_error);
+        prev_line_settled = is_line_settled(end.x, end.y, tangentAt(pathLength()), robot.getX(), robot.getY(), drive_p.exit_error);
     }
 
     if (drivePID.isSettled() && turnPID.isSettled()) {
@@ -199,7 +228,7 @@ export function holonomic_follow_path(robot: Robot, dt: number, points: Coordina
     // point — there is no carrot, so its precision sets the tracking floor.
     const closest = closestIdx(path_points, robot.getX(), robot.getY());
     const { point: foot, s: distanceAlong } = refineClosest(closest, robot.getX(), robot.getY());
-    const tangent = tangentBearingAt(closest);
+    const tangent = tangentBearingAt(distanceAlong);
     const tx = Math.cos(tangent);
     const ty = Math.sin(tangent);
 
@@ -209,7 +238,7 @@ export function holonomic_follow_path(robot: Robot, dt: number, points: Coordina
 
     // The exit plane is fixed by the direction the path arrives from, not by the commanded heading,
     // since a holonomic chassis can cross it facing any way at all
-    const line_settled = is_line_settled(end.x, end.y, tangentAt(last), robot.getX(), robot.getY(), drive_p.exit_error);
+    const line_settled = is_line_settled(end.x, end.y, tangentAt(pathLength()), robot.getX(), robot.getY(), drive_p.exit_error);
     if (!(line_settled === prev_line_settled) && drive_p.min_voltage > 0) {
         reset_holonomic_follow_path();
         return true;
@@ -217,12 +246,12 @@ export function holonomic_follow_path(robot: Robot, dt: number, points: Coordina
     prev_line_settled = line_settled;
 
     // Arc length left from the closest point. This owns progress along the path and nothing else.
-    const drive_error = path_lengths[last] - distanceAlong;
+    const drive_error = pathLength() - distanceAlong;
 
     // Cross-track error owns getting back onto the path and nothing else.
     let errX = foot.x - robot.getX();
     let errY = foot.y - robot.getY();
-    const atPathEnd = distanceAlong <= FULL_CORRECTION_ZONE || distanceAlong >= path_lengths[last] - FULL_CORRECTION_ZONE;
+    const atPathEnd = distanceAlong <= FULL_CORRECTION_ZONE || distanceAlong >= pathLength() - FULL_CORRECTION_ZONE;
     if (!atPathEnd) {
         // At a true perpendicular foot this is already zero — it strips residue from the segment
         // projection. Skipped near the ends, where the foot is clamped and the robot needs full 2D
@@ -235,7 +264,7 @@ export function holonomic_follow_path(robot: Robot, dt: number, points: Coordina
 
     // Turning runs the whole way rather than only at the end. A commanded angle is held from the
     // first tick; without one the robot rides the tangent at the closest point.
-    const desired_angle = end_angle ?? tangentAt(Math.min(closest + HEADING_PREVIEW_POINTS, last));
+    const desired_angle = end_angle ?? tangentAt(distanceAlong + HEADING_PREVIEW);
     const turn_error = reduce_negative_180_to_180(desired_angle - robot.getAngle());
 
     let drive_output = drivePID.compute(drive_error);
@@ -255,7 +284,7 @@ export function holonomic_follow_path(robot: Robot, dt: number, points: Coordina
 
     // The inward force needed to hold the arc, applied before any error appears. Curvature carries
     // the sign, so a right-hand bend flips this vector automatically.
-    const cent_output = clamp(CENTRIPETAL_SCALING * tangentialSpeed * tangentialSpeed * curvatureAt(closest), -drive_p.max_voltage, drive_p.max_voltage);
+    const cent_output = clamp(CENTRIPETAL_SCALING * tangentialSpeed * tangentialSpeed * curvatureAt(distanceAlong), -drive_p.max_voltage, drive_p.max_voltage);
     const centDir = tangent + Math.PI / 2;
     const transDir = Math.atan2(errY, errX);
 

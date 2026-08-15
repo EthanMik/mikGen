@@ -1,12 +1,10 @@
 import type { Robot } from "../../../core/Robot";
 import type { Coordinate } from "../../../core/Types/Coordinate";
-import { resamplePolyline } from "../../../core/Types/Bezier";
 import { clamp, normalizeDeg, toDeg, toRad } from "../../../core/Util";
 import { type mikConstants } from "../MikConstants";
 import { PID } from "../PID";
 import { clamp_max_slip, clamp_min_voltage, is_line_settled, left_voltage_scaling, overturn_scaling, reduce_negative_180_to_180, reduce_negative_90_to_90, right_voltage_scaling, slew_scaling } from "../Util";
 
-const POINT_DENSITY = 1;
 /** Inches further along the path the chased point is drawn from. */
 const LOOKAHEAD_DISTANCE = 8;
 /** Distance to the end at which the settle phase begins. */
@@ -101,7 +99,7 @@ export function follow_path(robot: Robot, dt: number, points: Coordinate[], end_
     const reversed = drive_p.drive_direction === "reversed";
 
     if (start) {
-        path_points = resamplePolyline(points, POINT_DENSITY);
+        path_points = points;
         path_lengths = cumulativeLengths(path_points);
         total_distance = path_lengths[path_lengths.length - 1];
         final_tangent = pathPoseAt(total_distance).theta;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { bezierPointAt, polylineLength, resamplePolyline, resolveBezier, sampleBezier } from "./Bezier";
+import { bezierPointAt, polylineLength, resolveBezier, sampleBezier } from "./Bezier";
 import type { Path } from "./Path";
 import type { Segment } from "./Segment";
 import { createControlPoint, type ControlPoint } from "./Pose";
@@ -78,59 +78,5 @@ describe("resolveBezier", () => {
         expect(bezier).not.toBeNull();
         expect(bezier!.c1).toEqual({ x: 0, y: 0 });
         expect(bezier!.c2).toEqual({ x: 30, y: 0 });
-    });
-});
-
-describe("resamplePolyline", () => {
-    /** Every gap but the last, which carries whatever remainder is left over. */
-    function gaps(points: { x: number, y: number }[]): number[] {
-        const out: number[] = [];
-        for (let i = 1; i < points.length; i++) out.push(Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y));
-        return out;
-    }
-
-    it("spaces a straight line evenly", () => {
-        const points = resamplePolyline([{ x: 0, y: 0 }, { x: 0, y: 10 }], 1);
-        expect(points).toHaveLength(11);
-        for (const gap of gaps(points)) expect(gap).toBeCloseTo(1, 10);
-        expect(points[points.length - 1]).toEqual({ x: 0, y: 10 });
-    });
-
-    it("carries the remainder across the source points instead of restarting at each one", () => {
-        // Source vertices at 1.5in intervals, so naive per-chord spacing would bunch points up
-        const source = [{ x: 0, y: 0 }, { x: 0, y: 1.5 }, { x: 0, y: 3 }, { x: 0, y: 4.5 }];
-        const points = resamplePolyline(source, 1);
-
-        for (const gap of gaps(points).slice(0, -1)) expect(gap).toBeCloseTo(1, 10);
-        expect(points[points.length - 1]).toEqual({ x: 0, y: 4.5 });
-    });
-
-    it("keeps the end point and leaves only the remainder short", () => {
-        const points = resamplePolyline([{ x: 0, y: 0 }, { x: 0, y: 10.4 }], 3);
-        const spans = gaps(points);
-        for (const gap of spans.slice(0, -1)) expect(gap).toBeCloseTo(3, 10);
-        expect(spans[spans.length - 1]).toBeCloseTo(1.4, 10);
-        expect(points[points.length - 1]).toEqual({ x: 0, y: 10.4 });
-    });
-
-    it("follows the corners of a bent polyline", () => {
-        const points = resamplePolyline([{ x: 0, y: 0 }, { x: 0, y: 6 }, { x: 6, y: 6 }], 2);
-        expect(polylineLength(points)).toBeCloseTo(12, 10);
-        for (const gap of gaps(points)) expect(gap).toBeLessThanOrEqual(2 + 1e-10);
-    });
-
-    it("resamples a sampled bezier to the requested density", () => {
-        const bezier = resolveBezier(makePath([createControlPoint(10, 12), createControlPoint(20, -4)]), 1)!;
-        const points = resamplePolyline(sampleBezier(bezier, 400), 1);
-
-        for (const gap of gaps(points).slice(0, -1)) expect(gap).toBeCloseTo(1, 2);
-        expect(points[points.length - 1]).toEqual({ x: 30, y: 0 });
-    });
-
-    it("returns degenerate input untouched rather than hanging", () => {
-        expect(resamplePolyline([], 1)).toEqual([]);
-        expect(resamplePolyline([{ x: 1, y: 2 }], 1)).toEqual([{ x: 1, y: 2 }]);
-        expect(resamplePolyline([{ x: 1, y: 2 }, { x: 3, y: 4 }], 0)).toHaveLength(2);
-        expect(resamplePolyline([{ x: 1, y: 2 }, { x: 1, y: 2 }], 1)).toEqual([{ x: 1, y: 2 }, { x: 1, y: 2 }]);
     });
 });

@@ -10,8 +10,8 @@ import type { FormatDef, SegmentConstants, SegmentDef, SegmentKind, SimFn } from
 import { angle_error } from "./mikLibSim/Util";
 import { createStore } from "../core/Store";
 
-/** Bezier samples handed to the simulator as the path to follow. Fine enough that a follower can
- *  resample it down to inch spacing without the chords showing through. */
+/** Bezier samples handed to the simulator as the path to follow. Followers read the path by arc
+ *  length, so this only has to be fine enough that the chords never show through. */
 const BEZIER_SIM_SAMPLES = 400;
 
 /** Template placeholders that carry a bare number, so they parse back as one. */
