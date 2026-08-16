@@ -1,7 +1,9 @@
 import { createSharedState } from "../core/SharedState";
 
 export type Settings = {
-    ghostRobots: boolean;
+    onionLayers: boolean;
+    /** Inches of travel between onion layers. 0 draws only the segment end positions. */
+    onionSpacing: number;
     robotPosition: boolean;
     precisePath: boolean;
     numberedPath: boolean;
@@ -11,7 +13,8 @@ export type Settings = {
 };
 
 const DEFAULTS: Settings = {
-    ghostRobots: false,
+    onionLayers: false,
+    onionSpacing: 0,
     robotPosition: false,
     precisePath: false,
     numberedPath: false,

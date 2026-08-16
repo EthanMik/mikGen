@@ -6,12 +6,12 @@ import Section from "../Util/Section";
 import MenuButtonTemplate from "../Util/MenuButtonTemplate";
 import { MenuCheckboxButton } from "../Util/CheckboxButton";
 import { NumberInputCheckboxButton } from "../Util/NumberInputButton";
-import { debugStore } from "../../simulation/Conversion";
+// import { debugStore } from "../../simulation/Conversion";
 
 export default function SettingsButton() {
     const [settings, setSettings] = useSettings();
     const [popup, setPopup] = useState(false);
-    const debug = debugStore.useStore();
+    // const debug = debugStore.useStore();
 
     useEffect(() => {
         localStorage.setItem("settings", JSON.stringify(settings));
@@ -29,14 +29,14 @@ export default function SettingsButton() {
                 onEnter={() => { }}
             />}
 
-            <MenuButtonTemplate title="Settings" closeOnClick={false} width={40}>
+            <MenuButtonTemplate title="Settings" closeOnClick={false} width={47}>
                 <div className="flex flex-col gap-1.5">
-                    <MenuCheckboxButton name="Position Logs" label="Prints robot position to console" checked={debug} setChecked={(state: boolean) => { debugStore.setState(state); }} />
+                    {/* <MenuCheckboxButton name="Position Logs" label="Prints robot position to console" checked={debug} setChecked={(state: boolean) => { debugStore.setState(state); }} /> */}
 
                     <MenuCheckboxButton name="Robot Position" label="Displays robots's actual position" checked={settings.robotPosition} setChecked={set("robotPosition")} />
                     <MenuCheckboxButton name="Precise Path" label="Displays robots exact path taken (P)" checked={settings.precisePath} setChecked={set("precisePath")} />
                     <MenuCheckboxButton name="Numbered Path" label="Displays number labels for notebook screenshots" checked={settings.numberedPath} setChecked={set("numberedPath")} />
-                    <MenuCheckboxButton name="Robot Outlines" label="Displays end positions when sim is off" checked={settings.ghostRobots} setChecked={set("ghostRobots")} />
+                    <NumberInputCheckboxButton width={40} name="Onion Layers" checkLabel="Displays end positions when sim is off (O)" label="Distance between outlines. 0 shows only end positions" checked={settings.onionLayers} setChecked={set("onionLayers")} value={settings.onionSpacing} setValue={v => v !== null && set("onionSpacing")(v)} bounds={[0, 48]} stepSize={5} roundTo={0} units="in" />
 
                     <Section />
                     <NumberInputCheckboxButton blocking={false} checked={settings.snappingEnabled} width={40} setChecked={set("snappingEnabled")} checkLabel="Enable snapping by default" name="Grid Snap" label="Snap increment. Hold Ctrl while dragging to invert snapping" value={settings.snapToGrid} setValue={v => v !== null && set("snapToGrid")(v)} bounds={[0.1, 10]} stepSize={0.5} roundTo={1} units="in" />

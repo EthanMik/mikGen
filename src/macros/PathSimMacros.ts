@@ -22,6 +22,15 @@ export function PathSimMacros() {
         }
     }
 
+    function toggleOnionLayers(
+        evt: KeyboardEvent,
+        setSettings: React.Dispatch<SetStateAction<Settings>>,
+    ) {
+        if (evt.key.toLowerCase() === "o" && !evt.ctrlKey) {
+            setSettings((prev) => ({ ...prev, onionLayers: !prev.onionLayers }));
+        }
+    }
+
     const togglePlaying = (
         setPlaying: React.Dispatch<React.SetStateAction<boolean>>,
         setVisibility: React.Dispatch<SetStateAction<boolean>>,
@@ -110,6 +119,7 @@ export function PathSimMacros() {
     return {
         toggleRobotVisibility,
         togglePrecisePath,
+        toggleOnionLayers,
         pauseSimulator,
         releaseSimulator,
         scrubSimulator

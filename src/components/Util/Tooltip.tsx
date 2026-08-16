@@ -12,11 +12,7 @@ type TooltipProps = {
     children: ReactNode;
 };
 
-// A label wider than this wraps onto another row instead of running off the window
 const MAX_WIDTH = 240;
-// Fixed positioning shrinks a box to the space left between its left edge and the window, so a
-// tooltip near an edge would wrap on its own. max-content sizes it to the label and lets MAX_WIDTH
-// be the only thing that wraps it
 const SIZING: React.CSSProperties = { width: "max-content", maxWidth: MAX_WIDTH };
 const VIEWPORT_MARGIN = 6;
 
@@ -24,26 +20,32 @@ function computeStyle(rect: DOMRect, placement: TooltipPlacement): React.CSSProp
     const gap = 4;
     const base: React.CSSProperties = { position: "fixed", zIndex: 9999 };
     switch (placement) {
-        case "top":    return { ...base, bottom: window.innerHeight - rect.top + gap, left: rect.left + rect.width / 2 };
-        case "bottom": return { ...base, top: rect.bottom + gap,                      left: rect.left + rect.width / 2 };
-        case "left":   return { ...base, right: window.innerWidth - rect.left + gap,  top: rect.top + rect.height / 2 };
-        case "right":  return { ...base, left: rect.right + gap,                      top: rect.top + rect.height / 2 };
+        case "top": return { ...base, bottom: Math.round(window.innerHeight - rect.top) + gap, left: Math.round(rect.left + rect.width / 2) };
+        case "bottom": return { ...base, top: Math.round(rect.bottom) + gap, left: Math.round(rect.left + rect.width / 2) };
+        case "left": return { ...base, right: Math.round(window.innerWidth - rect.left) + gap, top: Math.round(rect.top + rect.height / 2) };
+        case "right": return { ...base, left: Math.round(rect.right) + gap, top: Math.round(rect.top + rect.height / 2) };
     }
 }
 
-// centering offset applied via Tailwind so it combines with animation translate via CSS vars
 const centerClass: Record<TooltipPlacement, string> = {
-    top:    "-translate-x-1/2",
-    bottom: "-translate-x-1/2",
-    left:   "-translate-y-1/2",
-    right:  "-translate-y-1/2",
+    top: "-translate-x-1/2 mb-0.5",
+    bottom: "-translate-x-1/2 mt-0.5",
+    left: "-translate-y-1/2 mr-0.5",
+    right: "-translate-y-1/2 ml-0.5",
 };
 
 const slideClass: Record<TooltipPlacement, string> = {
-    top:    "translate-y-1",
+    top: "translate-y-1",
     bottom: "-translate-y-1",
-    left:   "translate-x-1",
-    right:  "-translate-x-1",
+    left: "translate-x-1",
+    right: "-translate-x-1",
+};
+
+const arrowClass: Record<TooltipPlacement, string> = {
+    top: "top-full left-1/2 -translate-x-1/2",
+    bottom: "bottom-full left-1/2 -translate-x-1/2 rotate-180",
+    left: "left-full top-1/2 -translate-y-1/2 -rotate-90",
+    right: "right-full top-1/2 -translate-y-1/2 rotate-90",
 };
 
 export default function Tooltip({ label, placement = "top", keybind = false, children, speed = "slow" }: TooltipProps) {
@@ -55,9 +57,6 @@ export default function Tooltip({ label, placement = "top", keybind = false, chi
 
     const openDelay = speed === "slow" ? 600 : 100;
 
-    // A wrapped label is wide enough to run past the window when its anchor sits near an edge,
-    // so the centered placements get nudged back in once the wrapped width is known. Written to
-    // the node instead of state since the left in tooltipStyle stays put and React leaves it alone
     useLayoutEffect(() => {
         const tip = tipRef.current;
         if (!tip || !tooltipStyle || (placement !== "top" && placement !== "bottom")) return;
@@ -91,7 +90,7 @@ export default function Tooltip({ label, placement = "top", keybind = false, chi
                             ref={tipRef}
                             className={`
                                 pointer-events-none flex items-center gap-1 px-2 py-1
-                                bg-medgray_hover rounded-sm border-medgrayoffset border break-words
+                                bg-medgray_hover rounded-sm border-medgrayoffset border break-words text-center
                                 duration-150
                                 ${centerClass[placement]}
                                 ${visible
@@ -102,6 +101,22 @@ export default function Tooltip({ label, placement = "top", keybind = false, chi
                             style={{ ...tooltipStyle, ...SIZING, transitionDelay: visible ? `${openDelay}ms` : "100ms" }}
                         >
                             <span className={`text-[10px] leading-snug ${keybind ? "text-lightgray" : "text-verylightgray"}`}>{label}</span>
+
+                            <svg viewBox="0 0 50 50" className={`w-3 h-3 absolute ${arrowClass[placement]}`}>
+                                <polygon className="fill-medgray_hover" points="2,0 48,0 25,26" />
+                                {/* Both ends overshoot the base so the viewBox clips them, and that
+                                    clip runs along the border the arrow overlaps. A cap is cut
+                                    perpendicular to its own line, so a side ending level with the
+                                    border tapers off it and leaves a wedge the fill has already
+                                    wiped clean, while one ending past it paints a stub into the
+                                    body. Cutting the overshoot on the clip gives a flat, full width
+                                    entry on exactly the right line and neither artifact */}
+                                <path className="stroke-medgrayoffset fill-none"
+                                    d="M -1.5,-4 L 25,26 L 51.5,-4"
+                                    stroke-width="4"
+                                    stroke-linejoin="round"
+                                />
+                            </svg>
                         </div>,
                         document.body
                     )}
