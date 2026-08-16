@@ -3,7 +3,7 @@ import ConfigButtonTemplate from "./ConfigButtonTemplate";
 import fileIcon from "../../assets/file.svg";
 import folderIcon from "../../assets/folder.svg";
 import back from "../../assets/back.svg";
-import { loadFromHandle, fileSaveStore, fileHandleStore, dirHandleStore } from "../../core/FileUtils";
+import { loadFromHandle, fileSaveStore, fileHandleStore, dirHandleStore } from "../../core/FileStore";
 import refresh from "../../assets/cw.svg";
 import check from "../../assets/check.svg"
 

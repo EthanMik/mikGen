@@ -1,28 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { FORMAT_REGISTRY, mergeFormatDef, mergeSavedConstants, normalizePathConstants, type Format, type FormatDef } from "./FormatDefinition";
-import type { Path } from "../core/Types/Path";
-import type { Segment } from "../core/Types/Segment";
+import { FORMAT_REGISTRY, getDefaultConstants, mergeFormatDef, mergeSavedConstants, resolveKind, type Format, type FormatDef } from "./FormatDefinition";
 import type { mikConstants } from "./mikLibSim/MikConstants";
 
 const holonomicDef = FORMAT_REGISTRY["Holonomic"] as FormatDef<Format>;
 const poseDefaults = holonomicDef.segments.poseDrive!.defaults!;
-
-function poseSegment(constants: unknown): Segment {
-    return {
-        id: "seg1",
-        disabled: false,
-        selected: false,
-        locked: false,
-        visible: true,
-        pose: { x: 0, y: 0, angle: 0 },
-        format: "Holonomic",
-        kind: "poseDrive",
-        constants: constants as Segment["constants"],
-        distance: 0,
-        time: 0,
-        controls: [],
-    };
-}
 
 describe("mergeSavedConstants", () => {
     it("pads a stale two-entry array out to the current three", () => {
@@ -48,13 +29,43 @@ describe("mergeSavedConstants", () => {
     });
 });
 
-describe("normalizePathConstants", () => {
-    it("repairs a loaded segment missing the translational constants", () => {
-        const path: Path = { name: "p", segments: [poseSegment([poseDefaults[0], poseDefaults[1]])] };
-        const fixed = normalizePathConstants(holonomicDef, "Holonomic", path);
+describe("resolveKind", () => {
+    // Alias entries carry only castTo, so asking them for constants directly used to yield undefined
+    it("follows castTo to the kind that actually carries defaults", () => {
+        const lemLibDef = FORMAT_REGISTRY["LemLib"] as FormatDef<Format>;
+        expect(resolveKind(lemLibDef, "bezierCurve")).toBe("pointDrive");
+        expect(resolveKind(lemLibDef, "strafeDrive")).toBe("pointDrive");
+        expect(resolveKind(lemLibDef, "poseDrive")).toBe("poseDrive");
+    });
 
-        expect(fixed.segments[0].constants).toHaveLength(3);
-        expect((fixed.segments[0].constants[2] as mikConstants).kp).toBeDefined();
+    it("terminates on a castTo cycle a hand-edited file could introduce", () => {
+        const cyclic = {
+            ...holonomicDef,
+            segments: {
+                ...holonomicDef.segments,
+                strafeDrive: { castTo: "bezierCurve" as const },
+                bezierCurve: { castTo: "strafeDrive" as const },
+            },
+        } as FormatDef<Format>;
+        expect(() => resolveKind(cyclic, "strafeDrive")).not.toThrow();
+    });
+});
+
+describe("getDefaultConstants", () => {
+    it("never returns undefined, whatever the format and kind", () => {
+        for (const format of Object.keys(FORMAT_REGISTRY) as Format[]) {
+            const def = FORMAT_REGISTRY[format] as FormatDef<Format>;
+            for (const kind of Object.keys(def.segments) as (keyof typeof def.segments)[]) {
+                const constants = getDefaultConstants(def, format, kind);
+                expect(Array.isArray(constants), `${format}/${kind}`).toBe(true);
+                expect(constants.length, `${format}/${kind}`).toBeGreaterThan(0);
+            }
+        }
+    });
+
+    it("falls back to the format constants for a kind it has never heard of", () => {
+        const constants = getDefaultConstants(holonomicDef, "Holonomic", "teleport" as never);
+        expect(Array.isArray(constants)).toBe(true);
     });
 });
 

@@ -1,6 +1,6 @@
 import { createStore } from "../Store";
 import { fileFormatStore } from "../../hooks/useFileFormat";
-import type { FileFormat } from "../../hooks/useFileFormat";
+import { serializeFile, type FileFormat } from "../FileSchema";
 
 const MAX_UNDO_HISTORY = 300;
 
@@ -14,6 +14,6 @@ export function saveSnapshot() {
     undoHistory.setState([...current, snapshot].slice(-MAX_UNDO_HISTORY));
     redoHistory.setState([]);
     fileUndosStore.setState(n => n + 1);
-    console.log(snapshot);
-    localStorage.setItem("appState", JSON.stringify(snapshot));
+    // Same bytes as an on-disk save, so the autosave and a real file are read back by one loader
+    localStorage.setItem("appState", serializeFile(snapshot));
 }

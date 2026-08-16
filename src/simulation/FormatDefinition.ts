@@ -167,19 +167,6 @@ export function mergeSavedConstants(
     ) as SegmentConstants<Format>;
 }
 
-/** Fills every segment's constants out to the current format definition, keeping the saved values. */
-export function normalizePathConstants(formatDef: FormatDef<Format> | undefined, format: Format, path: Path): Path {
-    return {
-        ...path,
-        segments: path.segments.map(seg => {
-            const defaults = getDefaultConstants(formatDef, format, seg.kind);
-            if (!defaults) return seg;
-            const constants = mergeSavedConstants(defaults, seg.constants);
-            return constants ? { ...seg, constants } : seg;
-        }),
-    };
-}
-
 export function mergeFormatDef(registry: FormatDef<Format>, saved: unknown): FormatDef<Format> {
     if (!saved || typeof saved !== 'object') return registry;
     const s = saved as Record<string, unknown>;
@@ -217,10 +204,34 @@ export function stripFormatDefForSave(formatDef: FormatDef<Format>): object {
     );
 }
 
+/**
+ * The kind this format actually implements, following castTo until it lands on an entry that
+ * carries defaults. Alias entries (LemLib bezierCurve, mikLib strafeDrive, ...) declare only
+ * castTo, so asking them for constants directly yields undefined and crashes every consumer.
+ * A saved file can override castTo through mergeFormatDef, so the walk is bounded rather than
+ * trusting the data to be acyclic.
+ */
+export function resolveKind(formatDef: FormatDef<Format> | undefined, kind: SegmentKind): SegmentKind {
+    let current = kind;
+    for (let hops = 0; hops < 4; hops++) {
+        const def = formatDef?.segments[current];
+        if (!def || def.defaults) return current;
+        if (!def.castTo || def.castTo === current) return current;
+        current = def.castTo;
+    }
+    return current;
+}
+
+/**
+ * Never returns undefined: an unknown format, an unknown kind, or an alias entry all fall back
+ * to the format's top-level constants rather than handing a hole to the sim and the UI.
+ */
 export function getDefaultConstants<F extends Format>(formatDef: FormatDef<Format> | undefined, format: F, kind: SegmentKind): SegmentConstants<F> {
-    const currentDefaults = formatDef?.segments[kind]?.defaults;
-    if (currentDefaults === undefined) return FORMAT_REGISTRY[format].segments[kind]?.defaults as SegmentConstants<F>;
-    return currentDefaults as SegmentConstants<F>;
+    const registry = FORMAT_REGISTRY[format] as FormatDef<Format> | undefined;
+    const def = formatDef ?? registry;
+    const resolved = resolveKind(def, kind);
+    const defaults = def?.segments[resolved]?.defaults ?? registry?.segments[resolved]?.defaults;
+    return (defaults ?? def?.constants ?? registry?.constants) as SegmentConstants<F>;
 }
 
 export function updateDefaultConstants<F extends Format>(

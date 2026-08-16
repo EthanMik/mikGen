@@ -11,6 +11,7 @@ import type { Format } from "../hooks/useFileFormat";
 import { convertPathToString, convertStringToPath } from "../simulation/Conversion";
 import { insertIndexAfterSelection, invertAllSelection, pointerToSvg, setAllSelection } from "../components/Field/FieldUtils";
 import { fileFormatStore } from "../hooks/useFileFormat";
+import { seedSegments } from "../core/FileSchema";
 import { saveSnapshot, redoHistory, undoHistory } from "../core/Undo/UndoHistory";
 import { queueFieldImg } from "../hooks/useFieldImg";
 import { copiedSegmentsStore } from "../core/CopyStore";
@@ -299,7 +300,8 @@ export default function FieldMacros() {
     ) => {
         const apply = (text: string) => {
             const { formatDef, format } = fileFormatStore.getState();
-            const parsed = convertStringToPath(formatDef, format, text);
+            // Pasted text is as untrusted as a loaded file, so it goes through the same seeding
+            const parsed = seedSegments(formatDef, format, convertStringToPath(formatDef, format, text));
             if (parsed.length === 0) return;
 
             setPath(prev => {

@@ -1,8 +1,8 @@
 import { createStore } from "../core/Store";
-import { DEFAULT_FORMAT, DEFAULT_FIELD_KEY, VALIDATED_APP_STATE, type FileFormat, type FieldType } from "./appStateDefaults";
+import { DEFAULT_FORMAT, DEFAULT_FIELD_KEY, VALIDATED_APP_STATE, recastPath, type FileFormat, type FieldType } from "../core/FileSchema";
 import type { Path } from "../core/Types/Path";
 import type { Segment } from "../core/Types/Segment";
-import { FORMAT_REGISTRY, getDefaultConstants, type Format, type FormatDef } from "../simulation/FormatDefinition";
+import { FORMAT_REGISTRY, type Format, type FormatDef } from "../simulation/FormatDefinition";
 import type { RobotConstants } from "../core/Robot";
 
 import pushbackIcon from "../assets/pushbackball.svg"
@@ -43,20 +43,7 @@ export function changeFormat(newFormat: Format) {
         ...prev,
         format: newFormat,
         formatDef: newFormatDef,
-        path: {
-            ...prev.path,
-            name: newFormatDef.formatPathName,
-            segments: prev.path.segments.map(s => {
-                const newSegDef = newFormatDef.segments[s.kind];
-                const castKind = newSegDef?.castTo ?? s.kind;
-                return {
-                    ...s,
-                    format: newFormat,
-                    kind: castKind,
-                    constants: getDefaultConstants(undefined, newFormat, castKind),
-                };
-            }),
-        },
+        path: recastPath(newFormatDef, newFormat, prev.path),
     }));
 }
 
@@ -143,13 +130,10 @@ export function useField() {
     return [field, updateField] as const;
 }
 
-export function updateFormat(next: Format) {
-    fileFormatStore.setState(prev => ({ ...prev, format: next }));
-}
-
 export function useFormat() {
     const format = fileFormatStore.useSelector(s => s.format);
-    return [format, updateFormat] as const;
+    // Deliberately changeFormat, not a bare setter: format and formatDef must never disagree
+    return [format, changeFormat] as const;
 }
 
 export function mergeRobot(patch: Partial<RobotConstants>) {

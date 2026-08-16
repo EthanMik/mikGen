@@ -71,7 +71,9 @@ export const holonomicDef = {
             simFn: (robot, dt, _x, _y, angle, constants, points) => holonomic_follow_path(robot, dt, points ?? [], angle, constants),
             simReset: reset_holonomic_follow_path,
             cycleButtons: [],
-            numberInputs: [...holonomicNumberInputs],
+            // The follower reads only drive and heading, so the translational group would index
+            // past this kind's two constants entries: an empty panel whose edits went nowhere
+            numberInputs: holonomicNumberInputs.filter(g => g.constantsIdx < 2),
         },
 
         strafeDrive: {

@@ -38,7 +38,7 @@ export default function EditButton() {
 
     return (
         <>
-            <MenuButtonTemplate title="Edit" width={44}>
+            <MenuButtonTemplate title="Edit" width={47}>
                 <MenuKeybindButton name={"Undo"} keybind={"Ctrl+Z"} callback={() => undo(null)} />
                 <MenuKeybindButton name={"Redo"} keybind={"Ctrl+Y"} callback={() => redo(null)} />
                 <Section />

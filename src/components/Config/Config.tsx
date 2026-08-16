@@ -1,4 +1,4 @@
-import { dirHandleStore } from "../../core/FileUtils";
+import { dirHandleStore } from "../../core/FileStore";
 import FileButton from "../File/FileButton";
 import SettingsButton from "../Settings/SettingsButton";
 import AddSegmentButton from "./AddSegmentButton";

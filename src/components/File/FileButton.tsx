@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import FileRenamePopup from "./FileRenamePopup";
-import { updatePath, fileFormatStore, type FileFormat } from "../../hooks/useFileFormat";
-import { defaultRobotConstants } from "../../core/Robot";
+import { updatePath, fileFormatStore } from "../../hooks/useFileFormat";
+import { newFileFormat, serializeFile } from "../../core/FileSchema";
 import { saveSnapshot, undoHistory, fileUndosStore } from "../../core/Undo/UndoHistory";
-import { FORMAT_REGISTRY } from "../../simulation/FormatDefinition";
-import { deserializeToState, loadFromHandle, fileSaveStore, fileHandleStore, dirHandleStore, serializeFile } from "../../core/FileUtils";
+import { loadContentIntoState, loadFromHandle, fileSaveStore, fileHandleStore, dirHandleStore } from "../../core/FileStore";
 import MenuButtonTemplate from "../Util/MenuButtonTemplate";
 import { MenuKeybindButton } from "../Util/KeybindButton";
 import Section from "../Util/Section";
@@ -77,15 +76,7 @@ export default function FileButton() {
         if (fileUndosStore.getState() > 1) handleSaveAs();
 
         const { format, field } = fileFormatStore.getState();
-        const newFileFormat = {
-            format,
-            field,
-            formatDef: FORMAT_REGISTRY[format as keyof typeof FORMAT_REGISTRY],
-            path: { segments: [], name: "" },
-            robot: defaultRobotConstants,
-        } as FileFormat;
-
-        fileFormatStore.setState(newFileFormat);
+        fileFormatStore.setState(newFileFormat(format, field));
         saveSnapshot();
         fileUndosStore.setState(0);
         fileHandleStore.setState(null);
@@ -133,25 +124,13 @@ export default function FileButton() {
 
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
-        if (file) {
-            if (fileUndosStore.getState() > 1) {
-                if (!window.confirm("You have unsaved changes. Discard and load new file?")) {
-                    event.target.value = '';
-                    return;
-                }
-            }
-            const fileName = file.name.replace(/\.[^/.]+$/, "");
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const content = e.target?.result as string;
-                fileFormatStore.setState(deserializeToState(content, fileName));
-                saveSnapshot();
-                fileUndosStore.setState(0);
-            };
-            reader.readAsText(file);
-            fileHandleStore.setState(null);
-        }
         event.target.value = '';
+        if (file) {
+            if (fileUndosStore.getState() > 1 && !window.confirm("You have unsaved changes. Discard and load new file?")) return;
+            const reader = new FileReader();
+            reader.onload = e => loadContentIntoState(e.target?.result as string, file.name.replace(/\.[^/.]+$/, ""));
+            reader.readAsText(file);
+        }
         fileHandleStore.setState(null);
         setIsSaved(true);
         skipSave.current = true;

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useRef, useSyncExternalStore } from "react";
 
 type Listener = () => void;
@@ -56,17 +55,4 @@ export function createStore<T>(initial: T): Store<T> {
   };
 
   return { getState, setState, subscribe, useStore, useSelector };
-}
-
-export function createObjectStore<T extends Record<string, any>>(initial: T) {
-  const store = createStore<T>(initial);
-
-  const merge = (patch: Partial<T> | ((prev: T) => Partial<T>)) => {
-    store.setState(prev => {
-      const p = typeof patch === "function" ? patch(prev) : patch;
-      return { ...prev, ...p };
-    });
-  };
-
-  return { ...store, merge };
 }

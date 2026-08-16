@@ -4,7 +4,7 @@ import { findPointToFace, makeId, roundOff, toDeg } from "../core/Util";
 import type { Segment } from "../core/Types/Segment";
 import { createControlPoint, type ControlPoint } from "../core/Types/Pose";
 import { polylineLength, resolveBezier, sampleBezier } from "../core/Types/Bezier";
-import type { Format } from "./FormatDefinition";
+import { getDefaultConstants, type Format } from "./FormatDefinition";
 import type { FormatDef, SegmentConstants, SegmentDef, SegmentKind, SimFn } from "./FormatDefinition";
 import { angle_error } from "./mikLibSim/Util";
 import { createStore } from "../core/Store";
@@ -164,7 +164,7 @@ function parseSegmentLine<F extends Format>(
     const y = (!pointBased && 'y' in captured) ? parseFloat(captured.y) : null;
     let angle: number | null = 'angle' in captured ? parseFloat(captured.angle) : (pointBased ? 0 : null);
 
-    const defaults = segDef.defaults as SegmentConstants<F>;
+    const defaults = getDefaultConstants(formatDef as unknown as FormatDef<Format>, format, kind) as SegmentConstants<F>;
     let constants: SegmentConstants<F>;
     if (formatDef.kParser) {
         const [parsedConstants, poseOverride] = formatDef.kParser(defaults, captured.kBuilder ?? '', kind);
