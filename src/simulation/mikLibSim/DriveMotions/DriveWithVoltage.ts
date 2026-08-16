@@ -22,7 +22,7 @@ export function reset_drive_with_voltage() {
 
 export function drive_with_voltage(robot: Robot, dt: number, left_voltage: number, right_voltage: number, timeout: number) {
     if (start) {
-        drivePID = new PID(0, 0, 0, 0, 0, 0, timeout, 0);
+        drivePID = new PID(dt, 0, 0, 0, 0, 0, 0, timeout, 0);
         start = false;
 
 

@@ -34,8 +34,8 @@ export function drive_to_pose(robot: Robot, dt: number, x: number, y: number, an
     if (drive_p.drive_direction === "reversed") angle = normalizeDeg(angle + 180);
 
     if (start) {
-        drivePID = new PID(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
-        headingPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
+        drivePID = new PID(dt, drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
+        headingPID = new PID(dt, heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
         drive_max_speed = drive_p.max_voltage;
         start = false;
         start_line_settled = is_line_settled(x, y, angle, robot.getX(), robot.getY(), drive_p.exit_error);

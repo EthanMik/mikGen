@@ -48,7 +48,6 @@ export class Robot {
         this.height = c.height;
         this.trackwidth = c.trackwidth;
         this.maxSpeed = c.speed;
-        // The paired Disabled flags are resolved once here, so nothing downstream repeats the check
         this.cogOffsetX = c.cogOffsetXDisabled ? 0 : c.cogOffsetX;
         this.cogOffsetY = c.cogOffsetYDisabled ? 0 : c.cogOffsetY;
         this.holonomicRobot = c.holonomicRobot;

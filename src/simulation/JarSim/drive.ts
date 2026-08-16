@@ -12,7 +12,7 @@ export function turn_to_angle(robot: Robot, dt: number, angle: number, constants
     const turn = constants[0];
 
     if (start_ta) {
-        turnPID_ta = new PID(reduce_negative_180_to_180(angle - robot.getAngle()), turn.kp, turn.ki, turn.kd, turn.starti, turn.settle_error, turn.settle_time, turn.timeout);
+        turnPID_ta = new PID(dt, reduce_negative_180_to_180(angle - robot.getAngle()), turn.kp, turn.ki, turn.kd, turn.starti, turn.settle_error, turn.settle_time, turn.timeout);
         start_ta = false;
     }
 
@@ -48,8 +48,8 @@ export function drive_distance(robot: Robot, dt: number, distance: number, headi
     if (start_dd) {
         startX_dd = robot.getX();
         startY_dd = robot.getY();
-        drivePID_dd = new PID(distance, drive.kp, drive.ki, drive.kd, drive.starti, drive.settle_error, drive.settle_time, drive.timeout);
-        headingPID_dd = new PID(reduce_negative_180_to_180(heading - robot.getAngle()), heading_c.kp, heading_c.ki, heading_c.kd, heading_c.starti);
+        drivePID_dd = new PID(dt, distance, drive.kp, drive.ki, drive.kd, drive.starti, drive.settle_error, drive.settle_time, drive.timeout);
+        headingPID_dd = new PID(dt, reduce_negative_180_to_180(heading - robot.getAngle()), heading_c.kp, heading_c.ki, heading_c.kd, heading_c.starti);
         start_dd = false;
     }
 
@@ -90,7 +90,7 @@ export function swing_to_angle(robot: Robot, dt: number, angle: number, constant
     const swing = constants[0];
 
     if (start_s) {
-        swingPID_s = new PID(reduce_negative_180_to_180(angle - robot.getAngle()), swing.kp, swing.ki, swing.kd, swing.starti, swing.settle_error, swing.settle_time, swing.timeout);
+        swingPID_s = new PID(dt, reduce_negative_180_to_180(angle - robot.getAngle()), swing.kp, swing.ki, swing.kd, swing.starti, swing.settle_error, swing.settle_time, swing.timeout);
         start_s = false;
     }
 
@@ -128,8 +128,8 @@ export function drive_to_point(robot: Robot, dt: number, x: number, y: number, c
 
     if (start_dtp) {
         start_angle_dtp = to_deg(Math.atan2(x - robot.getX(), y - robot.getY()));
-        drivePID_dtp = new PID(Math.hypot(x - robot.getX(), y - robot.getY()), drive.kp, drive.ki, drive.kd, drive.starti, drive.settle_error, drive.settle_time, drive.timeout);
-        headingPID_dtp = new PID(start_angle_dtp - robot.getAngle(), heading_c.kp, heading_c.ki, heading_c.kd, heading_c.starti);
+        drivePID_dtp = new PID(dt, Math.hypot(x - robot.getX(), y - robot.getY()), drive.kp, drive.ki, drive.kd, drive.starti, drive.settle_error, drive.settle_time, drive.timeout);
+        headingPID_dtp = new PID(dt, start_angle_dtp - robot.getAngle(), heading_c.kp, heading_c.ki, heading_c.kd, heading_c.starti);
         prev_line_settled_dtp = is_line_settled(x, y, start_angle_dtp, robot.getX(), robot.getY());
         start_dtp = false;
     }
@@ -188,8 +188,8 @@ export function drive_to_pose(robot: Robot, dt: number, x: number, y: number, an
 
     if (start_dpose) {
         const target_distance = Math.hypot(x - robot.getX(), y - robot.getY());
-        drivePID_dpose = new PID(target_distance, drive.kp, drive.ki, drive.kd, drive.starti, drive.settle_error, drive.settle_time, drive.timeout);
-        headingPID_dpose = new PID(to_deg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle(), heading_c.kp, heading_c.ki, heading_c.kd, heading_c.starti);
+        drivePID_dpose = new PID(dt, target_distance, drive.kp, drive.ki, drive.kd, drive.starti, drive.settle_error, drive.settle_time, drive.timeout);
+        headingPID_dpose = new PID(dt, to_deg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle(), heading_c.kp, heading_c.ki, heading_c.kd, heading_c.starti);
         prev_line_settled_dpose = is_line_settled(x, y, angle, robot.getX(), robot.getY());
         crossed_center_line_dpose = false;
         center_line_side_dpose = is_line_settled(x, y, angle + 90, robot.getX(), robot.getY());
@@ -256,7 +256,7 @@ export function turn_to_point(robot: Robot, dt: number, x: number, y: number, ex
 
     if (start_ttp) {
         const initial_error = reduce_negative_180_to_180(to_deg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle());
-        turnPID_ttp = new PID(initial_error, turn.kp, turn.ki, turn.kd, turn.starti, turn.settle_error, turn.settle_time, turn.timeout);
+        turnPID_ttp = new PID(dt, initial_error, turn.kp, turn.ki, turn.kd, turn.starti, turn.settle_error, turn.settle_time, turn.timeout);
         start_ttp = false;
     }
 
@@ -287,8 +287,8 @@ export function holonomic_drive_to_pose(robot: Robot, dt: number, x: number, y: 
     const heading_c = constants[1];
 
     if (start_holo) {
-        drivePID_holo = new PID(Math.hypot(x - robot.getX(), y - robot.getY()), drive.kp, drive.ki, drive.kd, drive.starti, drive.settle_error, drive.settle_time, drive.timeout);
-        turnPID_holo = new PID(angle - robot.getAngle(), heading_c.kp, heading_c.ki, heading_c.kd, heading_c.starti, heading_c.settle_error, heading_c.settle_time, heading_c.timeout);
+        drivePID_holo = new PID(dt, Math.hypot(x - robot.getX(), y - robot.getY()), drive.kp, drive.ki, drive.kd, drive.starti, drive.settle_error, drive.settle_time, drive.timeout);
+        turnPID_holo = new PID(dt, angle - robot.getAngle(), heading_c.kp, heading_c.ki, heading_c.kd, heading_c.starti, heading_c.settle_error, heading_c.settle_time, heading_c.timeout);
         start_holo = false;
     }
 

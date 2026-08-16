@@ -1,5 +1,3 @@
-import { SIM_CONSTANTS } from "../../core/ComputePathSim";
-
 export class PID {
     private output = 0;
     private cur = 0;
@@ -14,6 +12,8 @@ export class PID {
     private k = 0;
 
     constructor(
+        /** Seconds per control tick. The exit windows are milliseconds, so they need it. */
+        public dt: number,
         public kp: number,
         public ki: number,
         public kd: number,
@@ -66,7 +66,7 @@ export class PID {
     public exit_condition() {
         if (this.small_error !== 0) {
             if (Math.abs(this.error) < this.small_error) {
-                this.j += SIM_CONSTANTS.dt_ms;
+                this.j += this.dt * 1000;
                 this.i = 0;
                 if (this.j > this.small_exit_time) {
                     this.timers_reset();
@@ -77,7 +77,7 @@ export class PID {
             }
         } else if (this.big_error !== 0 && this.big_exit_time !== 0) {
             if (Math.abs(this.error) < this.big_error ) {
-                this.i += SIM_CONSTANTS.dt_ms;
+                this.i += this.dt * 1000;
                 if (this.i > this.big_exit_time) {
                     this.timers_reset();
                     return "BIG_EXIT";
@@ -89,7 +89,7 @@ export class PID {
 
         if (this.velocity_exit_time !== 0) {
             if (Math.abs(this.derivative) <= 0.05) {
-                this.k += SIM_CONSTANTS.dt_ms;
+                this.k += this.dt * 1000;
                 if (this.k > this.velocity_exit_time) {
                     this.timers_reset();
                     return "VELOCITY_EXIT";

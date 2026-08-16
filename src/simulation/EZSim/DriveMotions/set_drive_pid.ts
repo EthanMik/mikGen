@@ -25,8 +25,8 @@ export function pid_drive_set(robot: Robot, dt: number, target: number, p: EZcon
         start_x = robot.getX();
         start_y = robot.getY();
 
-        drivePID = new PID(drive_p.p, drive_p.i, drive_p.d, drive_p.start_i, drive_p.small_exit_time, drive_p.small_error, drive_p.big_exit_time, drive_p.big_error, drive_p.velocity_exit_time);
-        headingPID = new PID(heading_p.p, heading_p.i, heading_p.d, heading_p.start_i);
+        drivePID = new PID(dt, drive_p.p, drive_p.i, drive_p.d, drive_p.start_i, drive_p.small_exit_time, drive_p.small_error, drive_p.big_exit_time, drive_p.big_error, drive_p.velocity_exit_time);
+        headingPID = new PID(dt, heading_p.p, heading_p.i, heading_p.d, heading_p.start_i);
         slew_both = new slew(drive_p.slew_min_speed, drive_p.slew_distance);
 
         drivePID.target_set(target);

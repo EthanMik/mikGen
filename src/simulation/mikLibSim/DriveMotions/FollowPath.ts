@@ -103,8 +103,8 @@ export function follow_path(robot: Robot, dt: number, points: Coordinate[], end_
         path_lengths = cumulativeLengths(path_points);
         total_distance = path_lengths[path_lengths.length - 1];
         final_tangent = pathPoseAt(total_distance).theta;
-        drivePID = new PID(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
-        headingPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
+        drivePID = new PID(dt, drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
+        headingPID = new PID(dt, heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
         settling = false;
         settling_max_speed = 0;
         prev_drive_output = 0;

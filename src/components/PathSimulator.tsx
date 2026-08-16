@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import play from "../assets/play.svg";
 import pause from "../assets/pause.svg";
 import { Robot } from "../core/Robot";
-import { activeSegmentAtTime, activeSimSegmentStore, computedPathStore, pathTelemetry, precomputePath, simJumpStore, SIM_CONSTANTS, type PathSim, type Snapshot } from "../core/ComputePathSim";
+import { activeSegmentAtTime, activeSimSegmentStore, computedPathStore, pathTelemetry, precomputePath, simJumpStore, type PathSim, type Snapshot } from "../core/ComputePathSim";
 import { usePose } from "../hooks/usePose";
 import { clamp, normalizeDeg, shortAngleDelta } from "../core/Util";
 import { useRobotVisibility } from "../hooks/useRobotVisibility";
@@ -187,7 +187,7 @@ export default function PathSimulator() {
         const telemetry = pathTelemetry.getState();
         if (!telemetry.length) return;
 
-        const dt = SIM_CONSTANTS.dt;
+        const dt = computedPath.dt;
 
         const updated = telemetry.map((tel, i) => {
             const seg = segs[i];
@@ -223,7 +223,7 @@ export default function PathSimulator() {
             const target = evt.target as HTMLElement | null;
             if (target?.isContentEditable || target?.tagName === "INPUT") return;
             pauseSimulator(evt, setPlaying, setRobotVisibility)
-            scrubSimulator(evt, setValue, setPlaying, setRobotVisibility, skip, computedPathRef.current, SIM_CONSTANTS.dt, 0.25);
+            scrubSimulator(evt, setValue, setPlaying, setRobotVisibility, skip, computedPathRef.current, 0.01, 0.25);
         }
 
         const handleKeyUp = (evt: KeyboardEvent) => {
@@ -275,7 +275,7 @@ export default function PathSimulator() {
         if (!playing) return;
 
         // Pressing play at the end restarts from 0
-        if (timeRef.current + SIM_CONSTANTS.dt >= computedPathRef.current.totalTime) {
+        if (timeRef.current + computedPathRef.current.dt >= computedPathRef.current.totalTime) {
             setTime(0);
             timeRef.current = 0;
         }

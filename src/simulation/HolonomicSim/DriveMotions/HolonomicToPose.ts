@@ -39,9 +39,9 @@ export function holonomic_to_pose(robot: Robot, dt: number, x: number, y: number
     const trans_p = p[2];
 
     if (start) {
-        drivePID = new PID(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
-        turnPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, drive_p.timeout, 0);
-        translationalPID = new PID(trans_p.kp, trans_p.ki, trans_p.kd, trans_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
+        drivePID = new PID(dt, drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
+        turnPID = new PID(dt, heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, drive_p.timeout, 0);
+        translationalPID = new PID(dt, trans_p.kp, trans_p.ki, trans_p.kd, trans_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
         line_start_x = robot.getX();
         line_start_y = robot.getY();
         line_angle = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));

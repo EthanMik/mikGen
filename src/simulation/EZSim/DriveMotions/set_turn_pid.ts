@@ -24,7 +24,7 @@ export function pid_turn_set(robot: Robot, dt: number, target: number, p: EZcons
         target = new_turn_target_compute(target, sensor_start, turn_p.angle_behavior);
         chain_target_start = target - sensor_start;
 
-        turnPID = new PID(turn_p.p, turn_p.i, turn_p.d, turn_p.start_i, turn_p.small_exit_time, turn_p.small_error, turn_p.big_exit_time, turn_p.big_error, turn_p.velocity_exit_time);
+        turnPID = new PID(dt, turn_p.p, turn_p.i, turn_p.d, turn_p.start_i, turn_p.small_exit_time, turn_p.small_error, turn_p.big_exit_time, turn_p.big_error, turn_p.velocity_exit_time);
         slew_turn = new slew(turn_p.slew_min_speed, turn_p.slew_distance);
 
         turnPID.target_set(target);

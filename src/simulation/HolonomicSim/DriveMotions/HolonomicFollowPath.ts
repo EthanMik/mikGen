@@ -205,10 +205,10 @@ export function holonomic_follow_path(robot: Robot, dt: number, points: Coordina
     if (start) {
         path_points = points;
         path_lengths = cumulativeLengths(path_points);
-        drivePID = new PID(drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
-        turnPID = new PID(heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, drive_p.timeout, 0);
+        drivePID = new PID(dt, drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
+        turnPID = new PID(dt, heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, drive_p.timeout, 0);
         // Never queried for isSettled — the drive and turn PIDs alone decide when the move is done.
-        translationalPID = new PID(TRANSLATIONAL_KP, TRANSLATIONAL_KI, TRANSLATIONAL_KD, TRANSLATIONAL_STARTI, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
+        translationalPID = new PID(dt, TRANSLATIONAL_KP, TRANSLATIONAL_KI, TRANSLATIONAL_KD, TRANSLATIONAL_STARTI, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
         start = false;
         have_prev_pose = false;
 

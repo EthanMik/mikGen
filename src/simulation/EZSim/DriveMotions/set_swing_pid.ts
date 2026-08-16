@@ -24,7 +24,7 @@ export function pid_swing_set(robot: Robot, dt: number, target: number, p: EZcon
         target = new_turn_target_compute(target, sensor_start, swing_p.angle_behavior);
         chain_target_start = target - sensor_start;
 
-        swingPID = new PID(swing_p.p, swing_p.i, swing_p.d, swing_p.start_i, swing_p.small_exit_time, swing_p.small_error, swing_p.big_exit_time, swing_p.big_error, swing_p.velocity_exit_time);
+        swingPID = new PID(dt, swing_p.p, swing_p.i, swing_p.d, swing_p.start_i, swing_p.small_exit_time, swing_p.small_error, swing_p.big_exit_time, swing_p.big_error, swing_p.velocity_exit_time);
         slew_swing = new slew(swing_p.slew_min_speed, swing_p.slew_distance);
 
         swingPID.target_set(target);

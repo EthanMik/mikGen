@@ -38,7 +38,6 @@ export function bezierEndpoints(path: Path, idx: number): { p0: Coordinate; p1: 
     return { p0: { x: startPose.x, y: startPose.y }, p1: { x: seg.pose.x, y: seg.pose.y } };
 }
 
-/** A cubic bezier: start, two controls, end. */
 export type Bezier = {
     p0: Coordinate;
     c1: Coordinate;
@@ -46,11 +45,6 @@ export type Bezier = {
     p1: Coordinate;
 };
 
-/**
- * Resolves a bezierCurve segment into a cubic. A segment may carry fewer than two controls
- * because the user deleted one, so lower degrees are elevated to their exact cubic equivalent:
- * one control becomes a quadratic raised to a cubic, none becomes the straight chord.
- */
 export function resolveBezier(path: Path, idx: number): Bezier | null {
     if (idx <= 0) return null;
 

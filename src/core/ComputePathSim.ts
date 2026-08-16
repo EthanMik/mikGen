@@ -3,13 +3,8 @@ import type { Robot } from "./Robot";
 import { createStore } from "./Store";
 import { normalizeDeg } from "./Util";
 
-// dt is the robot's fixed 10ms control tick. precomputePath rewrites it from getControlDt so the
-// playback code stays in step.
-export const SIM_CONSTANTS = {
-    seconds: 99,
-    dt: 0.01,
-    dt_ms: 10,
-};
+/** Hard cap on how long a path is allowed to simulate for. */
+const SIM_LENGTH_SECONDS = 99;
 
 export interface SegmentTelemetry {
     totalTime: number,
@@ -41,6 +36,8 @@ export interface SegmentTimeRange {
 
 export interface PathSim {
     totalTime: number,
+    /** Seconds between trajectory samples, which is the robot's control period. */
+    dt: number,
     trajectory: Snapshot[];
     endTrajectory: EndSnapShot[];
     segmentTrajectorys: Snapshot[][];
@@ -54,6 +51,7 @@ export const simJumpStore = createStore<number | null>(null);
 
 export const computedPathStore = createStore<PathSim>({
     totalTime: 0,
+    dt: 0.01,
     trajectory: [],
     endTrajectory: [],
     segmentTrajectorys: [],
@@ -71,8 +69,6 @@ export function precomputePath(
     auton: ((robot: Robot, dt: number) => [boolean, SegmentKind, number])[],
 ): PathSim
 {
-    const simLengthSeconds = SIM_CONSTANTS.seconds;
-
     let autoIdx = 0;
     const trajectory: Snapshot[] = [];
     const endTrajectory: EndSnapShot[] = [];
@@ -83,13 +79,11 @@ export function precomputePath(
     const segmentTimeRanges: SegmentTimeRange[] = [];
 
     const dt = robot.getControlDt();
-    SIM_CONSTANTS.dt = dt;
-    SIM_CONSTANTS.dt_ms = dt * 1000;
 
     let t = 0;
     let segmentStartT = 0;
     let safetyIter = 0;
-    const maxIter = Math.ceil(simLengthSeconds / dt);
+    const maxIter = Math.ceil(SIM_LENGTH_SECONDS / dt);
 
     while (safetyIter < maxIter) {
 
@@ -189,5 +183,5 @@ export function precomputePath(
 
     pathTelemetry.setState(telemetry);
 
-    return {totalTime: t, trajectory, endTrajectory, segmentTrajectorys, segmentCumulativeDists, segmentTimeRanges, timeOffset: 0};
+    return {totalTime: t, dt, trajectory, endTrajectory, segmentTrajectorys, segmentCumulativeDists, segmentTimeRanges, timeOffset: 0};
 }

@@ -12,7 +12,7 @@ import ConstantsList from "./ConstantsList";
 import CycleImageButton, { type CycleImageButtonProps } from "../Util/CycleButton";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import { setupDragTransfer } from "./PathConfigUtils";
-import { activeSimSegmentStore, computedPathStore, pathTelemetry, SIM_CONSTANTS, simJumpStore } from "../../core/ComputePathSim";
+import { activeSimSegmentStore, computedPathStore, pathTelemetry, simJumpStore } from "../../core/ComputePathSim";
 import { roundNum } from "../../core/Util";
 import { hoveredSegmentStore } from "../../core/HoverStore";
 import {
@@ -171,7 +171,7 @@ const MotionList = memo(function MotionList({
         e.preventDefault();
         const computedPath = computedPathStore.getState();
         const startT = computedPath.segmentTrajectorys[index]?.[0]?.t ?? 0;
-        const percent = computedPath.totalTime > 0 ? ((startT + SIM_CONSTANTS.dt) / computedPath.totalTime) * 100 : 0;
+        const percent = computedPath.totalTime > 0 ? ((startT + computedPath.dt) / computedPath.totalTime) * 100 : 0;
         simJumpStore.setState(percent);
     };
 

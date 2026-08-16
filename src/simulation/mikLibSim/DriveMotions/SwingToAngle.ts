@@ -30,7 +30,7 @@ export function swing_to_angle(robot: Robot, dt: number, angle: number, p: mikCo
     if (start) {
         prev_error = error;
         prev_raw_error = raw_error;
-        swingPID = new PID(turn_p.kp, turn_p.ki, turn_p.kd, turn_p.starti, turn_p.settle_time, turn_p.settle_error, turn_p.timeout, turn_p.min_voltage > 0 ? turn_p.exit_error : 0);
+        swingPID = new PID(dt, turn_p.kp, turn_p.ki, turn_p.kd, turn_p.starti, turn_p.settle_time, turn_p.settle_error, turn_p.timeout, turn_p.min_voltage > 0 ? turn_p.exit_error : 0);
         start = false;
     }
 

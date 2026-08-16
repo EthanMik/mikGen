@@ -52,8 +52,8 @@ export function pid_odom_boomerang_set(robot: Robot, dt: number, x: number, y: n
         final_target = { x, y, theta: angle };
         odom_target_start = { x, y, theta: 0 };
 
-        xyPID = new PID(drive_p.p, drive_p.i, drive_p.d, drive_p.start_i, drive_p.small_exit_time, drive_p.small_error, drive_p.big_exit_time, drive_p.big_error, drive_p.velocity_exit_time);
-        current_a_odomPID = new PID(heading_p.p, heading_p.i, heading_p.d, heading_p.start_i);
+        xyPID = new PID(dt, drive_p.p, drive_p.i, drive_p.d, drive_p.start_i, drive_p.small_exit_time, drive_p.small_error, drive_p.big_exit_time, drive_p.big_error, drive_p.velocity_exit_time);
+        current_a_odomPID = new PID(dt, heading_p.p, heading_p.i, heading_p.d, heading_p.start_i);
         slew_both = new slew(drive_p.slew_min_speed, drive_p.slew_distance);
 
         const initial_carrot = compute_carrot(odom_pose_get(), dir, drive_p);

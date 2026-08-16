@@ -1,4 +1,3 @@
-import { SIM_CONSTANTS } from "../../core/ComputePathSim";
 export class PID {
     private accumulated_error = 0;
     private previous_error = 0;
@@ -6,6 +5,8 @@ export class PID {
     private time_spent_running = 0;
 
     constructor(
+        /** Seconds per control tick. Settle and timeout windows are milliseconds, so they need it. */
+        public dt: number,
         public error: number,
         public kp: number,
         public ki: number,
@@ -29,11 +30,11 @@ export class PID {
         this.previous_error = error;
 
         if (Math.abs(error) < this.settle_error) {
-            this.time_spent_settled += SIM_CONSTANTS.dt_ms;
+            this.time_spent_settled += this.dt * 1000;
         } else {
             this.time_spent_settled = 0;
         }
-        this.time_spent_running += SIM_CONSTANTS.dt_ms;
+        this.time_spent_running += this.dt * 1000;
 
         return output;
     }

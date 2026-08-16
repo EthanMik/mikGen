@@ -1,4 +1,3 @@
-import { SIM_CONSTANTS } from "../core/ComputePathSim";
 import type { Robot } from "../core/Robot";
 import { distanceToPosition, getSegmentDistance, type Path } from "../core/Types/Path";
 import { findPointToFace, makeId, roundOff, toDeg } from "../core/Util";
@@ -10,9 +9,6 @@ import type { FormatDef, SegmentConstants, SegmentDef, SegmentKind, SimFn } from
 import { angle_error } from "./mikLibSim/Util";
 import { createStore } from "../core/Store";
 
-/** Bezier samples handed to the simulator as the path to follow. Followers read the path by arc
- *  length, so this only has to be fine enough that the chords never show through. */
-const BEZIER_SIM_SAMPLES = 400;
 
 /** Template placeholders that carry a bare number, so they parse back as one. */
 const COORD_PLACEHOLDERS = new Set(['x', 'y', 'angle', 'distance', 'time', 'c1x', 'c1y', 'c2x', 'c2y']);
@@ -225,7 +221,6 @@ function parseSegmentLine<F extends Format>(
 
 export const debugStore = createStore<boolean>(false);
 
-SIM_CONSTANTS.seconds = 99;
 let currentPathTime = -2 / 60;
 let simComputed = 0;
 
@@ -340,7 +335,7 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
             case "bezierCurve": {
                 const bezier = resolveBezier(path, idx);
                 if (bezier === null) break;
-                const points = sampleBezier(bezier, BEZIER_SIM_SAMPLES);
+                const points = sampleBezier(bezier, 400);
                 const arcLength = polylineLength(points);
                 auton.push(
                     (robot: Robot, dt: number): [boolean, SegmentKind, number] => {

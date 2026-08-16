@@ -1,4 +1,4 @@
-import { computedPathStore, SIM_CONSTANTS } from "../../core/ComputePathSim";
+import { computedPathStore } from "../../core/ComputePathSim";
 import type { Coordinate } from "../../core/Types/Coordinate";
 import { getBackwardsSnapPose, type Path } from "../../core/Types/Path";
 import type { Segment } from "../../core/Types/Segment";
@@ -203,7 +203,8 @@ export function selectionCount(segments: readonly Segment[]): number {
 }
 
 export const getPreciseSegmentDots =(idx: number, spacing: number): { x: number, y: number, t: number }[] | null => {
-    const segPts = computedPathStore.getState().segmentTrajectorys[idx];
+    const path = computedPathStore.getState();
+    const segPts = path.segmentTrajectorys[idx];
     if (segPts === undefined || segPts.length === 0) return null;
 
     const maxSpeedIn = fileFormatStore.getState().robot.speed * 12;
@@ -214,7 +215,7 @@ export const getPreciseSegmentDots =(idx: number, spacing: number): { x: number,
         const dx = segPts[i].x - segPts[i - 1].x;
         const dy = segPts[i].y - segPts[i - 1].y;
         const segLen = Math.sqrt(dx * dx + dy * dy);
-        const t = Math.min((segLen / SIM_CONSTANTS.dt) / maxSpeedIn, 1);
+        const t = Math.min((segLen / path.dt) / maxSpeedIn, 1);
 
         distSinceLast += segLen;
         while (distSinceLast >= spacing) {

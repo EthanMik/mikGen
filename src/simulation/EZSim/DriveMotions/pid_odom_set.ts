@@ -37,8 +37,8 @@ export function pid_odom_set(robot: Robot, dt: number, x: number, y: number, p: 
         new_current_fake = 0;
         chain_applied = false;
 
-        xyPID = new PID(drive_p.p, drive_p.i, drive_p.d, drive_p.start_i, drive_p.small_exit_time, drive_p.small_error, drive_p.big_exit_time, drive_p.big_error, drive_p.velocity_exit_time);
-        current_a_odomPID = new PID(heading_p.p, heading_p.i, heading_p.d, heading_p.start_i);
+        xyPID = new PID(dt, drive_p.p, drive_p.i, drive_p.d, drive_p.start_i, drive_p.small_exit_time, drive_p.small_error, drive_p.big_exit_time, drive_p.big_error, drive_p.velocity_exit_time);
+        current_a_odomPID = new PID(dt, heading_p.p, heading_p.i, heading_p.d, heading_p.start_i);
         slew_both = new slew(drive_p.slew_min_speed, drive_p.slew_distance);
 
         odom_target = { x, y, theta: 0 };
