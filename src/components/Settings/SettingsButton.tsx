@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSettings } from "../../hooks/useSettings";
-import EditJSONPopup from "../PathMenu/EditJSONPopup";
+import EditTemplatePopup from "../PathMenu/EditTemplatePopup";
 import { MenuKeybindButton } from "../Util/KeybindButton";
 import Section from "../Util/Section";
 import MenuButtonTemplate from "../Util/MenuButtonTemplate";
@@ -22,7 +22,7 @@ export default function SettingsButton() {
 
     return (
         <>
-            {popup && <EditJSONPopup
+            {popup && <EditTemplatePopup
                 label={""}
                 open={popup}
                 setOpen={setPopup}

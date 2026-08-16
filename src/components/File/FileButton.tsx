@@ -8,6 +8,9 @@ import MenuButtonTemplate from "../Util/MenuButtonTemplate";
 import { MenuKeybindButton } from "../Util/KeybindButton";
 import Section from "../Util/Section";
 
+// Firefox has no File System Access API, so saving in place is impossible there and only downloading works
+const canSaveToDisk = 'showSaveFilePicker' in window;
+
 export default function FileButton() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const renameResolveRef = useRef<((name: string | null) => void) | null>(null);
@@ -73,7 +76,10 @@ export default function FileButton() {
     }, [popupOpen]);
 
     const handleNewFile = () => {
-        if (fileUndosStore.getState() > 1) handleSaveAs();
+        if (fileUndosStore.getState() > 1) {
+            if (canSaveToDisk) handleSaveAs();
+            else handleDownloadAs();
+        }
 
         const { format, field } = fileFormatStore.getState();
         fileFormatStore.setState(newFileFormat(format, field));
@@ -137,10 +143,7 @@ export default function FileButton() {
     };
 
     const handleSave = async () => {
-        if (!('showSaveFilePicker' in window)) {
-            handleDownload();
-            return;
-        }
+        if (!canSaveToDisk) return;
         try {
             const handle = fileHandleStore.getState();
             if (handle) {
@@ -159,11 +162,8 @@ export default function FileButton() {
     };
 
     const handleSaveAs = async () => {
+        if (!canSaveToDisk) return;
         setLabel("Save As:");
-        if (!('showSaveFilePicker' in window)) {
-            handleDownloadAs();
-            return;
-        }
         try {
             const name = await requestFileName();
             if (name === null || name === "") return;
@@ -286,8 +286,10 @@ export default function FileButton() {
                 <MenuKeybindButton name="Open File" keybind="Ctrl+O" callback={handleOpenFile} />
                 {'showDirectoryPicker' in window && <MenuKeybindButton name="Open Folder" keybind="Ctrl+⇧O" callback={handleOpenFolder} />}
                 <Section />
-                <MenuKeybindButton name="Save" keybind="Ctrl+S" callback={handleSave} />
-                <MenuKeybindButton name="Save As" keybind="Ctrl+⇧S" callback={handleSaveAs} />
+                <MenuKeybindButton name="Save" keybind="Ctrl+S" callback={handleSave} disabled={!canSaveToDisk}
+                    tooltip={canSaveToDisk ? undefined : "Your browser doesn't support file writing. Use Download instead."} />
+                <MenuKeybindButton name="Save As" keybind="Ctrl+⇧S" callback={handleSaveAs} disabled={!canSaveToDisk}
+                    tooltip={canSaveToDisk ? undefined : "Your browser doesn't support file writing. Use Download As instead."} />
                 <Section />
                 <MenuKeybindButton name="Download" keybind="Ctrl+D" callback={handleDownload} />
                 <MenuKeybindButton name="Download As" keybind="Ctrl+⇧D" callback={handleDownloadAs} />

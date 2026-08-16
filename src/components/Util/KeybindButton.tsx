@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Tooltip from "./Tooltip";
 
 type KeybindButtonProps = {
     callback: () => void;
@@ -6,26 +7,35 @@ type KeybindButtonProps = {
     keybind?: ReactNode,
     textSize?: number,
     color?: string,
+    disabled?: boolean,
+    tooltip?: string,
 }
 
-export function MenuKeybindButton({ callback, name, keybind, textSize }: KeybindButtonProps) {
+export function MenuKeybindButton({ callback, name, keybind, textSize, disabled = false, tooltip }: KeybindButtonProps) {
     return (
-        <button
-            onClick={callback}
-            className="flex pr-1 pl-2 py-0.5 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm">
-            <span className={`text-[${textSize || 14}px] truncate min-w-0`}>{name}</span>
-            <span className={`text-lightgray text-[${textSize || 14}px] font-sans flex items-center gap-0`}>{keybind}</span>
-        </button>
+        // The disabled button ignores the pointer, so the tooltip wrapper is what catches the hover
+        <Tooltip label={tooltip} placement="right" speed="slow">
+            <button
+                onClick={callback}
+                disabled={disabled}
+                className={`flex w-full pr-1 pl-2 py-0.5 items-center justify-between hover:bg-blackgrayhover cursor-pointer rounded-sm
+                    ${disabled ? "opacity-40 pointer-events-none" : ""}`}>
+                <span className={`text-[${textSize || 14}px] truncate min-w-0`}>{name}</span>
+                <span className={`text-lightgray text-[${textSize || 14}px] font-sans flex items-center gap-0`}>{keybind}</span>
+            </button>
+        </Tooltip>
     );
 }
 
 const toSolid = (color: string) => color.replace(/,\s*[\d.]+\)$/, ", 1)");
 
-export function ConfigKeybindButton({ callback, name, keybind, textSize, color }: KeybindButtonProps) {
+export function ConfigKeybindButton({ callback, name, keybind, textSize, color, disabled = false }: KeybindButtonProps) {
     return (
         <button
             onClick={callback}
-            className="relative flex w-full pr-1 pl-2 py-0.5 items-center justify-between bg-medgray hover:brightness-92 cursor-pointer rounded-sm">
+            disabled={disabled}
+            className={`relative flex w-full pr-1 pl-2 py-0.5 items-center justify-between bg-medgray hover:brightness-92 cursor-pointer rounded-sm
+                ${disabled ? "opacity-40 pointer-events-none" : ""}`}>
             <span style={color ? { paddingLeft: "6px" } : undefined} className={`text-[${textSize || 14}px] truncate min-w-0`}>{name}</span>
             <span className={`text-lightgray text-[${textSize || 14}px] font-sans flex items-center gap-0`}>{keybind}</span>
             {color && <span className="absolute inset-y-0 left-0.5 w-1 h-5 self-center rounded-sm" style={{ backgroundColor: toSolid(color) }} />}

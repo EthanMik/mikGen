@@ -8,17 +8,17 @@ import React, { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
 
-type EditJSONPopupProps = {
+type EditTemplatePopupProps = {
     onEnter: (text: string) => void;
     open: boolean;
     label: string;
     setOpen: React.Dispatch<SetStateAction<boolean>>;
 }
 
-export default function EditJSONPopup({
+export default function EditTemplatePopup({
     open,
     setOpen
-}: EditJSONPopupProps) {
+}: EditTemplatePopupProps) {
 
     const popupRef = useRef<HTMLDivElement | null>(null);
     const templatesRef = useRef<Record<string, string>>({});

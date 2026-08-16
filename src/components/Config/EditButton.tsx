@@ -4,6 +4,7 @@ import Section from "../Util/Section";
 import FieldMacros from "../../macros/FieldMacros";
 import MenuButtonTemplate from "../Util/MenuButtonTemplate";
 import { MenuKeybindButton } from "../Util/KeybindButton";
+import { redoHistory, undoHistory } from "../../core/Undo/UndoHistory";
 
 export default function EditButton() {
     // The path is only needed when a menu action fires, so read it at call time instead of
@@ -23,6 +24,10 @@ export default function EditButton() {
         paste,
     } = FieldMacros();
 
+    // Booleans, not lengths, so the menu only re-renders when undo/redo actually becomes (un)available
+    const canUndo = undoHistory.useSelector(h => h.length > 1);
+    const canRedo = redoHistory.useSelector(h => h.length > 0);
+
     useEffect(() => {
         const handleKeyDown = (evt: KeyboardEvent) => {
             const target = evt.target as HTMLElement | null;
@@ -39,8 +44,8 @@ export default function EditButton() {
     return (
         <>
             <MenuButtonTemplate title="Edit" width={47}>
-                <MenuKeybindButton name={"Undo"} keybind={"Ctrl+Z"} callback={() => undo(null)} />
-                <MenuKeybindButton name={"Redo"} keybind={"Ctrl+Y"} callback={() => redo(null)} />
+                <MenuKeybindButton name={"Undo"} keybind={"Ctrl+Z"} callback={() => undo(null)} disabled={!canUndo} />
+                <MenuKeybindButton name={"Redo"} keybind={"Ctrl+Y"} callback={() => redo(null)} disabled={!canRedo} />
                 <Section />
 
                 <MenuKeybindButton name={"Cut"} keybind={"Ctrl+X"} callback={() => cut(null, getPath(), setPath)} />
