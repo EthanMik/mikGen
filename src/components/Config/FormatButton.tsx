@@ -1,6 +1,6 @@
 import { useRef } from "react";
-import { mergeRobot, useFormat, type Format } from "../../hooks/useFileFormat";
-import { changeFormat } from "../../simulation/FormatDefinition";
+import { changeFormat, mergeRobot, useFormat, type Format } from "../../hooks/useFileFormat";
+
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import ConfigButtonTemplate from "./ConfigButtonTemplate";
 import { ConfigCheckButton } from "../Util/CheckButton";

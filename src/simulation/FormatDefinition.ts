@@ -7,7 +7,6 @@ import type { Path } from "../core/Types/Path";
 import type { Coordinate } from "../core/Types/Coordinate";
 import type { Pose } from "../core/Types/Pose";
 import { holonomicDef } from "./HolonomicSim/HolonomicConstants";
-import { fileFormatStore } from "../hooks/useFileFormat";
 import type { Segment } from "../core/Types/Segment";
 import { JarTemplateDef, type JarConstants } from "./JarSim/JarConstants";
 import { EZTemplateDef, type EZconstants } from "./EZSim/EZConstants";
@@ -54,7 +53,6 @@ export const FORMAT_REGISTRY = {
     "EZ-Template": EZTemplateDef,
 
 } as unknown as { [F in Format]: FormatDef<F> };
-
 
 export type FormatDef<F extends Format, Segs extends Partial<Record<SegmentKind, SegmentDef<F>>> = Partial<Record<SegmentKind, SegmentDef<F>>>> = {
     constants: SegmentConstants<F>;
@@ -245,29 +243,6 @@ export function updateDefaultConstants<F extends Format>(
             [kind]: { ...segDef, defaults: newDefaults },
         },
     };
-}
-
-export function changeFormat(newFormat: Format) {
-    const newFormatDef = FORMAT_REGISTRY[newFormat] as FormatDef<Format>;
-    fileFormatStore.setState(prev => ({
-        ...prev,
-        format: newFormat,
-        formatDef: newFormatDef,
-        path: {
-            ...prev.path,
-            name: newFormatDef.formatPathName,
-            segments: prev.path.segments.map(s => {
-                const newSegDef = newFormatDef.segments[s.kind];
-                const castKind = newSegDef?.castTo ?? s.kind;
-                return {
-                    ...s,
-                    format: newFormat,
-                    kind: castKind,
-                    constants: getDefaultConstants(undefined, newFormat, castKind),
-                };
-            }),
-        },
-    }));
 }
 
 export function updatePathConstants<F extends Format>(
