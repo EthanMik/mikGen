@@ -10,6 +10,8 @@ import fileIcon from "../../assets/file.svg";
 import folderIcon from "../../assets/folder.svg";
 import back from "../../assets/back.svg";
 import refresh from "../../assets/cw.svg";
+import { ConfigKeybindButton } from "../Util/KeybindButton";
+import Section from "../Util/Section";
 
 // ─── export-dir helpers ───────────────────────────────────────────────────────
 
@@ -354,30 +356,33 @@ function DragAndDrop({ onHandle, onDirHandle }: DragAndDropProps) {
     };
 
     return (
-        <div
-            className={`h-12 outline-1 outline-dashed flex items-stretch rounded-sm transition-colors duration-100
-                ${isDragging ? "outline-white" : "outline-lightgray"}`}
-            onDragOver={handleDragOver}
-            onDragEnter={handleDragEnter}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-        >
+        <>
             <div
-                onClick={handleFileClick}
-                className="flex-1 flex flex-col items-center justify-center gap-1 cursor-pointer hover:opacity-60 py-1"
+                className={`h-12 mt-2 outline-1 outline-dashed flex items-stretch rounded-sm transition-colors duration-100
+                    ${isDragging ? "outline-white" : "outline-lightgray"}`}
+                onDragOver={handleDragOver}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
             >
-                <img src={fileIcon} className="w-3.5 h-3.5" />
-                <span className="text-[8px]">.cpp file</span>
+                <div
+                    onClick={handleFileClick}
+                    className="flex-1 flex flex-col items-center justify-center gap-1 cursor-pointer hover:opacity-60 py-1"
+                >
+                    <img src={fileIcon} className="w-3.5 h-3.5" />
+                    <span className="text-[8px]">.cpp file</span>
+                </div>
+                <div className={`${isDragging ? "bg-white" : "bg-lightgray"} w-[1px] rounded-lg self-stretch my-2`} />
+                <div
+                    onClick={handleFolderClick}
+                    className="flex-1 flex flex-col items-center justify-center gap-1 cursor-pointer hover:opacity-60 py-1"
+                >
+                    <img src={folderIcon} className="w-3.5 h-3.5" />
+                    <span className="text-[8px]">folder</span>
+                </div>
             </div>
-            <div className="w-px bg-lightgray opacity-20 self-stretch my-2" />
-            <div
-                onClick={handleFolderClick}
-                className="flex-1 flex flex-col items-center justify-center gap-1 cursor-pointer hover:opacity-60 py-1"
-            >
-                <img src={folderIcon} className="w-3.5 h-3.5" />
-                <span className="text-[8px]">folder</span>
-            </div>
-        </div>
+
+        </>
     );
 }
 
@@ -540,9 +545,13 @@ export default function ExportButton() {
             title="Export"
             iconButtons={mode === "folderView" ? [backButton, refreshButton] : []}
         >
+            <ConfigKeybindButton name={"Export All"}  callback={() => {}} />
+            <ConfigKeybindButton name={"Export Selected"} callback={() => {}} />
+            <Section />
+            
             {mode === "default" && (
                 <>
-                    <span className="text-[7.5px] mb-1 opacity-50">Segments can be also be exported by Ctrl+C</span>
+                    {/* <span className="text-[7.5px] mb-1 opacity-50">Segments can be also be exported by Ctrl+C</span> */}
                     <DragAndDrop onHandle={setHandle} onDirHandle={handleDirChosen} />
                 </>
             )}

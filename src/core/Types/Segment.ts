@@ -16,7 +16,6 @@ export type Segment<F extends Format = Format> = {
   constants: SegmentConstants<F>;
   distance: number;
   time: number;
-  /** Bezier control points, empty for every other kind. Read via segmentControls in Bezier.ts. */
   controls: ControlPoint[];
 };
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { fileFormatStore, updatePath } from "../../hooks/useFileFormat";
 import Section from "../Util/Section";
 import FieldMacros from "../../macros/FieldMacros";
@@ -6,7 +6,6 @@ import MenuButtonTemplate from "../Util/MenuButtonTemplate";
 import { MenuKeybindButton } from "../Util/KeybindButton";
 
 export default function EditButton() {
-    const flashRef = useRef<(() => void) | undefined>(undefined);
     // The path is only needed when a menu action fires, so read it at call time instead of
     // subscribing this always-mounted menu to every store write
     const getPath = () => fileFormatStore.getState().path;
@@ -24,14 +23,12 @@ export default function EditButton() {
         paste,
     } = FieldMacros();
 
-    const triggerFlash = () => flashRef.current?.();
-
     useEffect(() => {
         const handleKeyDown = (evt: KeyboardEvent) => {
             const target = evt.target as HTMLElement | null;
             if (target?.isContentEditable || target?.tagName === "INPUT") return;
-            copy(evt, fileFormatStore.getState().path, triggerFlash, true);
-            copy(evt, fileFormatStore.getState().path, triggerFlash);
+            copy(evt, fileFormatStore.getState().path, true);
+            copy(evt, fileFormatStore.getState().path);
             cut(evt, fileFormatStore.getState().path, setPath);
         };
 
@@ -41,14 +38,14 @@ export default function EditButton() {
 
     return (
         <>
-            <MenuButtonTemplate title="Edit" flashRef={flashRef} width={44}>
+            <MenuButtonTemplate title="Edit" width={44}>
                 <MenuKeybindButton name={"Undo"} keybind={"Ctrl+Z"} callback={() => undo(null)} />
                 <MenuKeybindButton name={"Redo"} keybind={"Ctrl+Y"} callback={() => redo(null)} />
                 <Section />
 
                 <MenuKeybindButton name={"Cut"} keybind={"Ctrl+X"} callback={() => cut(null, getPath(), setPath)} />
-                <MenuKeybindButton name={"Copy/Export"} keybind={"Ctrl+C"} callback={() => copy(null, getPath(), triggerFlash)} />
-                <MenuKeybindButton name={"Copy All"} keybind={"Ctrl+⇧C"} callback={() => copy(null, getPath(), triggerFlash, true)} />
+                <MenuKeybindButton name={"Copy"} keybind={"Ctrl+C"} callback={() => copy(null, getPath())} />
+                <MenuKeybindButton name={"Copy All"} keybind={"Ctrl+⇧C"} callback={() => copy(null, getPath(), true)} />
                 <MenuKeybindButton name={"Paste"} keybind={"Ctrl+V"} callback={() => paste(null, setPath)} />
                 <MenuKeybindButton name={"Delete"} keybind={"⌫"} callback={() => deleteControl(null, setPath)} />
                 <Section />

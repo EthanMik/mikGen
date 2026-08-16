@@ -6,16 +6,13 @@ type MenuButtonTemplateProps = {
     width?: number;
     onOpen?: () => void;
     onClose?: () => void;
-    flashRef?: { current: (() => void) | undefined };
     underlineRef?: { current: ((val: boolean) => void) | undefined };
     closeOnClick?: boolean;
 }
 
-export default function MenuButtonTemplate({ title, children, onOpen, onClose, flashRef, underlineRef, width, closeOnClick = true }: MenuButtonTemplateProps) {
+export default function MenuButtonTemplate({ title, children, onOpen, onClose, underlineRef, width, closeOnClick = true }: MenuButtonTemplateProps) {
     const [isOpen, setOpen] = useState(false);
-    const [flash, setFlash] = useState(false);
     const [underline, setUnderline] = useState(false);
-    const flashTimeoutRef = useRef<number | null>(null);
     const blockNextContextMenu = useRef(false);
     const menuRef = useRef<HTMLDivElement>(null);
     const onCloseRef = useRef(onClose);
@@ -57,14 +54,6 @@ export default function MenuButtonTemplate({ title, children, onOpen, onClose, f
         return () => document.removeEventListener("mousedown", handleRightClick, true);
     }, [isOpen]);
 
-    if (flashRef) {
-        flashRef.current = () => {
-            setFlash(true);
-            if (flashTimeoutRef.current) window.clearTimeout(flashTimeoutRef.current);
-            flashTimeoutRef.current = window.setTimeout(() => setFlash(false), 400);
-        };
-    }
-
     if (underlineRef) {
         underlineRef.current = setUnderline;
     }
@@ -82,7 +71,7 @@ export default function MenuButtonTemplate({ title, children, onOpen, onClose, f
         <div
             ref={menuRef}
             className={`relative rounded-sm hover:bg-medgray_hover
-                ${isOpen ? "bg-medgray_hover" : flash ? "bg-medlightgray ease-out duration-100" : ""}`}
+                ${isOpen ? "bg-medgray_hover" : ""}`}
             onContextMenu={e => { e.preventDefault(); e.stopPropagation(); }}
             onMouseDown={e => { if (e.button === 2) { e.preventDefault(); e.stopPropagation(); } }}
         >

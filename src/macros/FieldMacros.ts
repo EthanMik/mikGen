@@ -13,6 +13,7 @@ import { insertIndexAfterSelection, invertAllSelection, pointerToSvg, setAllSele
 import { fileFormatStore } from "../hooks/useFileFormat";
 import { saveSnapshot, redoHistory, undoHistory } from "../core/Undo/UndoHistory";
 import { queueFieldImg } from "../hooks/useFieldImg";
+import { copiedSegmentsStore } from "../core/CopyStore";
 
 export default function FieldMacros() {
     const MIN_FIELD_X = -999;
@@ -279,16 +280,16 @@ export default function FieldMacros() {
         }
     }
 
-    const copy = (evt: KeyboardEvent | null, path: Path, trigger: () => void, copyAll: boolean = false) => {
+    const copy = (evt: KeyboardEvent | null, path: Path, copyAll: boolean = false) => {
         const keyMatch = evt !== null && (copyAll
             ? (evt.key.toLowerCase() === "c" && evt.shiftKey && evt.ctrlKey)
             : (evt.key.toLowerCase() === "c" && evt.ctrlKey && !evt.shiftKey));
         if (evt === null || keyMatch) {
-            trigger();
             if (evt !== null) evt.preventDefault();
             const formatDef = fileFormatStore.getState().formatDef;
             const out = convertPathToString(formatDef, path, !copyAll);
             writeToClipboard(out ?? "");
+            copiedSegmentsStore.setState(path.segments.filter(s => copyAll || s.selected).map(s => s.id));
         }
     }
 

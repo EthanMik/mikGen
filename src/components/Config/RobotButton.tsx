@@ -56,8 +56,8 @@ export default function RobotButton() {
                 <Section name="Motion" defaultCollapsed>
                     <NumberInputButton name="Speed" label="Max velocity; measure on actual robot" value={robot.speed} setValue={v => v !== null && mergeRobot({ speed: v })} bounds={[0, 100]} stepSize={0.5} roundTo={2} units="ft/s" />
                     <NumberInputButton name="Track Width" label="Distance measured from wheel to wheel" value={robot.trackwidth} setValue={v => v !== null && mergeRobot({ trackwidth: v })} bounds={[0, 30]} stepSize={0.5} roundTo={1} units="in" />
-                    <NumberInputButton name="Drive Constant" label="Time for robot to reach 63.2% of its max velocity laterally" value={robot.lateralTau} setValue={v => v !== null && mergeRobot({ lateralTau: v })} bounds={[0, 2]} stepSize={0.05} roundTo={2} units="s" />
-                    <NumberInputButton name="Turn Constant" label="Time for robot to reach 63.2% of max velocity turning" value={robot.angularTau} setValue={v => v !== null && mergeRobot({ angularTau: v })} bounds={[0, 2]} stepSize={0.05} roundTo={2} units="s" />
+                    <NumberInputButton name="Drive Constant" label="Time for robot to reach 63.2% of its max velocity laterally" value={robot.lateralTau} setValue={v => v !== null && mergeRobot({ lateralTau: v })} bounds={[0, 2]} stepSize={0.05} roundTo={3} units="s" />
+                    <NumberInputButton name="Turn Constant" label="Time for robot to reach 63.2% of max velocity turning" value={robot.angularTau} setValue={v => v !== null && mergeRobot({ angularTau: v })} bounds={[0, 2]} stepSize={0.05} roundTo={3} units="s" />
                 </Section>
 
                 <Section name="Expansion" defaultCollapsed>

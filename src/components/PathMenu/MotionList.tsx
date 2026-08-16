@@ -15,6 +15,7 @@ import { setupDragTransfer } from "./PathConfigUtils";
 import { activeSimSegmentStore, computedPathStore, pathTelemetry, simJumpStore } from "../../core/ComputePathSim";
 import { roundNum } from "../../core/Util";
 import { hoveredSegmentStore } from "../../core/HoverStore";
+import { copiedSegmentsStore } from "../../core/CopyStore";
 import {
     updatePathConstants,
     updatePathConstantsByKind,
@@ -82,6 +83,17 @@ const MotionList = memo(function MotionList({
     const [isEyeOpen, setEyeOpen] = useState(true);
     const [isTelemetryOpen, setTelemetryOpen] = useState(false);
     const [isOpen, setOpen] = useState(false);
+    const [copyShrink, setCopyShrink] = useState(false);
+
+    // A copy hands over a fresh id array, so the row shrinks for one beat and transitions back
+    const copiedIds = copiedSegmentsStore.useStore();
+
+    useEffect(() => {
+        if (!copiedIds.includes(segmentId)) return;
+        setCopyShrink(true);
+        const timeout = setTimeout(() => setCopyShrink(false), 120);
+        return () => clearTimeout(timeout);
+    }, [copiedIds, segmentId]);
 
     // Exclusive and range selects take ownership from the controls; ctrl only toggles its own row
     const normalSelect = () => {
@@ -319,7 +331,7 @@ const MotionList = memo(function MotionList({
                     hover:brightness-92
                     rounded-md pl-4 pr-4
                     transition-all duration-100
-                    active:scale-[0.995]
+                    ${copyShrink ? "scale-97" : "active:scale-[0.995]"}
                     ${isOpen ? "border-2 border-[#535252]" : "border-2 border-transparent"}
                     ${draggingIds.includes(segmentId) ? "opacity-10" : ""}
                 `}

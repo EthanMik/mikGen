@@ -164,8 +164,8 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 					if (pathRef.current) saveSnapshot();
 				}, 400);
 			}
-			copy(evt, pathRef.current!, () => { });
-			copy(evt, pathRef.current!, () => { }, true);
+			copy(evt, pathRef.current!);
+			copy(evt, pathRef.current!, true);
 			cut(evt, pathRef.current!, updatePath);
 			deleteControl(evt, updatePath);
 			selectPath(evt, updatePath);

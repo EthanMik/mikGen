@@ -28,7 +28,7 @@ export default function Config({ fillHeight = false }: ConfigProps) {
                 <RobotButton/>
                 <FieldButton/>
                 <FormatButton />
-                {'showDirectoryPicker' in window && <ExportButton />}
+                <ExportButton />
                 {/* <HelpButton /> */}
             </div>
         </div>
