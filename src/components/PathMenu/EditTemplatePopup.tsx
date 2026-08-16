@@ -95,11 +95,15 @@ export default function EditTemplatePopup({
                         grid place-items-center
                         overflow-x-hidden"
                     >
-                    <div 
+                    {/* The panel spans the viewport less a 500px gutter per side and the rows fill it, so the
+                        box and its inputs resize together. The floor keeps it usable on a window narrower
+                        than the two gutters combined */}
+                    <div
                         className="
                             relative
                             -translate-y-[15%]
-                            bg-medgray_hover w-auto h-auto p-4
+                            bg-medgray_hover h-auto p-4
+                            w-[calc(100vw-500px)] min-w-[600px]
                             flex flex-col gap-2
                             shadow-xs shadow-blackgray
                             rounded-lg
@@ -137,7 +141,7 @@ export default function EditTemplatePopup({
                                     <TextInput
                                         fontSize={16}
                                         unitsFontSize={14}
-                                        width={800}
+                                        width="100%"
                                         height={40}
                                         units=""
                                         value={segDef.toStringTemplate ?? ''}

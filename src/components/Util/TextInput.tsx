@@ -4,7 +4,8 @@ type TextInputProps = {
   fontSize: number;
   unitsFontSize: number;
 
-  width: number;
+  /** A number is a fixed pixel width; any CSS width string (e.g. "100%") flexes with the parent */
+  width: number | string;
   height: number;
   value: string;
   setValue: (value: string) => void;
@@ -33,6 +34,10 @@ export default function TextInput({
   const [labelW, setLabelW] = useState(0);
 
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // The notched outline is drawn in pixels, so a flexing width has to be measured rather than read off the prop
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [boxW, setBoxW] = useState(typeof width === "number" ? width : 0);
 
   if (focus && inputRef.current !== null) {
     inputRef.current?.focus();
@@ -63,6 +68,19 @@ export default function TextInput({
 
   const stroke = 2;
   const radius = 6;
+
+  useLayoutEffect(() => {
+    const el = boxRef.current;
+    if (!el) return;
+
+    const update = () => setBoxW(el.getBoundingClientRect().width);
+
+    update();
+
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   useLayoutEffect(() => {
     const el = labelRef.current;
@@ -118,11 +136,15 @@ export default function TextInput({
   }
 
   return (
-    <div className="relative inline-block group">
+    <div
+      ref={boxRef}
+      className="relative inline-block group"
+      style={{ width: typeof width === "number" ? `${width}px` : width }}
+    >
       <input
         ref={inputRef}
-        className={`bg-blackgray rounded-lg text-${position} text-white outline-none pl-4 pr-4`}
-        style={{ fontSize: `${fontSize}px`, width: `${width}px`, height: `${height}px` }}
+        className={`bg-blackgray rounded-lg text-${position} text-white outline-none w-full pl-4 pr-4`}
+        style={{ fontSize: `${fontSize}px`, height: `${height}px` }}
         type="text"
         value={displayRef.current}
         onChange={handleChange}
@@ -132,12 +154,12 @@ export default function TextInput({
       <svg
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
-        width={width}
+        width={boxW}
         height={height}
-        viewBox={`0 0 ${width} ${height}`}
+        viewBox={`0 0 ${boxW} ${height}`}
       >
         <path
-          d={buildNotchedRoundedRectPath(width, height)}
+          d={buildNotchedRoundedRectPath(boxW, height)}
           fill="none"
           className="stroke-lightgray"
           strokeWidth={stroke}
