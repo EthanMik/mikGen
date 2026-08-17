@@ -4,12 +4,12 @@ sidebar_position: 1
 
 # Getting Started
 
-Build your first autonomous path in mikGen in about five minutes.
+Build your first autonomous path in mikGen.
 
 ## Selecting a Format
 
 To get started, first select the format you will be using.
-The format determines which segments are available, what they are named, and what constants they use,
+The format determines which segments are available, what they are named, and what constants they use;
 since mikGen matches your chosen library's internals. It is recommended to read your library's documentation:
 
 - [mikLib](https://ethanmik.github.io/mikLib/)
@@ -57,8 +57,9 @@ A few tips while building:
 
 Click a segment on the field or in the path list to select it.
 
+<img src={require('./img/getting-started/selection.png').default} width="50%"  style={{ paddingBottom: '20px' }} />
 
- Press `Backspace` to delete a
+Press `Backspace` to delete a
 segment and `Ctrl+Z` to undo.
 
 ## Playing the Path
@@ -66,8 +67,6 @@ segment and `Ctrl+Z` to undo.
 To play your path, press `spacebar` or click the play button at the bottom of the screen
 
 <video src={require('./img/getting-started/playpath.mp4').default} loop autoPlay muted playsInline width="50%" />
-
-You can scrub through the path with `J` and `L`, and the loop button replays the path continuously.
 
 ## Copying the Code
 
@@ -81,9 +80,3 @@ chassis.drive_to_point(24, 24);
 ```
 
 mikGen can also write code directly into your project files. See [Exporting & Saving](./exporting-and-saving.mdx).
-
-## Next Steps
-
-- [Segments & Keybinds](./segments-and-keybinds.mdx): every segment type, editing shortcut, and playback control
-- [Format Differences](./format-differences.mdx): how the supported libraries differ inside mikGen
-- [Exporting & Saving](./exporting-and-saving.mdx): writing code to files and saving your project
