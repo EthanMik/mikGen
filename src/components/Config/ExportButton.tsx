@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import ConfigButtonTemplate from "./ConfigButtonTemplate";
 import { ConfigCheckboxButton } from "../Util/CheckboxButton";
 import Tooltip from "../Util/Tooltip";
-import { fileFormatStore } from "../../hooks/useFileFormat";
+import { fileFormatStore, usePath } from "../../hooks/useFileFormat";
 import { convertPathToString, templateToRegex } from "../../simulation/Conversion";
 import type { FormatDef, Format, SegmentDef, SegmentKind } from "../../simulation/FormatDefinition";
 import type { Path } from "../../core/Types/Path";
@@ -12,6 +12,7 @@ import back from "../../assets/back.svg";
 import refresh from "../../assets/cw.svg";
 import { ConfigKeybindButton } from "../Util/KeybindButton";
 import Section from "../Util/Section";
+import FieldMacros from "../../macros/FieldMacros";
 
 // ─── export-dir helpers ───────────────────────────────────────────────────────
 
@@ -25,7 +26,8 @@ async function readExportDirEntries(handle: FileSystemDirectoryHandle): Promise<
     const result: Entry[] = [];
     for await (const [name, h] of handle.entries()) {
         const kind = h.kind as "file" | "directory";
-        if (kind === "file" && !name.endsWith(".cpp")) continue;
+        // Matches what the file picker offers, so a folder does not hide files that picker accepts
+        if (kind === "file" && !/\.(cpp|cc|cxx|c|hpp|hh|h|ino|py|java|kt|cs|ts|js|rs|txt)$/i.test(name)) continue;
         result.push({ name, kind, handle: h as FileSystemFileHandle | FileSystemDirectoryHandle });
     }
     result.sort((a, b) => {
@@ -310,16 +312,14 @@ type DragAndDropProps = {
     onDirHandle: (handle: FileSystemDirectoryHandle) => void;
 }
 
-function DragAndDrop({ onHandle, onDirHandle }: DragAndDropProps) {
-    const [isDragging, setIsDragging] = useState(false);
+const canUseFileHandles = 'showOpenFilePicker' in window;
 
+function DragAndDrop({ onHandle, onDirHandle }: DragAndDropProps) {
+    // dragover has to be cancelled for a drop to fire at all
     const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); };
-    const handleDragEnter = (e: React.DragEvent) => { e.preventDefault(); if (e.dataTransfer.items.length > 0) setIsDragging(true); };
-    const handleDragLeave = (e: React.DragEvent) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false); };
 
     const handleDrop = async (e: React.DragEvent) => {
         e.preventDefault();
-        setIsDragging(false);
         const item = e.dataTransfer.items[0];
         if (!item) return;
         const handle = await (item as DataTransferItem & {
@@ -330,12 +330,20 @@ function DragAndDrop({ onHandle, onDirHandle }: DragAndDropProps) {
         else if (handle.kind === "file") onHandle(handle as FileSystemFileHandle);
     };
 
-    const handleFileClick = async (e: React.MouseEvent) => {
-        e.stopPropagation();
+    const handleFileClick = async (e?: React.MouseEvent) => {
+        e?.stopPropagation();
         try {
             // @ts-expect-error showOpenFilePicker not in all TS DOM libs
             const [handle] = await window.showOpenFilePicker({
-                types: [{ description: "C++ Source", accept: { "text/plain": [".cpp"] } }],
+                // The picker keeps its "All Files" option, so this list only decides what is offered first
+                types: [{
+                    description: "Source Files", accept: {
+                        "text/plain": [
+                            ".cpp", ".cc", ".cxx", ".c", ".hpp", ".hh", ".h", ".ino",
+                            ".py", ".java", ".kt", ".cs", ".ts", ".js", ".rs", ".txt",
+                        ]
+                    }
+                }],
                 multiple: false,
             });
             if (handle) onHandle(handle);
@@ -344,8 +352,8 @@ function DragAndDrop({ onHandle, onDirHandle }: DragAndDropProps) {
         }
     };
 
-    const handleFolderClick = async (e: React.MouseEvent) => {
-        e.stopPropagation();
+    const handleFolderClick = async (e?: React.MouseEvent) => {
+        e?.stopPropagation();
         try {
             // @ts-expect-error showDirectoryPicker not in all TS DOM libs
             const handle = await window.showDirectoryPicker({ mode: "readwrite" });
@@ -355,34 +363,44 @@ function DragAndDrop({ onHandle, onDirHandle }: DragAndDropProps) {
         }
     };
 
-    return (
-        <>
-            <div
-                className={`h-12 mt-2 outline-1 outline-dashed flex items-stretch rounded-sm transition-colors duration-100
-                    ${isDragging ? "outline-white" : "outline-lightgray"}`}
-                onDragOver={handleDragOver}
-                onDragEnter={handleDragEnter}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-            >
-                <div
-                    onClick={handleFileClick}
-                    className="flex-1 flex flex-col items-center justify-center gap-1 cursor-pointer hover:opacity-60 py-1"
-                >
-                    <img src={fileIcon} className="w-3.5 h-3.5" />
-                    <span className="text-[8px]">.cpp file</span>
-                </div>
-                <div className={`${isDragging ? "bg-white" : "bg-lightgray"} w-[1px] rounded-lg self-stretch my-2`} />
-                <div
-                    onClick={handleFolderClick}
-                    className="flex-1 flex flex-col items-center justify-center gap-1 cursor-pointer hover:opacity-60 py-1"
-                >
-                    <img src={folderIcon} className="w-3.5 h-3.5" />
-                    <span className="text-[8px]">folder</span>
-                </div>
-            </div>
+    // The buttons ignore the pointer when disabled, so the drag handlers stay on the wrapper and
+    // each tooltip wrapper is what catches the hover
+    const dropZone = canUseFileHandles ? {
+        onDragOver: handleDragOver,
+        onDrop: handleDrop,
+    } : {};
 
-        </>
+    return (
+        <div className="flex flex-col gap-1" {...dropZone}>
+            <Tooltip
+                label={canUseFileHandles
+                    ? "Pick a source file to export into, or drag one onto this button"
+                    : "Your browser doesn't support file writing. Use copy to clipboard instead."}
+                placement="right"
+                speed="slow"
+            >
+                <ConfigKeybindButton
+                    name="Choose File"
+                    keybind={<img src={fileIcon} className="w-3.5 h-3.5" />}
+                    callback={handleFileClick}
+                    disabled={!canUseFileHandles}
+                />
+            </Tooltip>
+            <Tooltip
+                label={canUseFileHandles
+                    ? "Pick a folder to browse for source files, or drag one onto this button"
+                    : "Your browser doesn't support file writing. Use copy to clipboard instead."}
+                placement="right"
+                speed="slow"
+            >
+                <ConfigKeybindButton
+                    name="Choose Folder"
+                    keybind={<img src={folderIcon} className="w-3.5 h-3.5" />}
+                    callback={handleFolderClick}
+                    disabled={!canUseFileHandles}
+                />
+            </Tooltip>
+        </div>
     );
 }
 
@@ -433,6 +451,9 @@ export default function ExportButton() {
     const mode = handle ? "writeInterface" : currentExportDir ? "folderView" : "default";
 
     const log = (text: string) => setConsoleLines(prev => [...prev, text]);
+    const {
+        copy,
+    } = FieldMacros();
 
     const handleDirChosen = async (dirHandle: FileSystemDirectoryHandle) => {
         setCurrentExportDir(dirHandle);
@@ -524,7 +545,7 @@ export default function ExportButton() {
         }
     };
 
-    const writeRef = useRef<() => void>(() => {});
+    const writeRef = useRef<() => void>(() => { });
     useEffect(() => {
         writeRef.current = replaceMode || mergeMode ? replaceInFile : writeToFile;
     });
@@ -537,18 +558,27 @@ export default function ExportButton() {
         return () => document.removeEventListener('keydown', handler);
     }, []);
 
-    const backButton = { icon: back, visible: true, onClick: goExportBack, tooltip: "Go Back" };
+    // With a file open, back drops the file and lands on the folder it came from, or on the drop
+    // zone when the file was picked directly
+    const backButton = {
+        icon: back,
+        visible: true,
+        onClick: mode === "writeInterface" ? () => setHandle(null) : goExportBack,
+        tooltip: "Go Back",
+    };
     const refreshButton = { icon: refresh, visible: true, onClick: refreshExportDir, tooltip: "Refresh Folder" };
+
+    const [path] = usePath();
 
     return (
         <ConfigButtonTemplate
             title="Export"
-            iconButtons={mode === "folderView" ? [backButton, refreshButton] : []}
+            iconButtons={mode === "folderView" ? [backButton, refreshButton] : mode === "writeInterface" ? [backButton] : []}
         >
-            <ConfigKeybindButton name={"Export All"}  callback={() => {}} />
-            <ConfigKeybindButton name={"Export Selected"} callback={() => {}} />
+            <ConfigKeybindButton name={"Copy All"} callback={() => { copy(null, path, true); }} />
+            <ConfigKeybindButton name={"Copy Selected"} callback={() => { copy(null, path, false); }} />
             <Section />
-            
+
             {mode === "default" && (
                 <>
                     {/* <span className="text-[7.5px] mb-1 opacity-50">Segments can be also be exported by Ctrl+C</span> */}
@@ -577,13 +607,10 @@ export default function ExportButton() {
             {mode === "writeInterface" && handle && (
                 <div className="flex flex-col gap-0.5">
                     <div className="flex flex-row items-center gap-2">
-                        <button
-                            onClick={() => setHandle(null)}
-                            className="text-[10px] opacity-70 cursor-pointer hover:opacity-100 truncate"
-                            title={handle.name}
-                        >
+                        {/* Going back moved to the header button, so the name is only a label now */}
+                        <span className="text-[10px] opacity-70 truncate" title={handle.name}>
                             {handle.name}
-                        </button>
+                        </span>
                     </div>
                     <Tooltip label="Export Path  Ctrl+E" placement="right">
                         <button

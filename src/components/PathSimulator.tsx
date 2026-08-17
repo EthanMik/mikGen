@@ -351,7 +351,7 @@ export default function PathSimulator() {
                 <Tooltip label="Toggle Robot Visibility (R)" placement="top" speed="fast">
                     <Checkbox checked={robotVisible} setChecked={setRobotVisibility} size={22} checkedSvg={openEye} uncheckedSvg={closedEye}/>
                 </Tooltip>
-                <Tooltip label="Loop Path" placement="top" speed="fast">
+                <Tooltip label="Loop Path (;)" placement="top" speed="fast">
                     <button onClick={() => setSettings(prev => ({ ...prev, loopPath: !prev.loopPath }))}
                         className={`px-1 py-1 rounded-sm hover:brightness-90 cursor-pointer`}>
                         <img className="w-[22px] h-[22px]" src={looping ? loopOn : loopOff} />

@@ -131,7 +131,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		fieldPanWheel, cut, paste, copy,
 	} = FieldMacros();
 
-	const { toggleRobotVisibility, togglePrecisePath, toggleOnionLayers } = PathSimMacros();
+	const { toggleRobotVisibility, togglePrecisePath, toggleOnionLayers, toggleLoopPath } = PathSimMacros();
 
 	const hiddenInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -177,6 +177,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 			toggleRobotVisibility(evt, setRobotVisibility);
 			togglePrecisePath(evt, setSettings);
 			toggleOnionLayers(evt, setSettings);
+			toggleLoopPath(evt, setSettings);
 		};
 
 		const handleWheelDown = (evt: WheelEvent) => {
@@ -210,6 +211,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		toggleRobotVisibility,
 		togglePrecisePath,
 		toggleOnionLayers,
+		toggleLoopPath,
 		cut,
 		copy,
 		setImg,

@@ -31,6 +31,15 @@ export function PathSimMacros() {
         }
     }
 
+    function toggleLoopPath(
+        evt: KeyboardEvent,
+        setSettings: React.Dispatch<SetStateAction<Settings>>,
+    ) {
+        if (evt.key === ";" && !evt.ctrlKey) {
+            setSettings((prev) => ({ ...prev, loopPath: !prev.loopPath }));
+        }
+    }
+
     const togglePlaying = (
         setPlaying: React.Dispatch<React.SetStateAction<boolean>>,
         setVisibility: React.Dispatch<SetStateAction<boolean>>,
@@ -120,6 +129,7 @@ export function PathSimMacros() {
         toggleRobotVisibility,
         togglePrecisePath,
         toggleOnionLayers,
+        toggleLoopPath,
         pauseSimulator,
         releaseSimulator,
         scrubSimulator
