@@ -93,7 +93,7 @@ export function PathSimMacros() {
         smallStep: number,
         largeStep: number,
     ) => {
-        const FAST_SCRUB_STEP = largeStep; // Move 1 second
+        const FAST_SCRUB_STEP = largeStep;
         const SLOW_SCRUB_STEP = smallStep;
 
         const scrub = evt.shiftKey
