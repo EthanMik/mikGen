@@ -43,34 +43,43 @@ export default function Slider({
     setValue?.(newValue);
   }
 
-  const startDrag = (evt: React.MouseEvent) => {
+  // Pointer events rather than mouse events, so the scrubber can be dragged by touch. Capture on
+  // the track replaces the window level listeners: it keeps delivering moves once the finger or
+  // cursor leaves the track, and releases itself automatically.
+  const dragging = useRef(false);
+
+  const startDrag = (evt: React.PointerEvent) => {
+    if (evt.button !== 0) return;
     onChangeStart?.();
     evt.preventDefault();
     evt.stopPropagation();
+    dragging.current = true;
+    evt.currentTarget.setPointerCapture(evt.pointerId);
     handleMove(evt.clientX);
+  }
 
-    const move = (evt: MouseEvent) => {
-      handleMove(evt.clientX)
-    }
+  const onMove = (evt: React.PointerEvent) => {
+    if (!dragging.current) return;
+    handleMove(evt.clientX);
+  }
 
-    const stop = () => {
-      OnChangeEnd?.(value);
-      window.removeEventListener("mouseup", stop);
-      window.removeEventListener("mousemove", move);
-    }
-
-    window.addEventListener("mousemove", move)
-    window.addEventListener("mouseup", stop)
+  const endDrag = () => {
+    if (!dragging.current) return;
+    dragging.current = false;
+    OnChangeEnd?.(value);
   }
 
   return (
-    <div className="relative flex items-center w-full cursor-pointer"
+    <div className="relative flex items-center w-full cursor-pointer touch-none"
       style={{
         ...(sliderWidth > 0 ? { width: `${sliderWidth}px` } : {}),
         height: `${Math.max(knobHeight, sliderHeight) * 2}px`,
       }}
       ref={trackRef}
-      onMouseDown={startDrag}
+      onPointerDown={startDrag}
+      onPointerMove={onMove}
+      onPointerUp={endDrag}
+      onPointerCancel={endDrag}
     >
       <div className="rounded-sm w-full pointer-events-none"
         style={{

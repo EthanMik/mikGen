@@ -19,7 +19,7 @@ export function invalidateSvgCtm() {
     ctmCache = null;
 }
 
-export function pointerToSvg(evt: React.PointerEvent | React.MouseEvent<SVGSVGElement> | WheelEvent, svg: SVGSVGElement): Coordinate {
+export function pointerToSvg(evt: { clientX: number; clientY: number }, svg: SVGSVGElement): Coordinate {
     if (ctmCache === null || ctmCache.svg !== svg) {
         const ctm = svg.getScreenCTM();
         if (ctm) ctmCache = { svg, inverse: ctm.inverse() };

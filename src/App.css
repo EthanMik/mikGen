@@ -16,6 +16,8 @@
 @layer base {
   * {
     font-family: sans-serif;
+    /* Buttons here have their own press states; the mobile default flashes a grey box over them */
+    -webkit-tap-highlight-color: transparent;
   }
 }
 

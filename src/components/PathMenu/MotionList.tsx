@@ -11,7 +11,7 @@ import type { ConstantField } from "./ConstantRow";
 import ConstantsList from "./ConstantsList";
 import CycleImageButton, { type CycleImageButtonProps } from "../Util/CycleButton";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
-import { setupDragTransfer } from "./PathConfigUtils";
+import type { SegmentRowHandlers } from "./useSegmentReorder";
 import { activeSimSegmentStore, computedPathStore, pathTelemetry, simJumpStore } from "../../core/ComputePathSim";
 import { roundNum } from "../../core/Util";
 import { hoveredSegmentStore } from "../../core/HoverStore";
@@ -46,10 +46,9 @@ type MotionListProps = {
     index: number;
     isOpenGlobal: boolean;
     isTelemetryOpenGlobal?: boolean;
-    draggable?: boolean;
-    onDragStart?: (e: React.DragEvent<HTMLButtonElement>) => void;
-    onDragEnd?: (e: React.DragEvent<HTMLButtonElement>) => void;
-    onDragEnter?: () => void;
+    reorderable?: boolean;
+    rowHandlers?: SegmentRowHandlers;
+    wasDragged?: () => boolean;
     draggingIds?: string[];
     shrink?: boolean;
 }
@@ -59,10 +58,9 @@ const MotionList = memo(function MotionList({
     index,
     isOpenGlobal,
     isTelemetryOpenGlobal,
-    draggable = false,
-    onDragStart,
-    onDragEnd,
-    onDragEnter,
+    reorderable = false,
+    rowHandlers,
+    wasDragged,
     draggingIds = [],
     shrink = false,
 }: MotionListProps) {
@@ -141,6 +139,9 @@ const MotionList = memo(function MotionList({
 
     const handleOnClick = (evt: React.PointerEvent<HTMLButtonElement>) => {
         evt.stopPropagation();
+        // The click still fires after a reorder drag, and it would re-select the row under the
+        // cursor rather than the one that was moved
+        if (wasDragged?.()) return;
         if (evt.button === 0 && evt.ctrlKey) { ctrlSelect(); return; }
         if (evt.button === 0 && evt.shiftKey) { shiftSelect(); return; }
         if (evt.button === 0) {
@@ -149,6 +150,8 @@ const MotionList = memo(function MotionList({
             return;
         }
     };
+
+    const canReorder = reorderable && !segment.locked;
 
     useEffect(() => { setOpen(isOpenGlobal); }, [isOpenGlobal]);
     useEffect(() => { if (isTelemetryOpenGlobal !== undefined) setTelemetryOpen(isTelemetryOpenGlobal); }, [isTelemetryOpenGlobal]);
@@ -312,19 +315,22 @@ const MotionList = memo(function MotionList({
             </div>
 
             <button
-                draggable={draggable && !segment.locked}
-                onDragStart={(e) => {
-                    setupDragTransfer(e, segmentId);
-                    if (onDragStart) onDragStart(e);
-                }}
-                onDragEnd={(e) => { if (onDragEnd) onDragEnd(e); }}
-                onDragEnter={() => { if (onDragEnter) onDragEnter(); }}
+                onPointerDown={(e) => { if (canReorder) rowHandlers?.onPointerDown(e, segmentId); }}
+                onPointerMove={(e) => { if (canReorder) rowHandlers?.onPointerMove(e); }}
+                onPointerUp={(e) => { if (canReorder) rowHandlers?.onPointerUp(e); }}
+                onPointerCancel={(e) => { if (canReorder) rowHandlers?.onPointerCancel(e); }}
                 onClick={handleOnClick}
                 onContextMenu={handleContextMenu}
                 onMouseEnter={() => hoveredSegmentStore.setState(segmentId)}
                 onMouseLeave={() => hoveredSegmentStore.setState(null)}
-                style={{ width: `${!shrink ? 450 : 400}px` }}
-                className={`${selected ? "bg-medlightgray" : ""}
+                style={{
+                    width: `${!shrink ? 450 : 400}px`,
+                    // Vertical panning stays with the browser so an ordinary swipe still scrolls the
+                    // list; the reorder gesture revokes it only once a long press has armed a drag
+                    touchAction: canReorder ? "pan-y" : undefined,
+                    WebkitTouchCallout: "none",
+                }}
+                className={`select-none ${selected ? "bg-medlightgray" : ""}
                     relative flex flex-row justify-start items-center
                     h-[35px] gap-[12px]
                     bg-medgray

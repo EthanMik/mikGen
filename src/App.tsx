@@ -23,6 +23,17 @@ const EDGE = 8;
 const CONFIG_W = 180;
 // button size plus a gap on both sides, so the floating popout buttons stack on the same grid
 const BUTTON_STEP = 33 + EDGE;
+// Below this width the side panels never fit next to the field, so the layout collapses no matter
+// which view mode is selected
+const MOBILE_W = 700;
+// A viewport smaller than this on either axis cannot show the field at a comfortable scale, so the
+// floor gives way rather than letting the content overflow and get clipped. Height matters on its
+// own: a phone held in landscape is wide but far too short for the normal floor.
+const MOBILE_H = 600;
+const MIN_SCALE = 0.75;
+const MIN_SCALE_MOBILE = 0.25;
+// Natural width of the popout panels, used to shrink them onto a narrow screen
+const POPOUT_W = 500;
 
 export default function App() {
   const pathName = fileFormatStore.useSelector(s => s.path.name);
@@ -45,6 +56,7 @@ export default function App() {
   );
 
   const [scale, setScale] = useState(1);
+  const [popoutScale, setPopoutScale] = useState(0.85);
   const [showConfig, setShowConfig] = useState(true);
   const [showRightPanel, setShowRightPanel] = useState(true);
   const [canvasWidth, setCanvasWidth] = useState(FIELD_IMG_DIMENSIONS.w);
@@ -82,12 +94,20 @@ export default function App() {
       if (fw > 0) cachedFieldW.current = fw;
       if (rw > 0) cachedRightW.current = rw;
 
+      // A phone cannot fit the side panels at any scale worth reading, so the collapsed layout wins
+      // over an explicitly chosen view mode rather than letting "standard" push them back on screen
+      const forceCollapse = vw < MOBILE_W;
+
       const autoConfig = vw - EDGE * 2 > cachedFieldW.current + cachedRightW.current;
       const autoRight = vw - EDGE * 2 > cachedFieldW.current + 250;
-      const nextShowConfig = mode === "standard" ? true : (mode === "collapsed-config" || mode === "fully-collapsed" ? false : autoConfig);
-      const nextShowRight = mode === "standard" ? true : (mode === "collapsed-list" || mode === "fully-collapsed" ? false : autoRight);
+      const nextShowConfig = forceCollapse ? false : mode === "standard" ? true : (mode === "collapsed-config" || mode === "fully-collapsed" ? false : autoConfig);
+      const nextShowRight = forceCollapse ? false : mode === "standard" ? true : (mode === "collapsed-list" || mode === "fully-collapsed" ? false : autoRight);
       setShowConfig(nextShowConfig);
       setShowRightPanel(nextShowRight);
+
+      // The popouts are POPOUT_W wide and hang off the right edge, so on a narrow screen they have
+      // to shrink past the desktop 0.85 or they run off the side
+      setPopoutScale(Math.min(0.85, (vw - EDGE * 2 - BUTTON_STEP) / POPOUT_W));
 
       const cw = content.scrollWidth;
       const ch = content.scrollHeight;
@@ -98,14 +118,20 @@ export default function App() {
 
       const padding = EDGE * 2;
       const fullyCollapsedNext = !nextShowConfig && !nextShowRight;
+      const minScale = vw < MOBILE_W || vh < MOBILE_H ? MIN_SCALE_MOBILE : MIN_SCALE;
 
       if (fullyCollapsedNext) {
-        const s = clamp((vh - padding) / ch, 0.75, 2);
+        // Fit against the field's natural width rather than the measured cw: cw grows with
+        // canvasWidth, which this branch sets, so measuring it here would feed back on itself
+        const baseW = FIELD_IMG_DIMENSIONS.w;
+        const s = clamp(Math.min((vw - padding) / baseW, (vh - padding) / ch), minScale, 2);
         setScale(s);
-        setCanvasWidth(Math.round(vw / s));
+        // Widening the svg past the field image gives extra room to pan into; narrowing it past
+        // the image would crop the field instead of shrinking it, which is what breaks on a phone
+        setCanvasWidth(Math.max(baseW, Math.round(vw / s)));
       } else {
         const totalCw = (nextShowConfig ? CONFIG_W + EDGE : 0) + cw;
-        setScale(clamp(Math.min((vw - padding) / totalCw, (vh - padding) / ch), 0.75, 2));
+        setScale(clamp(Math.min((vw - padding) / totalCw, (vh - padding) / ch), minScale, 2));
         setCanvasWidth(FIELD_IMG_DIMENSIONS.w);
       }
     };
@@ -132,7 +158,7 @@ export default function App() {
 
   return (
     <ScaleContext.Provider value={scale}>
-      <div ref={viewportRef} className={`w-screen h-screen overflow-hidden${fullyCollapsed ? " flex items-center justify-center" : ""}`}>
+      <div ref={viewportRef} className={`w-screen h-dvh overflow-hidden${fullyCollapsed ? " flex items-center justify-center" : ""}`}>
 
         <HoverButton
           src={threeDots}
@@ -147,7 +173,7 @@ export default function App() {
               ? { display: "none" }
               : showConfig
               ? { top: `${EDGE}px`, left: `${EDGE}px`, transform: `scale(${scale})`, transformOrigin: "top left", zIndex: 10 }
-              : { top: `${EDGE + BUTTON_STEP}px`, left: `${EDGE}px`, transform: "scale(0.85)", transformOrigin: "top left", height: `calc((100vh - ${EDGE * 2 + BUTTON_STEP}px) / 0.85)`, zIndex: 50 }
+              : { top: `${EDGE + BUTTON_STEP}px`, left: `${EDGE}px`, transform: "scale(0.85)", transformOrigin: "top left", height: `calc((100dvh - ${EDGE * 2 + BUTTON_STEP}px) / 0.85)`, zIndex: 50 }
           }
         >
           <Config fillHeight={!showConfig} />
@@ -179,7 +205,7 @@ export default function App() {
             )}
             <div
               className="fixed right-2 z-50 flex flex-col gap-2"
-              style={{ top: `${EDGE + BUTTON_STEP * (isFieldPanned ? 3 : 2)}px`, transform: "scale(0.85)", transformOrigin: "top right" }}
+              style={{ top: `${EDGE + BUTTON_STEP * (isFieldPanned ? 3 : 2)}px`, transform: `scale(${popoutScale})`, transformOrigin: "top right" }}
             >
               <div className={pathConfigPopout ? "" : "hidden"}>
                 <PathConfig />

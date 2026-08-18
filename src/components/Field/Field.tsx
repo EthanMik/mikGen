@@ -13,6 +13,8 @@ import { segmentControls } from "../../core/Types/Bezier";
 import HoverButton from "../Util/HoverButton";
 import { useBoxSelect } from "./useBoxSelect";
 import { useMagnetSnap } from "./useMagnetSnap";
+import { useFieldGesture } from "./useFieldGesture";
+import { usePointerCoarse } from "../../hooks/usePointerCoarse";
 import RobotLayer from "./RobotLayer";
 import PathLayer from "./PathLayer";
 import ControlsLayer from "./ControlsLayer";
@@ -95,7 +97,10 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 	const [settings, setSettings] = useSettings();
 
 	const startDrag = useRef(false);
-	const radius = 15;
+	// Nodes sized for a mouse are far too small to land on with a fingertip, and the app scales the
+	// whole field down on a phone on top of that. Growing radius itself rather than adding invisible
+	// hit circles keeps the selected-last draw order in ControlsLayer meaningful.
+	const radius = usePointerCoarse() ? 22 : 15;
 
 	type dragProps = { dragging: boolean; lastPos: Coordinate };
 	const [drag, setDrag] = useState<dragProps>({ dragging: false, lastPos: { x: 0, y: 0 } });
@@ -122,6 +127,20 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 	} = useBoxSelect();
 
 	const { snapInfo, findSnap, clearSnap } = useMagnetSnap();
+
+	// A second finger landing takes the gesture over, so whatever the first one started is torn down
+	// before the pinch moves the field out from under it
+	const { isGesturing, gestureDown, gestureMove, gestureUp, cancelGesture } = useFieldGesture(() => {
+		endDrag();
+		cancelBoxSelect();
+	});
+
+	/** Touch equivalent of the wrapper's onMouseLeave: the browser can revoke a gesture at any time. */
+	const handlePointerCancel = () => {
+		endDrag();
+		cancelBoxSelect();
+		cancelGesture();
+	};
 
 	const {
 		moveControl, moveHeading, deleteControl, unselectPath, selectPath,
@@ -761,23 +780,36 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 				viewBox={`${-Math.floor((canvasWidth - FIELD_IMG_DIMENSIONS.w) / 2)} 0 ${canvasWidth} ${FIELD_IMG_DIMENSIONS.h}`}
 				width={canvasWidth}
 				height={FIELD_IMG_DIMENSIONS.h}
-				className={`${drag.dragging ? "cursor-grabbing" : isBoxSelecting ? "cursor-crosshair" : "cursor-default"}`}
+				// Without this the browser claims a finger drag for scroll or pinch and revokes the
+				// pointer mid-gesture, so nothing on the field can be dragged by touch
+				className={`touch-none ${drag.dragging ? "cursor-grabbing" : isBoxSelecting ? "cursor-crosshair" : "cursor-default"}`}
 				onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
 				onPointerDown={(e) => {
 					// Cheap once per gesture, and guarantees the cached matrix matches the current layout
 					invalidateSvgCtm();
 					if (e.button === 1) e.preventDefault();
+					// A pinch must never add a segment or start a pan of its own
+					if (gestureDown(e)) return;
 					handleFieldPointerDown(e);
 					// While Space is held the field only pans, so no segment is added and no box select starts
 					if (spaceHeld) return;
 					handleBackgroundPointerDown(e);
 				}}
 				onPointerMove={(e) => {
+					if (isGesturing()) { gestureMove(e, svgRef.current); return; }
 					handlePointerMove(e);
 					handleFieldDrag(e);
 					if (svgRef.current) updateBoxSelect(e, svgRef.current, img, path, setPath);
 				}}
-				onPointerUp={handlePointerUp}
+				onPointerUp={(e) => {
+					// Lifting out of a pinch is not a click, so it must not fall through to the
+					// tap handling that would add a segment
+					const wasGesturing = isGesturing();
+					gestureUp(e);
+					if (wasGesturing) return;
+					handlePointerUp(e);
+				}}
+				onPointerCancel={(e) => { gestureUp(e); handlePointerCancel(); }}
 			>
 				<image href={getFieldSrcFromKey(fieldKey)} x={img.x} y={img.y} width={img.w} height={img.h} />
 

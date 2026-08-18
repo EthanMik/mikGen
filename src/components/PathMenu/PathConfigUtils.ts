@@ -2,14 +2,6 @@ import type { Path } from "../../core/Types/Path";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import type { Segment } from "../../core/Types/Segment";
 
-export const setupDragTransfer = (e: { dataTransfer: DataTransfer }, segmentId: string) => {
-  e.dataTransfer.setData('text/plain', segmentId);
-  e.dataTransfer.effectAllowed = 'move';
-  const emptyImg = new Image();
-  emptyImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-  e.dataTransfer.setDragImage(emptyImg, 0, 0);
-};
-
 export const buildDraggingIds = (segments: Segment[], segmentId: string): string[] => {
   const segment = segments.find(s => s.id === segmentId);
   if (segment?.selected) {

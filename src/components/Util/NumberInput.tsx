@@ -125,8 +125,8 @@ export default function NumberInput({
     [value, stepSize, bounds, setValue]
   );
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLInputElement>) => {
-    if (value === null) return;
+  const handlePointerDown = (e: React.PointerEvent<HTMLInputElement>) => {
+    if (value === null || e.button !== 0) return;
     isDragging.current = true;
     hasDragged.current = false;
     dragStartX.current = e.clientX;
@@ -138,7 +138,8 @@ export default function NumberInput({
   useEffect(() => {
     const PIXELS_PER_STEP = 10;
 
-    const onMouseMove = (e: MouseEvent) => {
+    // Pointer events so the scrub works by touch as well as by mouse
+    const onPointerMove = (e: PointerEvent) => {
       if (!isDragging.current) return;
 
       const deltaX = e.clientX - dragStartX.current;
@@ -162,7 +163,7 @@ export default function NumberInput({
       }
     };
 
-    const onMouseUp = () => {
+    const onPointerUp = () => {
       if (!isDragging.current) return;
       isDragging.current = false;
 
@@ -175,11 +176,14 @@ export default function NumberInput({
       }
     };
 
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
+    document.addEventListener("pointermove", onPointerMove);
+    document.addEventListener("pointerup", onPointerUp);
+    // A touch scrub that turns into a page scroll is revoked rather than released
+    document.addEventListener("pointercancel", onPointerUp);
     return () => {
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
+      document.removeEventListener("pointermove", onPointerMove);
+      document.removeEventListener("pointerup", onPointerUp);
+      document.removeEventListener("pointercancel", onPointerUp);
     };
   }, [stepSize, bounds, setValue, addToHistoryCheck]);
 
@@ -317,11 +321,16 @@ export default function NumberInput({
       <input
         ref={inputRef}
         className="bg-blackgray rounded-lg text-center text-white outline-none"
-        style={{ fontSize: `${fontSize}px`, width: `${width}px`, height: `${height}px`, cursor: dragging ? "ew-resize" : undefined }}
+        style={{
+          fontSize: `${fontSize}px`, width: `${width}px`, height: `${height}px`,
+          cursor: dragging ? "ew-resize" : undefined,
+          // The scrub is horizontal, so vertical panning is left to the surrounding scroll panel
+          touchAction: "pan-y",
+        }}
         type="text"
         value={displayRef.current}
         onChange={handleChange}
-        onMouseDown={handleMouseDown}
+        onPointerDown={handlePointerDown}
         onClick={e => e.currentTarget.select()}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => {
