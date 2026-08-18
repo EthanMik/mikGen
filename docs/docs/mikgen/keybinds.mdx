@@ -1,0 +1,144 @@
+---
+sidebar_position: 2
+---
+
+# Segment Interfacing
+
+Reference for adding, selecting, and editing segments.
+
+## Adding Segments
+
+Similar segments share the same keybinds across every format, but each format only offers the
+[segments its library supports](./modifying-segments.mdx#supported-segments-by-format). You can use the `Segment` dropdown to add them:
+
+<img src={require('./img/keybinds/segment-add.png').default} width="25%"  style={{ paddingBottom: '20px' }} />
+
+### Keybinds
+
+Pressing these keybinds on the field will place desired segment
+
+| Button | Segment | Description |
+|----------|----------|----------|
+| Left Click | pointDrive | Drives the robot to desired (x, y) |
+| Ctrl + Left Click | poseDrive | Drives robot to desired (x, y, theta) |
+| Alt + Left Click | distanceDrive | Relative motion, drives specified distance based on heading before it |
+| Ctrl + Alt + Left Click | strafeDrive | Same as distanceDrive but moves left and right |
+| Right Click | pointTurn | Points to drive segment in front of it |
+| Ctrl + Right Click | angleTurn | Turns to specified angle |
+| Alt + Right Click | pointSwing | Swings a drivetrain side to drive segment in front of it |
+| Ctrl + Alt + Right Click | angleSwing | Turns a side of drivetrain to specified angle |
+
+:::important
+New segments are inserted after the currently selected segment, otherwise they are appended to the end of the path.
+:::
+
+## Selecting Segments
+
+| Action | Effect |
+|----------|----------|
+| Left Click | Select a segment |
+| Ctrl + Click | Add or remove a segment from the selection |
+| Shift + Click on path list | Select a range |
+| Click + Drag on field | Box select |
+| Ctrl + A | Select all |
+| Ctrl + Shift + A | Invert selection |
+| Esc | Deselect all |
+
+:::note
+In the field, if a `turn` or `wait` segment is on top of a drive segment, you can click on the drive segment again to select it. 
+:::
+
+## Editing Segments
+
+| Action | Effect |
+|----------|----------|
+| Drag | Move the segment on the field |
+| Ctrl + Drag | Snap to grid (grid size set in Settings, default 0.5 in) |
+| Shift + Drag | Align segment to another one |
+| Arrow Keys | Nudge selected segments 0.25 in |
+| Shift + Arrow Keys | Nudge selected segments 1 in |
+| Shift + Scroll | Rotate heading in 90 degree snaps |
+| Ctrl + Shift + Scroll | Rotate heading in 5 degree steps |
+| Backspace / Delete | Delete selected segments |
+| Drag row in path list | Reorder segments |
+| Ctrl + Z | Undo |
+| Ctrl + Y | Redo |
+
+
+## View
+
+You are able to collapse the left (Config) or right (List) bar's with the view menu. By default they
+will collapse with screen width.
+
+<img src={require('./img/keybinds/view.png').default} width="20%"  style={{ paddingBottom: '20px' }} />
+
+### Keybinds
+
+| Action | Effect |
+|----------|----------|
+| Space + Drag | Pan the field |
+| Middle Click + Drag | Pan the field |
+| Scroll | Pan the field |
+| Ctrl + Scroll | Zoom toward the cursor |
+| Ctrl + = / Ctrl + - | Zoom in / out |
+| Ctrl + 0 | Reset zoom |
+
+:::note
+You can use trackpad gestures for zooming and panning
+:::
+
+You can also press the `home` button on the top right to reset zoom
+
+<img src={require('./img/keybinds/home.png').default} width="20%"  style={{ paddingBottom: '20px' }} />
+
+## Playback Controls
+
+The simulation time can be played at 60fps, or controlled individually by the slider.
+
+<img src={require('./img/keybinds/playback.png').default} width="70%"  style={{ paddingBottom: '20px' }} />
+
+The indicator on the right shows what segment the robot is currently on. You can right click on that segment
+to move the simulation to the start of it.
+
+<img src={require('./img/keybinds/indicator.png').default} width="30%"  style={{ paddingBottom: '20px' }} />
+
+### Keybinds
+
+| Action | Effect |
+|----------|----------|
+| Space or K | Play / Pause simulation |
+| J / L | Scrub backward / forward 0.01 second |
+| Shift + J / L | Scrub backward / forward 0.25 second |
+| R | Toggle robot visibility |
+| ; | Toggle simulation looping |
+| Right Click segment on path list | Jump the simulation to that segment |
+
+## Segment Position Config
+
+The segment position config allows you to modify segment's pose.
+
+<img src={require('./img/keybinds/control-config.png').default} width="70%"  style={{ paddingBottom: '20px' }} />
+
+mikGen uses a field centric coordinate scheme, where the center of the field is 0, 0.
+[Units are listed here](./modifying-segments.mdx#units) 
+
+<img src={require('./img/keybinds/field-centric.png').default} width="40%"  style={{ paddingBottom: '20px' }} />
+
+### Number Inputs
+
+All number inputs in mikGen are the same, and they support operations +-/*. As well as the keybinds below:
+
+| Action | Effect |
+|----------|----------|
+| Scroll wheel | Increase / Decrease |
+| Click and drag sideways | Increase / Decrease |
+| Up/Down arrow keys | Increase / Decrease |
+
+The amount increased/decreased by these keybinds is specifically tuned for each number input.
+
+## Settings
+
+| Action | Effect |
+|----------|----------|
+| O | Toggle onion layers |
+| P | Toggle precise path (Shows exact path robot took with speed colors) |

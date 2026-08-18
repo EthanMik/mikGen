@@ -59,7 +59,9 @@ const config: Config = {
 
   themeConfig: {
     // Social card shown in link previews (Google, Discord, Twitter, etc.)
-    image: 'img/docusaurus-social-card.png',
+    // Absolute URL so it reuses the app's card at the deploy root instead of
+    // duplicating the image under /docs/
+    image: 'https://mikgen.com/mikGen_display.png',
     colorMode: {
       defaultMode: 'dark',
       disableSwitch: true,

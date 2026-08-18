@@ -1,0 +1,92 @@
+---
+sidebar_position: 3
+---
+
+# Modifying Segments
+
+mikGen mirrors each library's internals, naming conventions, and constants, so paths simulate and
+export the way your library actually behaves. For tuning details, read your library's own 
+[documentation](./getting-started.mdx#selecting-a-format):
+
+:::important
+Swapping formats resets all segment constants to the new format's defaults. Segments the new
+format does not support are converted to their closest equivalent.
+:::
+
+## Supported Segments by Format
+
+| Segment | mikLib | LemLib | JAR-Template | EZ-Template |
+|----------|----------|----------|----------|----------|
+| pointDrive | ✅ | ✅ | ✅ | ✅ |
+| poseDrive | ✅ | ✅ | ✅ | ✅ |
+| distanceDrive | ✅ | ❌ | ✅ | ✅ |
+| strafeDrive | Holonomic only | ❌ | ❌ | ❌ |
+| pointTurn | ✅ | ✅ | ✅ | ✅ |
+| angleTurn | ✅ | ✅ | ✅ | ✅ |
+| angleSwing | ✅ | ✅ | ✅ | ✅ |
+| pointSwing | ✅ | ✅ | ❌ | ❌ |
+| wait | ✅ | ✅ | ✅ | ✅ |
+
+Selecting the Holonomic option (available with mikLib) changes poseDrive to Holonomic to Pose and
+adds Strafe Distance as its own segment.
+
+## Segment Names
+
+The same segment kind is labeled with your library's naming convention:
+
+| Segment | mikLib | LemLib | JAR-Template | EZ-Template |
+|----------|----------|----------|----------|----------|
+| pointDrive | Drive to Point | Move to Point | Drive to Point | Odom Drive |
+| poseDrive | Drive to Pose | Move to Pose | Drive to Pose | Odom Boomerang |
+| distanceDrive | Drive to Distance | - | Drive to Distance | Drive |
+| pointTurn | Turn to Point | Turn to Point | Turn to Point | Odom Turn |
+| angleTurn | Turn to Angle | Turn to Heading | Turn to Angle | Turn |
+| angleSwing | Swing to Angle | Swing to Angle | Swing to Angle | Swing |
+| pointSwing | Swing to Point | Swing to Point | - | - |
+
+## Units
+
+Distances are always in inches, angles in degrees, and times in milliseconds. The speed scale
+depends on the library:
+
+| Format | Max speed scale |
+|----------|----------|
+| mikLib | 0 to 12 volts |
+| LemLib | 0 to 127 |
+| JAR-Template | 0 to 12 volts |
+| EZ-Template | 0 to 127 |
+
+## Editing Constants
+
+Each format uses its library's default constants and specific naming schemes:
+
+<img src={require('./img/modifying-segments/segment.png').default} width="50%"  style={{ paddingBottom: '20px' }} />
+
+The slider modifies the lateral speed of the segment. With the cycle buttons to the right
+modifying named constants, ex: `drive_direction`. You can hover over it to see what constant it changes:
+
+<img src={require('./img/modifying-segments/hover.png').default} width="50%"  style={{ paddingBottom: '20px' }} />
+
+:::note
+The cycle buttons allow `pointTurn` segments to turn with the back of the robot
+:::
+
+To show all the constants that can be modified, either click on the segment's name, or click the dropdown arrow on the right
+
+<img src={require('./img/modifying-segments/dropdown-open.png').default} width="50%"  style={{ paddingBottom: '20px' }} />
+
+Constants are spread out in rows, and generally categorized as `lateral`, `angular`, `translational`, `exit conditions`
+
+<img src={require('./img/modifying-segments/constants-open.png').default} width="50%"  style={{ paddingBottom: '20px' }} />
+
+You can then modify the constants that the segment uses by changing the [number inputs](./keybinds.mdx#number-inputs)
+
+| Button | Action |
+|-|-|
+| Default | Defaults the constants in the selected row. Changes the default for all segments of that kind` |
+| Reset | Resets that row's constants to default |
+| Apply | Applies the constants in that row to every segment of that kind |
+
+You can also click on each individual constant in the row to make the buttons apply to just that constant not the entire row.
+
+<img src={require('./img/modifying-segments/constants-buttons.png').default} width="50%"  style={{ paddingBottom: '20px' }} />
