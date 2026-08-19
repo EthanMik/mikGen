@@ -1,41 +1,39 @@
 import { memo, useEffect, useRef, useState } from "react";
 import downArrow from "../../assets/down-arrow.svg";
-import type { ConstantField } from "./ConstantRow";
 import ConstantRow from "./ConstantRow";
 import { deepEqual } from "../../core/Util";
 import { saveSnapshot, undoHistory } from "../../core/Undo/UndoHistory";
-import type { ConstantsRecord } from "../../simulation/FormatDefinition";
+import type { ConstantsRecord, SegmentKind } from "../../simulation/FormatDefinition";
+import { fileFormatStore, updatePath } from "../../hooks/useFileFormat";
+import { setGroupDefaults, writeGroup } from "./SegmentEdits";
+import type { FieldView, GroupView } from "./SegmentView";
 import Tooltip from "../Util/Tooltip";
 
 type ConstantsListProps = {
-    header: string;
-    values: ConstantsRecord;
-    fields: ConstantField[];
-    onChange: (constants: Partial<ConstantsRecord>) => void;
-    onSetDefault: (constants: Partial<ConstantsRecord>) => void;
-    onReset: () => void;
-    onApply: (constants: Partial<ConstantsRecord>) => void;
-    isOpenGlobal: boolean;
-    defaults: ConstantsRecord;
+    segmentId: string;
+    kind: SegmentKind;
+    group: GroupView;
 }
 
-const ConstantsList = memo(function ConstantsList({
-    header,
-    values,
-    fields,
-    onChange,
-    onSetDefault,
-    onReset,
-    onApply,
-    isOpenGlobal,
-    defaults,
-}: ConstantsListProps) {
+/** Only the keys the segment actually carries, so an edit never writes an undefined back. */
+function record(fields: FieldView[], pick: (f: FieldView) => unknown): ConstantsRecord {
+    const result: ConstantsRecord = {};
+    for (const field of fields) {
+        const value = pick(field);
+        if (value !== undefined) result[field.key] = value as ConstantsRecord[string];
+    }
+    return result;
+}
+
+const ConstantsList = memo(function ConstantsList({ segmentId, kind, group }: ConstantsListProps) {
     const [open, setOpen] = useState(false);
     const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
     const [appliedValues, setAppliedValues] = useState<ConstantsRecord>({});
     const skipNextHistoryChange = useRef(false);
     const historyLength = undoHistory.useSelector((h) => h.length);
 
+    // Anything that lands in history invalidates what "already applied" meant, except the apply
+    // that pushed the entry itself
     useEffect(() => {
         if (skipNextHistoryChange.current) {
             skipNextHistoryChange.current = false;
@@ -43,10 +41,6 @@ const ConstantsList = memo(function ConstantsList({
         }
         setAppliedValues({});
     }, [historyLength]);
-
-    useEffect(() => {
-        setOpen(isOpenGlobal)
-    }, [isOpenGlobal])
 
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
@@ -57,28 +51,20 @@ const ConstantsList = memo(function ConstantsList({
     }, []);
 
     const hasSelection = selectedKeys.size > 0;
+    const inSelection = (field: FieldView) => !hasSelection || selectedKeys.has(field.key);
+    const picked = group.fields.filter(inSelection);
 
-    const isDirty = (() => {
-        if (!hasSelection) return !deepEqual(values, defaults);
-        for (const key of selectedKeys) {
-            if (!deepEqual(values[key], defaults[key])) return true;
-        }
-        return false;
-    })();
+    const values = record(picked, f => f.value);
+    const defaults = record(picked, f => f.defaultValue);
 
-    const buildSelectedPartial = (source: ConstantsRecord): ConstantsRecord => {
-        const result: ConstantsRecord = {};
-        for (const key of selectedKeys) {
-            if (key in source) result[key] = source[key];
-        }
-        return result;
-    };
-
-    const pendingApplyVals = hasSelection ? buildSelectedPartial(values) : values;
-
-    const isApplied = Object.entries(pendingApplyVals).every(
+    const isDirty = !deepEqual(values, defaults);
+    const isApplied = Object.entries(values).every(
         ([key, val]) => key in appliedValues && deepEqual(appliedValues[key], val)
     );
+    // Segment-backed fields such as a wait's time have nowhere in formatDef to be stored
+    const canSetDefault = picked.some(f => f.source.on === "constants");
+
+    const write = (partial: ConstantsRecord) => updatePath(prev => writeGroup(prev, { segmentId }, group, partial));
 
     const toggleKey = (key: string) => {
         setSelectedKeys(prev => {
@@ -113,7 +99,7 @@ const ConstantsList = memo(function ConstantsList({
                         <img className={`w-[12px] h-[12px] transition-transform duration-200 ${open ? "" : "-rotate-90"}`} src={downArrow} />
                     </button>
 
-                    <span className="text-white">{header}</span>
+                    <span className="text-white">{group.header}</span>
 
                 </div>
 
@@ -123,12 +109,15 @@ const ConstantsList = memo(function ConstantsList({
                             className={`
                         bg-medgray hover:bg-medgray_hover px-2 rounded-sm
                         transition-all duration-100 active:scale-[0.995] active:bg-medgray_hover/70
-                        ${!isDirty ? "opacity-40 cursor-not-allowed hover:bg-medlightgray" : "cursor-pointer"}`}
+                        ${!isDirty || !canSetDefault ? "opacity-40 cursor-not-allowed hover:bg-medlightgray" : "cursor-pointer"}`}
                             onClick={(e) => {
                                 e.stopPropagation();
-                                if (!isDirty) return;
-                                const vals = hasSelection ? buildSelectedPartial(values) : values;
-                                onSetDefault(vals);
+                                if (!isDirty || !canSetDefault) return;
+                                fileFormatStore.setState(prev => ({
+                                    ...prev,
+                                    formatDef: setGroupDefaults(prev.formatDef, kind, group, values),
+                                }));
+                                saveSnapshot();
                             }}
                         >
                             <span className="text-verylightgray">Default</span>
@@ -145,12 +134,8 @@ const ConstantsList = memo(function ConstantsList({
                             onClick={(e) => {
                                 e.stopPropagation();
                                 if (!isDirty) return;
-                                if (hasSelection) {
-                                    onChange(buildSelectedPartial(defaults));
-                                    saveSnapshot();
-                                } else {
-                                    onReset();
-                                }
+                                write(defaults);
+                                saveSnapshot();
                             }}
                         >
                             <span className="text-verylightgray">Reset</span>
@@ -168,8 +153,8 @@ const ConstantsList = memo(function ConstantsList({
                                 e.stopPropagation();
                                 if (isApplied) return;
                                 skipNextHistoryChange.current = true;
-                                setAppliedValues(prev => ({ ...prev, ...pendingApplyVals }));
-                                onApply(pendingApplyVals);
+                                setAppliedValues(prev => ({ ...prev, ...values }));
+                                updatePath(prev => writeGroup(prev, { kind }, group, values));
                                 saveSnapshot();
                             }}
                         >
@@ -183,19 +168,15 @@ const ConstantsList = memo(function ConstantsList({
 
             {open && (
                 <div className="relative">
-                    {/* <div className="absolute left-[10px] top-0 h-full w-[4px] rounded-full bg-medlightgray" /> */}
                     <div className="grid grid-cols-2 min-w-0 pl-5 gap-x-1 mt-1.5 w-[400px] gap-[3px]">
-                        {fields.map((f) => (
+                        {group.fields.map((field) => (
                             <ConstantRow
-                                key={f.key}
-                                label={f.label}
-                                value={values[f.key]}
-                                input={f.input}
-                                units={f.units}
-                                onChange={(v) => { if (v !== null) onChange({ [f.key]: v }); }}
-                                labelColor={deepEqual(values[f.key], defaults[f.key]) ? "text-white" : "text-white/50"}
-                                selected={selectedKeys.has(f.key)}
-                                onToggleSelect={() => toggleKey(f.key)}
+                                key={field.key}
+                                field={field}
+                                modified={!deepEqual(field.value, field.defaultValue)}
+                                selected={selectedKeys.has(field.key)}
+                                onToggleSelect={() => toggleKey(field.key)}
+                                onChange={(v) => { if (v !== null) write({ [field.key]: v }); }}
                             />
                         ))}
                     </div>

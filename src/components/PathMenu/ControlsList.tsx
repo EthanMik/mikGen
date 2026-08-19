@@ -11,10 +11,9 @@ import Tooltip from "../Util/Tooltip";
 
 type ControlsListProps = {
     segmentId: string;
-    width?: number;
 }
 
-const ControlsList = memo(function ControlsList({ segmentId, width = 429 }: ControlsListProps) {
+const ControlsList = memo(function ControlsList({ segmentId }: ControlsListProps) {
     const segment = fileFormatStore.useSelector(s => selectSegmentById(s, segmentId));
     const controls = segment ? segmentControls(segment) : [];
 
@@ -60,7 +59,7 @@ const ControlsList = memo(function ControlsList({ segmentId, width = 429 }: Cont
                 <button
                     key={`control-${i}`}
                     onClick={(e) => handleOnClick(e, i)}
-                    style={{ width: `${width}px` }}
+                    style={{ width: "429px" }}
                     className={`${control.selected ? "bg-medlightgray" : "bg-medgray"}
                         relative flex flex-row justify-start items-center
                         h-[27px] gap-[12px]

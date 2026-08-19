@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { fileFormatStore, updatePath } from "../../hooks/useFileFormat";
-import { buildDraggingIds, moveMultipleSegments } from "./PathConfigUtils";
+import { saveSnapshot } from "../../core/Undo/UndoHistory";
+import { buildDraggingIds, moveSegments } from "./SegmentEdits";
 
 // Matches the field's box select, so starting a drag feels the same everywhere
 const DRAG_THRESHOLD = 5;
@@ -14,11 +15,18 @@ const AUTOSCROLL_PX = 8;
 /** Marks the wrapper elements the drop index is measured against. */
 export const ROW_INDEX_ATTR = "data-segment-row";
 
-export type SegmentRowHandlers = {
+/**
+ * The gesture handlers a row binds, plus the flag it checks before treating a click as a select.
+ * Handed out as one object with a stable identity, so a memoized row does not re-render on every
+ * pointer move of somebody else's drag.
+ */
+export type SegmentReorder = {
     onPointerDown: (evt: React.PointerEvent<HTMLElement>, segmentId: string) => void;
     onPointerMove: (evt: React.PointerEvent<HTMLElement>) => void;
     onPointerUp: (evt: React.PointerEvent<HTMLElement>) => void;
     onPointerCancel: (evt: React.PointerEvent<HTMLElement>) => void;
+    /** True when the gesture that just ended was a drag, so the row can skip its select. */
+    wasDragged: () => boolean;
 };
 
 type Pending = {
@@ -191,7 +199,15 @@ export function useSegmentReorder(listRef: React.RefObject<HTMLDivElement | null
         const wasActive = active.current;
         cleanup();
 
-        if (wasActive && to !== null && ids.length > 0) moveMultipleSegments(updatePath, ids, to);
+        if (!wasActive || to === null || ids.length === 0) return;
+        let moved = false;
+        updatePath(prev => {
+            const next = moveSegments(prev, ids, to);
+            moved = next !== prev;
+            return next;
+        });
+        // A drag that lands the rows back where they started is not worth an undo step
+        if (moved) saveSnapshot();
     };
 
     const onPointerCancel = (evt: React.PointerEvent<HTMLElement>) => {
@@ -199,11 +215,16 @@ export function useSegmentReorder(listRef: React.RefObject<HTMLDivElement | null
         cleanup();
     };
 
-    return {
-        draggingIds,
-        overIndex,
-        /** True when the gesture that just ended was a drag, so the row can skip its select. */
+    // The handlers close over refs and setState only, so the object can be filled in place rather
+    // than rebuilt: rows keep the same prop across renders
+    const reorder = useRef<SegmentReorder>({
+        onPointerDown, onPointerMove, onPointerUp, onPointerCancel,
         wasDragged: () => didDrag.current,
-        rowHandlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel } as SegmentRowHandlers,
-    };
+    }).current;
+    reorder.onPointerDown = onPointerDown;
+    reorder.onPointerMove = onPointerMove;
+    reorder.onPointerUp = onPointerUp;
+    reorder.onPointerCancel = onPointerCancel;
+
+    return { draggingIds, overIndex, reorder };
 }

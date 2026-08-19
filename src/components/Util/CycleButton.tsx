@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import Tooltip from "./Tooltip";
 
-type ImageKey = {
+export type ImageKey = {
     src: string;
     key: string | null;
 };

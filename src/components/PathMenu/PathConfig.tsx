@@ -1,8 +1,7 @@
 import { useRef, useState } from "react";
-import { fileFormatStore, useFormat, updatePath } from "../../hooks/useFileFormat";
-import MotionList from "./MotionList";
+import { fileFormatStore } from "../../hooks/useFileFormat";
+import SegmentList from "./SegmentList";
 import PathConfigHeader from "./PathHeader";
-import { FORMAT_REGISTRY } from "../../simulation/FormatDefinition";
 import { ROW_INDEX_ATTR, useSegmentReorder } from "./useSegmentReorder";
 
 export default function PathConfig() {
@@ -10,19 +9,20 @@ export default function PathConfig() {
         s => s.path.segments.map(seg => seg.id),
         (a, b) => a.length === b.length && a.every((id, i) => id === b[i])
     );
-    const pathName = fileFormatStore.useSelector(s => s.path.name);
     const [isOpen, setOpen] = useState(false);
     const [isTelemetryOpen, setTelemetryOpen] = useState(false);
-    const [format] = useFormat();
 
     const listRef = useRef<HTMLDivElement>(null);
-    const { draggingIds, overIndex, wasDragged, rowHandlers } = useSegmentReorder(listRef);
-
-    const name = pathName || FORMAT_REGISTRY[format].formatPathName;
+    const { draggingIds, overIndex, reorder } = useSegmentReorder(listRef);
 
     return (
         <div className="bg-medgray w-[500px] h-[650px] rounded-lg p-4 flex flex-col">
-            <PathConfigHeader name={name} isOpen={isOpen} setOpen={setOpen} isTelemetryOpen={isTelemetryOpen} onTelemetryToggle={() => setTelemetryOpen(p => !p)} onRename={n => updatePath(prev => ({ ...prev, name: n }))} />
+            <PathConfigHeader
+                isOpen={isOpen}
+                setOpen={setOpen}
+                isTelemetryOpen={isTelemetryOpen}
+                onTelemetryToggle={() => setTelemetryOpen(p => !p)}
+            />
 
             <div
                 ref={listRef}
@@ -39,15 +39,13 @@ export default function PathConfig() {
                                 <div className="absolute -top-1 left-[20px] w-[435px] h-[1px] bg-white rounded-full pointer-events-none z-10" />
                             )}
 
-                            <MotionList
+                            <SegmentList
                                 segmentId={id}
                                 index={idx}
                                 isOpenGlobal={isOpen}
                                 isTelemetryOpenGlobal={isTelemetryOpen}
-                                reorderable={true}
-                                rowHandlers={rowHandlers}
-                                wasDragged={wasDragged}
-                                draggingIds={draggingIds}
+                                dragging={draggingIds.includes(id)}
+                                reorder={reorder}
                             />
                         </div>
                     );
