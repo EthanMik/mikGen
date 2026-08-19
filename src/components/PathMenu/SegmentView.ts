@@ -56,6 +56,13 @@ export type GroupView = {
     canSetDefault: boolean;
 };
 
+/** An action button with its icon already resolved, so the row never derives one itself. */
+export type ActionView = {
+    def: ActionButtonField;
+    label: string;
+    srcImg: string;
+};
+
 export type CycleView = {
     def: CycleButtonField;
     /** The constants key itself: the tooltip names the parameter the generated code will carry. */
@@ -81,7 +88,7 @@ export type SegmentView = {
     accentColor: string;
     slider: SliderView | null;
     cycleButtons: CycleView[];
-    actions: ActionButtonField[];
+    actions: ActionView[];
     groups: GroupView[];
 };
 
@@ -133,8 +140,8 @@ function buildCycle(def: CycleButtonField, segment: Segment): CycleView {
     return {
         def,
         label: key,
-        value: def.poseValue
-            ? def.poseValue(segment.pose)
+        value: def.turnPoseValue
+            ? def.turnPoseValue(segment.turnPose)
             : String(constantsAt(segment.constants, def.constantsIdx)?.[key]),
         imageKeys: def.keyValues.map(kv => ({ src: kv.srcImg, key: String(kv.value) })) as CycleView["imageKeys"],
     };
@@ -176,7 +183,11 @@ export function buildSegmentView(formatDef: FormatDef<Format>, segment: Segment)
         accentColor: accentColor(segment.kind),
         slider: buildSlider(segDef?.slider, segment),
         cycleButtons: (segDef?.cycleButtons ?? []).map(def => buildCycle(def, segment)),
-        actions: segDef?.actionButtons ?? [],
+        actions: (segDef?.actionButtons ?? []).map(def => ({
+            def,
+            label: def.label,
+            srcImg: typeof def.srcImg === "function" ? def.srcImg(segment) : def.srcImg,
+        })),
         groups,
     };
 }

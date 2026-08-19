@@ -12,9 +12,13 @@ const FORMATS = Object.keys(FORMAT_REGISTRY) as Format[];
 const defOf = (format: Format) => FORMAT_REGISTRY[format] as FormatDef<Format>;
 
 /** Constants come out of the registry by reference, so every fixture takes its own copy. */
-function segmentOf(format: Format, kind: SegmentKind, pose: Pose = { x: 1, y: 2, angle: 45 }): Segment {
+function segmentOf(format: Format, kind: SegmentKind, pose: Pose = { x: 1, y: 2, angle: 45 }, turnPose?: Pose): Segment {
     const seg = createSegment(defOf(format), format, kind, pose);
-    return { ...seg, constants: seg.constants.map(c => ({ ...(c as object) })) as Segment["constants"] };
+    return {
+        ...seg,
+        ...(turnPose ? { turnPose } : {}),
+        constants: seg.constants.map(c => ({ ...(c as object) })) as Segment["constants"],
+    };
 }
 
 const kindsOf = (format: Format) => Object.keys(defOf(format).segments) as SegmentKind[];
@@ -33,7 +37,10 @@ describe("buildSegmentView across every format", () => {
                 expect(view.kind, at).toBe(kind);
                 expect(view.groups.map(g => g.header), at).toEqual((segDef.numberInputs ?? []).map(g => g.headerName));
                 expect(view.cycleButtons.map(c => c.label), at).toEqual((segDef.cycleButtons ?? []).map(b => String(b.key)));
-                expect(view.actions, at).toEqual(segDef.actionButtons ?? []);
+                expect(view.actions.map(a => a.def), at).toEqual(segDef.actionButtons ?? []);
+                expect(view.actions.map(a => a.label), at).toEqual((segDef.actionButtons ?? []).map(a => a.label));
+                // A state-dependent icon is resolved here, never by the row
+                for (const action of view.actions) expect(typeof action.srcImg, at).toBe("string");
                 expect(view.slider === null, at).toBe(segDef.slider === undefined);
             }
         }
@@ -210,11 +217,25 @@ describe("cycle buttons", () => {
         expect(button.imageKeys.map(k => k.key)).toEqual(["cw", "ccw", "fastest"]);
     });
 
-    it("reads a pose-backed button off the pose", () => {
-        const facing = buildSegmentView(defOf("mikLib"), segmentOf("mikLib", "pointTurn", { x: 0, y: 0, angle: 180 }));
-        const forward = buildSegmentView(defOf("mikLib"), segmentOf("mikLib", "pointTurn", { x: 0, y: 0, angle: 0 }));
+    it("reads a turnPose-backed button off the turnPose, not the pose", () => {
+        const nullPose = { x: null, y: null, angle: null };
+        const facing = buildSegmentView(defOf("mikLib"),
+            segmentOf("mikLib", "pointTurn", nullPose, { x: 0, y: 0, angle: 180 }));
+        const forward = buildSegmentView(defOf("mikLib"),
+            segmentOf("mikLib", "pointTurn", nullPose, { x: 0, y: 0, angle: 0 }));
 
         expect(facing.cycleButtons.find(b => b.label === "angle_offset")!.value).toBe("180");
         expect(forward.cycleButtons.find(b => b.label === "angle_offset")!.value).toBe("0");
+    });
+
+    it("flips the lock icon with turnLocked", () => {
+        const nullPose = { x: null, y: null, angle: null };
+        const unlocked = segmentOf("mikLib", "pointTurn", nullPose);
+        const locked = { ...unlocked, turnLocked: true };
+
+        const iconOf = (seg: typeof unlocked) =>
+            buildSegmentView(defOf("mikLib"), seg).actions.find(a => a.label === "Lock Turn Target")!.srcImg;
+
+        expect(iconOf(unlocked)).not.toBe(iconOf(locked));
     });
 });

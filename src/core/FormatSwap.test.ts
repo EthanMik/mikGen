@@ -87,8 +87,30 @@ describe("changeFormat", () => {
 
         expect(after.path.segments.length).toBe(before.path.segments.length);
         expect(after.path.segments.map(s => s.pose)).toEqual(before.path.segments.map(s => s.pose));
+        expect(after.path.segments.map(s => s.turnPose)).toEqual(before.path.segments.map(s => s.turnPose));
+        expect(after.path.segments.map(s => s.turnLocked)).toEqual(before.path.segments.map(s => s.turnLocked));
         expect(after.path.segments.map(s => s.controls)).toEqual(before.path.segments.map(s => s.controls));
         expect(after.path.segments.map(s => s.id)).toEqual(before.path.segments.map(s => s.id));
+    });
+
+    it("bakes a point swing's resolved heading in when the format only has heading turns", () => {
+        // A start at the origin then a swing aimed at (0, 24) is due +Y, so 0 degrees
+        fileFormatStore.setState(seedFileFormat({
+            format: "mikLib",
+            path: {
+                segments: [
+                    { id: "start", kind: "start", pose: { x: 0, y: 0, angle: 90 } },
+                    { id: "sw", kind: "pointSwing", pose: { x: null, y: null, angle: null }, turnPose: { x: 0, y: 24, angle: 0 } },
+                ],
+            },
+        }));
+
+        // JAR has no swing-to-point, so pointSwing casts to angleSwing, which reads pose.angle
+        changeFormat("JAR-Template");
+        const swung = fileFormatStore.getState().path.segments[1];
+
+        expect(swung.kind).toBe("angleSwing");
+        expect(swung.pose.angle).toBe(0);
     });
 
     it("reseeds constants, which is the documented cost of swapping", () => {

@@ -7,6 +7,7 @@ import { lookAt } from "./DriveMotions/LookAt";
 import type { Pose } from "../../core/Types/Pose";
 import fwd from "../../assets/fwd.svg";
 import rev from "../../assets/reverse.svg";
+import { turnLockButton } from "../TurnFields";
 
 export interface ReveilLibConstants {
     maxSpeed: number;
@@ -68,8 +69,8 @@ const turnFaceButton: Omit<CycleButtonField<"ReveilLib">, "constantsIdx"> = {
         { srcImg: fwd, value: "0" },
         { srcImg: rev, value: "180" },
     ],
-    poseValue: (pose) => normalizeDeg(pose.angle ?? 0) === 180 ? "180" : "0",
-    poseEffect: (val) => ({ angle: val === "180" ? 180 : 0 }),
+    turnPoseValue: (pose) => normalizeDeg(pose.angle ?? 0) === 180 ? "180" : "0",
+    turnPoseEffect: (val) => ({ angle: val === "180" ? 180 : 0 }),
 };
 
 const driveSettingsFields: Fields = [
@@ -147,6 +148,7 @@ export const reveilLibDef = {
             name: "Look At",
             defaults: [kRevTurn],
             toStringTemplate: "look(${x}, ${y}, ${angle}, ${kBuilder});",
+            actionButtons: [turnLockButton],
             simFn: (robot, dt, x, y, angle, constants) => lookAt(robot, dt, x, y, angle ?? 0, constants),
             slider: { key: "maxSpeed", bounds: [0, 1], roundTo: 0.01, constantsIdx: 0 },
             cycleButtons: [

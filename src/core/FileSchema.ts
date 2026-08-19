@@ -1,6 +1,7 @@
 import { defaultRobotConstants, type RobotConstants } from "./Robot"
-import type { Path } from "./Types/Path"
+import { propagateStates, turnHeadingAt, type Path } from "./Types/Path"
 import { createSegment, type Segment } from "./Types/Segment"
+import { normalizeDeg } from "./Util"
 import type { ControlPoint, Pose } from "./Types/Pose"
 import {
     FORMAT_REGISTRY, getDefaultConstants, mergeFormatDef, mergeSavedConstants, resolveKind,
@@ -85,6 +86,18 @@ function seedPose(raw: unknown): Pose {
     return { x: coord(p.x), y: coord(p.y), angle: coord(p.angle) };
 }
 
+/**
+ * A turn's target, with the offset always a number so consumers never coalesce it themselves.
+ * Files written before turnPose existed kept the offset on `pose.angle`; `migrated` moves it across
+ * and leaves x/y null, so those turns keep aiming exactly where they used to (the forward waypoint,
+ * or the positional fallback) instead of jumping to a coordinate they never stored.
+ */
+function seedTurnPose(raw: unknown, migrated: number | null): Pose {
+    if (raw === undefined) return { x: null, y: null, angle: migrated ?? 0 };
+    const p = asRecord(raw);
+    return { x: coord(p.x), y: coord(p.y), angle: coord(p.angle) ?? 0 };
+}
+
 function seedControls(raw: unknown): ControlPoint[] {
     if (!Array.isArray(raw)) return [];
     return raw.map(c => ({ ...seedPose(c), selected: flag(asRecord(c).selected, false), visible: flag(asRecord(c).visible, true) }));
@@ -127,7 +140,14 @@ function seedSegment(formatDef: FormatDef<Format>, format: Format, raw: unknown,
     const kind = resolveKind(formatDef, savedKind);
     if (kind !== savedKind) repairs.push(`cast "${savedKind}" to "${kind}"`);
 
-    const base = createSegment(formatDef, format, kind, seedPose(s.pose));
+    const pose = seedPose(s.pose);
+    // Keyed off the resolved kind, not the saved one: a pointSwing that casts to angleSwing keeps a
+    // real heading on pose.angle, and clearing it would destroy the motion
+    const isPointTurn = kind === "pointTurn" || kind === "pointSwing";
+    const turnPose = seedTurnPose(s.turnPose, isPointTurn ? pose.angle : null);
+    if (isPointTurn && s.turnPose === undefined) pose.angle = null;
+
+    const base = createSegment(formatDef, format, kind, pose);
     const id = typeof s.id === "string" && s.id !== "" && !ids.has(s.id) ? s.id : base.id;
     ids.add(id);
 
@@ -142,8 +162,9 @@ function seedSegment(formatDef: FormatDef<Format>, format: Format, raw: unknown,
         ...(typeof s.groupId === "string" ? { groupId: s.groupId } : {}),
         selected: flag(s.selected, false),
         disabled: flag(s.disabled, false),
-        locked: flag(s.locked, false),
         visible: flag(s.visible, true),
+        turnPose,
+        turnLocked: flag(s.turnLocked, false),
         distance: finite(s.distance, 0),
         time: finite(s.time, 0),
         controls: seedControls(s.controls),
@@ -217,15 +238,30 @@ export function seedFileFormat(raw: unknown, repairs: string[] = []): FileFormat
 
 /** Re-homes a path onto another format, casting every kind that format cannot represent. */
 export function recastPath(formatDef: FormatDef<Format>, format: Format, path: Path): Path {
+    // Read off the pre-cast path, so a turn that is about to lose its target can be resolved first
+    const states = propagateStates(path);
+
     return {
         ...path,
         name: path.name || formatDef.formatPathName,
-        segments: path.segments.map(s => ({
-            ...s,
-            format,
-            kind: resolveKind(formatDef, s.kind),
-            constants: getDefaultConstants(formatDef, format, s.kind),
-        })),
+        segments: path.segments.map((s, i) => {
+            const kind = resolveKind(formatDef, s.kind);
+            const wasPointBased = s.kind === "pointTurn" || s.kind === "pointSwing";
+            const nowAngleBased = kind === "angleTurn" || kind === "angleSwing";
+            // A format with no turn-to-point casts to a heading turn, which has nowhere to keep a
+            // target: bake in the absolute heading the point turn was resolving to
+            const pose = wasPointBased && nowAngleBased
+                ? { ...s.pose, angle: states[i].pos ? normalizeDeg(turnHeadingAt(path, i, states[i].pos!)) : 0 }
+                : s.pose;
+
+            return {
+                ...s,
+                pose,
+                format,
+                kind,
+                constants: getDefaultConstants(formatDef, format, s.kind),
+            };
+        }),
     };
 }
 

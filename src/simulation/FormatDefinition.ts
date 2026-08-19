@@ -83,7 +83,8 @@ export type SegmentDef<F extends Format = Format> = {
  * Returns the patch to apply to the segment, or undefined to do nothing.
  */
 export type ActionButtonField = {
-    srcImg: string;
+    /** A function when the icon reflects segment state, resolved once in buildSegmentView. */
+    srcImg: string | ((segment: Segment) => string);
     label: string;
     onPress: (path: Path, idx: number) => Partial<Segment> | undefined;
 };
@@ -115,9 +116,9 @@ export type CycleButtonField<F extends Format = Format,
         srcImg: string;
         value: FormatConstants[F][K] | string;
     }[];
-    poseEffect?: (newValue: FormatConstants[F][K] | string) => Partial<Pose> | undefined;
-    // When set, the button state derives from the segment's pose instead of a constants key
-    poseValue?: (pose: Pose) => string;
+    turnPoseEffect?: (newValue: FormatConstants[F][K] | string) => Partial<Pose> | undefined;
+    // When set, the button state derives from the segment's turnPose instead of a constants key
+    turnPoseValue?: (turnPose: Pose) => string;
 }
 
 export type NumberInputGroup<F extends Format = Format> = {

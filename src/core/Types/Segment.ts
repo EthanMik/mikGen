@@ -8,9 +8,15 @@ export type Segment<F extends Format = Format> = {
   groupId?: string;
   disabled: boolean;
   selected: boolean;
-  locked: boolean;
   visible: boolean;
   pose: Pose;
+  /**
+   * Where a point turn aims: x/y the coordinate faced, angle the offset added to that bearing.
+   * Only pointTurn/pointSwing read it, and their own pose carries nothing.
+   */
+  turnPose: Pose;
+  /** Whether turnPose.x/y are authoritative. False: they track the drive segment in front. */
+  turnLocked: boolean;
   format: F;
   kind: SegmentKind;
   constants: SegmentConstants<F>;
@@ -24,9 +30,11 @@ export function createSegment<F extends Format>(formatDef: FormatDef<Format>, fo
     id: makeId(10),
     selected: false,
     disabled: false,
-    locked: false,
     visible: true,
     pose,
+    // Field centre, so a point turn placed with nothing ahead of it has something to aim at
+    turnPose: { x: 0, y: 0, angle: 0 },
+    turnLocked: false,
     format,
     kind,
     time: 0,

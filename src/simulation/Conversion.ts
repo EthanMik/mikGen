@@ -1,6 +1,6 @@
 import type { Robot } from "../core/Robot";
 import { distanceToPosition, getSegmentDistance, type Path } from "../core/Types/Path";
-import { findPointToFace, makeId, roundOff, toDeg } from "../core/Util";
+import { findPointToFace, makeId, resolveTurnPose, roundOff, toDeg } from "../core/Util";
 import type { Segment } from "../core/Types/Segment";
 import { createControlPoint, type ControlPoint } from "../core/Types/Pose";
 import { polylineLength, resolveBezier, sampleBezier } from "../core/Types/Bezier";
@@ -13,6 +13,35 @@ import { createStore } from "../core/Store";
 /** Template placeholders that carry a bare number, so they parse back as one. */
 const COORD_PLACEHOLDERS = new Set(['x', 'y', 'angle', 'distance', 'time', 'c1x', 'c1y', 'c2x', 'c2y']);
 
+/** The kinds that face a coordinate, and so read their target and offset off turnPose. */
+const isPointBased = (kind: SegmentKind): boolean => kind === "pointTurn" || kind === "pointSwing";
+
+/**
+ * Decides which pasted point turns keep the coordinate their code named. A turn whose target is
+ * already what the path derives stays unlocked and goes on tracking; one that names anything else
+ * has to be locked or the aim its code asked for is lost on the next export.
+ *
+ * Deliberately compares against `findPointToFace` rather than `resolveTurnPose`: the latter falls
+ * back to the segment's own stored coordinate, which here *is* the parsed value, so nothing would
+ * ever look like a mismatch. Rounding both sides to the 2 places codegen emits makes this exactly
+ * the "would a re-export change the text" test.
+ */
+export function applyTurnLocks(path: Path, from: number, to: number): Segment[] {
+    const segments = [...path.segments];
+    for (let i = from; i < to; i++) {
+        const seg = segments[i];
+        if (!isPointBased(seg.kind)) continue;
+        const { x, y } = seg.turnPose;
+        if (x === null || y === null) continue;
+
+        const auto = findPointToFace({ ...path, segments }, i);
+        if (roundOff(auto.x, 2) !== roundOff(x, 2) || roundOff(auto.y, 2) !== roundOff(y, 2)) {
+            segments[i] = { ...seg, turnLocked: true };
+        }
+    }
+    return segments;
+}
+
 export function convertPathToString<F extends Format, Segs extends Partial<Record<SegmentKind, SegmentDef<F>>>>(formatDef: FormatDef<F, Segs>, path: Path, selected = false): string {
     let pathString = '';
 
@@ -21,9 +50,11 @@ export function convertPathToString<F extends Format, Segs extends Partial<Recor
 
         if (selected && !seg.selected) continue;
 
-        let x = roundOff(seg.pose.x, 2);
-        let y = roundOff(seg.pose.y, 2);
-        const angle = roundOff(seg.pose.angle, 2);
+        // A point turn keeps its target and offset on turnPose; its own pose carries nothing
+        const facing = isPointBased(seg.kind) ? resolveTurnPose(path, idx) : seg.pose;
+        const x = roundOff(facing.x, 2);
+        const y = roundOff(facing.y, 2);
+        const angle = roundOff(facing.angle, 2);
         const rawDistance = seg.kind === "distanceDrive" ? (seg.distance ?? getSegmentDistance(path, idx)) : seg.distance;
         const distance = roundOff(rawDistance, 2);
         const time = roundOff(seg.time, 0);
@@ -31,18 +62,12 @@ export function convertPathToString<F extends Format, Segs extends Partial<Recor
         const kind = seg.kind as SegmentKind;
         const segDef = formatDef.segments[kind];
 
-        if (kind === "angleSwing" || kind === "pointSwing" || kind === "angleTurn" || kind === "pointTurn") {
-            const turn_pos = findPointToFace(path, idx);
-            x = roundOff(turn_pos.x, 2);
-            y = roundOff(turn_pos.y, 2);
-        }
-
         if (!segDef) continue;
         const resolvedDef = segDef.castTo ? (formatDef.segments[segDef.castTo] ?? segDef) : segDef;
         if (!resolvedDef.toStringTemplate) continue;
 
         const mergedK: Record<string, unknown> = Object.assign({}, ...k);
-        const kBuilderStr = formatDef.kBuilder ? formatDef.kBuilder(resolvedDef.defaults ?? formatDef.constants, k, seg.pose, kind) : "";
+        const kBuilderStr = formatDef.kBuilder ? formatDef.kBuilder(resolvedDef.defaults ?? formatDef.constants, k, facing, kind) : "";
 
         let line = resolvedDef.toStringTemplate
             .replace(/\$\{x\}/g, x)
@@ -159,17 +184,26 @@ function parseSegmentLine<F extends Format>(
     const captured: Record<string, string> = {};
     groups.forEach((name, i) => { captured[name] = match[i + 1] ?? ''; });
 
-    const pointBased = kind === "pointTurn" || kind === "pointSwing";
-    const x = (!pointBased && 'x' in captured) ? parseFloat(captured.x) : null;
-    const y = (!pointBased && 'y' in captured) ? parseFloat(captured.y) : null;
-    let angle: number | null = 'angle' in captured ? parseFloat(captured.angle) : (pointBased ? 0 : null);
+    const pointBased = isPointBased(kind);
+    const capturedX = 'x' in captured ? parseFloat(captured.x) : null;
+    const capturedY = 'y' in captured ? parseFloat(captured.y) : null;
+    // A point turn's captured coordinate is its target, not a position, so it lands on turnPose
+    const x = pointBased ? null : capturedX;
+    const y = pointBased ? null : capturedY;
+    let angle: number | null = 'angle' in captured ? parseFloat(captured.angle) : null;
+    // ReveilLib is the one format that emits the offset in the ${angle} slot
+    let turnAngle = pointBased ? (angle ?? 0) : 0;
+    if (pointBased) angle = null;
 
     const defaults = getDefaultConstants(formatDef as unknown as FormatDef<Format>, format, kind) as SegmentConstants<F>;
     let constants: SegmentConstants<F>;
     if (formatDef.kParser) {
         const [parsedConstants, poseOverride] = formatDef.kParser(defaults, captured.kBuilder ?? '', kind);
         constants = parsedConstants;
-        if (poseOverride?.angle !== undefined) angle = poseOverride.angle;
+        if (poseOverride?.angle != null) {
+            if (pointBased) turnAngle = poseOverride.angle;
+            else angle = poseOverride.angle;
+        }
     } else {
         constants = defaults.map(k => ({ ...k })) as SegmentConstants<F>;
     }
@@ -208,10 +242,13 @@ function parseSegmentLine<F extends Format>(
 
     return {
         id: makeId(10),
-        selected: false, disabled: false, locked: false, visible: true,
+        selected: false, disabled: false, visible: true,
         format,
         kind,
         pose: { x, y, angle },
+        turnPose: { x: pointBased ? capturedX : 0, y: pointBased ? capturedY : 0, angle: turnAngle },
+        // The pasted coordinate may or may not be one the path derives; paste decides (applyTurnLocks)
+        turnLocked: false,
         constants,
         controls,
         distance: parsedDistance !== undefined && !isNaN(parsedDistance) ? parsedDistance : 0,
@@ -238,7 +275,8 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
         const k = seg.constants as typeof formatDef.constants;
         const kind = seg.kind as SegmentKind;
 
-        const turn_pos = findPointToFace(path, idx);
+        // Only a point turn has a target, and its offset lives there too rather than on pose.angle
+        const turn = isPointBased(kind) ? resolveTurnPose(path, idx) : null;
 
         const segDef = formatDef.segments[kind];
         if (!segDef) continue;
@@ -302,12 +340,12 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
                         if (!started) {
                             simReset?.();
                             DEBUG_printSegmentStart(idx, formatDef, kind);
-                            const targetAngle = toDeg(Math.atan2(turn_pos.x - robot.getX(), turn_pos.y - robot.getY())) + angle;
+                            const targetAngle = toDeg(Math.atan2(turn!.x - robot.getX(), turn!.y - robot.getY())) + turn!.angle;
                             targetDist = Math.abs(angle_error(targetAngle - robot.getAngle(), "fastest")!);
                             started = true;
                         }
                         DEBUG_printRobotState(robot, dt);
-                        const output = simFn(robot, dt, turn_pos.x, turn_pos.y, angle, k);
+                        const output = simFn(robot, dt, turn!.x, turn!.y, turn!.angle, k);
                         if (output) DEBUG_printSegmentEnd(idx, formatDef, kind);
                         return [output, kind, targetDist];
                     }

@@ -20,6 +20,7 @@ import { turn_to_angle } from "./DriveMotions/TurnToAngle";
 import { swing_to_angle } from "./DriveMotions/SwingToAngle";
 import { swing_to_point } from "./DriveMotions/SwingToPoint";
 import { follow_path, reset_follow_path } from "./DriveMotions/FollowPath";
+import { turnLockButton } from "../TurnFields";
 
 export interface mikConstants {
     max_voltage: number;
@@ -187,8 +188,8 @@ const turnFaceButton: CycleButton = {
         { srcImg: fwd, value: "0" },
         { srcImg: rev, value: "180" },
     ],
-    poseValue: (pose) => normalizeDeg(pose.angle ?? 0) === 180 ? "180" : "0",
-    poseEffect: (val) => ({ angle: val === "180" ? 180 : 0 }),
+    turnPoseValue: (pose) => normalizeDeg(pose.angle ?? 0) === 180 ? "180" : "0",
+    turnPoseEffect: (val) => ({ angle: val === "180" ? 180 : 0 }),
 };
 
 const addControlButton: ActionButtonField = {
@@ -295,6 +296,7 @@ export const mikLibDef = {
             name: "Turn to Point",
             defaults: [kMikTurn],
             toStringTemplate: "chassis.turn_to_point(${x}, ${y}, ${kBuilder});",
+            actionButtons: [turnLockButton],
             simFn: (robot, dt, x, y, angle, constants) => turn_to_point(robot, dt, x, y, angle ?? 0, constants),
             slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
             cycleButtons: [
@@ -348,6 +350,7 @@ export const mikLibDef = {
             name: "Swing to Point",
             defaults: [kMikSwing],
             toStringTemplate: "chassis.${swing_direction}_swing_to_point(${x}, ${y}, ${kBuilder});",
+            actionButtons: [turnLockButton],
             simFn: (robot, dt, x, y, angle, constants) => swing_to_point(robot, dt, x, y, angle ?? 0, constants),
             slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
             cycleButtons: [

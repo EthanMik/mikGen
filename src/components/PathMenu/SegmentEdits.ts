@@ -111,21 +111,24 @@ export function pressAction(path: Path, segmentId: string, action: ActionButtonF
     return { ...path, segments: path.segments.map((s, i) => i === idx ? { ...s, ...patch } : s) };
 }
 
-/** A pose-backed button writes only the pose; every other one writes its constants key. */
+/**
+ * A turnPose-backed button writes only the turnPose; every other one writes its constants key. The
+ * two are not exclusive: LemLib and EZ back the offset with a real key and patch the turnPose too.
+ */
 export function cycle(path: Path, segmentId: string, view: CycleView, rawKey: string | null): Path {
     const match = view.def.keyValues.find(kv => String(kv.value) === rawKey);
     if (match === undefined) return path;
 
-    const posePatch = view.def.poseEffect?.(match.value as never);
-    const writes = view.def.poseValue
+    const turnPosePatch = view.def.turnPoseEffect?.(match.value as never);
+    const writes = view.def.turnPoseValue
         ? []
         : [{ source: { on: "constants" as const, idx: view.def.constantsIdx, key: String(view.def.key) }, value: match.value as ConstantValue }];
 
     const next = writeFields(path, { segmentId }, writes);
-    if (!posePatch) return next;
+    if (!turnPosePatch) return next;
     return {
         ...next,
-        segments: next.segments.map(s => s.id === segmentId ? { ...s, pose: { ...s.pose, ...posePatch } } : s),
+        segments: next.segments.map(s => s.id === segmentId ? { ...s, turnPose: { ...s.turnPose, ...turnPosePatch } } : s),
     };
 }
 
@@ -159,7 +162,7 @@ export function buildDraggingIds(segments: Segment[], segmentId: string): string
 
 /**
  * Moves every dragged row to `toIndex`, keeping their relative order. The start pose stays at index
- * 0 and locked rows never move, so both are refused outright rather than clamped.
+ * 0, so a drag that would displace it is refused outright rather than clamped.
  */
 export function moveSegments(path: Path, ids: string[], toIndex: number): Path {
     if (ids.length === 0) return path;
@@ -167,7 +170,6 @@ export function moveSegments(path: Path, ids: string[], toIndex: number): Path {
     const original = path.segments;
     const fromIndices = ids.map(id => original.findIndex(s => s.id === id));
     if (fromIndices.some(idx => idx <= 0)) return path;
-    if (fromIndices.some(idx => original[idx].locked)) return path;
 
     const moving = new Set(ids);
     const dropTarget = toIndex >= 0 && toIndex < original.length ? original[toIndex] : null;

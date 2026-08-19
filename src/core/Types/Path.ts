@@ -1,4 +1,4 @@
-import { calculateHeading, findPointToFace, toRad } from "../Util";
+import { calculateHeading, resolveTurnPose, toRad } from "../Util";
 import { bezierTangentAt, resolveBezier } from "./Bezier";
 import type { Coordinate } from "./Coordinate";
 import { type Segment } from "./Segment";
@@ -33,6 +33,12 @@ export function getForwardSnapPose(path: Path, idx: number) {
 }
 
 export type RobotState = { pos: Coordinate | null; heading: number | null };
+
+/** The absolute heading a point turn lands on: the bearing to its resolved target plus its offset. */
+export function turnHeadingAt(path: Path, idx: number, from: Coordinate): number {
+    const turn = resolveTurnPose(path, idx);
+    return calculateHeading(from, turn) + turn.angle;
+}
 
 function angleErrorDeg(a: number, b: number): number {
     let d = (a - b) % 360;
@@ -108,7 +114,8 @@ export function propagateStates(path: Path): RobotState[] {
             case "pointTurn":
             case "pointSwing": {
                 if (!pos) break;
-                heading = calculateHeading(pos, findPointToFace(path, i)) + (angle ?? 0);
+                // Offset and target both live on turnPose; this kind's own pose carries nothing
+                heading = turnHeadingAt(path, i, pos);
                 break;
             }
 

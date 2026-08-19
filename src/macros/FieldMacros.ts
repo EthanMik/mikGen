@@ -8,7 +8,7 @@ import { seedControls, segmentControls } from "../core/Types/Bezier";
 import type { Coordinate } from "../core/Types/Coordinate";
 import type { Pose } from "../core/Types/Pose";
 import type { Format } from "../hooks/useFileFormat";
-import { convertPathToString, convertStringToPath } from "../simulation/Conversion";
+import { applyTurnLocks, convertPathToString, convertStringToPath } from "../simulation/Conversion";
 import { insertIndexAfterSelection, invertAllSelection, pointerToSvg, setAllSelection } from "../components/Field/FieldUtils";
 import { fileFormatStore } from "../hooks/useFileFormat";
 import { seedSegments } from "../core/FileSchema";
@@ -196,22 +196,21 @@ export default function FieldMacros() {
             setPath((prev) => {
                 // Deleting a segment takes its controls with it, so segments win a mixed
                 // selection. Controls are only deleted on their own when nothing else is selected.
-                const hasSelectedSegment = prev.segments.some(s => !s.locked && s.selected);
-                const hasSelectedControl = prev.segments.some(s => !s.locked && segmentControls(s).some(c => c.selected));
+                const hasSelectedSegment = prev.segments.some(s => s.selected);
+                const hasSelectedControl = prev.segments.some(s => segmentControls(s).some(c => c.selected));
                 if (hasSelectedControl && !hasSelectedSegment) {
                     return {
                         ...prev,
-                        segments: prev.segments.map(s => s.locked ? s : {
+                        segments: prev.segments.map(s => ({
                             ...s,
                             controls: segmentControls(s).filter(c => !c.selected),
-                        }),
+                        })),
                     };
                 }
 
                 const allSelected = prev.segments.length > 0 && prev.segments.every((s) => s.selected);
 
                 const newSegments = prev.segments.filter((c, i) => {
-                    if (c.locked) return true;
                     if (!c.selected) return true;
 
                     if (i === 0 && prev.segments.length > 1 && !allSelected) return true;
@@ -330,9 +329,14 @@ export default function FieldMacros() {
                     if (pos) inserted[i] = { ...seg, pose: { ...seg.pose, x: pos.x, y: pos.y }, distance: dist };
                 }
 
+                // Only now, with the pasted rows sitting among their new neighbours and the distance
+                // segments re-projected, can a turn tell whether its own coordinate is the one this
+                // path derives or one it has to hold on to
+                const locked = applyTurnLocks({ name: "", segments: inserted }, insertStart, insertEnd);
+
                 return {
                     ...prev,
-                    segments: inserted.map((s, i) =>
+                    segments: locked.map((s, i) =>
                         (i >= insertStart && i < insertEnd) ? { ...s, selected: true } : s
                     ),
                 };
@@ -363,7 +367,7 @@ export default function FieldMacros() {
 
             const oldControls = prev.segments;
 
-            const newControl = { ...segment, selected: !segment.locked };
+            const newControl = { ...segment, selected: true };
 
             const inserted = [
                 ...oldControls.slice(0, selectedIndex),
@@ -515,7 +519,7 @@ export default function FieldMacros() {
         const formatDef = fileFormatStore.getState().formatDef;
         if (formatDef.segments["pointTurn"]?.castTo) return;
         if (path.segments.length === 0) return addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath);
-        addSegment(createSegment(formatDef, format, "pointTurn", { x: null, y: null, angle: 0 }), setPath);
+        addSegment(createSegment(formatDef, format, "pointTurn", { x: null, y: null, angle: null }), setPath);
     }
 
     /** Ctrl + Right click */
@@ -533,7 +537,7 @@ export default function FieldMacros() {
         const formatDef = fileFormatStore.getState().formatDef;
         if (formatDef.segments["pointSwing"]?.castTo) return;
         if (path.segments.length === 0) return addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath);
-        addSegment(createSegment(formatDef, format, "pointSwing", { x: null, y: null, angle: 0 }), setPath);
+        addSegment(createSegment(formatDef, format, "pointSwing", { x: null, y: null, angle: null }), setPath);
     }
 
     /** Ctrl + Alt + Right click */

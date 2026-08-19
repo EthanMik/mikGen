@@ -6,6 +6,7 @@ import rightswing from "../../assets/rightswing.svg";
 import fwd from "../../assets/fwd.svg";
 import rev from "../../assets/reverse.svg";
 import { drive_distance, drive_to_point, drive_to_pose, swing_to_angle, turn_to_angle, turn_to_point } from "./drive";
+import { turnLockButton } from "../TurnFields";
 
 export interface JarConstants {
     max_voltage: number;
@@ -136,8 +137,8 @@ const turnFaceButton: CycleButton = {
         { srcImg: fwd, value: "0" },
         { srcImg: rev, value: "180" },
     ],
-    poseValue: (pose) => normalizeDeg(pose.angle ?? 0) === 180 ? "180" : "0",
-    poseEffect: (val) => ({ angle: val === "180" ? 180 : 0 }),
+    turnPoseValue: (pose) => normalizeDeg(pose.angle ?? 0) === 180 ? "180" : "0",
+    turnPoseEffect: (val) => ({ angle: val === "180" ? 180 : 0 }),
 };
 
 export const JarTemplateDef = {
@@ -225,6 +226,7 @@ export const JarTemplateDef = {
             name: "Turn to Point",
             defaults: [kJarTurn],
             toStringTemplate: "chassis.turn_to_point(${x}, ${y}, ${kBuilder});",
+            actionButtons: [turnLockButton],
             simFn: (robot, dt, x, y, angle, constants) => turn_to_point(robot, dt, x, y, angle ?? 0, constants),
             slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
             cycleButtons: [

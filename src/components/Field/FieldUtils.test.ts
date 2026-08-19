@@ -44,6 +44,28 @@ describe("selectedLastOrder", () => {
         expect(selectedLastOrder(segs(false, true, false, true, false))).toEqual([0, 2, 4, 1, 3]);
     });
 
+    it("lifts a selected turn above every drive, selected or not", () => {
+        // A turn draws on the drive node in front of it, so a lifted drive would cover it
+        const order = selectedLastOrder([
+            { selected: false, kind: "pointDrive" },
+            { selected: true, kind: "pointTurn" },
+            { selected: true, kind: "pointDrive" },
+        ]);
+
+        expect(order).toEqual([0, 2, 1]);
+    });
+
+    it("never shuffles a selected turn past another turn", () => {
+        const order = selectedLastOrder([
+            { selected: false, kind: "pointTurn" },
+            { selected: true, kind: "pointSwing" },
+            { selected: true, kind: "angleTurn" },
+        ]);
+
+        // Both selected turns share the top rank, so the stable sort leaves them in path order
+        expect(order).toEqual([0, 1, 2]);
+    });
+
     it("lifts a segment whose bezier control is selected", () => {
         const withControl = [
             { selected: false, controls: [{ selected: true }] },

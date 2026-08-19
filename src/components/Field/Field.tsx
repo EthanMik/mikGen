@@ -40,13 +40,16 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 
 	// Key covering every input the reposition effect reads: anchor poses come from non-distance
 	// segments, while a distance segment's own distance and heading angle feed resolveHeading
-	// and distanceToPosition. When it changes, reposition all distance segments.
+	// and distanceToPosition. A turn contributes through turnPose instead of pose, so its offset
+	// and its target both have to be in here or a distance segment behind one never re-signs.
+	// When it changes, reposition all distance segments.
 	const repositionKey = useMemo(() =>
 		path.segments
 			.map(s =>
 				s.kind === "distanceDrive" || s.kind === "strafeDrive"
 					? `${s.id}:${s.kind}:d${s.distance},a${s.pose.angle}`
-					: `${s.id}:${s.kind}:${s.pose.x},${s.pose.y},${s.pose.angle}`)
+					: `${s.id}:${s.kind}:${s.pose.x},${s.pose.y},${s.pose.angle}`
+					+ `:t${s.turnPose.x},${s.turnPose.y},${s.turnPose.angle},${s.turnLocked}`)
 			.join('|'),
 		[path.segments]
 	);
@@ -342,10 +345,9 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 
 		if (shiftHeld) {
 			// A control drives the snap just like a segment node when it owns the selection
-			let refKey: string | null = path.segments.find(s => s.selected && !s.locked)?.id ?? null;
+			let refKey: string | null = path.segments.find(s => s.selected)?.id ?? null;
 			if (refKey === null) {
 				for (const s of path.segments) {
-					if (s.locked) continue;
 					const i = segmentControls(s).findIndex(c => c.selected);
 					if (i !== -1) { refKey = controlDragKey(s.id, i); break; }
 				}
@@ -395,7 +397,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 			// First pass: move all non-distance segments and any selected bezier controls by delta
 			const firstPass: Segment[] = prev.segments.map((c) => {
 				const controls = segmentControls(c);
-				const movedControls = controls.some(ctrl => ctrl.selected) && !c.locked
+				const movedControls = controls.some(ctrl => ctrl.selected)
 					? controls.map((ctrl, i) => {
 						if (!ctrl.selected) return ctrl;
 						const moved = applyDelta(dragStartPositions.current[controlDragKey(c.id, i)]);
@@ -405,7 +407,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 				const withControls = movedControls === controls ? c : { ...c, controls: movedControls };
 
 				if (c.kind === "distanceDrive" || c.kind === "strafeDrive") return withControls;
-				if (!c.selected || c.locked) return withControls;
+				if (!c.selected) return withControls;
 
 				const moved = applyDelta(dragStartPositions.current[c.id]);
 				if (!moved) return withControls;
@@ -427,7 +429,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 					// After a point turn the turn always faces the next point, so the segment moves freely
 					if (!anchorPose || anchorPose.x === null || anchorPose.y === null) continue;
 
-					if (c.selected && !c.locked) {
+					if (c.selected) {
 						// Use delta from drag-start position so multi-select moves all segments uniformly
 						const startPos = dragStartPositions.current[c.id];
 						let newX = startPos?.x == null ? (c.pose.x ?? 0) : startPos.x + dx;
@@ -456,7 +458,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 					continue;
 				}
 
-				if (c.selected && !c.locked) {
+				if (c.selected) {
 					// Selected: project mouse onto heading and update distance
 					const startPos = dragStartPositions.current[c.id];
 					if (!anchorPose || anchorPose.x === null || anchorPose.y === null) {
@@ -563,7 +565,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 				...prevSegment,
 				segments: segments.map((c) => ({
 					...c,
-					selected: !c.locked && nextSelectedIds.includes(c.id),
+					selected: nextSelectedIds.includes(c.id),
 				})),
 			};
 		});

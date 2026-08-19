@@ -94,30 +94,48 @@ export function toPX(position: Coordinate, field: Rectangle, img: Rectangle): Co
     return { x: dx, y: -dy }
 }
 
-export function findPointToFace(path: Path, idx: number): Coordinate {
-    const previousPos = getBackwardsSnapPose(path, idx - 1);
-
+/** The first real waypoint ahead of idx, or null when nothing after it has a position. */
+function forwardTurnTarget(path: Path, idx: number): Coordinate | null {
     // Skip strafeDrive segments: the turn should face the first forward waypoint, not a lateral strafe endpoint
-    let turnToPos = null;
     for (let i = idx; i < path.segments.length; i++) {
         const seg = path.segments[i];
         if (seg.kind === "strafeDrive") continue;
         if (seg.kind === "bezierCurve") {
             // Face where the curve starts heading, not its far endpoint
             const bezier = resolveBezier(path, i);
-            if (bezier !== null) { turnToPos = { x: bezier.c1.x, y: bezier.c1.y, angle: null }; break; }
+            if (bezier !== null) return { x: bezier.c1.x, y: bezier.c1.y };
         }
-        if (seg.pose.x !== null && seg.pose.y !== null) { turnToPos = seg.pose; break; }
+        if (seg.pose.x !== null && seg.pose.y !== null) return { x: seg.pose.x, y: seg.pose.y };
     }
+    return null;
+}
 
-    const pos: Coordinate =
-        turnToPos
-            ? { x: turnToPos.x ?? 0, y: turnToPos.y ?? 0 }
-            : previousPos
-                ? { x: previousPos.x ?? 0, y: (previousPos.y ?? 0) + 5 }
-                : { x: 0, y: 5 };
+/** 5in "north" of where the robot already is: the aim when there is nothing at all to face. */
+function turnTargetFallback(path: Path, idx: number): Coordinate {
+    const previousPos = getBackwardsSnapPose(path, idx - 1);
+    return previousPos
+        ? { x: previousPos.x ?? 0, y: (previousPos.y ?? 0) + 5 }
+        : { x: 0, y: 5 };
+}
 
-    return pos;
+export function findPointToFace(path: Path, idx: number): Coordinate {
+    return forwardTurnTarget(path, idx) ?? turnTargetFallback(path, idx);
+}
+
+/**
+ * Where a point turn actually aims. Locked, the stored coordinate is used verbatim; unlocked, the
+ * target tracks the next drive waypoint and falls back to the stored coordinate before the
+ * positional default. Never returns null coordinates: a lock with nothing stored, or a segment
+ * seeded without a turnPose at all, degrades to tracking rather than handing out NaN.
+ */
+export function resolveTurnPose(path: Path, idx: number): Coordinate & { angle: number } {
+    const seg = path.segments[idx];
+    const turn = seg?.turnPose;
+    const angle = turn?.angle ?? 0;
+    const stored = turn?.x != null && turn?.y != null ? { x: turn.x, y: turn.y } : null;
+
+    if (seg?.turnLocked && stored) return { ...stored, angle };
+    return { ...(forwardTurnTarget(path, idx) ?? stored ?? turnTargetFallback(path, idx)), angle };
 }
 
 export function toRGB(rgba: string): number[] {

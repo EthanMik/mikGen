@@ -30,7 +30,7 @@ function segmentGeoString(s: Segment): string {
     let key = geoKeyCache.get(s);
     if (key === undefined) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { selected, locked, visible, disabled, groupId, ...rest } = s;
+        const { selected, visible, disabled, groupId, ...rest } = s;
         key = JSON.stringify(rest);
         geoKeyCache.set(s, key);
     }

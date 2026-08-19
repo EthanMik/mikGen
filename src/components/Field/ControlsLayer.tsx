@@ -1,10 +1,11 @@
 import React, { memo, useMemo } from "react";
 import { hoveredSegmentStore } from "../../core/HoverStore";
 import type { Path } from "../../core/Types/Path";
-import { getBackwardsSnapIdx, getBackwardsSnapPose } from "../../core/Types/Path";
+import type { Coordinate } from "../../core/Types/Coordinate";
+import { getBackwardsSnapIdx, getBackwardsSnapPose, turnHeadingAt } from "../../core/Types/Path";
 import type { Segment } from "../../core/Types/Segment";
 import { resolveBezier, segmentControls, type Bezier } from "../../core/Types/Bezier";
-import { calculateHeading, toPX, toRad, FIELD_REAL_DIMENSIONS, type Rectangle, FIELD_IMG_DIMENSIONS, findPointToFace } from "../../core/Util";
+import { toPX, toRad, FIELD_REAL_DIMENSIONS, type Rectangle, FIELD_IMG_DIMENSIONS, resolveTurnPose } from "../../core/Util";
 import { useSettings } from "../../hooks/useSettings";
 import { controlAttributes, FIELD_COLORS, type SegmentAttribute } from "./FieldColors";
 import { selectedLastOrder } from "./FieldUtils";
@@ -19,7 +20,7 @@ type ControlsLayerProps = {
 
 /**
  * Everything a segment's shapes need that depends only on the path, not on the zoom/pan
- * rectangle. getBackwardsSnapPose, findPointToFace and resolveBezier each walk the path, and
+ * rectangle. getBackwardsSnapPose, resolveTurnPose and resolveBezier each walk the path, and
  * the shapes used to call them several times per segment per render, so this is cached once
  * per path and reused across every pan and zoom frame.
  */
@@ -27,6 +28,8 @@ type SegGeom = {
 	snapPose: { x: number; y: number } | null;
 	indicatorAngle: number | null;
 	bezier: Bezier | null;
+	/** Where a point turn aims, for the target marker. Null on every other kind. */
+	turnTarget: Coordinate | null;
 };
 
 type ShapeCtx = {
@@ -44,22 +47,21 @@ type ShapeCtx = {
 
 /** Null when the kind has an optional heading and none is set, so nothing is drawn. */
 function computeIndicatorAngle(path: Path, idx: number, seg: Segment, snapPose: { x: number; y: number }): number | null {
-	const angle = seg.pose.angle;
-	if (seg.kind === "pointTurn" || seg.kind === "pointSwing") {
-		const pos = findPointToFace(path, idx);
-		return calculateHeading({ x: snapPose.x, y: snapPose.y }, { x: pos.x, y: pos.y }) + (angle ?? 0);
-	}
-	return angle;
+	// A point turn's heading lives entirely on turnPose; its own pose.angle is always null
+	if (seg.kind === "pointTurn" || seg.kind === "pointSwing") return turnHeadingAt(path, idx, snapPose);
+	return seg.pose.angle;
 }
 
 function computeSegGeoms(path: Path): SegGeom[] {
 	return path.segments.map((seg, idx) => {
 		const raw = getBackwardsSnapPose(path, idx);
 		const snapPose = raw !== null && raw.x !== null && raw.y !== null ? { x: raw.x, y: raw.y } : null;
+		const isPointTurn = seg.kind === "pointTurn" || seg.kind === "pointSwing";
 		return {
 			snapPose,
 			indicatorAngle: snapPose === null ? null : computeIndicatorAngle(path, idx, seg, snapPose),
 			bezier: seg.kind === "bezierCurve" ? resolveBezier(path, idx) : null,
+			turnTarget: isPointTurn ? resolveTurnPose(path, idx) : null,
 		};
 	});
 }
@@ -93,7 +95,7 @@ function renderNode(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
 	const nodePx = toPX({ x: seg.pose.x, y: seg.pose.y }, FIELD_REAL_DIMENSIONS, ctx.img);
 	return (
 		<circle
-			style={{ stroke: FIELD_COLORS.endBorderColor, ...(seg.locked ? { cursor: "not-allowed" } : { cursor: "grab" }) }}
+			style={{ stroke: FIELD_COLORS.endBorderColor, cursor: "grab" }}
 			id={seg.id}
 			cx={nodePx.x}
 			cy={nodePx.y}
@@ -181,6 +183,23 @@ function renderCircle(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
 	);
 }
 
+/** The coordinate a point turn aims at, shown only while the row owns the selection. */
+function renderTurnTarget(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
+	const { seg, geom } = ctx;
+	if (!seg.selected || geom.turnTarget === null) return null;
+
+	const px = toPX(geom.turnTarget, FIELD_REAL_DIMENSIONS, ctx.img);
+	return (
+		<circle
+			pointerEvents="none"
+			cx={px.x}
+			cy={px.y}
+			r={ctx.radius * 0.35}
+			fill={attr.selectedColor}
+		/>
+	);
+}
+
 function renderControls(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
 	const { seg } = ctx;
 
@@ -204,7 +223,7 @@ function renderControls(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode 
 				strokeWidth={1 * ctx.scale}
 			/>
 			<circle
-				style={seg.locked ? { cursor: "not-allowed" } : { cursor: "grab" }}
+				style={{ cursor: "grab" }}
 				cx={controlPx.x}
 				cy={controlPx.y}
 				r={ctx.radius * shapeScale(attr, control.selected, ctx.hovered) * 0.5}
@@ -241,6 +260,7 @@ function renderAttr(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
 		case "curve": return renderCurve(ctx, attr);
 		case "circle": return renderCircle(ctx, attr);
 		case "control": return renderControls(ctx, attr);
+		case "turnTarget": return renderTurnTarget(ctx, attr);
 	}
 }
 

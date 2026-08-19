@@ -37,7 +37,7 @@ export function useMagnetSnap() {
     };
 
     for (const seg of path.segments) {
-      if (seg.locked || !seg.visible) continue;
+      if (!seg.visible) continue;
 
       // Bezier controls are snap targets in their own right, just like segment nodes
       for (const control of segmentControls(seg)) {

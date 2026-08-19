@@ -5,7 +5,7 @@ import type { Segment } from "./Segment";
 import { createControlPoint, type ControlPoint } from "./Pose";
 
 function makePath(controls: ControlPoint[]): Path {
-    const base = { disabled: false, selected: false, locked: false, visible: true, format: "mikLib", constants: [{}], distance: 0, time: 0, controls: [] } as unknown as Segment;
+    const base = { disabled: false, selected: false, visible: true, format: "mikLib", constants: [{}], turnPose: { x: 0, y: 0, angle: 0 }, turnLocked: false, distance: 0, time: 0, controls: [] } as unknown as Segment;
     return {
         name: "test",
         segments: [

@@ -13,8 +13,9 @@ export const FORMATS = Object.keys(FORMAT_REGISTRY) as Format[];
 
 /** A raw, file-shaped segment, ready to be corrupted one key at a time. */
 export const rawSegment = (over: Record<string, unknown> = {}) => ({
-    id: "s1", selected: false, disabled: false, locked: false, visible: true,
-    pose: { x: 0, y: 0, angle: 0 }, format: "mikLib", kind: "start", constants: [{}],
+    id: "s1", selected: false, disabled: false, visible: true,
+    pose: { x: 0, y: 0, angle: 0 }, turnPose: { x: 0, y: 0, angle: 0 }, turnLocked: false,
+    format: "mikLib", kind: "start", constants: [{}],
     distance: 0, time: 0, controls: [], ...over,
 });
 
@@ -42,9 +43,14 @@ export function expectValidSegment(seg: Segment, formatDef: FormatDef<Format>, f
     for (const entry of seg.constants) expect(typeof entry, `${at} constants entry`).toBe("object");
 
     for (const key of ["x", "y", "angle"] as const) {
-        const v = seg.pose[key];
-        expect(v === null || (typeof v === "number" && Number.isFinite(v)), `${at} pose.${key} = ${v}`).toBe(true);
+        for (const [name, pose] of [["pose", seg.pose], ["turnPose", seg.turnPose]] as const) {
+            const v = pose[key];
+            expect(v === null || (typeof v === "number" && Number.isFinite(v)), `${at} ${name}.${key} = ${v}`).toBe(true);
+        }
     }
+    // The offset is always a real number, so no consumer has to coalesce it
+    expect(Number.isFinite(seg.turnPose.angle), `${at} turnPose.angle`).toBe(true);
+    expect(typeof seg.turnLocked, `${at} turnLocked`).toBe("boolean");
 
     expect(Array.isArray(seg.controls), `${at} controls`).toBe(true);
     expect(typeof seg.id, `${at} id`).toBe("string");

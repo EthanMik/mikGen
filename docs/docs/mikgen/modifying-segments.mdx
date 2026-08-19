@@ -71,6 +71,36 @@ modifying named constants, ex: `drive_direction`. You can hover over it to see w
 The cycle buttons allow `pointTurn` segments to turn with the back of the robot
 :::
 
+## Turn Targets
+
+`pointTurn` and `pointSwing` don't turn to a heading, they face a coordinate. That coordinate shows up
+in the X and Y inputs of the control config, where a drive segment would show its position:
+
+| Input | On a turn segment |
+|-|-|
+| X, Y | The coordinate the turn is facing |
+| θ | Greyed out and empty. A turn has no heading of its own |
+
+By default the coordinate tracks the first drive segment in front of the turn, so moving that drive
+segment re-aims the turn with it. Because it is derived, X and Y are read only while tracking. A turn
+placed with no drive segment after it faces `0, 0`, the middle of the field.
+
+### Locking
+
+Every point turn segment carries a lock button:
+
+| Lock | Behavior |
+|-|-|
+| Open | The turn tracks the drive segment in front of it. X and Y are read only |
+| Closed | The coordinate is frozen where it was. X and Y become editable |
+
+Locking freezes the coordinate the turn is currently facing, so editing the drive segment after it no
+longer moves the turn. While a locked turn is selected, a dot on the field marks the coordinate it is
+aimed at. Unlocking hands the turn back to the drive segment in front of it.
+
+Whether the turn faces its target with the front or the back of the robot is separate, and stays on
+the `angle_offset` cycle button.
+
 To show all the constants that can be modified, either click on the segment's name, or click the dropdown arrow on the right
 
 <img src={require('./img/modifying-segments/dropdown-open.png').default} width="50%"  style={{ paddingBottom: '20px' }} />

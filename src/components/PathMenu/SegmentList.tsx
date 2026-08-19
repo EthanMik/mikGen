@@ -70,7 +70,6 @@ const SegmentList = memo(function SegmentList({
     if (!segment || !view) return null;
 
     const selected = segment.selected;
-    const canReorder = !segment.locked;
 
     const handleOnClick = (evt: React.PointerEvent<HTMLButtonElement>) => {
         evt.stopPropagation();
@@ -102,7 +101,7 @@ const SegmentList = memo(function SegmentList({
 
     return (
         <div
-            className={`relative flex flex-col gap-0.5 mt-[1px] pl-4 ${segment.locked ? "opacity-50 pointer-events-none" : ""}`}
+            className="relative flex flex-col gap-0.5 mt-[1px] pl-4"
             onClick={() => { if (selected) setOpen(!isOpen); }}
         >
             <div className={`absolute left-0 top-0 h-[35px] brightness-80 transition-opacity duration-200 flex items-center pointer-events-none ${isActiveSimSegment ? "opacity-100" : "opacity-0"}`}>
@@ -110,10 +109,10 @@ const SegmentList = memo(function SegmentList({
             </div>
 
             <button
-                onPointerDown={(e) => { if (canReorder) reorder.onPointerDown(e, segmentId); }}
-                onPointerMove={(e) => { if (canReorder) reorder.onPointerMove(e); }}
-                onPointerUp={(e) => { if (canReorder) reorder.onPointerUp(e); }}
-                onPointerCancel={(e) => { if (canReorder) reorder.onPointerCancel(e); }}
+                onPointerDown={(e) => reorder.onPointerDown(e, segmentId)}
+                onPointerMove={(e) => reorder.onPointerMove(e)}
+                onPointerUp={(e) => reorder.onPointerUp(e)}
+                onPointerCancel={(e) => reorder.onPointerCancel(e)}
                 onClick={handleOnClick}
                 onContextMenu={handleContextMenu}
                 onMouseEnter={() => hoveredSegmentStore.setState(segmentId)}
@@ -122,7 +121,7 @@ const SegmentList = memo(function SegmentList({
                     width: "450px",
                     // Vertical panning stays with the browser so an ordinary swipe still scrolls the
                     // list; the reorder gesture revokes it only once a long press has armed a drag
-                    touchAction: canReorder ? "pan-y" : undefined,
+                    touchAction: "pan-y",
                     WebkitTouchCallout: "none",
                 }}
                 className={`select-none ${selected ? "bg-medlightgray" : ""}
@@ -199,7 +198,7 @@ const SegmentList = memo(function SegmentList({
                                     className="cursor-pointer shrink-0 flex items-center"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        updatePath(prev => pressAction(prev, segmentId, action));
+                                        updatePath(prev => pressAction(prev, segmentId, action.def));
                                         saveSnapshot();
                                     }}
                                 >

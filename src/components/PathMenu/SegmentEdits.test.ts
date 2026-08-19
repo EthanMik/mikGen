@@ -209,24 +209,25 @@ describe("cycle", () => {
         expect(constantsOf(next, "s0", 0).turn_direction).toBe("ccw");
     });
 
-    it("moves the pose for a pose-backed button without touching constants", () => {
+    it("moves the turnPose for a turnPose-backed button without touching constants", () => {
         const path = pathOf("mikLib", ["pointTurn"]);
         const button = buildSegmentView(defOf("mikLib"), path.segments[1]).cycleButtons
             .find(b => b.label === "angle_offset")!;
 
         const next = cycle(path, "s0", button, "180");
-        expect(next.segments[1].pose.angle).toBe(180);
+        expect(next.segments[1].turnPose.angle).toBe(180);
+        expect(next.segments[1].pose).toBe(path.segments[1].pose);
         expect(next.segments[1].constants).toBe(path.segments[1].constants);
     });
 
-    it("carries a pose effect alongside the constants write", () => {
+    it("carries a turnPose effect alongside the constants write", () => {
         const path = pathOf("LemLib", ["pointTurn"]);
         const button = buildSegmentView(defOf("LemLib"), path.segments[1]).cycleButtons
             .find(b => b.label === "forwards")!;
 
         const next = cycle(path, "s0", button, "false");
         expect(constantsOf(next, "s0", 0).forwards).toBe(false);
-        expect(next.segments[1].pose.angle).toBe(180);
+        expect(next.segments[1].turnPose.angle).toBe(180);
     });
 
     it("ignores a value the button does not offer", () => {
@@ -241,16 +242,33 @@ describe("cycle", () => {
 describe("pressAction", () => {
     it("applies the patch the action returns", () => {
         const path = pathOf("mikLib", ["bezierCurve"]);
-        const action = buildSegmentView(defOf("mikLib"), path.segments[1]).actions[0];
+        const action = buildSegmentView(defOf("mikLib"), path.segments[1]).actions[0].def;
 
         const next = pressAction(path, "s0", action);
         expect(next.segments[1].controls).toHaveLength(1);
         expect(pressAction(next, "s0", action).segments[1].controls).toHaveLength(2);
     });
 
+    it("freezes a point turn's resolved target on the first press and releases it on the second", () => {
+        // A real point turn has no position of its own, so it tracks the drive after it
+        const path = pathOf("mikLib", ["pointTurn", "poseDrive"]);
+        path.segments[1] = { ...path.segments[1], pose: { x: null, y: null, angle: null } };
+        const lock = buildSegmentView(defOf("mikLib"), path.segments[1]).actions
+            .find(a => a.label === "Lock Turn Target")!.def;
+
+        const locked = pressAction(path, "s0", lock);
+        expect(locked.segments[1].turnLocked).toBe(true);
+        expect(locked.segments[1].turnPose).toMatchObject({ x: 20, y: 10 });
+
+        // Unlocking leaves the coordinate behind, so pressing again lands in the same place
+        const unlocked = pressAction(locked, "s0", lock);
+        expect(unlocked.segments[1].turnLocked).toBe(false);
+        expect(unlocked.segments[1].turnPose).toEqual(locked.segments[1].turnPose);
+    });
+
     it("returns the same path when the action declines", () => {
         const path = pathOf("mikLib", ["bezierCurve"]);
-        const action = buildSegmentView(defOf("mikLib"), path.segments[1]).actions[0];
+        const action = buildSegmentView(defOf("mikLib"), path.segments[1]).actions[0].def;
         const full = pressAction(pressAction(path, "s0", action), "s0", action);
 
         expect(pressAction(full, "s0", action)).toBe(full);
@@ -292,12 +310,10 @@ describe("reorder", () => {
         expect(ids(moveSegments(path, ["s0", "s1"], 4))).toEqual(["start", "s2", "s0", "s1"]);
     });
 
-    it("refuses the start pose, locked rows, and unknown ids", () => {
+    it("refuses the start pose and unknown ids", () => {
         const path = fourRows();
-        path.segments[2].locked = true;
 
         expect(moveSegments(path, ["start"], 2)).toBe(path);
-        expect(moveSegments(path, ["s1"], 1)).toBe(path);
         expect(moveSegments(path, ["nope"], 1)).toBe(path);
         expect(moveSegments(path, [], 1)).toBe(path);
     });

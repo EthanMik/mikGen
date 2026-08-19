@@ -2,7 +2,7 @@ import { toRGBA } from "../../core/Util";
 import type { SegmentKind } from "../../simulation/FormatDefinition";
 
 export type SegmentAttribute = {
-    shape: "line" | "curve" | "circle" | "node" | "control";
+    shape: "line" | "curve" | "circle" | "node" | "control" | "turnTarget";
 
     baseColor: string;
     selectedColor: string;
@@ -113,6 +113,13 @@ export const FIELD_COLORS: FieldColors = {
                 hoverScale: 1.2,
                 selectedScale: 1.4,
             },
+            {
+                shape: "turnTarget",
+                baseColor: "#382727",
+                selectedColor: toRGBA("#9d3737", 0.9),
+                hoverScale: 1,
+                selectedScale: 1,
+            },
         ],
         angleTurn: [
             {
@@ -130,6 +137,13 @@ export const FIELD_COLORS: FieldColors = {
                 selectedColor: toRGBA("#862828", 0.9),
                 hoverScale: 1.2,
                 selectedScale: 1.3,
+            },
+            {
+                shape: "turnTarget",
+                baseColor: "#491717",
+                selectedColor: toRGBA("#862828", 0.9),
+                hoverScale: 1,
+                selectedScale: 1,
             },
         ],
         angleSwing: [

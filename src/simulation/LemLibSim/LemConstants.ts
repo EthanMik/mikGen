@@ -14,6 +14,7 @@ import { swingToHeading } from "./DriveMotions/SwingToHeading";
 import { swingToPoint } from "./DriveMotions/SwingToPoint";
 import { turnToHeading } from "./DriveMotions/TurnToHeading";
 import { turnToPoint } from "./DriveMotions/TurnToPoint";
+import { turnLockButton } from "../TurnFields";
 
 export interface LemConstants {
     horizontalDrift: number,
@@ -226,11 +227,12 @@ export const LemLibDef = {
             name: "Turn to Point",
             defaults: [kLemAngular],
             toStringTemplate: "chassis.turnToPoint(${x}, ${y}, ${timeout}, ${kBuilder});",
+            actionButtons: [turnLockButton],
             simFn: (robot, dt, x, y, _angle, constants) => turnToPoint(robot, dt, x, y, constants),
             slider: { key: "maxSpeed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
             cycleButtons: [
                 { constantsIdx: 0, ...directionButton },
-                { constantsIdx: 0, ...forwardsButton, poseEffect: (val) => ({ angle: (val as boolean) ? 0 : 180 }) },
+                { constantsIdx: 0, ...forwardsButton, turnPoseEffect: (val) => ({ angle: (val as boolean) ? 0 : 180 }) },
             ],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Motion Settings", fields: [...motionSettingsFields] },
@@ -273,12 +275,13 @@ export const LemLibDef = {
             name: "Swing to Point",
             defaults: [kLemAngular],
             toStringTemplate: "chassis.swingToPoint(${x}, ${y}, ${lockedSide}, ${timeout}, ${kBuilder});",
+            actionButtons: [turnLockButton],
             simFn: (robot, dt, x, y, _angle, constants) => swingToPoint(robot, dt, x, y, constants),
             slider: { key: "maxSpeed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
             cycleButtons: [
                 { constantsIdx: 0, ...lockedSideButton },
                 { constantsIdx: 0, ...directionButton },
-                { constantsIdx: 0, ...forwardsButton, poseEffect: (val) => ({ angle: (val as boolean) ? 0 : 180 }) },
+                { constantsIdx: 0, ...forwardsButton, turnPoseEffect: (val) => ({ angle: (val as boolean) ? 0 : 180 }) },
             ],
             numberInputs: [
                 { constantsIdx: 0, headerName: "Motion Settings", fields: [...motionSettingsFields] },

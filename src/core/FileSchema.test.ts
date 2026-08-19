@@ -42,7 +42,7 @@ describe("seedFileFormat", () => {
         ["a string distance", { path: { segments: [segment({ distance: "5", time: NaN })] } }],
         ["duplicate ids", { path: { segments: [segment(), segment(), segment()] } }],
         ["a missing id", { path: { segments: [segment({ id: "" })] } }],
-        ["non-boolean flags", { path: { segments: [segment({ visible: "yes", locked: 1 })] } }],
+        ["non-boolean flags", { path: { segments: [segment({ visible: "yes", turnLocked: 1 })] } }],
         ["a first motion that is not a start", { path: { segments: [segment({ kind: "poseDrive" })] } }],
         ["a garbage robot", { robot: { width: "13.5", speed: NaN, height: null } }],
         ["a garbage formatDef", { formatDef: "nope" }],
@@ -137,8 +137,54 @@ describe("deserializeToState", () => {
         expect(after.robot).toEqual(before.robot);
         expect(after.path.segments.map(s => s.kind)).toEqual(before.path.segments.map(s => s.kind));
         expect(after.path.segments.map(s => s.pose)).toEqual(before.path.segments.map(s => s.pose));
+        expect(after.path.segments.map(s => s.turnPose)).toEqual(before.path.segments.map(s => s.turnPose));
+        expect(after.path.segments.map(s => s.turnLocked)).toEqual(before.path.segments.map(s => s.turnLocked));
         expect(after.path.segments.map(s => s.constants)).toEqual(before.path.segments.map(s => s.constants));
         expectValidFileFormat(after);
+    });
+});
+
+describe("turnPose migration", () => {
+    /** A file written before turnPose existed, when the offset lived on a point turn's pose.angle. */
+    const legacy = (kind: string, angle: number) => seedFileFormat({
+        format: "mikLib",
+        path: {
+            segments: [
+                segment({ id: "start", kind: "start", pose: { x: 0, y: 0, angle: 0 }, turnPose: undefined }),
+                segment({ id: "t", kind, pose: { x: null, y: null, angle }, turnPose: undefined }),
+                segment({ id: "d", kind: "poseDrive", pose: { x: 24, y: 48, angle: 90 }, turnPose: undefined }),
+            ],
+        },
+    }).path.segments[1];
+
+    it.each(["pointTurn", "pointSwing"])("moves a %s offset onto turnPose and clears the pose", kind => {
+        const seg = legacy(kind, 180);
+
+        expect(seg.turnPose.angle).toBe(180);
+        expect(seg.pose.angle).toBeNull();
+        // x/y stay null so the turn keeps resolving to the waypoint it always did, not to a
+        // coordinate the file never stored
+        expect(seg.turnPose.x).toBeNull();
+        expect(seg.turnPose.y).toBeNull();
+        expect(seg.turnLocked).toBe(false);
+    });
+
+    it("leaves a heading turn's angle alone", () => {
+        const seg = legacy("angleTurn", 135);
+
+        expect(seg.pose.angle).toBe(135);
+        expect(seg.turnPose.angle).toBe(0);
+    });
+
+    it("is idempotent, so a re-save does not clear an already migrated offset", () => {
+        const once = seedFileFormat({
+            format: "mikLib",
+            path: { segments: [segment({ kind: "start" }), segment({ id: "t", kind: "pointTurn", pose: { x: null, y: null, angle: 180 }, turnPose: undefined })] },
+        });
+        const twice = deserializeToState(serializeFile(once), "p");
+
+        expect(twice.path.segments[1].turnPose.angle).toBe(180);
+        expect(twice.path.segments[1].pose.angle).toBeNull();
     });
 });
 

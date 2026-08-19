@@ -54,15 +54,30 @@ export function insertIndexAfterSelection(segments: readonly { selected: boolean
     return segments.length;
 }
 
+/** Kinds drawn at the previous node rather than at one of their own, so a drive node can bury them. */
+const AT_ANCHOR_KINDS = new Set<string>(["pointTurn", "pointSwing", "angleTurn", "angleSwing"]);
+
 export function selectedLastOrder(
-    segments: readonly { selected: boolean; controls?: readonly { selected: boolean }[] }[],
+    segments: readonly { selected: boolean; kind?: string; controls?: readonly { selected: boolean }[] }[],
 ): number[] {
     // A selected control lifts its whole segment, so the handle being dragged is never buried
     const isSelected = (i: number) =>
         segments[i].selected || (segments[i].controls ?? []).some(c => c.selected);
+
+    /**
+     * A turn has no node of its own: it draws on the drive node in front of it, which would cover it
+     * whenever that drive is the one lifted. So a selected turn outranks every drive, selected or
+     * not. Turns share the top rank, leaving their order to the stable sort, so selecting one never
+     * shuffles it past another turn.
+     */
+    const rank = (i: number) => {
+        if (!isSelected(i)) return 0;
+        return AT_ANCHOR_KINDS.has(segments[i].kind ?? "") ? 2 : 1;
+    };
+
     return segments
         .map((_, i) => i)
-        .sort((a, b) => Number(isSelected(a)) - Number(isSelected(b)));
+        .sort((a, b) => rank(a) - rank(b));
 }
 
 export function selectSegmentsInBox(
@@ -92,11 +107,11 @@ export function selectSegmentsInBox(
         ...path,
         segments: path.segments.map(s => ({
             ...s,
-            selected: !s.locked && s.visible &&
+            selected: s.visible &&
                 (withinBox(s.pose.x, s.pose.y) || snapWithinBox(s)),
             controls: segmentControls(s).map(c => ({
                 ...c,
-                selected: !s.locked && s.visible && c.visible && withinBox(c.x, c.y),
+                selected: s.visible && c.visible && withinBox(c.x, c.y),
             })),
         }))
     };
@@ -151,7 +166,7 @@ export function selectControlInPath(path: Path, segmentId: string, controlIdx: n
             selected: mode === "exclusive" ? false : s.selected,
             controls: segmentControls(s).map(c => ({
                 ...c,
-                selected: !s.locked && isNextSelected(flatIdx++),
+                selected: isNextSelected(flatIdx++),
             })),
         })),
     };

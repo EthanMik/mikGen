@@ -2,9 +2,10 @@ import flipHorizontal from "../assets/flip-horizontal.svg";
 import flipVertical from "../assets/flip-vertical.svg";
 import { distanceToPosition, getSegmentDistance } from "../core/Types/Path";
 import { saveSnapshot } from "../core/Undo/UndoHistory";
-import { normalizeDeg } from "../core/Util";
+import { normalizeDeg, resolveTurnPose } from "../core/Util";
 import { fileFormatStore, updatePath, useFormat, usePath } from "../hooks/useFileFormat";
 import type { Segment } from "../core/Types/Segment";
+import type { Pose } from "../core/Types/Pose";
 import { segmentControls } from "../core/Types/Bezier";
 import type { SegmentConstants, Format } from "../simulation/FormatDefinition";
 
@@ -31,6 +32,20 @@ function flipSwingDirection(constants: SegmentConstants<Format>): SegmentConstan
     else
         flipped = k;
     return [flipped, ...rest] as unknown as SegmentConstants<Format>;
+}
+
+/**
+ * A turn's offset is relative to the bearing at its target, and mirroring flips that bearing in both
+ * axes, so the offset negates either way. Coordinates mirror on the axis being flipped, whether or
+ * not the turn is locked, so a lock applied later is already correct.
+ */
+function mirrorTurnPose(c: Segment, axis: MirrorDirection): Pose {
+    return {
+        ...c.turnPose,
+        angle: c.turnPose.angle != null ? normalizeDeg(360 - c.turnPose.angle) : null,
+        x: axis === "x" && c.turnPose.x != null ? -c.turnPose.x : c.turnPose.x,
+        y: axis === "y" && c.turnPose.y != null ? -c.turnPose.y : c.turnPose.y,
+    };
 }
 
 function applyMirrorExtras(c: Segment): Segment {
@@ -72,10 +87,12 @@ function MirrorControl({
                 const withControls = mirrorControls(c, "x");
                 if (!c.selected) return withControls;
                 const posed = {
-                    ...withControls, pose: {
+                    ...withControls,
+                    pose: {
                         ...c.pose, angle: c.pose.angle != null ? normalizeDeg(360 - c.pose.angle) : null,
                         x: c.pose.x != null ? -c.pose.x : null
-                    }
+                    },
+                    turnPose: mirrorTurnPose(c, "x"),
                 };
                 return applyMirrorExtras(posed);
             })
@@ -90,12 +107,13 @@ function MirrorControl({
             segments: prev.segments.map(c => {
                 const withControls = mirrorControls(c, "y");
                 if (!c.selected) return withControls;
-                const isPointBased = c.kind === "pointTurn" || c.kind === "pointSwing";
                 const posed = {
-                    ...withControls, pose: {
-                        ...c.pose, angle: c.pose.angle != null ? normalizeDeg(isPointBased ? 360 - c.pose.angle : 180 - c.pose.angle) : null,
+                    ...withControls,
+                    pose: {
+                        ...c.pose, angle: c.pose.angle != null ? normalizeDeg(180 - c.pose.angle) : null,
                         y: c.pose.y != null ? -c.pose.y : null
-                    }
+                    },
+                    turnPose: mirrorTurnPose(c, "y"),
                 };
                 return applyMirrorExtras(posed);
             })
@@ -139,6 +157,13 @@ export default function ControlConfig() {
 
     const selectedSegment = soleControl ? "bezierControl" : path.segments.find((s) => s.selected)?.kind;
 
+    // X/Y drive a point turn's target rather than a position, and only once its lock owns it
+    const soleSegment = soleControl || path.segments.filter(s => s.selected).length !== 1
+        ? null
+        : path.segments.find(s => s.selected) ?? null;
+    const isPointBased = soleSegment?.kind === "pointTurn" || soleSegment?.kind === "pointSwing";
+    const turnTargetEditable = isPointBased && soleSegment!.turnLocked;
+
     const updateControlPos = (patch: { x?: number | null; y?: number | null }) => {
         if (!soleControl) return;
         setPath(prev => ({
@@ -174,8 +199,13 @@ export default function ControlConfig() {
         }));
     }
 
+    /** Shows the coordinate a point turn is aiming at, tracked or locked, in place of a position. */
+    const getTurnTarget = (): { x: number; y: number } =>
+        resolveTurnPose(path, path.segments.findIndex(s => s.selected));
+
     const getXValue = (): number | null => {
         if (soleControl) return soleControl.control.x;
+        if (isPointBased) return getTurnTarget().x;
         const selectedCount = path.segments.filter(c => c.selected).length;
         if (selectedCount !== 1) return null;
         const x: number | null | undefined = path.segments.find(c => c.selected)?.pose.x;
@@ -185,6 +215,7 @@ export default function ControlConfig() {
 
     const getYValue = (): number | null => {
         if (soleControl) return soleControl.control.y;
+        if (isPointBased) return getTurnTarget().y;
         const selectedCount = path.segments.filter(c => c.selected).length;
         if (selectedCount !== 1) return null;
         const y: number | null | undefined = path.segments.find(c => c.selected)?.pose.y;
@@ -210,11 +241,18 @@ export default function ControlConfig() {
         const selectedSegment = path.segments.find(c => c.selected);
         if (selectedSegment === undefined) return;
 
-        if (selectedSegment.kind === "angleSwing" ||
-            selectedSegment.kind === "pointSwing" ||
-            selectedSegment.kind === "angleTurn" ||
-            selectedSegment.kind === "pointTurn"
-        ) return;
+        if (selectedSegment.kind === "angleSwing" || selectedSegment.kind === "angleTurn") return;
+
+        // An unlocked target is derived, so a write to it would be discarded on the next read
+        if (isPointBased) {
+            if (!turnTargetEditable) return;
+            return setPath(prev => ({
+                ...prev,
+                segments: prev.segments.map(control =>
+                    control.selected ? { ...control, turnPose: { ...control.turnPose, x: newX } } : control
+                ),
+            }));
+        }
 
         setPath(prev => ({
                     ...prev,
@@ -235,11 +273,17 @@ export default function ControlConfig() {
         const selectedSegment = path.segments.find(c => c.selected);
         if (selectedSegment === undefined) return;
 
-        if (selectedSegment.kind === "angleSwing" ||
-            selectedSegment.kind === "pointSwing" ||
-            selectedSegment.kind === "angleTurn" ||
-            selectedSegment.kind === "pointTurn"
-        ) return;
+        if (selectedSegment.kind === "angleSwing" || selectedSegment.kind === "angleTurn") return;
+
+        if (isPointBased) {
+            if (!turnTargetEditable) return;
+            return setPath(prev => ({
+                ...prev,
+                segments: prev.segments.map(control =>
+                    control.selected ? { ...control, turnPose: { ...control.turnPose, y: newY } } : control
+                ),
+            }));
+        }
 
         setPath(prev => ({
                     ...prev,
@@ -295,7 +339,7 @@ export default function ControlConfig() {
     return (
         <div className="flex flex-row items-center justify-center gap-4 bg-medgray w-[500px] h-[65px] rounded-lg">
             { selectedSegment !== "distanceDrive" && selectedSegment !== "strafeDrive" &&
-                <div className={`flex items-center flex-row gap-2 ${(selectedSegment === "angleSwing" || selectedSegment === "pointSwing" || selectedSegment === "angleTurn" || selectedSegment === "pointTurn" || selectedSegment === "wait") ? "opacity-50 pointer-events-none" : ""}`}>
+                <div className={`flex items-center flex-row gap-2 ${(selectedSegment === "angleSwing" || selectedSegment === "angleTurn" || selectedSegment === "wait" || (isPointBased && !turnTargetEditable)) ? "opacity-50 pointer-events-none" : ""}`}>
                         <span style={{ fontSize: 20 }}>X</span>
                         <NumberInput
                             width={80}

@@ -20,7 +20,7 @@ import type { Path } from "../core/Types/Path";
 import type { Coordinate } from "../core/Types/Coordinate";
 import { createControlPoint } from "../core/Types/Pose";
 import type { Segment } from "../core/Types/Segment";
-import { convertPathToSim, convertPathToString, convertStringToPath, templateToRegex } from "./Conversion";
+import { applyTurnLocks, convertPathToSim, convertPathToString, convertStringToPath, templateToRegex } from "./Conversion";
 import {
     FORMAT_REGISTRY,
     getDefaultConstants,
@@ -45,11 +45,12 @@ function makeSeg(
         id: `seg-${nextId++}`,
         selected: false,
         disabled: false,
-        locked: false,
         visible: true,
         format,
         kind,
         pose,
+        turnPose: { x: 0, y: 0, angle: 0 },
+        turnLocked: false,
         constants: defaults.map(c => ({ ...c })) as Segment["constants"],
         controls: [],
         distance: 0,
@@ -63,6 +64,9 @@ function mkPath(segments: Segment[]): Path {
 }
 
 const mikDef = mikLibDef as unknown as FormatDef<"mikLib">;
+
+/** A point turn's own pose is empty: its target and offset live on turnPose. */
+const NO_POSE = { x: null, y: null, angle: null };
 
 function mikSeg(kind: SegmentKind, pose: { x: number | null; y: number | null; angle: number | null }, extra: Partial<Segment> = {}) {
     return makeSeg("mikLib", kind, pose, extra);
@@ -184,11 +188,30 @@ describe("convertPathToString (mikLib)", () => {
     it("carries a point turn angle offset through the kBuilder", () => {
         const out = convertPathToString(mikDef, mkPath([
             mikSeg("start", { x: 0, y: 0, angle: 0 }),
-            mikSeg("pointTurn", { x: null, y: null, angle: 180 }),
+            mikSeg("pointTurn", NO_POSE, { turnPose: { x: 0, y: 0, angle: 180 } }),
             mikSeg("poseDrive", { x: 24, y: 48, angle: 90 }),
         ]));
 
         expect(out.split("\n")[1]).toBe("chassis.turn_to_point(24, 48, {.angle_offset = 180});");
+    });
+
+    it("emits a locked turn's own coordinate instead of the segment in front of it", () => {
+        const out = convertPathToString(mikDef, mkPath([
+            mikSeg("start", { x: 0, y: 0, angle: 0 }),
+            mikSeg("pointTurn", NO_POSE, { turnPose: { x: -12, y: 6, angle: 0 }, turnLocked: true }),
+            mikSeg("poseDrive", { x: 24, y: 48, angle: 90 }),
+        ]));
+
+        expect(out.split("\n")[1]).toBe("chassis.turn_to_point(-12, 6);");
+    });
+
+    it("aims a turn with nothing after it at the field centre it was created with", () => {
+        const out = convertPathToString(mikDef, mkPath([
+            mikSeg("start", { x: 30, y: 30, angle: 0 }),
+            mikSeg("pointTurn", NO_POSE),
+        ]));
+
+        expect(out.split("\n")[1]).toBe("chassis.turn_to_point(0, 0);");
     });
 
     it("substitutes the swing direction into the method name without leaking it into kBuilder", () => {
@@ -347,8 +370,48 @@ describe("convertStringToPath (mikLib)", () => {
             "chassis.turn_to_point(24, 48, {.angle_offset = 180});",
         ].join("\n"));
 
-        expect(segs[0].pose).toEqual({ x: null, y: null, angle: 0 });
-        expect(segs[1].pose).toEqual({ x: null, y: null, angle: 180 });
+        // The coordinate is the turn's target, and the offset rides with it, so pose stays empty
+        expect(segs[0].pose).toEqual({ x: null, y: null, angle: null });
+        expect(segs[1].pose).toEqual({ x: null, y: null, angle: null });
+        expect(segs[0].turnPose).toEqual({ x: 24, y: 48, angle: 0 });
+        expect(segs[1].turnPose).toEqual({ x: 24, y: 48, angle: 180 });
+        // Parsing never locks: paste decides that once the rows are among their new neighbours
+        expect(segs.map(s => s.turnLocked)).toEqual([false, false]);
+    });
+
+    it("locks a parsed turn only when its coordinate is not the one the path derives", () => {
+        const tracking = convertStringToPath(mikDef, "mikLib", [
+            "chassis.set_coordinates(0, 0, 0);",
+            "chassis.turn_to_point(24, 48);",
+            "chassis.drive_to_pose(24, 48, 90);",
+        ].join("\n"));
+        const aimedElsewhere = convertStringToPath(mikDef, "mikLib", [
+            "chassis.set_coordinates(0, 0, 0);",
+            "chassis.turn_to_point(-12, 6);",
+            "chassis.drive_to_pose(24, 48, 90);",
+        ].join("\n"));
+
+        const locksOf = (segs: Segment[]) =>
+            applyTurnLocks({ name: "", segments: segs }, 0, segs.length).map(s => s.turnLocked);
+
+        // The turn already faces the drive after it, so it goes on tracking
+        expect(locksOf(tracking)[1]).toBe(false);
+        // This one names a coordinate the path would never derive, so it has to hold on to it
+        expect(locksOf(aimedElsewhere)[1]).toBe(true);
+    });
+
+    it("survives an export of a locked turn and back", () => {
+        const path = mkPath([
+            mikSeg("start", { x: 0, y: 0, angle: 0 }),
+            mikSeg("pointTurn", NO_POSE, { turnPose: { x: -12, y: 6, angle: 180 }, turnLocked: true }),
+            mikSeg("poseDrive", { x: 24, y: 48, angle: 90 }),
+        ]);
+        const str = convertPathToString(mikDef, path);
+        const segs = applyTurnLocks({ name: "", segments: convertStringToPath(mikDef, "mikLib", str) }, 0, 3);
+
+        expect(segs[1].turnLocked).toBe(true);
+        expect(segs[1].turnPose).toEqual({ x: -12, y: 6, angle: 180 });
+        expect(convertPathToString(mikDef, { name: "", segments: segs })).toBe(str);
     });
 
     it("reads the swing direction out of the method name", () => {

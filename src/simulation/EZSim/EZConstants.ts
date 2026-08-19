@@ -16,6 +16,7 @@ import { pid_odom_turn_set, resetOdomTurnPid } from "./DriveMotions/set_odom_tur
 import { pid_swing_set, resetSwingPid } from "./DriveMotions/set_swing_pid";
 import { pid_odom_set, resetOdomSet } from "./DriveMotions/pid_odom_set";
 import { pid_odom_boomerang_set, resetBoomerangSet } from "./DriveMotions/pid_odom_boomerang_set";
+import { turnLockButton } from "../TurnFields";
 
 export interface EZconstants {
     speed: number,
@@ -321,12 +322,13 @@ export const EZTemplateDef = {
             name: "Odom Turn",
             defaults: [turnConstants],
             toStringTemplate: "chassis.pid_turn_set({${x}_in, ${y}_in}, ${drive_directions}, ${speed}, ${angle_behavior}, ${slew});\nchassis.pid_${0:wait}();",
+            actionButtons: [turnLockButton],
             simFn: (robot, dt, x, y, _angle, constants) => pid_odom_turn_set(robot, dt, x, y, constants),
             simReset: () => resetOdomTurnPid(),
             slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
             cycleButtons: [
                 { constantsIdx: 0, ...waitButton },
-                { constantsIdx: 0, ...driveDirectionButton, poseEffect: (val) => ({ angle: (val as EZconstants["drive_directions"] === "fwd") ? 0 : 180 }) },
+                { constantsIdx: 0, ...driveDirectionButton, turnPoseEffect: (val) => ({ angle: (val as EZconstants["drive_directions"] === "fwd") ? 0 : 180 }) },
                 { constantsIdx: 0, ...turnDirectionButton }
             ],
             numberInputs: [
