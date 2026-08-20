@@ -2,6 +2,17 @@
 sidebar_position: 3
 ---
 
+import Fwd from './img/modifying-segments/cycle/fwd.svg';
+import Rev from './img/modifying-segments/cycle/reverse.svg';
+import FwdRev from './img/modifying-segments/cycle/fwdrev.svg';
+import Cw from './img/modifying-segments/cycle/cw.svg';
+import Ccw from './img/modifying-segments/cycle/ccw.svg';
+import CwCcw from './img/modifying-segments/cycle/cwwcw.svg';
+import RightSwing from './img/modifying-segments/cycle/rightswing.svg';
+import LeftSwing from './img/modifying-segments/cycle/leftswing.svg';
+import LockOpen from './img/modifying-segments/cycle/lock-open.svg';
+import LockClose from './img/modifying-segments/cycle/lock-close.svg';
+
 # Modifying Segments
 
 mikGen mirrors each library's internals, naming conventions, and constants, so paths simulate and
@@ -15,34 +26,19 @@ format does not support are converted to their closest equivalent.
 
 ## Supported Segments by Format
 
-| Segment | mikLib | LemLib | JAR-Template | EZ-Template |
-|----------|----------|----------|----------|----------|
-| pointDrive | ✅ | ✅ | ✅ | ✅ |
-| poseDrive | ✅ | ✅ | ✅ | ✅ |
-| distanceDrive | ✅ | ❌ | ✅ | ✅ |
-| strafeDrive | Holonomic only | ❌ | ❌ | ❌ |
-| pointTurn | ✅ | ✅ | ✅ | ✅ |
-| angleTurn | ✅ | ✅ | ✅ | ✅ |
-| angleSwing | ✅ | ✅ | ✅ | ✅ |
-| pointSwing | ✅ | ✅ | ❌ | ❌ |
-| wait | ✅ | ✅ | ✅ | ✅ |
-
-Selecting the Holonomic option (available with mikLib) changes poseDrive to Holonomic to Pose and
-adds Strafe Distance as its own segment.
-
-## Segment Names
-
-The same segment kind is labeled with your library's naming convention:
+Each supported segment is labeled with your library's naming convention:
 
 | Segment | mikLib | LemLib | JAR-Template | EZ-Template |
 |----------|----------|----------|----------|----------|
-| pointDrive | Drive to Point | Move to Point | Drive to Point | Odom Drive |
-| poseDrive | Drive to Pose | Move to Pose | Drive to Pose | Odom Boomerang |
-| distanceDrive | Drive to Distance | - | Drive to Distance | Drive |
-| pointTurn | Turn to Point | Turn to Point | Turn to Point | Odom Turn |
-| angleTurn | Turn to Angle | Turn to Heading | Turn to Angle | Turn |
-| angleSwing | Swing to Angle | Swing to Angle | Swing to Angle | Swing |
-| pointSwing | Swing to Point | Swing to Point | - | - |
+| pointDrive | ✅ Drive to Point | ✅ Move to Point | ✅ Drive to Point | ✅ Odom Drive |
+| poseDrive | ✅ Drive to Pose | ✅ Move to Pose | ✅ Drive to Pose | ✅ Odom Boomerang |
+| distanceDrive | ✅ Drive to Distance | ❌ | ✅ Drive to Distance | ✅ Drive |
+| strafeDrive | ✅ Strafe Distance (Holonomic only) | ❌ | ❌ | ❌ |
+| pointTurn | ✅ Turn to Point | ✅ Turn to Point | ✅ Turn to Point | ✅ Odom Turn |
+| angleTurn | ✅ Turn to Angle | ✅ Turn to Heading | ✅ Turn to Angle | ✅ Turn |
+| angleSwing | ✅ Swing to Angle | ✅ Swing to Angle | ✅ Swing to Angle | ✅ Swing |
+| pointSwing | ✅ Swing to Point | ✅ Swing to Point | ❌ | ❌ |
+| wait | ✅ Wait | ✅ Wait | ✅ Wait | ✅ Wait |
 
 ## Units
 
@@ -60,54 +56,60 @@ depends on the library:
 
 Each format uses its library's default constants and specific naming schemes:
 
-<img src={require('./img/modifying-segments/segment.png').default} width="50%"  style={{ paddingBottom: '20px' }} />
+<img src={require('./img/modifying-segments/segment.png').default} width="70%"  style={{ paddingBottom: '20px' }} />
 
 The slider modifies the lateral speed of the segment. With the cycle buttons to the right
-modifying named constants, ex: `drive_direction`. You can hover over it to see what constant it changes:
+modifying named constants. You can hover over it to see what constant it changes:
 
-<img src={require('./img/modifying-segments/hover.png').default} width="50%"  style={{ paddingBottom: '20px' }} />
+<img src={require('./img/modifying-segments/hover.png').default} width="70%"  style={{ paddingBottom: '20px' }} />
 
-:::note
-The cycle buttons allow `pointTurn` segments to turn with the back of the robot
-:::
+### Common Cycle Buttons
 
-## Turn Targets
+**Drive Directions**
 
-`pointTurn` and `pointSwing` don't turn to a heading, they face a coordinate. That coordinate shows up
-in the X and Y inputs of the control config, where a drive segment would show its position:
+| Button | Value | Behavior |
+|:-:|-|-|
+| <Fwd className="cycle-icon" /> | `forwards` | Approach the target front first |
+| <Rev className="cycle-icon" /> | `reversed` | Back into the target |
+| <FwdRev className="cycle-icon" /> | `fastest` | Approach with whichever end of the robot needs less turning 
 
-| Input | On a turn segment |
-|-|-|
-| X, Y | The coordinate the turn is facing |
-| θ | Greyed out and empty. A turn has no heading of its own |
+**Turn Directions**
 
-By default the coordinate tracks the first drive segment in front of the turn, so moving that drive
-segment re-aims the turn with it. Because it is derived, X and Y are read only while tracking. A turn
-placed with no drive segment after it faces `0, 0`, the middle of the field.
+| Button | Value | Behavior |
+|:-:|-|-|
+| <Cw className="cycle-icon" /> | `cw` | Rotate clockwise, even when counterclockwise is closer |
+| <Ccw className="cycle-icon" /> | `ccw` | Rotate counterclockwise, even when clockwise is closer |
+| <CwCcw className="cycle-icon" /> | `fastest` | Rotate whichever way reaches the angle in under 180 degrees |
 
-### Locking
+**Swing Directions**
 
-Every point turn segment carries a lock button:
+| Button | Value | Behavior |
+|:-:|-|-|
+| <RightSwing className="cycle-icon" /> | `right` | Swing on the right side of the drivetrain |
+| <LeftSwing className="cycle-icon" /> | `left` | Swing on the left side of the drivetrain |
 
-| Lock | Behavior |
-|-|-|
-| Open | The turn tracks the drive segment in front of it. X and Y are read only |
-| Closed | The coordinate is frozen where it was. X and Y become editable |
+**Turn Buttons**, on `pointTurn` and `pointSwing`:
 
-Locking freezes the coordinate the turn is currently facing, so editing the drive segment after it no
-longer moves the turn. While a locked turn is selected, a dot on the field marks the coordinate it is
-aimed at. Unlocking hands the turn back to the drive segment in front of it.
+| Button | Value | Behavior |
+|:-:|-|-|
+| <Fwd className="cycle-icon" /> | `0` | Face the target with the front of the robot |
+| <Rev className="cycle-icon" /> | `180` | Face the target with the back of the robot |
 
-Whether the turn faces its target with the front or the back of the robot is separate, and stays on
-the `angle_offset` cycle button.
+| Button | Value | Behavior |
+|:-:|-|-|
+| <LockOpen className="cycle-icon" /> | `unlocked` | Turn will face to drive segment in front, or at 0, 0 |
+| <LockClose className="cycle-icon" /> | `locked` | Turn segment will face point placed in [Segment Position Config](./segment-interfacing.mdx#segment-position-config) |
+
+
+### Constant Rows
 
 To show all the constants that can be modified, either click on the segment's name, or click the dropdown arrow on the right
 
-<img src={require('./img/modifying-segments/dropdown-open.png').default} width="50%"  style={{ paddingBottom: '20px' }} />
+<img src={require('./img/modifying-segments/dropdown-open.png').default} width="70%"  style={{ paddingBottom: '20px' }} />
 
-Constants are spread out in rows, and generally categorized as `lateral`, `angular`, `translational`, `exit conditions`
+Constants are spread out in rows, and generally categorized as `lateral`, `angular`, `translational`, and `exit conditions`
 
-<img src={require('./img/modifying-segments/constants-open.png').default} width="50%"  style={{ paddingBottom: '20px' }} />
+<img src={require('./img/modifying-segments/constants-open.png').default} width="70%"  style={{ paddingBottom: '20px' }} />
 
 You can then modify the constants that the segment uses by changing the [number inputs](./keybinds.mdx#number-inputs)
 
@@ -119,4 +121,4 @@ You can then modify the constants that the segment uses by changing the [number 
 
 You can also click on each individual constant in the row to make the buttons apply to just that constant not the entire row.
 
-<img src={require('./img/modifying-segments/constants-buttons.png').default} width="50%"  style={{ paddingBottom: '20px' }} />
+<img src={require('./img/modifying-segments/constants-buttons.png').default} width="70%"  style={{ paddingBottom: '20px' }} />

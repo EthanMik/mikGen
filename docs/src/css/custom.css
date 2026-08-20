@@ -213,6 +213,13 @@ table tr:nth-child(even) {
   background-color: #2d2d2d;
 }
 
+/* Cycle button icons pulled from the app, shown at their button size */
+.cycle-icon {
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+}
+
 /* ─── Scrollbar ──────────────────────────────────────────── */
 
 ::-webkit-scrollbar {

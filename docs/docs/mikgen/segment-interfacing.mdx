@@ -23,9 +23,9 @@ Pressing these keybinds on the field will place desired segment
 | Ctrl + Left Click | poseDrive | Drives robot to desired (x, y, theta) |
 | Alt + Left Click | distanceDrive | Relative motion, drives specified distance based on heading before it |
 | Ctrl + Alt + Left Click | strafeDrive | Same as distanceDrive but moves left and right |
-| Right Click | pointTurn | Points to drive segment in front of it, or the field centre if there is none |
+| Right Click | pointTurn | Points to drive segment in front of it |
 | Ctrl + Right Click | angleTurn | Turns to specified angle |
-| Alt + Right Click | pointSwing | Swings a drivetrain side to the drive segment in front of it, or the field centre if there is none |
+| Alt + Right Click | pointSwing | Swings a drivetrain side to drive segment in front of it |
 | Ctrl + Alt + Right Click | angleSwing | Turns a side of drivetrain to specified angle |
 
 :::important
@@ -63,12 +63,6 @@ In the field, if a `turn` or `wait` segment is on top of a drive segment, you ca
 | Drag row in path list | Reorder segments |
 | Ctrl + Z | Undo |
 | Ctrl + Y | Redo |
-
-:::note
-`pointTurn` and `pointSwing` have no heading of their own, so `Shift + Scroll` does not apply to them.
-They face a coordinate, and the only heading choice they offer is front or back of the robot, from the
-`angle_offset` cycle button. See [Turn Targets](./modifying-segments.mdx#turn-targets).
-:::
 
 
 ## View
@@ -121,7 +115,7 @@ to move the simulation to the start of it.
 
 ## Segment Position Config
 
-The segment position config allows you to modify segment's pose.
+The segment position config allows you to modify segment's pose. 
 
 <img src={require('./img/keybinds/control-config.png').default} width="70%"  style={{ paddingBottom: '20px' }} />
 
