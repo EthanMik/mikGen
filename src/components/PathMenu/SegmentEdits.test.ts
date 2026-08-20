@@ -111,8 +111,31 @@ describe("toggleSegmentVisibility", () => {
         expect(toggleSegmentVisibility(path, "s0").segments.map(s => s.visible)).toEqual([true, true, true]);
     });
 
+    it("moves an unselected row on its own and leaves the selection alone", () => {
+        const path = pathOf("mikLib", ["pointDrive", "pointDrive"]);
+        path.segments[2].selected = true;
+
+        const next = toggleSegmentVisibility(path, "s0");
+        expect(next.segments.map(s => s.visible)).toEqual([true, false, true]);
+    });
+
+    it("shows an unselected hidden row back on its own", () => {
+        const path = pathOf("mikLib", ["pointDrive", "pointDrive"]);
+        path.segments[1].visible = false;
+        path.segments[2].visible = false;
+        path.segments[2].selected = true;
+
+        expect(toggleSegmentVisibility(path, "s0").segments.map(s => s.visible)).toEqual([true, true, false]);
+    });
+
     it("touches nothing for an unknown row with no selection", () => {
         const path = pathOf("mikLib", ["pointDrive"]);
+        expect(toggleSegmentVisibility(path, "nope")).toBe(path);
+    });
+
+    it("touches nothing for an unknown row while rows are selected", () => {
+        const path = pathOf("mikLib", ["pointDrive"]);
+        path.segments[1].selected = true;
         expect(toggleSegmentVisibility(path, "nope")).toBe(path);
     });
 });

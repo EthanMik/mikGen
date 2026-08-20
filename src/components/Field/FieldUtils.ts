@@ -54,30 +54,47 @@ export function insertIndexAfterSelection(segments: readonly { selected: boolean
     return segments.length;
 }
 
-/** Kinds drawn at the previous node rather than at one of their own, so a drive node can bury them. */
-const AT_ANCHOR_KINDS = new Set<string>(["pointTurn", "pointSwing", "angleTurn", "angleSwing"]);
+type OrderSegment = {
+    selected: boolean;
+    /** Left off by callers that only care about selection; those rows count as owning a node. */
+    pose?: { x: number | null; y: number | null };
+    controls?: readonly { selected: boolean }[];
+};
 
-export function selectedLastOrder(
-    segments: readonly { selected: boolean; kind?: string; controls?: readonly { selected: boolean }[] }[],
-): number[] {
+/**
+ * Draw order for the field: unlifted rows first, lifted rows last, path order kept within each
+ * group. Selecting a row lifts it, and a turn or wait has no node of its own - it draws on the
+ * nearest node behind it, the same one getBackwardsSnapPose finds - so it rides up with that node
+ * whenever the node is the thing being lifted. Riders sit one step above their node, since the
+ * whole point is to not be painted over by it.
+ */
+export function selectedLastOrder(segments: readonly OrderSegment[]): number[] {
     // A selected control lifts its whole segment, so the handle being dragged is never buried
     const isSelected = (i: number) =>
         segments[i].selected || (segments[i].controls ?? []).some(c => c.selected);
 
-    /**
-     * A turn has no node of its own: it draws on the drive node in front of it, which would cover it
-     * whenever that drive is the one lifted. So a selected turn outranks every drive, selected or
-     * not. Turns share the top rank, leaving their order to the stable sort, so selecting one never
-     * shuffles it past another turn.
-     */
-    const rank = (i: number) => {
-        if (!isSelected(i)) return 0;
-        return AT_ANCHOR_KINDS.has(segments[i].kind ?? "") ? 2 : 1;
+    const hasNode = (i: number) => {
+        const pose = segments[i].pose;
+        return pose === undefined || (pose.x !== null && pose.y !== null);
     };
+
+    // The node each row draws on: its own, or the last one before it for a turn or wait
+    const anchors: number[] = [];
+    let lastNode = -1;
+    for (let i = 0; i < segments.length; i++) {
+        if (hasNode(i)) lastNode = i;
+        anchors.push(lastNode);
+    }
+
+    const ranks = segments.map((_, i) => {
+        const anchor = anchors[i];
+        if (anchor !== i && anchor !== -1 && isSelected(anchor)) return 2;
+        return isSelected(i) ? 1 : 0;
+    });
 
     return segments
         .map((_, i) => i)
-        .sort((a, b) => rank(a) - rank(b));
+        .sort((a, b) => ranks[a] - ranks[b]);
 }
 
 export function selectSegmentsInBox(

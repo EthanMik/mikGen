@@ -17,6 +17,10 @@ import { insertIndexAfterSelection, selectedLastOrder } from "./FieldUtils";
 
 const segs = (...selected: boolean[]) => selected.map(s => ({ selected: s }));
 
+/** A row with a node of its own, and a turn or wait that draws on the node behind it. */
+const drive = (selected: boolean) => ({ selected, pose: { x: 10, y: 10 } });
+const rider = (selected: boolean) => ({ selected, pose: { x: null, y: null } });
+
 describe("insertIndexAfterSelection", () => {
     it("inserts after the last selected segment, not the first", () => {
         expect(insertIndexAfterSelection(segs(false, false, false, true, true))).toBe(5);
@@ -44,26 +48,39 @@ describe("selectedLastOrder", () => {
         expect(selectedLastOrder(segs(false, true, false, true, false))).toEqual([0, 2, 4, 1, 3]);
     });
 
-    it("lifts a selected turn above every drive, selected or not", () => {
-        // A turn draws on the drive node in front of it, so a lifted drive would cover it
-        const order = selectedLastOrder([
-            { selected: false, kind: "pointDrive" },
-            { selected: true, kind: "pointTurn" },
-            { selected: true, kind: "pointDrive" },
-        ]);
-
-        expect(order).toEqual([0, 2, 1]);
+    it("carries a turn up with the node it draws on", () => {
+        // The turn has no node of its own, so lifting the drive it sits on would bury it
+        const order = selectedLastOrder([drive(true), rider(false), drive(false)]);
+        expect(order).toEqual([2, 0, 1]);
     });
 
-    it("never shuffles a selected turn past another turn", () => {
-        const order = selectedLastOrder([
-            { selected: false, kind: "pointTurn" },
-            { selected: true, kind: "pointSwing" },
-            { selected: true, kind: "angleTurn" },
-        ]);
+    it("carries every rider on a lifted node, turn or wait alike", () => {
+        const order = selectedLastOrder([drive(true), rider(false), rider(false), drive(false)]);
+        expect(order).toEqual([3, 0, 1, 2]);
+    });
 
-        // Both selected turns share the top rank, so the stable sort leaves them in path order
+    it("leaves a turn where it is when the node it draws on is not lifted", () => {
+        const order = selectedLastOrder([drive(false), rider(false), drive(true)]);
         expect(order).toEqual([0, 1, 2]);
+    });
+
+    it("does not lift a selected turn above a drive it does not sit on", () => {
+        const order = selectedLastOrder([drive(false), rider(true), drive(true)]);
+        expect(order).toEqual([0, 1, 2]);
+    });
+
+    it("keeps a selected turn above its own lifted node", () => {
+        const order = selectedLastOrder([drive(true), rider(true)]);
+        expect(order).toEqual([0, 1]);
+    });
+
+    it("keeps riders in path order when several share one lifted node", () => {
+        const order = selectedLastOrder([drive(true), rider(true), rider(false)]);
+        expect(order).toEqual([0, 1, 2]);
+    });
+
+    it("lifts a rider with no node behind it on its own selection alone", () => {
+        expect(selectedLastOrder([rider(true), drive(false)])).toEqual([1, 0]);
     });
 
     it("lifts a segment whose bezier control is selected", () => {

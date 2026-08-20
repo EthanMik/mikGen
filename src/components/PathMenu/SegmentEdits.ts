@@ -54,14 +54,20 @@ export function selectSegment(path: Path, segmentId: string, mode: SelectMode): 
     return { ...path, segments: segments.map((s, i) => ({ ...s, selected: i >= start && i <= end })) };
 }
 
-/** The row and the whole selection move together, and anything still visible hides first. */
+/**
+ * A selected row carries the whole selection; an unselected one moves on its own and leaves the
+ * selection alone. Either way, anything still visible hides first.
+ */
 export function toggleSegmentVisibility(path: Path, segmentId: string): Path {
-    const affected = path.segments.filter(s => s.id === segmentId || s.selected);
-    if (affected.length === 0) return path;
+    const clicked = path.segments.find(s => s.id === segmentId);
+    if (!clicked) return path;
+
+    const affected = clicked.selected ? path.segments.filter(s => s.selected) : [clicked];
     const visible = !affected.some(s => s.visible);
+    const affectedIds = new Set(affected.map(s => s.id));
     return {
         ...path,
-        segments: path.segments.map(s => s.id === segmentId || s.selected ? { ...s, visible } : s),
+        segments: path.segments.map(s => affectedIds.has(s.id) ? { ...s, visible } : s),
     };
 }
 
