@@ -24,7 +24,8 @@ If your robot is holonomic you can select that here:
 <img src={require('./img/getting-started/holonomic.png').default} width="20%"  style={{ paddingBottom: '20px' }} />
 
 :::important
-Swapping formats will reset all your segment constants. See [Format Differences](./format-differences.mdx)
+Swapping formats will reset all your segment constants. See
+[Supported Segments by Format](./modifying-segments.mdx#supported-segments-by-format)
 for how the formats compare.
 :::
 
@@ -46,7 +47,7 @@ The most common segments are added with these clicks:
 | Ctrl + Left Click | poseDrive | Drives the robot to a desired (x, y, theta) |
 | Right Click | pointTurn | Points the robot at the drive segment in front of it, or the field centre if there is none |
 
-Every segment and keybind is listed in [Segments & Keybinds](./segments-and-keybinds.mdx).
+Every segment and keybind is listed in [Segment Interfacing](./segment-interfacing.mdx).
 
 A few tips while building:
 
@@ -80,3 +81,19 @@ chassis.drive_to_point(24, 24);
 ```
 
 mikGen can also write code directly into your project files. See [Exporting & Saving](./exporting-and-saving.mdx).
+
+## Troubleshooting
+
+The most common issue in mikGen is your robot not matching up with the simulation in real life. Here are some reasons why:
+
+| Issue | Solution|
+|-|-|
+| Odometry wheels have bad build quality; not banded down, not perpendicular, have high friction | Make sure odom point is mounted on a crossbrace, the wheel has two attachment points, and if a two inch odom pod is used, it is doubled and offseted from the other to cover the gaps. If you robot is very consistent with how much it differs from the website then this is likely not the issue. |
+| Units are off | Move the robot with a tape measure with odometry values printing, and make sure lateral and horizontal distance match the tape measures reading, just 0.1" difference over 1 foot adds up.  |
+| Offsets are off | If you turn the robot 180 degrees, your robot's position should not change, if it does then your offsets are wrong, and you need to remeasure   |
+| Not using odom wheels | Make sure you limit acceleration driving as it is very easy for the wheels to slip |
+| Robot not started at right position | This is the most common mistake. For optimal alignment, use the field tiles or walls as a reference point to where to place drivetrain. Then at the start of the program, set the odometry where the robot is in mikGen |
+
+:::important
+Your robot will not match the website perfectly, there is usually a 1-2 tolerance in a full auton run. Correcting odom values with distance sensors helps a lot
+:::

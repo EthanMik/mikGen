@@ -22,7 +22,7 @@ export function NumberInputButton({ name, value, labelSpeed, setValue, bounds, s
             <span className="text-[14px]">{name}</span>
             <Tooltip label={label} speed={labelSpeed}>
                 <NumberInput
-                    width={45}
+                    width={40}
                     height={28}
                     fontSize={14}
                     bounds={bounds}
@@ -45,7 +45,7 @@ type NumberInputCheckboxButtonProps = NumberInputButtonProps & {
     setChecked: (v: boolean) => void;
 };
 
-export function NumberInputCheckboxButton({ name, width = 45, label, checkLabel, blocking = true, value, setValue, bounds, stepSize, roundTo, units, checked, setChecked }: NumberInputCheckboxButtonProps) {
+export function NumberInputCheckboxButton({ name, width = 40, label, checkLabel, blocking = true, value, setValue, bounds, stepSize, roundTo, units, checked, setChecked }: NumberInputCheckboxButtonProps) {
     return (
         <div className="flex flex-row pr-1 pl-2 items-center justify-between rounded-sm">
             <span className="text-[14px]">{name}</span>

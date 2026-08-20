@@ -5,8 +5,8 @@ import { tankStep } from "./robot/tank";
 import { mecanumStep } from "./robot/mecanum";
 import { sampleAt, sampleOf, trimLog, type SensorSample } from "./robot/sensing";
 
-export { defaultRobotConstants, type RobotConstants } from "./robot/constants";
-import type { RobotConstants } from "./robot/constants";
+export { defaultRobotConstants, type RobotConstants } from "./robot/robotDefaults";
+import type { RobotConstants } from "./robot/robotDefaults";
 
 /** Where a robot starts. Distinct from the editor's Pose, whose fields may be unset. */
 export type StartPose = { x: number, y: number, angle: number };

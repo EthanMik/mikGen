@@ -1,11 +1,10 @@
 ---
-sidebar_position: 4
+sidebar_position: 5
 ---
 
 # Exporting & Saving
 
-mikGen generates code in your chosen library's API. You can copy it to the clipboard, write it
-directly into your project's source files, or save the path as a mikGen project file.
+How to load, save, and export mikGen paths.
 
 ## Copy & Paste Code
 
@@ -16,8 +15,7 @@ directly into your project's source files, or save the path as a mikGen project 
 | Ctrl + X | Cut the selected segments as code |
 | Ctrl + V | Paste code back into the path |
 
-Pasting parses the code back into segments, so you can round-trip a path between mikGen and
-your autonomous routine, or share paths with teammates as plain code.
+Pasting parses the code back into segments. So you can directly copy an entire path in your library the way it is and paste it into mikGen.
 
 ## Writing to a File
 
@@ -48,15 +46,16 @@ such as Chrome or Edge.
 
 Paths can be saved and loaded as mikGen project files:
 
-| Shortcut | Action |
-|----------|----------|
-| Ctrl + P | New path |
-| Ctrl + O | Open file |
-| Ctrl + Shift + O | Open folder |
-| Ctrl + S | Save |
-| Ctrl + Shift + S | Save as |
-| Ctrl + D | Download |
-| Ctrl + Shift + D | Download as |
+<img src={require('./img/export/filebutton.png').default} width="20%"  style={{ paddingBottom: '20px' }} />
 
 Opening a folder shows a file browser sidebar for switching between paths. Your current path
-also auto-saves to browser storage, so it survives a page refresh even without saving to a file.
+also auto-saves to browser storage, so you can refresh the page safely.
+
+:::note
+The underline under the file button means you have unsaved changes. You can only save if you use a Chromium browser, like Chrome or Edge.
+:::
+
+:::important
+For ease of use, store your path files inside a folder inside your library of choice. That way you can commit changes to the path so your
+teammates can have updated paths. This allows mikGen to be completely local to you, meaning that your paths are not stored on a database.
+:::

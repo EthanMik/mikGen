@@ -1,0 +1,173 @@
+---
+sidebar_position: 4
+---
+
+# Robot Visualization
+
+How to use the robot dropdown config in mikGen.
+
+
+## Robot Menu
+
+<img src={require('./img/robot-visualization/robot-menu.png').default} width="20%"  style={{ paddingBottom: '20px' }} />
+
+`General` is open by default. Every value is saved inside path file.
+
+### General
+
+| Setting | Units | Default | Effect |
+|----------|----------|----------|----------|
+| Width | in | 14 | Side to side size of the robot |
+| Height | in | 14 | Front to back size of the robot |
+| Holonomic | - | Off | Switches the format to mikLib Holonomic and draws the robot green instead of grey |
+
+Width and Height are purely visual. Turning is driven by `Track Width`.
+
+:::note
+The `Holonomic` checkbox only appears on mikLib. It is the same toggle as the one in
+[Selecting a Format](./getting-started.mdx#selecting-a-format)
+:::
+
+### Motion
+
+| Setting | Units | Default | Effect |
+|----------|----------|----------|----------|
+| Speed | ft/s | 6 | Max velocity of the drivetrain |
+| Track Width | in | 12 | Distance from wheel to wheel, which sets how far the robot travels per degree of turn |
+| Drive Constant | s | 0.2 | Time for the robot to reach 63.2% of max velocity driving |
+| Turn Constant | s | 0.1 | Time for the robot to reach 63.2% of max angular velocity turning |
+
+:::important
+This is a very simplistic way of modeling your drivetrain, if your drivetrain behaves differently, adjust the knobs to your liking.
+:::
+
+### Measuring Motion Constants
+
+#### Track Width
+
+<img src={require('./img/robot-visualization/track-width.png').default} width="40%"  style={{ paddingBottom: '20px' }} />
+
+Use a tape measure, wheel center to wheel center across the drivetrain.
+
+:::note
+A real drivetrain usually turns slower then the geometry says, in reality it is likely a higher number than measured
+:::
+
+#### Speed & Drive Constant
+
+- Drive the robot max voltage across the field, in a straight line
+- Log time and position every loop, then differentiate: `v = (x - xPrev) / (t - tPrev)`
+- Run a 3 point smoothing on velocity reduce noise
+- Print each sample to serial in format `t, v`, then paste the run into desmos as a table
+- Average the flat tail of the curve, after it has stopped climbing. That value is your max velocity,
+  and it is what goes in `Speed`
+- Multiply that y value by 0.632, and find the x value where the curve first crosses it
+- Subtract the time the motion started. What is left is your `Drive Constant`
+- Repeat 3-5 times, half of them driving in reverse, and average the results
+
+:::note
+The most common issue is a wrong `speed` value. Make 100% sure your units are correct, meaning that your odom reports its units in inches.
+Check reported versus actual distance with a tape measure.
+:::
+
+#### Turn Constant
+
+The same test on the heading instead of the position.
+
+- Same setup: Drive both sides of drivetrain at max speed in opposite directions for a few seconds
+- Log time and IMU heading every loop, unwrapped so it keeps climbing past 360 rather than resetting
+- Differentiate into deg/s, smooth it the same way, and paste `t, w` into desmos
+- Average the flat tail for your max angular velocity, multiply it by 0.632, and find the x value
+  where the curve first crosses it
+- Subtract the start time. What is left is your `Turn Constant`
+
+:::note
+The angular plateau is not entered anywhere. mikGen works the max turn rate out from `Speed` and
+`Track Width`, so the only thing this test produces is the time constant. The plateau is there to
+give the 63.2% something to be a percentage of.
+:::
+
+### Expansion
+
+Each of the four sides takes a length in inches and is toggled on independently. An enabled side is
+drawn as a translucent block off that face of the robot.
+<div style={{ gap: '20px' }}>
+  <img src={require('./img/robot-visualization/expansion-menu.png').default} width="30%"  style={{ paddingBottom: '20px', marginRight: '20px' }} />
+  <img src={require('./img/robot-visualization/expansion-robot.png').default} width="30%"  style={{ paddingBottom: '20px' }} />
+</div>
+
+Use it to check that an expansion clears field elements, or that the robot stays inside its size
+limit through a turn.
+
+:::note
+Expansions are drawn only. They do not collide with anything, and they do not change how the robot
+drives.
+:::
+
+### Distance Sensors
+
+Each side takes an X and Y offset in inches, measured from the tracking center, and is toggled on
+independently. An enabled sensor draws a ray from its mounting point straight out of that face, ending at the field
+wall it is pointed at:
+
+<div style={{ gap: '20px' }}>
+  <img src={require('./img/robot-visualization/distance-menu.png').default} width="30%"  style={{ paddingBottom: '20px', marginRight: '20px' }} />
+  <img src={require('./img/robot-visualization/distance-robot.png').default} width="30%"  style={{ paddingBottom: '20px' }} />
+</div>
+
+The ray is only drawn at full length while the wall is between 20 mm and 2000 mm away, which is the
+usable range of a V5 distance sensor. Otherwise it will be a stub.
+
+### CoG Offset
+
+| Setting | Units | Positive direction |
+|----------|----------|----------|
+| Lateral | in | The robot's right |
+| Forward | in | The robot's front |
+
+Both are off by default, which puts the tracking center at the middle of the frame. When one is
+enabled, the small dot inside the robot moves to the offset point, and that point becomes the
+position the algorithm reads and drives to.
+
+### Extras
+
+| Setting | Units | Default | Effect |
+|----------|----------|----------|----------|
+| Update Rate | Hz | 100 | How often the control loop runs |
+| Latency | ms | Off | Delay between the robot's true position and the position the algorithm reads |
+
+:::important
+PID gains and slew are applied once per tick, so changing `Update Rate` changes what your tuning
+does. You should not need to adjust this unless you have old mikGen on the 60 hertz update rate.
+:::
+
+`Latency` is off by default. Turning it on holds every pose reading back by the set number of
+milliseconds. Around 10-25ms is close to real life.
+
+## Showing the Robot
+
+| Control | Keybind | Effect |
+|----------|----------|----------|
+| Robot visibility | `R` | Hides the robot. Playing the path turns it back on |
+| Onion Layers | `O` | Draws translucent outlines along the path |
+| Precise Path | `P` | Draws the exact path the robot took, colored by speed |
+| Robot Position | - | Shows an X, Y, θ readout next to the playback slider |
+| Numbered Path | - | Labels each segment with its number, for notebook screenshots |
+
+Robot visibility is the eye button in the [playback controls](./segment-interfacing.mdx#playback-controls).
+The other four live in the `Settings` menu.
+
+### Onion Layers
+
+Onion layers draw the robot outline at the end pose of every segment, plus one more every few inches
+of travel along the way. The spacing is the number input next to the checkbox:
+
+{/* <img src={require('./img/robot-visualization/onion.png').default} width="50%"  style={{ paddingBottom: '20px' }} /> */}
+
+A spacing of `0` draws only the end poses, which is the quickest way to see where each segment
+actually leaves the robot. Larger spacings fill in the motion between them.
+
+:::note
+Hidden segments are skipped, so you can hide the segments you are not working on to keep the field
+readable.
+:::
