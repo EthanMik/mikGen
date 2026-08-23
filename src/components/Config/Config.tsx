@@ -29,7 +29,6 @@ export default function Config({ fillHeight = false }: ConfigProps) {
                 <FieldButton/>
                 <FormatButton />
                 <ExportButton />
-                {/* <HelpButton /> */}
             </div>
         </div>
     );

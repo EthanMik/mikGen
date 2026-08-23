@@ -17,6 +17,12 @@ How to load, save, and export mikGen paths.
 
 Pasting parses the code back into segments. So you can directly copy an entire path in your library the way it is and paste it into mikGen.
 
+To change how a file format exports the path, press `Settings`, `Edit Templates`
+
+<img src={require('./img/export/edittemplates.png').default} width="100%"  style={{ paddingBottom: '20px' }} />
+
+Each template is a string, and numbers are placed inside $\{}. You can find all the variable names by reading the path file. Make sure to format file with a JSON formatter.
+
 ## Writing to a File
 
 Press `Ctrl+E` or use the Export button to write the path directly into a `.cpp` file in your
