@@ -13798,6 +13798,15 @@ let PID$2 = class PID {
     this.timeout = timeout;
     this.exit_error = exit_error;
   }
+  dt;
+  kp;
+  ki;
+  kd;
+  starti;
+  settle_time;
+  settle_error;
+  timeout;
+  exit_error;
   accumulated_error = 0;
   previous_error = 0;
   time_spent_settled = 0;
@@ -15419,6 +15428,15 @@ let PID$1 = class PID2 {
     this.settle_time = settle_time;
     this.timeout = timeout;
   }
+  dt;
+  error;
+  kp;
+  ki;
+  kd;
+  starti;
+  settle_error;
+  settle_time;
+  timeout;
   accumulated_error = 0;
   previous_error = 0;
   time_spent_settled = 0;
@@ -16639,6 +16657,16 @@ class PID3 {
     this.big_error = big_error;
     this.velocity_exit_time = velocity_exit_time;
   }
+  dt;
+  kp;
+  ki;
+  kd;
+  start_i;
+  small_exit_time;
+  small_error;
+  big_exit_time;
+  big_error;
+  velocity_exit_time;
   output = 0;
   cur = 0;
   error = 0;
@@ -16725,6 +16753,8 @@ class slew {
     this.min_speed = min_speed;
     this.distance_to_travel = distance_to_travel;
   }
+  min_speed;
+  distance_to_travel;
   sign = 0;
   error = 0;
   x_intercept = 0;
@@ -25908,4 +25938,4 @@ document.addEventListener("auxclick", blockMiddleClick, { capture: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-CIcnnch-.js.map
+//# sourceMappingURL=index-OazvNn2_.js.map
