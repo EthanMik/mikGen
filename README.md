@@ -14,6 +14,7 @@ Easy to use autonoumous simulator and planner website for VEX Robotics
    - Turn to Angle and Point
    - Swing to Angle and Point
    - Drive Distance and Strafe Distance
+   - Bezier Following
    - Wait
 ### General 
 - Animated robot playback and modifiable kinematics
