@@ -66,7 +66,7 @@ export default function Section({ name = "", children, defaultCollapsed = false,
     return (
         <div className="flex flex-col">
             {line(true)}
-            {!collapsed && <div className="flex flex-col mt-1.5 ml-0.5 gap-1">{children}</div>}
+            {!collapsed && <div className="flex flex-col mt-1.5 ml-4 gap-1">{children}</div>}
         </div>
     );
 }
