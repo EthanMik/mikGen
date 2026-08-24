@@ -22050,7 +22050,7 @@ function Section({ name = "", children, defaultCollapsed = false, collapsed: col
   if (!children) return line(false);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col", children: [
     line(true),
-    !collapsed && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-col mt-1.5 ml-0.5 gap-1", children })
+    !collapsed && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-col mt-1.5 ml-4 gap-1", children })
   ] });
 }
 const canSaveToDisk = "showSaveFilePicker" in window;
@@ -25908,4 +25908,4 @@ document.addEventListener("auxclick", blockMiddleClick, { capture: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-tUHxY6MJ.js.map
+//# sourceMappingURL=index-CIcnnch-.js.map
