@@ -15,6 +15,10 @@ export interface Rectangle {
 export const FIELD_REAL_DIMENSIONS: Rectangle = { x: -72.6378, y: 72.6378, w: 145.2756, h: 145.2756 };
 export const FIELD_IMG_DIMENSIONS: Rectangle = { x: 0, y: 0, w: 650, h: 650 };
 
+// The config column both draws itself this wide and is the offset the rest of the layout is pushed
+// by, so it lives here instead of being written out once in Config and again in App
+export const CONFIG_W = 216;
+
 export function vector2Subtract(a: Coordinate, b: Coordinate): Coordinate {
     return {
         x: a.x - b.x,

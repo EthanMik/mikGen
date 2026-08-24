@@ -275,7 +275,6 @@ export const JarTemplateDef = {
         },
 
         bezierCurve: {
-            name: "Follow Path",
             castTo: "pointDrive"
         }
 

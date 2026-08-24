@@ -5,7 +5,7 @@ import PathConfig from "./components/PathMenu/PathConfig";
 import PathSimulator from "./components/PathSimulator";
 import ControlConfig from "./components/ControlConfig";
 import Config from "./components/Config/Config";
-import { clamp, FIELD_IMG_DIMENSIONS } from "./core/Util";
+import { clamp, CONFIG_W, FIELD_IMG_DIMENSIONS } from "./core/Util";
 import Field from "./components/Field/Field";
 import { ScaleContext } from "./contexts/ScaleContext";
 import { fileFormatStore } from "./hooks/useFileFormat";
@@ -20,7 +20,6 @@ import homeButton from "./assets/home.svg";
 // Everything on screen sits on one 8px grid: the window edges, the gaps between the
 // config panel, field, simulator and the right hand panels
 const EDGE = 8;
-const CONFIG_W = 180;
 // button size plus a gap on both sides, so the floating popout buttons stack on the same grid
 const BUTTON_STEP = 33 + EDGE;
 // Below this width the side panels never fit next to the field, so the layout collapses no matter
@@ -30,6 +29,8 @@ const MOBILE_W = 700;
 // floor gives way rather than letting the content overflow and get clipped. Height matters on its
 // own: a phone held in landscape is wide but far too short for the normal floor.
 const MOBILE_H = 600;
+// Only the collapsed layout holds this floor, because there the field widens into a pannable canvas
+// instead of being cut off. With the panels up there is nothing to pan, so the fit wins outright
 const MIN_SCALE = 0.75;
 const MIN_SCALE_MOBILE = 0.25;
 // Natural width of the popout panels, used to shrink them onto a narrow screen
@@ -118,12 +119,12 @@ export default function App() {
 
       const padding = EDGE * 2;
       const fullyCollapsedNext = !nextShowConfig && !nextShowRight;
-      const minScale = vw < MOBILE_W || vh < MOBILE_H ? MIN_SCALE_MOBILE : MIN_SCALE;
 
       if (fullyCollapsedNext) {
         // Fit against the field's natural width rather than the measured cw: cw grows with
         // canvasWidth, which this branch sets, so measuring it here would feed back on itself
         const baseW = FIELD_IMG_DIMENSIONS.w;
+        const minScale = vw < MOBILE_W || vh < MOBILE_H ? MIN_SCALE_MOBILE : MIN_SCALE;
         const s = clamp(Math.min((vw - padding) / baseW, (vh - padding) / ch), minScale, 2);
         setScale(s);
         // Widening the svg past the field image gives extra room to pan into; narrowing it past
@@ -131,7 +132,12 @@ export default function App() {
         setCanvasWidth(Math.max(baseW, Math.round(vw / s)));
       } else {
         const totalCw = (nextShowConfig ? CONFIG_W + EDGE : 0) + cw;
-        setScale(clamp(Math.min((vw - padding) / totalCw, (vh - padding) / ch), minScale, 2));
+        const fit = Math.min((vw - padding) / totalCw, (vh - padding) / ch);
+        // Nothing pans or reflows here, so a scale above the fit is content hanging off the
+        // window rather than content at a comfortable size: a window that needs less than
+        // MIN_SCALE has no room for the panels at MIN_SCALE either. The floor gives way to the
+        // fit instead of clipping, and only the mobile floor is left to stop it reaching zero
+        setScale(clamp(fit, MIN_SCALE_MOBILE, 2));
         setCanvasWidth(FIELD_IMG_DIMENSIONS.w);
       }
     };

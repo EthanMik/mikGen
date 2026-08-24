@@ -1,4 +1,5 @@
 import { dirHandleStore } from "../../core/FileStore";
+import { CONFIG_W } from "../../core/Util";
 import FileButton from "../File/FileButton";
 import SettingsButton from "../Settings/SettingsButton";
 import AddSegmentButton from "./AddSegmentButton";
@@ -7,6 +8,7 @@ import ExportButton from "./ExportButton";
 import FieldButton from "./FieldButton";
 import FolderButton from "./FolderButton";
 import FormatButton from "./FormatButton";
+import HelpButton from "./HelpButton";
 import RobotButton from "./RobotButton";
 import ViewButton from "./ViewButton";
 
@@ -16,13 +18,14 @@ export default function Config({ fillHeight = false }: ConfigProps) {
     const dirHandle = dirHandleStore.useStore();
     return (
         <div className={`flex flex-col gap-2 ${fillHeight ? "h-full" : ""}`}>
-            <div className="w-[180px] flex items-center bg-medgray rounded-sm px-1 py-0.5 gap-1">
+            <div style={{ width: CONFIG_W }} className="flex items-center bg-medgray rounded-sm px-1 py-0.5 gap-1">
                 <FileButton />
                 <EditButton />
                 <ViewButton />
                 <SettingsButton />
+                <HelpButton />
             </div>
-            <div className={`w-[180px] ${fillHeight ? "flex-1" : "h-[685px]"} flex flex-col overflow-y-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none] rounded-sm`}>
+            <div style={{ width: CONFIG_W }} className={`${fillHeight ? "flex-1" : "h-[685px]"} flex flex-col overflow-y-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none] rounded-sm`}>
                 {dirHandle !== null && <FolderButton fileName=""/>}
                 <AddSegmentButton />
                 <RobotButton/>

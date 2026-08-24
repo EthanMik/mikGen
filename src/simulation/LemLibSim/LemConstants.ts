@@ -203,7 +203,6 @@ export const LemLibDef = {
         },
 
         bezierCurve: {
-            name: "Follow Path",
             castTo: "pointDrive"
         },
 

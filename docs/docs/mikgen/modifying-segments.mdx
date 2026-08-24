@@ -40,57 +40,8 @@ Each supported segment is labeled with your library's naming convention:
 | angleTurn | ✅ Turn to Angle | ✅ Turn to Heading | ✅ Turn to Angle | ✅ Turn |
 | angleSwing | ✅ Swing to Angle | ✅ Swing to Angle | ✅ Swing to Angle | ✅ Swing |
 | pointSwing | ✅ Swing to Point | ✅ Swing to Point | ❌ | ❌ |
-| bezierCurve | ✅ Follow Path | ⚠️ Follow Path | ⚠️ Follow Path | ✅ Follow Path |
+| bezierCurve | ✅ Follow Path | ❌ | ❌ | ✅ Follow Path |
 | wait | ✅ Wait | ✅ Wait | ✅ Wait | ✅ Wait |
-
-:::note
-⚠️ means you can draw the curve in mikGen, but the library has no path following call to export it
-to, so the generated code drives to the curve's endpoint and the shape is lost. mikLib exports the
-control points directly; EZ-Template breaks the curve into a waypoint vector, described under
-[Follow Path on EZ-Template](#follow-path-on-ez-template).
-:::
-
-## Follow Path on EZ-Template
-
-EZ-Template has no call that takes a bezier, but it will drive through a list of points. So a
-curve is exported by sampling it into a waypoint vector:
-
-```cpp
-chassis.pid_odom_injected_pp_set({{{5.67_in, 7.31_in}, fwd, 110},
-                                  {{-0.23_in, 15.23_in}, fwd, 110},
-                                  {{-5.76_in, 23.34_in}, fwd, 110},
-                                  {{0_in, 30_in}, fwd, 110}}, true);
-chassis.pid_wait();
-```
-
-How many points you get is set by the `${points:N}` placeholder in the segment's
-[template](./exporting-and-saving.mdx#points-expanding-a-curve-into-a-waypoint-vector), where `N`
-is the spacing in inches.
-
-If the segment has an ending heading, it is attached to the last point only, which is what makes
-EZ boomerang onto that pose instead of just arriving at the coordinate:
-
-```cpp
-                                  {{0_in, 30_in, 45_deg}, fwd, 110}}, true);
-```
-
-### Choosing a follower
-
-The cycle button on a Follow Path segment picks which EZ call gets emitted. They differ in what
-happens to the waypoints before the robot chases them, and the simulation shows each one honestly,
-so you can compare them on the field view before committing:
-
-| Mode | What it does |
-|----------|----------|
-| `pid_odom_injected_pp_set` | Re-densifies your waypoints at the chassis path spacing, then follows. The default, and the most forgiving of a coarse `${points:N}`. |
-| `pid_odom_pp_set` | Follows your waypoints exactly as written. Use it when you want `${points:N}` to be the last word on the path. |
-| `pid_odom_smooth_pp_set` | Densifies and then runs EZ's path smoother. Drives the smoothest of the three, but the smoother pulls the robot off the curve you drew, so the preview will cut your corners. |
-
-:::note
-The `Path Spacing` and `Path Smoothing` constants on the segment correspond to
-`odom_path_spacing_set` and `odom_path_smooth_constants_set`. They only affect the injected and
-smooth modes, since the raw mode does neither.
-:::
 
 ## Units
 
