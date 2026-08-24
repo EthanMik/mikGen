@@ -1,10 +1,10 @@
 
 <img src="https://raw.githubusercontent.com/EthanMik/mikGen/master/public/mikGen_logo_horiz.svg" alt="mikGen" width="300">
  
-Easy to use autonoumous simulator and planner website for VEX Robotics
+Easy to use autonomous visualizer and planner website for VEX Robotics
 
 ## Features
-### Supported librarys
+### Supported library's
    - [mikLib](https://github.com/EthanMik/mikLib)
    - [LemLib](https://github.com/LemLib/LemLib)
    - [JAR-Template](https://github.com/JacksonAreaRobotics/JAR-Template)
@@ -18,7 +18,7 @@ Easy to use autonoumous simulator and planner website for VEX Robotics
    - Wait
 ### General 
 - Animated robot playback and modifiable kinematics
-- Uses modifiable selected librarys constants and backend for simuation
+- Uses modifiable selected library's constants and backend for simulation
 - Library specific code export and import via clipboard or file system
 - Undo/Redo, saves path on refresh
 - Box selection, snap to grid, and magnet snapping
