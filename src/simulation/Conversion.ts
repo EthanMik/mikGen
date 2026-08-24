@@ -356,7 +356,7 @@ function parseSegmentLine<F extends Format>(
     const x = pointBased ? null : capturedX;
     const y = pointBased ? null : capturedY;
     let angle: number | null = 'angle' in captured ? parseFloat(captured.angle) : null;
-    // ReveilLib is the one format that emits the offset in the ${angle} slot
+    // A point-based turn emits the offset in the ${angle} slot
     let turnAngle = pointBased ? (angle ?? 0) : 0;
     if (pointBased) angle = null;
 

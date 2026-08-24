@@ -131,10 +131,10 @@ describe("alias kinds", () => {
     });
 
     it("falls back to the resolved kind's name when the alias has none", () => {
-        const view = buildSegmentView(defOf("ReveilLib"), segmentOf("ReveilLib", "pointSwing"));
+        const view = buildSegmentView(defOf("JAR-Template"), segmentOf("JAR-Template", "pointSwing"));
 
-        expect(view.kind).toBe("pointTurn");
-        expect(view.name).toBe("Look At");
+        expect(view.kind).toBe("angleSwing");
+        expect(view.name).toBe("Swing to Angle");
     });
 });
 
@@ -161,11 +161,9 @@ describe("slider", () => {
     it("scales to the format's own range", () => {
         const mik = buildSegmentView(defOf("mikLib"), segmentOf("mikLib", "poseDrive")).slider!;
         const lem = buildSegmentView(defOf("LemLib"), segmentOf("LemLib", "poseDrive")).slider!;
-        const rev = buildSegmentView(defOf("ReveilLib"), segmentOf("ReveilLib", "poseDrive")).slider!;
 
         expect([mik.max, mik.decimals]).toEqual([12, 1]);
         expect([lem.max, lem.decimals]).toEqual([127, 0]);
-        expect([rev.max, rev.decimals]).toEqual([1, 2]);
     });
 
     it("maps value and percent both ways", () => {

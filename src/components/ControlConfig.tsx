@@ -3,7 +3,7 @@ import flipVertical from "../assets/flip-vertical.svg";
 import { distanceToPosition, getSegmentDistance } from "../core/Types/Path";
 import { saveSnapshot } from "../core/Undo/UndoHistory";
 import { normalizeDeg, resolveTurnPose } from "../core/Util";
-import { fileFormatStore, updatePath, useFormat, usePath } from "../hooks/useFileFormat";
+import { fileFormatStore, updatePath, usePath } from "../hooks/useFileFormat";
 import type { Segment } from "../core/Types/Segment";
 import type { Pose } from "../core/Types/Pose";
 import { segmentControls } from "../core/Types/Bezier";
@@ -144,7 +144,6 @@ function MirrorControl({
 
 export default function ControlConfig() {
     const [ path, setPath ] = usePath();
-    const [ format ] = useFormat();
 
     // Controls are selectable like segments, so when one owns the selection the X/Y inputs
     // drive it instead. Controls carry no heading or distance, so those inputs grey out.
@@ -345,8 +344,8 @@ export default function ControlConfig() {
                             width={80}
                             height={40}
                             fontSize={18}
-                            setValue={format === "ReveilLib" ? updateYValue : updateXValue }
-                            value={format === "ReveilLib" ? getYValue() : getXValue() }
+                            setValue={updateXValue}
+                            value={getXValue()}
                             stepSize={1}
                             roundTo={2}
                             bounds={[-999, 999]}
@@ -360,8 +359,8 @@ export default function ControlConfig() {
                             fontSize={18}
                             stepSize={1}
                             roundTo={2}
-                            setValue={format === "ReveilLib" ? updateXValue : updateYValue }
-                            value={format === "ReveilLib" ? getXValue() : getYValue() }
+                            setValue={updateYValue}
+                            value={getYValue()}
                             bounds={[-999, 999]}
                             units="in"
                             addToHistory={() => { saveSnapshot(); }}

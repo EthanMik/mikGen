@@ -37,9 +37,8 @@ exports as:
 chassis.pid_odom_set({{24_in, 36_in}, fwd, 110}, true);
 ```
 
-The same string drives pasting, so a template you edit is also the one mikGen matches against when
-you paste code back in. `Reset` restores every template for the current format to its built-in
-version, and `Save` applies your edits.
+`Reset` restores every template for the current format to its built-in
+version, and `Save` or pressing `Enter` applies your edits. 
 
 ### Placeholders
 
@@ -50,8 +49,8 @@ version, and `Save` applies your edits.
 | `${time}` | Wait time in milliseconds |
 | `${c1x}` `${c1y}` `${c2x}` `${c2y}` | Bezier control points, for libraries that take a curve directly |
 | `${points:N}` | Expands a curve into a waypoint vector, one point every `N` inches |
-| `${anyConstant}` | Any constant by name, e.g. `${speed}`, `${slew}`, `${drive_directions}` |
-| `${0:key}` | A constant from one specific group, by position. See [below](#0key-picking-one-constants-group) |
+| `${anyConstant}` | Any constant by name, e.g. `${max_voltage}`, `${kp}`, `${drive_direction}` You can find all constant names by reading exported txt files |
+| `${0:anyConstant}` | A constant from one specific group, by position. See [below](#0key-picking-one-constants-group) |
 | `${kBuilder}` | The library's block of non-default constants, where the format has one |
 
 Two more behaviors worth knowing:
@@ -59,8 +58,6 @@ Two more behaviors worth knowing:
 - **`${kBuilder}` disappears when empty.** If the segment is on default constants there is nothing
   to emit, and writing `, ${kBuilder}` drops the comma along with it rather than leaving
   `drive_to_pose(24, 48, 45, );`.
-- **Templates can span lines.** EZ's drive templates are two lines: the motion, then its
-  `pid_wait()`.
 
 ### `${0:key}`: picking one constants group {#0key-picking-one-constants-group}
 
@@ -81,17 +78,6 @@ When a key exists in **more than one** group, a bare `${key}` does not read the 
 reads the **last** one. So on a segment whose second group also carries `speed`, writing
 `${speed}` exports the second group's speed, and the Max Speed slider, which edits the first
 group, appears to do nothing.
-
-This is why EZ-Template's drive templates write `${0:speed}`, `${0:slew}` and
-`${0:drive_directions}` rather than the bare names. If you edit a template and a button or slider
-stops affecting the output, a missing `0:` is the first thing to check.
-:::
-
-Keys that exist in only one group, like `${angle_behavior}` on a turn, are unambiguous and can be
-written bare. The indexed form is always safe, so prefer it if you are unsure.
-
-`${0:key}` works in a point template too, which is where EZ-Template's Follow Path puts the
-direction and speed for each waypoint.
 
 :::note
 Editing templates changes what pasting can parse. If you rewrite a template and then paste older
@@ -123,28 +109,6 @@ produce both shapes:
 {{5.67_in, 7.31_in}, fwd, 110},          // an in-between point
 {{0_in, 30_in, 45_deg}, fwd, 110}        // the last point, when the segment has a heading
 ```
-
-#### Picking a spacing
-
-`N` is a trade-off between how faithful the path is and how much code it produces:
-
-| Spacing | Effect |
-|----------|----------|
-| `${points:1}` | Very faithful, but a 40 inch curve becomes 40 lines |
-| `${points:2}` | The default for EZ-Template. Close enough that pasting the code back gives you the same curve |
-| `${points:10}` | Short and readable, but the straight hops between points visibly cut the corners |
-
-:::important
-Spacing affects pasting too. The waypoint vector is a lossy description of a curve, so mikGen fits
-a curve back through the points when you paste. At 2 inches that lands within a fifth of an inch
-of your original; at 10 there are too few points to pin a curve down, and what comes back is
-noticeably different from what you drew. Keep the spacing fine if you plan to round-trip paths
-through generated code.
-:::
-
-Also note that `${points:N}` only controls the vector mikGen writes. If the call you are exporting
-to injects its own points, as `pid_odom_injected_pp_set` does, the robot ends up following a denser
-path than the one in your file.
 
 ## Writing to a File
 

@@ -1,6 +1,5 @@
 import { LemLibDef, type LemConstants } from "./LemLibSim/LemConstants";
 import { mikLibDef, type mikConstants } from "./mikLibSim/MikConstants";
-import { reveilLibDef, type ReveilLibConstants } from "./ReveiLibSim/RevConstants";
 import type { Robot } from "../core/Robot";
 import type { Dispatch, SetStateAction } from "react";
 import type { Path } from "../core/Types/Path";
@@ -13,7 +12,6 @@ import { EZTemplateDef, type EZconstants } from "./EZSim/EZConstants";
 
 export type Format =
     "mikLib"
-    | "ReveilLib"
     | "JAR-Template"
     | "LemLib"
     | "RW-Template"
@@ -35,7 +33,6 @@ export type SegmentKind =
 
 export type FormatConstants = {
     mikLib: mikConstants;
-    ReveilLib: ReveilLibConstants;
     "JAR-Template": JarConstants;
     LemLib: LemConstants;
     "Holonomic": mikConstants;
@@ -46,7 +43,6 @@ export type FormatConstants = {
 export const FORMAT_REGISTRY = {
     LemLib: LemLibDef,
     mikLib: mikLibDef,
-    ReveilLib: reveilLibDef,
     "JAR-Template": JarTemplateDef,
     "RW-Template": LemLibDef,
     Holonomic: holonomicDef,
