@@ -13644,6 +13644,9 @@ const LemLibDef = {
     strafeDrive: {
       castTo: "pointDrive"
     },
+    poseDrive2: {
+      castTo: "poseDrive"
+    },
     bezierCurve: {
       castTo: "pointDrive"
     },
@@ -14770,6 +14773,9 @@ const mikLibDef = {
     },
     strafeDrive: {
       castTo: "distanceDrive"
+    },
+    poseDrive2: {
+      castTo: "poseDrive"
     }
   }
 };
@@ -15373,10 +15379,11 @@ const holonomicNumberInputs = [
 ];
 const holonomicDef = {
   ...mikLibDef,
-  formatPathName: "Holonomic Path",
+  formatPathName: "mikLib Holonomic Path",
   segments: {
     ...mikLibDef.segments,
-    poseDrive: {
+    // poseDrive stays mikLib's tank drive_to_pose, so both motions are available here
+    poseDrive2: {
       name: "Holonomic to Pose",
       defaults: [kMikDrive, kMikHeading, kTranslational],
       toStringTemplate: "chassis.holonomic_to_pose(${x}, ${y}, ${angle}, ${kBuilder});",
@@ -15938,6 +15945,9 @@ const JarTemplateDef = {
     strafeDrive: {
       castTo: "distanceDrive"
     },
+    poseDrive2: {
+      castTo: "poseDrive"
+    },
     bezierCurve: {
       castTo: "pointDrive"
     }
@@ -16491,6 +16501,7 @@ function convertPathToSim(formatDef, path) {
         );
         break;
       case "poseDrive":
+      case "poseDrive2":
       case "pointDrive":
         auton.push(
           (robot, dt) => {
@@ -17742,6 +17753,9 @@ const EZTemplateDef = {
     strafeDrive: {
       castTo: "distanceDrive"
     },
+    poseDrive2: {
+      castTo: "poseDrive"
+    },
     bezierCurve: {
       name: "Follow Path",
       defaults: [driveConstants, boomerangConstants],
@@ -17794,8 +17808,13 @@ const FORMAT_REGISTRY = {
   mikLib: mikLibDef,
   "JAR-Template": JarTemplateDef,
   "RW-Template": LemLibDef,
-  Holonomic: holonomicDef,
+  "mikLib Holonomic": holonomicDef,
   "EZ-Template": EZTemplateDef
+};
+const LEGACY_FORMATS = {
+  // holonomic_to_pose used to be this format's poseDrive; it lives on poseDrive2 now that
+  // poseDrive carries the tank drive_to_pose as well
+  Holonomic: { format: "mikLib Holonomic", pathName: "Holonomic Path", kinds: { poseDrive: "poseDrive2" } }
 };
 function mergeSavedConstants(current, saved2) {
   if (!current) return saved2;
@@ -17822,7 +17841,14 @@ function mergeFormatDef(registry, saved2) {
       slider: reg.slider
     };
   }
-  return { ...registry, ...s, kBuilder: registry.kBuilder, kParser: registry.kParser, segments: segs };
+  return {
+    ...registry,
+    ...s,
+    formatPathName: registry.formatPathName,
+    kBuilder: registry.kBuilder,
+    kParser: registry.kParser,
+    segments: segs
+  };
 }
 const SEGMENT_UI_KEYS = /* @__PURE__ */ new Set(["simFn", "simReset", "cycleButtons", "actionButtons", "numberInputs", "slider"]);
 const FORMAT_FN_KEYS = /* @__PURE__ */ new Set(["kBuilder", "kParser"]);
@@ -17932,7 +17958,8 @@ function propagateStates(path) {
         if (angle !== null) heading = angle;
         break;
       case "pointDrive":
-      case "poseDrive": {
+      case "poseDrive":
+      case "poseDrive2": {
         if (x === null || y === null) break;
         const target2 = { x, y };
         let bearing = pos && (pos.x !== target2.x || pos.y !== target2.y) ? calculateHeading(pos, target2) : null;
@@ -17942,7 +17969,7 @@ function propagateStates(path) {
           else if (direction === "fastest" && heading !== null && Math.abs(angleErrorDeg(bearing, heading)) > 90) bearing += 180;
         }
         pos = target2;
-        heading = seg.kind === "poseDrive" && angle !== null ? angle : bearing ?? heading;
+        heading = seg.kind !== "pointDrive" && angle !== null ? angle : bearing ?? heading;
         break;
       }
       case "bezierCurve": {
@@ -18662,21 +18689,50 @@ function seedPath(formatDef, format, raw, repairs) {
   }
   return { name, segments };
 }
+function remapPathKinds(raw, kinds) {
+  const p = asRecord(raw);
+  if (!Array.isArray(p.segments)) return raw;
+  return {
+    ...p,
+    segments: p.segments.map((s) => {
+      const seg = asRecord(s);
+      const moved = kinds[seg.kind];
+      return moved ? { ...seg, kind: moved } : s;
+    })
+  };
+}
+function remapDefKinds(raw, kinds) {
+  const d = asRecord(raw);
+  if (!d.segments || typeof d.segments !== "object") return raw;
+  const segments = Object.fromEntries(
+    Object.entries(d.segments).map(([k, v]) => [kinds[k] ?? k, v])
+  );
+  return { ...d, segments };
+}
 function seedFileFormat(raw, repairs = []) {
   const p = asRecord(raw);
   let format = DEFAULT_FORMAT.format;
+  const legacy = typeof p.format === "string" ? LEGACY_FORMATS[p.format] : void 0;
   if (typeof p.format === "string" && p.format in FORMAT_REGISTRY) format = p.format;
+  else if (legacy) format = legacy.format;
   else if (p.format !== void 0) repairs.push(`unknown format "${String(p.format)}"`);
   let field = DEFAULT_FIELD_KEY;
   if (VALID_FIELDS.has(p.field)) field = p.field;
   else if (p.field !== void 0) repairs.push(`unknown field "${String(p.field)}"`);
-  const formatDef = mergeFormatDef(FORMAT_REGISTRY[format], p.formatDef ?? p.defaults);
+  const kinds = legacy?.kinds;
+  const savedDef = p.formatDef ?? p.defaults;
+  const formatDef = mergeFormatDef(
+    FORMAT_REGISTRY[format],
+    kinds ? remapDefKinds(savedDef, kinds) : savedDef
+  );
+  const path = seedPath(formatDef, format, kinds ? remapPathKinds(p.path, kinds) : p.path, repairs);
+  if (legacy && path.name === legacy.pathName) path.name = formatDef.formatPathName;
   return {
     format,
     field,
     formatDef,
     robot: seedRobot(p.robot, repairs),
-    path: seedPath(formatDef, format, p.path, repairs)
+    path
   };
 }
 function recastPath(formatDef, format, path) {
@@ -19573,7 +19629,7 @@ const getSegmentPointsInch = (idx, path) => {
     if (bezier === null) return null;
     return sampleBezier(bezier, BEZIER_RENDER_STEPS);
   }
-  if (m.kind === "poseDrive" && m.format === "Holonomic" || m.kind === "pointDrive" || m.kind === "distanceDrive" || m.kind === "strafeDrive") {
+  if (m.kind === "poseDrive2" || m.kind === "pointDrive" || m.kind === "distanceDrive" || m.kind === "strafeDrive") {
     return [start2, end];
   }
   const lead = getLead(m);
@@ -20020,6 +20076,22 @@ const FIELD_COLORS = {
         shape: "line",
         baseColor: toRGBA("#a02007", 1),
         selectedColor: toRGBA("#a0320b", 1),
+        hoverScale: 1.2,
+        selectedScale: 1.12
+      }
+    ],
+    poseDrive2: [
+      {
+        shape: "node",
+        baseColor: toRGBA("#056f2f", 0.5),
+        selectedColor: toRGBA("#07863a", 0.75),
+        hoverScale: 1.4,
+        selectedScale: 1
+      },
+      {
+        shape: "line",
+        baseColor: toRGBA("#056f2f", 1),
+        selectedColor: toRGBA("#07863a", 1),
         hoverScale: 1.2,
         selectedScale: 1.12
       }
@@ -21499,12 +21571,12 @@ function ControlConfig() {
     const selectedSegment2 = path.segments.find((c) => c.selected);
     if (selectedSegment2 === void 0) return;
     if (selectedSegment2.kind === "pointSwing" || selectedSegment2.kind === "pointTurn") return;
-    const headingOptional = selectedSegment2.kind === "poseDrive" || selectedSegment2.kind === "distanceDrive" || selectedSegment2.kind === "strafeDrive" || selectedSegment2.kind === "bezierCurve";
+    const headingOptional = selectedSegment2.kind === "poseDrive" || selectedSegment2.kind === "poseDrive2" || selectedSegment2.kind === "distanceDrive" || selectedSegment2.kind === "strafeDrive" || selectedSegment2.kind === "bezierCurve";
     if (newHeading === null && !headingOptional) return;
     if (newHeading !== null) newHeading = normalizeDeg(newHeading);
     setPath((prev) => {
       let kind = selectedSegment2.kind;
-      if (selectedSegment2.kind === "poseDrive" && newHeading === null) {
+      if ((selectedSegment2.kind === "poseDrive" || selectedSegment2.kind === "poseDrive2") && newHeading === null) {
         kind = "pointDrive";
       }
       if (selectedSegment2.kind === "pointDrive" && newHeading !== null) {
@@ -22975,6 +23047,13 @@ function FieldMacros() {
     if (path.segments.length === 0) return addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath);
     addSegment(createSegment(formatDef, format, "poseDrive", position), setPath);
   };
+  const addPoseDrive2Segment = (evt, format, position, setPath, path) => {
+    if (evt !== null && !(evt.ctrlKey && !evt.altKey && evt.button === 0)) return;
+    const formatDef = fileFormatStore.getState().formatDef;
+    if (formatDef.segments["poseDrive2"]?.castTo) return;
+    if (path.segments.length === 0) return addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath);
+    addSegment(createSegment(formatDef, format, "poseDrive2", position), setPath);
+  };
   const addDistanceSegment = (evt, format, position, setPath, path) => {
     if (evt !== null && !(!evt.ctrlKey && evt.altKey && evt.button === 0)) return;
     const formatDef = fileFormatStore.getState().formatDef;
@@ -23055,6 +23134,7 @@ function FieldMacros() {
     addPointDriveSegment,
     addPointTurnSegment,
     addPoseDriveSegment,
+    addPoseDrive2Segment,
     addAngleTurnSegment,
     addAngleSwingSegment,
     addPointSwingSegment,
@@ -23211,6 +23291,7 @@ function AddSegmentButton() {
     addPointDriveSegment,
     addPointTurnSegment,
     addPoseDriveSegment,
+    addPoseDrive2Segment,
     addAngleTurnSegment,
     addAngleSwingSegment,
     addPointSwingSegment,
@@ -23227,6 +23308,7 @@ function AddSegmentButton() {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigButtonTemplate, { title: "Segment", children: [
     visible("pointDrive") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Left Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("pointDrive"), color: segColor("pointDrive"), callback: () => addPointDriveSegment(null, format, { x: 0, y: 0 }, setPath, getPath()) }) }),
     visible("poseDrive") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Ctrl+Left Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("poseDrive"), color: segColor("poseDrive"), callback: () => addPoseDriveSegment(null, format, { x: 0, y: 0, angle: 0 }, setPath, getPath()) }) }),
+    visible("poseDrive2") && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("poseDrive2"), color: segColor("poseDrive2"), callback: () => addPoseDrive2Segment(null, format, { x: 0, y: 0, angle: 0 }, setPath, getPath()) }),
     visible("bezierCurve") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Shift+Left Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("bezierCurve"), color: segColor("bezierCurve"), callback: () => addBezierSegment(null, format, { x: 0, y: 0, angle: null }, setPath, getPath()) }) }),
     (visible("distanceDrive") || visible("strafeDrive")) && /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
     visible("distanceDrive") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Alt+Left Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("distanceDrive"), color: segColor("distanceDrive"), callback: () => addDistanceSegment(null, format, { x: 0, y: 0, angle: null }, setPath, getPath()) }) }),
@@ -24043,7 +24125,7 @@ function FormatButton() {
   const handleClickItem = (newFormat) => {
     const changed = prevFormatRef.current !== newFormat;
     changeFormat(newFormat);
-    mergeRobot({ holonomicRobot: newFormat === "Holonomic" });
+    mergeRobot({ holonomicRobot: newFormat === "mikLib Holonomic" });
     if (changed) saveSnapshot();
     prevFormatRef.current = newFormat;
   };
@@ -24083,7 +24165,7 @@ function RobotButton() {
     saveSnapshot();
   };
   const handleToggleHolonomic = (checked) => {
-    const newFormat = checked ? "Holonomic" : "mikLib";
+    const newFormat = checked ? "mikLib Holonomic" : "mikLib";
     const changed = prevFormatRef.current !== newFormat;
     changeFormat(newFormat);
     mergeRobot({ holonomicRobot: checked });
@@ -24094,7 +24176,7 @@ function RobotButton() {
     /* @__PURE__ */ jsxRuntimeExports.jsxs(Section, { name: "General", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Width", value: robot.width, setValue: (v) => v !== null && mergeRobot({ width: v }), bounds: [0, 30], stepSize: 1, roundTo: 1, units: "in" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Height", value: robot.height, setValue: (v) => v !== null && mergeRobot({ height: v }), bounds: [0, 30], stepSize: 1, roundTo: 1, units: "in" }),
-      (format === "mikLib" || format === "Holonomic") && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigCheckboxButton, { name: "Holonomic", checked: format === "Holonomic", label: "Toggle format to mikLib Holonomic", setChecked: handleToggleHolonomic })
+      (format === "mikLib" || format === "mikLib Holonomic") && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigCheckboxButton, { name: "Holonomic", checked: format === "mikLib Holonomic", label: "Toggle format to mikLib Holonomic", setChecked: handleToggleHolonomic })
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs(Section, { name: "Motion", defaultCollapsed: true, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Speed", label: "Max velocity; measure on actual robot", value: robot.speed, setValue: (v) => v !== null && mergeRobot({ speed: v }), bounds: [0, 100], stepSize: 0.5, roundTo: 2, units: "ft/s" }),
@@ -24639,7 +24721,7 @@ function RobotLayer({ img, robotConstants, visible, path }) {
   const [settings] = useSettings();
   const [format] = useFormat();
   const computedPath = computedPathStore.useStore();
-  const bgColor = format === "Holonomic" ? MECANUM_COLOR : TANK_COLOR;
+  const bgColor = format === "mikLib Holonomic" ? MECANUM_COLOR : TANK_COLOR;
   const spacing = settings.onionLayers ? settings.onionSpacing : 0;
   const layerPoses = reactExports.useMemo(
     () => computedPath.segmentTrajectorys.map((segment) => onionLayerPoses(segment, spacing)),
@@ -25938,4 +26020,4 @@ document.addEventListener("auxclick", blockMiddleClick, { capture: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-OazvNn2_.js.map
+//# sourceMappingURL=index-CZsxPv6U.js.map
