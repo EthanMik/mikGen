@@ -16201,6 +16201,10 @@ function renderPoint(pointTemplate, point, angle, mergedK, k) {
   });
 }
 const isPointBased = (kind) => kind === "pointTurn" || kind === "pointSwing";
+const OPTIONAL_ANGLE_TERM = /,\s*[^,{}()]*\$\{angle\}[^,{}()]*/;
+function templateForHeading(template, angle) {
+  return angle === null ? template.replace(OPTIONAL_ANGLE_TERM, "") : template;
+}
 function applyTurnLocks(path, from, to) {
   const segments = [...path.segments];
   for (let i = from; i < to; i++) {
@@ -16235,7 +16239,7 @@ function convertPathToString(formatDef, path, selected = false) {
     if (!resolvedDef.toStringTemplate) continue;
     const mergedK = Object.assign({}, ...k);
     const kBuilderStr = formatDef.kBuilder ? formatDef.kBuilder(resolvedDef.defaults ?? formatDef.constants, k, facing, kind) : "";
-    let line = resolvedDef.toStringTemplate.replace(/\$\{x\}/g, x).replace(/\$\{y\}/g, y).replace(/\$\{angle\}/g, angle).replace(/\$\{distance\}/g, distance).replace(/\$\{time\}/g, time);
+    let line = templateForHeading(resolvedDef.toStringTemplate, facing.angle).replace(/\$\{x\}/g, x).replace(/\$\{y\}/g, y).replace(/\$\{angle\}/g, angle).replace(/\$\{distance\}/g, distance).replace(/\$\{time\}/g, time);
     let bezier = null;
     if (kind === "bezierCurve") {
       bezier = resolveBezier(path, idx);
@@ -16329,6 +16333,10 @@ function templateToRegex(template, anchored = true) {
       groups.push("points");
       return "__POINTS__";
     }
+    if (name === "kBuilder") {
+      groups.push("kBuilder");
+      return "__KBUILDER_CHAIN__";
+    }
     groups.push(name);
     return COORD_PLACEHOLDERS.has(name) ? "__COORD__" : "__FIELD__";
   });
@@ -16339,6 +16347,7 @@ function templateToRegex(template, anchored = true) {
   }
   t = t.replace(/__COORD__/g, "(-?[\\d.]+)");
   t = t.replace(/__POINTS__/g, "([\\s\\S]+)");
+  t = t.replace(/__KBUILDER_CHAIN__/g, "((?:\\.\\w+\\([^()]*\\))*)");
   t = t.replace(/__FIELD__/g, "([^,)]+?)");
   return { regex: new RegExp(anchored ? `^\\s*${t}\\s*$` : t), groups };
 }
@@ -16354,8 +16363,14 @@ function parsePointBlock(block) {
 }
 function parseSegmentLine(line, kind, segDef, formatDef, format) {
   if (!segDef.toStringTemplate) return null;
-  const { regex, groups } = templateToRegex(segDef.toStringTemplate);
-  const match = line.match(regex);
+  let { regex, groups } = templateToRegex(segDef.toStringTemplate);
+  let match = line.match(regex);
+  if (!match) {
+    const headless = templateForHeading(segDef.toStringTemplate, null);
+    if (headless === segDef.toStringTemplate) return null;
+    ({ regex, groups } = templateToRegex(headless));
+    match = line.match(regex);
+  }
   if (!match) return null;
   const captured = {};
   groups.forEach((name, i) => {
@@ -23041,14 +23056,14 @@ function FieldMacros() {
     addSegment(createSegment(formatDef, format, "pointDrive", { x: position.x, y: position.y, angle: null }), setPath);
   };
   const addPoseDriveSegment = (evt, format, position, setPath, path) => {
-    if (evt !== null && !(evt.ctrlKey && !evt.altKey && evt.button === 0)) return;
+    if (evt !== null && !(evt.ctrlKey && !evt.altKey && !evt.shiftKey && evt.button === 0)) return;
     const formatDef = fileFormatStore.getState().formatDef;
     if (formatDef.segments["poseDrive"]?.castTo) return;
     if (path.segments.length === 0) return addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath);
     addSegment(createSegment(formatDef, format, "poseDrive", position), setPath);
   };
   const addPoseDrive2Segment = (evt, format, position, setPath, path) => {
-    if (evt !== null && !(evt.ctrlKey && !evt.altKey && evt.button === 0)) return;
+    if (evt !== null && !(evt.ctrlKey && evt.shiftKey && !evt.altKey && evt.button === 0)) return;
     const formatDef = fileFormatStore.getState().formatDef;
     if (formatDef.segments["poseDrive2"]?.castTo) return;
     if (path.segments.length === 0) return addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath);
@@ -23308,7 +23323,7 @@ function AddSegmentButton() {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(ConfigButtonTemplate, { title: "Segment", children: [
     visible("pointDrive") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Left Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("pointDrive"), color: segColor("pointDrive"), callback: () => addPointDriveSegment(null, format, { x: 0, y: 0 }, setPath, getPath()) }) }),
     visible("poseDrive") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Ctrl+Left Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("poseDrive"), color: segColor("poseDrive"), callback: () => addPoseDriveSegment(null, format, { x: 0, y: 0, angle: 0 }, setPath, getPath()) }) }),
-    visible("poseDrive2") && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("poseDrive2"), color: segColor("poseDrive2"), callback: () => addPoseDrive2Segment(null, format, { x: 0, y: 0, angle: 0 }, setPath, getPath()) }),
+    visible("poseDrive2") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Ctrl+Shift+Left Click", speed: "fast", placement: "right", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("poseDrive2"), color: segColor("poseDrive2"), callback: () => addPoseDrive2Segment(null, format, { x: 0, y: 0, angle: 0 }, setPath, getPath()) }) }),
     visible("bezierCurve") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Shift+Left Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("bezierCurve"), color: segColor("bezierCurve"), callback: () => addBezierSegment(null, format, { x: 0, y: 0, angle: null }, setPath, getPath()) }) }),
     (visible("distanceDrive") || visible("strafeDrive")) && /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
     visible("distanceDrive") && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Alt+Left Click", placement: "right", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: segName("distanceDrive"), color: segColor("distanceDrive"), callback: () => addDistanceSegment(null, format, { x: 0, y: 0, angle: null }, setPath, getPath()) }) }),
@@ -25200,7 +25215,8 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
     fieldPanWheel,
     cut,
     paste,
-    copy
+    copy,
+    addPoseDrive2Segment
   } = FieldMacros();
   const { toggleRobotVisibility, togglePrecisePath, toggleOnionLayers, toggleLoopPath } = PathSimMacros();
   const hiddenInputRef = reactExports.useRef(null);
@@ -25671,6 +25687,7 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
     addPoseDriveSegment(evt, format, { x: pos.x, y: pos.y, angle: 0 }, setPath, path);
     addPointDriveSegment(evt, format, pos, setPath, path);
     addDistanceSegment(evt, format, { x: pos.x, y: pos.y, angle: null }, setPath, path);
+    addPoseDrive2Segment(evt, format, { x: pos.x, y: pos.y, angle: 0 }, setPath, path);
     addStrafeSegment(evt, format, { x: pos.x, y: pos.y, angle: null }, setPath, path);
     addPointTurnSegment(evt, format, setPath, path);
     addAngleTurnSegment(evt, format, setPath, path);
@@ -26020,4 +26037,4 @@ document.addEventListener("auxclick", blockMiddleClick, { capture: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-CZsxPv6U.js.map
+//# sourceMappingURL=index-Bbwm6cXV.js.map
