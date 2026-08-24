@@ -29,6 +29,8 @@ function flipSwingDirection(constants: SegmentConstants<Format>): SegmentConstan
         flipped = { ...k, swing: k.swing === "LEFT_SWING" ? "RIGHT_SWING" : "LEFT_SWING" };
     else if (k.lockedSide !== undefined)
         flipped = { ...k, lockedSide: k.lockedSide === "DriveSide::LEFT" ? "DriveSide::RIGHT" : "DriveSide::LEFT" };
+    else if (k.swing_side !== undefined)
+        flipped = { ...k, swing_side: k.swing_side === "SwingSide::LEFT" ? "SwingSide::RIGHT" : "SwingSide::LEFT" };
     else
         flipped = k;
     return [flipped, ...rest] as unknown as SegmentConstants<Format>;

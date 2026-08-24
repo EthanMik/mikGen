@@ -6,6 +6,7 @@ import ConfigButtonTemplate from "./ConfigButtonTemplate";
 import { ConfigCheckboxButton } from "../Util/CheckboxButton";
 import { DualNumberInputCheckboxButton, NumberInputButton, NumberInputCheckboxButton } from "../Util/NumberInputButton";
 import { SENSOR_COLORS } from "../Field/FieldColors";
+import { HOLONOMIC_PAIRS, isHolonomicFormat } from "../../simulation/FormatDefinition";
 
 type ExpansionSide = "Front" | "Left" | "Right" | "Rear";
 
@@ -34,13 +35,16 @@ export default function RobotButton() {
         saveSnapshot();
     };
 
+    const holonomic = isHolonomicFormat(format);
+    const twin = HOLONOMIC_PAIRS[format];
+
     const handleToggleHolonomic = (checked: boolean) => {
-        const newFormat = checked ? "mikLib Holonomic" : "mikLib";
-        const changed = prevFormatRef.current !== newFormat;
-        changeFormat(newFormat);
+        if (!twin || checked === holonomic) return;
+        const changed = prevFormatRef.current !== twin;
+        changeFormat(twin);
         mergeRobot({ holonomicRobot: checked });
         if (changed) saveSnapshot();
-        prevFormatRef.current = newFormat;
+        prevFormatRef.current = twin;
     };
 
     return (
@@ -49,8 +53,8 @@ export default function RobotButton() {
                 <Section name="General">
                     <NumberInputButton name="Width" value={robot.width} setValue={v => v !== null && mergeRobot({ width: v })} bounds={[0, 30]} stepSize={1} roundTo={1} units="in" />
                     <NumberInputButton name="Height" value={robot.height} setValue={v => v !== null && mergeRobot({ height: v })} bounds={[0, 30]} stepSize={1} roundTo={1} units="in" />
-                    {(format === "mikLib" || format === "mikLib Holonomic") && (
-                        <ConfigCheckboxButton name="Holonomic" checked={format === "mikLib Holonomic"} label="Toggle format to mikLib Holonomic" setChecked={handleToggleHolonomic} />
+                    {twin && (
+                        <ConfigCheckboxButton name="Holonomic" checked={holonomic} label={`Toggle format to ${holonomic ? format : twin}`} setChecked={handleToggleHolonomic} />
                     )}
                 </Section>
                 <Section name="Motion" defaultCollapsed>

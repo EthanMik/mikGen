@@ -9,6 +9,8 @@ import { holonomicDef } from "./HolonomicSim/HolonomicConstants";
 import type { Segment } from "../core/Types/Segment";
 import { JarTemplateDef, type JarConstants } from "./JarSim/JarConstants";
 import { EZTemplateDef, type EZconstants } from "./EZSim/EZConstants";
+import { reveilLibDef, type revConstants } from "./RevSim/RevConstants";
+import { reveilLibHolonomicDef } from "./RevHolonomicSim/RevHolonomicConstants";
 
 export type Format =
     "mikLib"
@@ -17,6 +19,8 @@ export type Format =
     | "RW-Template"
     | "mikLib Holonomic"
     | "EZ-Template"
+    | "ReveilLib"
+    | "ReveilLib Holonomic"
 
 export type SegmentKind =
     | "pointDrive"
@@ -40,6 +44,8 @@ export type FormatConstants = {
     "mikLib Holonomic": mikConstants;
     "RW-Template": mikConstants;
     "EZ-Template": EZconstants;
+    "ReveilLib": revConstants;
+    "ReveilLib Holonomic": revConstants;
 };
 
 export const FORMAT_REGISTRY = {
@@ -49,8 +55,21 @@ export const FORMAT_REGISTRY = {
     "RW-Template": LemLibDef,
     "mikLib Holonomic": holonomicDef,
     "EZ-Template": EZTemplateDef,
+    "ReveilLib": reveilLibDef,
+    "ReveilLib Holonomic": reveilLibHolonomicDef,
 
 } as unknown as { [F in Format]: FormatDef<F> };
+
+export const HOLONOMIC_PAIRS: Partial<Record<Format, Format>> = {
+    "mikLib": "mikLib Holonomic",
+    "mikLib Holonomic": "mikLib",
+    "ReveilLib": "ReveilLib Holonomic",
+    "ReveilLib Holonomic": "ReveilLib",
+};
+
+export function isHolonomicFormat(format: Format): boolean {
+    return format === "mikLib Holonomic" || format === "ReveilLib Holonomic";
+}
 
 /**
  * Format keys that files were saved under before a rename, with the auto-assigned path name that
