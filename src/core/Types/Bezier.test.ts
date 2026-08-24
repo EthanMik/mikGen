@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { bezierPointAt, polylineLength, resolveBezier, sampleBezier } from "./Bezier";
+import { bezierPointAt, fitCubic, polylineLength, resamplePolyline, resolveBezier, sampleBezier, type Bezier } from "./Bezier";
 import type { Path } from "./Path";
 import type { Segment } from "./Segment";
 import { createControlPoint, type ControlPoint } from "./Pose";
@@ -78,5 +78,116 @@ describe("resolveBezier", () => {
         expect(bezier).not.toBeNull();
         expect(bezier!.c1).toEqual({ x: 0, y: 0 });
         expect(bezier!.c2).toEqual({ x: 30, y: 0 });
+    });
+});
+
+describe("resamplePolyline", () => {
+    const line = [{ x: 0, y: 0 }, { x: 0, y: 30 }];
+
+    it("drops the start, which the caller already knows the robot is standing on", () => {
+        const out = resamplePolyline(line, 10);
+        expect(out[0]).toEqual({ x: 0, y: 10 });
+    });
+
+    it("always finishes exactly on the endpoint", () => {
+        expect(resamplePolyline(line, 7)[resamplePolyline(line, 7).length - 1]).toEqual({ x: 0, y: 30 });
+        expect(resamplePolyline(line, 4)[resamplePolyline(line, 4).length - 1]).toEqual({ x: 0, y: 30 });
+    });
+
+    it("spaces points at the requested interval", () => {
+        const out = resamplePolyline(line, 5);
+        expect(out.map(p => p.y)).toEqual([5, 10, 15, 20, 25, 30]);
+    });
+
+    it("swallows a final step shorter than half a spacing rather than bunching two points", () => {
+        // 30 inches at 8 leaves a 6 inch tail, which is kept; at 11 it leaves 8 which is not
+        expect(resamplePolyline(line, 8).map(p => p.y)).toEqual([8, 16, 24, 30]);
+        const tight = resamplePolyline([{ x: 0, y: 0 }, { x: 0, y: 21 }], 10);
+        expect(tight.map(p => p.y)).toEqual([10, 21]);
+    });
+
+    it("returns just the endpoint for a spacing that could never divide the line", () => {
+        expect(resamplePolyline(line, 0)).toEqual([{ x: 0, y: 30 }]);
+        expect(resamplePolyline(line, -5)).toEqual([{ x: 0, y: 30 }]);
+    });
+
+    it("returns nothing for a degenerate polyline", () => {
+        expect(resamplePolyline([], 5)).toEqual([]);
+        expect(resamplePolyline([{ x: 1, y: 1 }], 5)).toEqual([]);
+    });
+
+    it("skips zero length legs without stalling", () => {
+        const repeated = [{ x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 10 }];
+        expect(resamplePolyline(repeated, 5).map(p => p.y)).toEqual([5, 10]);
+    });
+});
+
+describe("fitCubic", () => {
+    /** Worst gap between two curves, sampled evenly in the parameter. */
+    function curveGap(a: Bezier, b: Bezier): number {
+        let worst = 0;
+        for (let i = 0; i <= 200; i++) {
+            const p = bezierPointAt(a, i / 200);
+            const q = bezierPointAt(b, i / 200);
+            worst = Math.max(worst, Math.hypot(p.x - q.x, p.y - q.y));
+        }
+        return worst;
+    }
+
+    const s = { p0: { x: 0, y: 0 }, c1: { x: 20, y: 10 }, c2: { x: -20, y: 20 }, p1: { x: 0, y: 30 } };
+
+    it("recovers the handles of a curve from points sampled along it", () => {
+        const [c1, c2] = fitCubic(s.p0, s.p1, resamplePolyline(sampleBezier(s, 400), 2));
+
+        expect(c1.x).toBeCloseTo(20, 0);
+        expect(c1.y).toBeCloseTo(10, 0);
+        expect(c2.x).toBeCloseTo(-20, 0);
+        expect(c2.y).toBeCloseTo(20, 0);
+    });
+
+    it("lands the refit curve on top of the original", () => {
+        const [c1, c2] = fitCubic(s.p0, s.p1, resamplePolyline(sampleBezier(s, 400), 2));
+        expect(curveGap(s, { p0: s.p0, c1, c2, p1: s.p1 })).toBeLessThan(0.1);
+    });
+
+    it("gets closer as the points get denser", () => {
+        const gapAt = (spacing: number) => {
+            const [c1, c2] = fitCubic(s.p0, s.p1, resamplePolyline(sampleBezier(s, 400), spacing));
+            return curveGap(s, { p0: s.p0, c1, c2, p1: s.p1 });
+        };
+        expect(gapAt(2)).toBeLessThan(gapAt(10));
+    });
+
+    it("fits a straight run to a straight curve", () => {
+        const points = [{ x: 0, y: 10 }, { x: 0, y: 20 }, { x: 0, y: 30 }, { x: 0, y: 40 }];
+        const [c1, c2] = fitCubic({ x: 0, y: 0 }, { x: 0, y: 40 }, points);
+
+        expect(Math.abs(c1.x)).toBeLessThan(0.5);
+        expect(Math.abs(c2.x)).toBeLessThan(0.5);
+        expect(c1.y).toBeGreaterThan(0);
+        expect(c2.y).toBeLessThan(40);
+    });
+
+    it("falls back to evenly spaced handles when there is too little to fit", () => {
+        const p0 = { x: 0, y: 0 };
+        const p1 = { x: 0, y: 30 };
+        expect(fitCubic(p0, p1, [])).toEqual([{ x: 0, y: 10 }, { x: 0, y: 20 }]);
+        expect(fitCubic(p0, p1, [{ x: 0, y: 15 }])).toEqual([{ x: 0, y: 10 }, { x: 0, y: 20 }]);
+    });
+
+    it("falls back rather than dividing through zero on stacked points", () => {
+        const stacked = [{ x: 5, y: 5 }, { x: 5, y: 5 }, { x: 5, y: 5 }, { x: 5, y: 5 }];
+        const [c1, c2] = fitCubic({ x: 5, y: 5 }, { x: 5, y: 5 }, stacked);
+
+        expect(Number.isFinite(c1.x) && Number.isFinite(c1.y)).toBe(true);
+        expect(Number.isFinite(c2.x) && Number.isFinite(c2.y)).toBe(true);
+    });
+
+    it("stays finite on points that were never a curve", () => {
+        const scattered = [{ x: 9, y: 2 }, { x: -4, y: 18 }, { x: 13, y: 7 }, { x: -1, y: 25 }];
+        const [c1, c2] = fitCubic({ x: 0, y: 0 }, { x: 0, y: 30 }, scattered);
+
+        expect(Number.isFinite(c1.x) && Number.isFinite(c1.y)).toBe(true);
+        expect(Number.isFinite(c2.x) && Number.isFinite(c2.y)).toBe(true);
     });
 });

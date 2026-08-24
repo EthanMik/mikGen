@@ -20,7 +20,8 @@ import type { Path } from "../core/Types/Path";
 import type { Coordinate } from "../core/Types/Coordinate";
 import { createControlPoint } from "../core/Types/Pose";
 import type { Segment } from "../core/Types/Segment";
-import { applyTurnLocks, convertPathToSim, convertPathToString, convertStringToPath, templateToRegex } from "./Conversion";
+import { applyTurnLocks, convertPathToSim, convertPathToString, convertStringToPath, pointSpacing, templateToRegex } from "./Conversion";
+import { polylineLength, resolveBezier, sampleBezier } from "../core/Types/Bezier";
 import {
     FORMAT_REGISTRY,
     getDefaultConstants,
@@ -537,10 +538,131 @@ describe("round trips", () => {
         return makeSeg(format, kind, { x: 12 + 2 * idx, y: 20 + 2 * idx, angle: 45 });
     }
 
+    const ezDef = FORMAT_REGISTRY["EZ-Template"] as unknown as FormatDef<Format>;
+
+    /**
+     * Just the expanded waypoint entries. Scoped to the follow call rather than matched across
+     * the whole output, since a plain odom drive emits an entry of exactly the same shape.
+     */
+    function waypointLines(code: string): string[] {
+        const lines = code.split("\n");
+        const start = lines.findIndex(l => l.includes("_pp_set({"));
+        if (start === -1) return [];
+        const end = lines.findIndex((l, i) => i > start && l.includes("chassis.pid_wait"));
+        const block = lines.slice(start, end === -1 ? undefined : end).join("\n");
+        return block.match(/\{\{[^{}]*\}[^{}]*\}/g) ?? [];
+    }
+
+    /** A start, a drive to put the curve's anchor somewhere, then the curve itself at index 2. */
+    function ezCurvePath(controls: [Coordinate, Coordinate], angle: number | null = null): Path {
+        return mkPath([
+            makeSeg("EZ-Template", "start", { x: 0, y: 0, angle: 0 }),
+            makeSeg("EZ-Template", "pointDrive", { x: 0, y: 0, angle: null }),
+            makeSeg("EZ-Template", "bezierCurve", { x: 0, y: 40, angle }, {
+                controls: controls.map(c => createControlPoint(c.x, c.y)),
+            }),
+        ]);
+    }
+
+    it("expands a curve into a waypoint vector at the template's spacing", () => {
+        const out = convertPathToString(ezDef, ezCurvePath([{ x: 18, y: 12 }, { x: -18, y: 28 }]));
+        const call = waypointLines(out);
+
+        expect(out).toContain("chassis.pid_odom_injected_pp_set({");
+        // Every waypoint carries the segment's direction and speed, and none but the last a heading
+        expect(call.every(l => /\{\{-?[\d.]+_in, -?[\d.]+_in(, -?[\d.]+_deg)?\}, fwd, 110\}/.test(l))).toBe(true);
+        expect(call.filter(l => l.includes("_deg")).length).toBe(0);
+
+        // Roughly one waypoint per two inches of arc, which is what ${points:2} asks for
+        const arc = polylineLength(sampleBezier(resolveBezier(ezCurvePath([{ x: 18, y: 12 }, { x: -18, y: 28 }]), 2)!, 400));
+        expect(call.length).toBeGreaterThan(arc / 2 - 2);
+        expect(call.length).toBeLessThan(arc / 2 + 2);
+    });
+
+    it("gives the ending heading to the last waypoint only", () => {
+        const out = convertPathToString(ezDef, ezCurvePath([{ x: 18, y: 12 }, { x: -18, y: 28 }], 45));
+        const call = waypointLines(out);
+
+        expect(call.filter(l => l.includes("_deg")).length).toBe(1);
+        expect(call[call.length - 1]).toContain("{{0_in, 40_in, 45_deg}, fwd, 110}");
+        // The angle term is dropped whole on the others, rather than left as an empty slot
+        expect(call[0]).toMatch(/\{\{-?[\d.]+_in, -?[\d.]+_in\}, fwd, 110\}/);
+    });
+
+    it("round trips a curve through a waypoint vector", () => {
+        const controls: [Coordinate, Coordinate] = [{ x: 18, y: 12 }, { x: -18, y: 28 }];
+        const path = ezCurvePath(controls);
+
+        const parsed = convertStringToPath(ezDef, "EZ-Template", convertPathToString(ezDef, path));
+        expect(parsed.map(s => s.kind)).toEqual(["start", "pointDrive", "bezierCurve"]);
+
+        // The vector is lossy, so the curve comes back close rather than identical; a quarter
+        // inch across a forty inch curve is well inside what the drivetrain can hold anyway
+        const before = sampleBezier(resolveBezier(path, 2)!, 100);
+        const after = sampleBezier(resolveBezier(mkPath(parsed), 2)!, 100);
+        const worst = Math.max(...before.map((p, i) => Math.hypot(p.x - after[i].x, p.y - after[i].y)));
+        expect(worst).toBeLessThan(0.25);
+    });
+
+    it("recovers constants that only the point template names", () => {
+        const path = ezCurvePath([{ x: 18, y: 12 }, { x: -18, y: 28 }]);
+        const k = path.segments[2].constants[0] as unknown as Record<string, unknown>;
+        k.drive_directions = "rev";
+        k.speed = 42;
+        k.pp_mode = "pid_odom_smooth_pp_set";
+
+        const out = convertPathToString(ezDef, path);
+        expect(out).toContain("chassis.pid_odom_smooth_pp_set(");
+        expect(waypointLines(out)[0]).toContain(", rev, 42}");
+
+        // Direction and speed are written per point, so the outer template never sees them;
+        // without reading them back off a point they would silently revert to the defaults
+        const parsed = convertStringToPath(ezDef, "EZ-Template", out);
+        const back = parsed[2].constants[0] as unknown as Record<string, unknown>;
+        expect(back.drive_directions).toBe("rev");
+        expect(back.speed).toBe(42);
+        expect(back.pp_mode).toBe("pid_odom_smooth_pp_set");
+    });
+
+    it("carries the ending heading back through a round trip", () => {
+        const path = ezCurvePath([{ x: 18, y: 12 }, { x: -18, y: 28 }], 45);
+        const parsed = convertStringToPath(ezDef, "EZ-Template", convertPathToString(ezDef, path));
+
+        expect(parsed[2].pose.angle).toBe(45);
+        expect(parsed[2].pose.x).toBe(0);
+        expect(parsed[2].pose.y).toBe(40);
+    });
+
+    it("reads spacing off the template and falls back for a bare placeholder", () => {
+        expect(pointSpacing("chassis.go({${points:2}});")).toBe(2);
+        expect(pointSpacing("chassis.go({${points:0.5}});")).toBe(0.5);
+        expect(pointSpacing("chassis.go({${points}});")).toBe(5);
+        expect(pointSpacing("chassis.pid_odom_set({${x}, ${y}});")).toBe(null);
+        // A spacing that could never produce a vector falls back rather than dividing by zero
+        expect(pointSpacing("chassis.go({${points:0}});")).toBe(5);
+    });
+
+    it("leaves a curve alone when the format has no point template", () => {
+        // mikLib emits control points directly, so ${points} never enters into it
+        const out = convertPathToString(mikDef, mkPath([
+            mikSeg("start", { x: 0, y: 0, angle: 0 }),
+            mikSeg("bezierCurve", { x: 0, y: 40, angle: null }, {
+                controls: [createControlPoint(18, 12), createControlPoint(-18, 28)],
+            }),
+        ]));
+        expect(out).toContain("chassis.follow_path({18, 12}, {-18, 28}, {0, 40}");
+        expect(out).not.toContain("_in,");
+    });
+
     it.each(formats)("holds a fixed point for every segment kind of %s at default constants", (format) => {
         const def = FORMAT_REGISTRY[format] as unknown as FormatDef<Format>;
         const ownKinds = (Object.entries(def.segments) as [SegmentKind, SegmentDef<Format>][])
             .filter(([, sd]) => sd && !sd.castTo && sd.toStringTemplate)
+            // A curve exported as a ${points:N} waypoint vector cannot hold an exact fixed point:
+            // the vector is a lossy encoding, and the fit that reads it back lands near the
+            // original curve rather than on it. "round trips a curve through a waypoint vector"
+            // covers that path with the geometric tolerance it can actually meet.
+            .filter(([kind, sd]) => !(kind === "bezierCurve" && sd.toStringTemplate?.includes("${points")))
             .map(([kind]) => kind);
 
         // Start first so beziers have an anchor, beziers last so every kind sits at index > 0

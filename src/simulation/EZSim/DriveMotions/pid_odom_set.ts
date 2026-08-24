@@ -23,6 +23,29 @@ let chain_applied = false;
 
 export function resetOdomSet() { ptp_start = true; }
 
+/**
+ * Points the running motion at a new target without restarting it, as EZ's raw_pid_odom_ptp_set
+ * does when pure pursuit walks onto the next waypoint.
+ *
+ * Deliberately leaves xyPID, slew_both, start_x/start_y and new_current_fake alone: EZ carries
+ * distance accumulation and slew straight across waypoints, and resetting them would make the
+ * robot stutter to a stop at every point in the vector.
+ */
+export function retargetOdomSet(robot: Robot, x: number, y: number, p: EZconstants[]) {
+    if (ptp_start) return;
+
+    const drive_p = p[0];
+    const odom_pose_get = (): pose => ({ x: robot.getX(), y: robot.getY(), theta: robot.getRotation() });
+
+    odom_target = { x, y, theta: 0 };
+    odom_target_start = { x, y, theta: 0 };
+    point_to_face = find_point_to_face(odom_pose_get(), odom_target, drive_p.drive_directions);
+    past_target = Math.sign(is_past_target(odom_target, odom_pose_get(), point_to_face, drive_p.drive_directions));
+}
+
+/** Whether the motion is between ticks of a run, so a retarget has something to act on. */
+export function odomSetRunning() { return !ptp_start; }
+
 export function pid_odom_set(robot: Robot, dt: number, x: number, y: number, p: EZconstants[]) {
     const drive_p = p[0];
     const heading_p = p[1];

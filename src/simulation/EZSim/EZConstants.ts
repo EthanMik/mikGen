@@ -10,13 +10,18 @@ import rightswing from "../../assets/rightswing.svg";
 import stop from "../../assets/stop_speed.svg"
 import slow from "../../assets/slow_speed.svg"
 import fast from "../../assets/fast_speed.svg"
+import marker from "../../assets/marker.svg";
+import lines from "../../assets/lines.svg";
+import loop from "../../assets/loop.svg";
 import { pid_drive_set, resetDrivePid } from "./DriveMotions/set_drive_pid";
 import { pid_turn_set, resetTurnPid } from "./DriveMotions/set_turn_pid";
 import { pid_odom_turn_set, resetOdomTurnPid } from "./DriveMotions/set_odom_turn_pid";
 import { pid_swing_set, resetSwingPid } from "./DriveMotions/set_swing_pid";
 import { pid_odom_set, resetOdomSet } from "./DriveMotions/pid_odom_set";
 import { pid_odom_boomerang_set, resetBoomerangSet } from "./DriveMotions/pid_odom_boomerang_set";
+import { pid_odom_pp_set, resetPpSet } from "./DriveMotions/pid_odom_pp_set";
 import { turnLockButton } from "../TurnFields";
+import { addControlButton } from "../BezierFields";
 
 export interface EZconstants {
     speed: number,
@@ -46,10 +51,18 @@ export interface EZconstants {
     boomerang_distance: number,
     lookahead: number,
 
+    // Path following
+    path_spacing: number,
+    weight_smooth: number,
+    weight_data: number,
+    smooth_tolerance: number,
+
     angle_behavior: "shortest" | "longest" | "ccw" | "cw"
     drive_directions: "fwd" | "rev"
     swing: "LEFT_SWING" | "RIGHT_SWING"
     wait: "wait" | "wait_quick" | "wait_quick_chain"
+    /** The EZ entry point a followed path is emitted as, and simulated with. */
+    pp_mode: "pid_odom_injected_pp_set" | "pid_odom_pp_set" | "pid_odom_smooth_pp_set"
     slew: boolean,
 }
 
@@ -77,10 +90,17 @@ const driveConstants: EZconstants = {
     boomerang_distance: 16,
     lookahead: 7,
 
+    // EZ's own defaults, from odom_path_spacing_set and odom_path_smooth_constants_set
+    path_spacing: 0.5,
+    weight_smooth: 0.75,
+    weight_data: 0.03,
+    smooth_tolerance: 0.0001,
+
     angle_behavior: "shortest",
     drive_directions: "fwd",
     swing: "LEFT_SWING",
     wait: "wait",
+    pp_mode: "pid_odom_injected_pp_set",
     slew: true
 }
 
@@ -223,6 +243,23 @@ const waitButton: CycleButton = {
     ],
 };
 
+/**
+ * Which of EZ's three pure pursuit entry points a followed path uses. The values are the function
+ * names themselves, so the tooltip reads as the call that gets emitted.
+ *
+ * They differ in what happens to the waypoint vector before it is followed: `pp` takes it as
+ * given, `injected_pp` re-densifies it at the chassis path spacing, and `smooth_pp` additionally
+ * relaxes it, which drives smoothest but pulls the robot off the drawn curve.
+ */
+const ppModeButton: CycleButton = {
+    key: "pp_mode",
+    keyValues: [
+        { srcImg: marker, value: "pid_odom_injected_pp_set" },
+        { srcImg: lines, value: "pid_odom_pp_set" },
+        { srcImg: loop, value: "pid_odom_smooth_pp_set" },
+    ],
+};
+
 export const EZTemplateDef = {
     constants: [driveConstants],
     kMaxSpeed: 127,
@@ -255,7 +292,7 @@ export const EZTemplateDef = {
         distanceDrive: {
             name: "Drive",
             defaults: [driveConstants, headingConstants],
-            toStringTemplate: "chassis.set_drive_pid(${distance}_in, ${speed}, ${slew});\nchassis.pid_${0:wait}();",
+            toStringTemplate: "chassis.set_drive_pid(${distance}_in, ${0:speed}, ${0:slew});\nchassis.pid_${0:wait}();",
             simFn: (robot, dt, distance, _y, _angle, constants) => pid_drive_set(robot, dt, distance, constants),
             simReset: () => resetDrivePid(),
             slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
@@ -271,7 +308,7 @@ export const EZTemplateDef = {
         poseDrive: {
             name: "Odom Boomerang",
             defaults: [driveConstants, boomerangConstants],
-            toStringTemplate: "chassis.pid_odom_set({{${x}_in, ${y}_in, ${angle}_deg}, ${drive_directions}, ${speed}}, ${slew});\nchassis.pid_${0:wait}();",
+            toStringTemplate: "chassis.pid_odom_set({{${x}_in, ${y}_in, ${angle}_deg}, ${0:drive_directions}, ${0:speed}}, ${0:slew});\nchassis.pid_${0:wait}();",
             simFn: (robot, dt, x, y, angle, constants) => pid_odom_boomerang_set(robot, dt, x, y, angle ?? 0, constants),
             simReset: () => resetBoomerangSet(),
             slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
@@ -298,7 +335,7 @@ export const EZTemplateDef = {
         pointDrive: {
             name: "Odom Drive",
             defaults: [driveConstants, angularConstants],
-            toStringTemplate: "chassis.pid_odom_set({{${x}_in, ${y}_in}, ${drive_directions}, ${speed}}, ${slew});\nchassis.pid_${0:wait}();",
+            toStringTemplate: "chassis.pid_odom_set({{${x}_in, ${y}_in}, ${0:drive_directions}, ${0:speed}}, ${0:slew});\nchassis.pid_${0:wait}();",
             simFn: (robot, dt, x, y, _angle, constants) => pid_odom_set(robot, dt, x, y, constants),
             simReset: () => resetOdomSet(),
             slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
@@ -387,7 +424,44 @@ export const EZTemplateDef = {
 
         bezierCurve: {
             name: "Follow Path",
-            castTo: "pointDrive"
+            defaults: [driveConstants, boomerangConstants],
+            // ${points:N} breaks the curve into a waypoint vector every N inches; pointTemplate
+            // is the body of one entry, and its ${angle} term survives only on the last point.
+            // Two inches is about as coarse as a vector can get and still describe a curve: at
+            // ten the polyline is cutting corners badly enough that pasting the code back yields
+            // a visibly different curve, while finer than two mostly buys longer output.
+            toStringTemplate: "chassis.${0:pp_mode}({${points:2}}, ${0:slew});\nchassis.pid_${0:wait}();",
+            pointTemplate: "{{${x}_in, ${y}_in, ${angle}_deg}, ${0:drive_directions}, ${0:speed}}",
+            simFn: (robot, dt, _x, _y, angle, constants, points) => pid_odom_pp_set(robot, dt, points ?? [], angle, constants),
+            simReset: () => resetPpSet(),
+            slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
+            actionButtons: [addControlButton],
+            cycleButtons: [
+                { constantsIdx: 0, ...waitButton },
+                { constantsIdx: 0, ...driveDirectionButton },
+                { constantsIdx: 0, ...ppModeButton },
+            ],
+            numberInputs: [
+                { constantsIdx: 0, headerName: "Exit Conditions", fields: exitConditions("DRIVE") },
+                {
+                    constantsIdx: 0, headerName: "Drive Constants", fields: [
+                        ...pidSlewSettings("DRIVE"),
+                        { key: "odom_turn_bias", label: "Turn Bias", units: "", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 2 } },
+                        { key: "lead", label: "Lead", units: "", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 3 } },
+                        { key: "boomerang_distance", label: "Distance", units: "in", input: { bounds: [0, 100], stepSize: 1, roundTo: 1 } },
+                        { key: "lookahead", label: "Lookahead", units: "in", input: { bounds: [0, 100], stepSize: 1, roundTo: 1 } },
+                        { key: "path_spacing", label: "Path Spacing", units: "in", input: { bounds: [0.1, 24], stepSize: 0.1, roundTo: 2 } },
+                    ]
+                },
+                {
+                    constantsIdx: 0, headerName: "Path Smoothing", fields: [
+                        { key: "weight_smooth", label: "Weight Smooth", units: "", input: { bounds: [0, 1], stepSize: 0.05, roundTo: 3 } },
+                        { key: "weight_data", label: "Weight Data", units: "", input: { bounds: [0, 1], stepSize: 0.01, roundTo: 3 } },
+                        { key: "smooth_tolerance", label: "Tolerance", units: "", input: { bounds: [0.00001, 1], stepSize: 0.0001, roundTo: 5 } },
+                    ]
+                },
+                { constantsIdx: 1, headerName: "Heading Constants", fields: pidSettings("DRIVE") },
+            ],
         }
 
 

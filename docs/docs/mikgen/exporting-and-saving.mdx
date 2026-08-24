@@ -17,11 +17,134 @@ How to load, save, and export mikGen paths.
 
 Pasting parses the code back into segments. So you can directly copy an entire path in your library the way it is and paste it into mikGen.
 
-To change how a file format exports the path, press `Settings`, `Edit Templates`
+## Edit Templates
+
+Every segment kind owns one line of code, written as a template. To change how a format exports,
+press `Settings`, `Edit Templates`:
 
 <img src={require('./img/export/edittemplates.png').default} width="100%"  style={{ paddingBottom: '20px' }} />
 
-Each template is a string, and numbers are placed inside $\{}. You can find all the variable names by reading the path file. Make sure to format file with a JSON formatter.
+Each row is the template for the segment named above it. Anything inside `${}` is a placeholder
+filled in per segment; everything else is copied out literally. So this template:
+
+```
+chassis.pid_odom_set({{${x}_in, ${y}_in}, ${drive_directions}, ${speed}}, ${slew});
+```
+
+exports as:
+
+```cpp
+chassis.pid_odom_set({{24_in, 36_in}, fwd, 110}, true);
+```
+
+The same string drives pasting, so a template you edit is also the one mikGen matches against when
+you paste code back in. `Reset` restores every template for the current format to its built-in
+version, and `Save` applies your edits.
+
+### Placeholders
+
+| Placeholder | Value |
+|----------|----------|
+| `${x}` `${y}` `${angle}` | The segment's position and heading. On a turn, `${x}` and `${y}` are the point being faced |
+| `${distance}` | Distance for a distanceDrive or strafeDrive |
+| `${time}` | Wait time in milliseconds |
+| `${c1x}` `${c1y}` `${c2x}` `${c2y}` | Bezier control points, for libraries that take a curve directly |
+| `${points:N}` | Expands a curve into a waypoint vector, one point every `N` inches |
+| `${anyConstant}` | Any constant by name, e.g. `${speed}`, `${slew}`, `${drive_directions}` |
+| `${0:key}` | A constant from one specific group, by position. See [below](#0key-picking-one-constants-group) |
+| `${kBuilder}` | The library's block of non-default constants, where the format has one |
+
+Two more behaviors worth knowing:
+
+- **`${kBuilder}` disappears when empty.** If the segment is on default constants there is nothing
+  to emit, and writing `, ${kBuilder}` drops the comma along with it rather than leaving
+  `drive_to_pose(24, 48, 45, );`.
+- **Templates can span lines.** EZ's drive templates are two lines: the motion, then its
+  `pid_wait()`.
+
+### `${0:key}`: picking one constants group {#0key-picking-one-constants-group}
+
+A segment usually carries more than one set of constants. An EZ-Template drive carries two: drive
+constants and heading constants, each with their own `p`, `i`, `d`. The `Constants` panel shows
+them as separate headers, and they are numbered in that order, starting at zero.
+
+A bare `${p}` cannot tell them apart. `${0:p}` takes it from the first group, `${1:p}` from the
+second:
+
+```
+chassis.set_drive_pid(${distance}_in, ${0:speed}, ${0:slew});
+chassis.pid_${0:wait}();
+```
+
+:::warning
+When a key exists in **more than one** group, a bare `${key}` does not read the first group. It
+reads the **last** one. So on a segment whose second group also carries `speed`, writing
+`${speed}` exports the second group's speed, and the Max Speed slider, which edits the first
+group, appears to do nothing.
+
+This is why EZ-Template's drive templates write `${0:speed}`, `${0:slew}` and
+`${0:drive_directions}` rather than the bare names. If you edit a template and a button or slider
+stops affecting the output, a missing `0:` is the first thing to check.
+:::
+
+Keys that exist in only one group, like `${angle_behavior}` on a turn, are unambiguous and can be
+written bare. The indexed form is always safe, so prefer it if you are unsure.
+
+`${0:key}` works in a point template too, which is where EZ-Template's Follow Path puts the
+direction and speed for each waypoint.
+
+:::note
+Editing templates changes what pasting can parse. If you rewrite a template and then paste older
+code, it will not match. Reset returns the format to its built-in templates.
+:::
+
+### `${points:N}`: expanding a curve into a waypoint vector {#points-expanding-a-curve-into-a-waypoint-vector}
+
+Most libraries have no call that takes a bezier. `${points:N}` bridges that: it samples the curve
+and writes out the points, one every `N` inches, so a library that can drive through a list of
+points can drive a curve.
+
+It needs two rows. The template says where the vector goes, and the `point` row underneath says
+what one entry looks like:
+
+```
+chassis.${0:pp_mode}({${points:2}}, ${0:slew});
+chassis.pid_${0:wait}();
+
+point:  {{${x}_in, ${y}_in, ${angle}_deg}, ${0:drive_directions}, ${0:speed}}
+```
+
+Inside the point row, `${x}` and `${y}` are that point's coordinates, and every other placeholder
+works as it does anywhere else. The `${angle}` term is special: it survives only on the **last**
+point, and the whole term including its comma is removed from the others. That is why one row can
+produce both shapes:
+
+```cpp
+{{5.67_in, 7.31_in}, fwd, 110},          // an in-between point
+{{0_in, 30_in, 45_deg}, fwd, 110}        // the last point, when the segment has a heading
+```
+
+#### Picking a spacing
+
+`N` is a trade-off between how faithful the path is and how much code it produces:
+
+| Spacing | Effect |
+|----------|----------|
+| `${points:1}` | Very faithful, but a 40 inch curve becomes 40 lines |
+| `${points:2}` | The default for EZ-Template. Close enough that pasting the code back gives you the same curve |
+| `${points:10}` | Short and readable, but the straight hops between points visibly cut the corners |
+
+:::important
+Spacing affects pasting too. The waypoint vector is a lossy description of a curve, so mikGen fits
+a curve back through the points when you paste. At 2 inches that lands within a fifth of an inch
+of your original; at 10 there are too few points to pin a curve down, and what comes back is
+noticeably different from what you drew. Keep the spacing fine if you plan to round-trip paths
+through generated code.
+:::
+
+Also note that `${points:N}` only controls the vector mikGen writes. If the call you are exporting
+to injects its own points, as `pid_odom_injected_pp_set` does, the robot ends up following a denser
+path than the one in your file.
 
 ## Writing to a File
 

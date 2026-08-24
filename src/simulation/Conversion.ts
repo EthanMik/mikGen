@@ -1,9 +1,10 @@
 import type { Robot } from "../core/Robot";
-import { distanceToPosition, getSegmentDistance, type Path } from "../core/Types/Path";
+import { distanceToPosition, getBackwardsSnapPose, getSegmentDistance, type Path } from "../core/Types/Path";
 import { findPointToFace, makeId, resolveTurnPose, roundOff, toDeg } from "../core/Util";
 import type { Segment } from "../core/Types/Segment";
 import { createControlPoint, type ControlPoint } from "../core/Types/Pose";
-import { polylineLength, resolveBezier, sampleBezier } from "../core/Types/Bezier";
+import type { Coordinate } from "../core/Types/Coordinate";
+import { fitCubic, polylineLength, resamplePolyline, resolveBezier, sampleBezier } from "../core/Types/Bezier";
 import { getDefaultConstants, type Format } from "./FormatDefinition";
 import type { FormatDef, SegmentConstants, SegmentDef, SegmentKind, SimFn } from "./FormatDefinition";
 import { angle_error } from "./mikLibSim/Util";
@@ -12,6 +13,59 @@ import { createStore } from "../core/Store";
 
 /** Template placeholders that carry a bare number, so they parse back as one. */
 const COORD_PLACEHOLDERS = new Set(['x', 'y', 'angle', 'distance', 'time', 'c1x', 'c1y', 'c2x', 'c2y']);
+
+/** Matches `${points}` or `${points:10}`, where the number is point spacing in inches. */
+const POINTS_PLACEHOLDER = /\$\{points(?::([\d.]+))?\}/;
+
+/** Spacing used by a bare `${points}`, in inches. */
+const DEFAULT_POINT_SPACING = 5;
+
+/** How many lines a single point block is allowed to span before parsing gives up on it. */
+const MAX_POINT_BLOCK_LINES = 512;
+
+/**
+ * Point spacing in inches for a template that expands a curve into a waypoint vector, or null
+ * when it does not. Codegen and the simulator both read density through here, so the preview
+ * follows exactly the waypoints the exported code will.
+ */
+export function pointSpacing(template: string | undefined): number | null {
+    const match = template?.match(POINTS_PLACEHOLDER);
+    if (!match) return null;
+    const spacing = match[1] === undefined ? DEFAULT_POINT_SPACING : parseFloat(match[1]);
+    return Number.isFinite(spacing) && spacing > 0 ? spacing : DEFAULT_POINT_SPACING;
+}
+
+/**
+ * Renders one point of a `${points:N}` expansion.
+ *
+ * Points that carry no heading lose the whole `${angle}` term rather than leaving a hole behind,
+ * mirroring how an empty `${kBuilder}` takes its leading comma with it. That way a single point
+ * template covers `{{x_in, y_in}, fwd, 110}` and `{{x_in, y_in, 45_deg}, fwd, 110}` both.
+ */
+function renderPoint(
+    pointTemplate: string,
+    point: Coordinate,
+    angle: number | null,
+    mergedK: Record<string, unknown>,
+    k: readonly unknown[],
+): string {
+    let line = angle === null
+        ? pointTemplate.replace(/,\s*[^,{}]*\$\{angle\}[^,{}]*/, '')
+        : pointTemplate.replace(/\$\{angle\}/g, roundOff(angle, 2));
+
+    line = line
+        .replace(/\$\{x\}/g, roundOff(point.x, 2))
+        .replace(/\$\{y\}/g, roundOff(point.y, 2));
+
+    for (const key of Object.keys(mergedK)) {
+        line = line.replace(new RegExp(`\\$\\{${key}\\}`, 'g'), String(mergedK[key]));
+    }
+
+    return line.replace(/\$\{(\d+):(\w+)\}/g, (_, idxStr, key) => {
+        const group = k[Number(idxStr)] as Record<string, unknown> | undefined;
+        return group && key in group ? String(group[key]) : '';
+    });
+}
 
 /** The kinds that face a coordinate, and so read their target and offset off turnPose. */
 const isPointBased = (kind: SegmentKind): boolean => kind === "pointTurn" || kind === "pointSwing";
@@ -76,9 +130,10 @@ export function convertPathToString<F extends Format, Segs extends Partial<Recor
             .replace(/\$\{distance\}/g, distance)
             .replace(/\$\{time\}/g, time);
 
+        let bezier = null;
         if (kind === "bezierCurve") {
             // Always emitted as a cubic, so a segment with fewer controls is degree elevated first
-            const bezier = resolveBezier(path, idx);
+            bezier = resolveBezier(path, idx);
             line = line
                 .replace(/\$\{c1x\}/g, roundOff(bezier?.c1.x, 2))
                 .replace(/\$\{c1y\}/g, roundOff(bezier?.c1.y, 2))
@@ -94,6 +149,25 @@ export function convertPathToString<F extends Format, Segs extends Partial<Recor
             const group = k[Number(idxStr)] as unknown as Record<string, unknown> | undefined;
             return group && key in group ? String(group[key]) : '';
         });
+
+        // Expanded last, once every other placeholder has resolved, so the continuation lines can
+        // be indented to where the vector actually starts rather than to where its placeholder was
+        const spacing = pointSpacing(resolvedDef.toStringTemplate);
+        if (spacing !== null && resolvedDef.pointTemplate && bezier) {
+            const waypoints = resamplePolyline(sampleBezier(bezier, 400), spacing);
+            const column = line.split('\n').find(l => POINTS_PLACEHOLDER.test(l))?.search(POINTS_PLACEHOLDER) ?? 0;
+            const block = waypoints
+                // A heading lands on the last point only: that is the one EZ boomerangs onto
+                .map((point, i) => renderPoint(
+                    resolvedDef.pointTemplate!,
+                    point,
+                    i === waypoints.length - 1 ? facing.angle : null,
+                    mergedK,
+                    k,
+                ))
+                .join(',\n' + ' '.repeat(column));
+            line = line.replace(POINTS_PLACEHOLDER, block);
+        }
 
         if (kBuilderStr === "") {
             line = line.replace(/,\s*\$\{kBuilder\}/g, "").replace(/\$\{kBuilder\}/g, "");
@@ -116,6 +190,9 @@ export function convertStringToPath<F extends Format>(
 
     const lines = pathString.split('\n').map(l => l.trim().replace(/\(\s+/g, '(').replace(/\s+\)/g, ')'));
 
+    /** Waypoints parsed out of a point block, awaiting the fit that needs the preceding segment. */
+    const pendingPoints = new Map<number, Coordinate[]>();
+
     let i = 0;
     while (i < lines.length) {
         if (!lines[i]) { i++; continue; }
@@ -124,14 +201,26 @@ export function convertStringToPath<F extends Format>(
         for (const [kind, segDef] of Object.entries(formatDef.segments) as [SegmentKind, SegmentDef<F>][]) {
             if (!segDef || segDef.castTo || !segDef.toStringTemplate) continue;
             const templateLineCount = segDef.toStringTemplate.split('\n').length;
-            const chunk = lines.slice(i, i + templateLineCount).join('\n');
-            const seg = parseSegmentLine(chunk, kind, segDef, formatDef, format);
-            if (seg) {
-                segments.push(seg);
-                i += templateLineCount;
+
+            // A point block is variable length, so the chunk grows a line at a time until the
+            // template matches. Smallest-first, so the shortest valid block wins and a run of
+            // them cannot be swallowed as one.
+            const maxLineCount = pointSpacing(segDef.toStringTemplate) === null
+                ? templateLineCount
+                : Math.min(lines.length - i, templateLineCount + MAX_POINT_BLOCK_LINES);
+
+            for (let lineCount = templateLineCount; lineCount <= maxLineCount; lineCount++) {
+                const chunk = lines.slice(i, i + lineCount).join('\n');
+                const parsed = parseSegmentLine(chunk, kind, segDef, formatDef, format);
+                if (!parsed) continue;
+
+                if (parsed.points) pendingPoints.set(segments.length, parsed.points);
+                segments.push(parsed.seg);
+                i += lineCount;
                 matched = true;
                 break;
             }
+            if (matched) break;
         }
         if (!matched) i++;
     }
@@ -144,15 +233,37 @@ export function convertStringToPath<F extends Format>(
         if (pos) segments[i] = { ...seg, pose: { ...seg.pose, x: pos.x, y: pos.y } };
     }
 
+    // Runs last: a curve's start is the segment in front of it, which only exists once every
+    // line has been parsed and any distance drive has been resolved to a coordinate
+    for (const [idx, points] of pendingPoints) {
+        const seg = segments[idx];
+        if (seg.pose.x === null || seg.pose.y === null) continue;
+        const startPose = getBackwardsSnapPose({ name: "", segments }, idx - 1);
+        if (startPose === null || startPose.x === null || startPose.y === null) continue;
+
+        const [c1, c2] = fitCubic(
+            { x: startPose.x, y: startPose.y },
+            { x: seg.pose.x, y: seg.pose.y },
+            points,
+        );
+        segments[idx] = { ...seg, controls: [createControlPoint(c1.x, c1.y), createControlPoint(c2.x, c2.y)] };
+    }
+
     return segments;
 }
 
-export function templateToRegex(template: string): { regex: RegExp; groups: string[] } {
+export function templateToRegex(template: string, anchored = true): { regex: RegExp; groups: string[] } {
     const groups: string[] = [];
     const hasOptKBuilder = template.includes(', ${kBuilder}');
     let t = template.replace(', ${kBuilder}', '__KBUILDER_OPT__');
 
     t = t.replace(/\$\{([^}]+)\}/g, (_, name: string) => {
+        // A point block is variable length and spans lines, so it gets its own class and a
+        // normalized group name; the `:N` spacing only matters to codegen
+        if (/^points(?::[\d.]+)?$/.test(name)) {
+            groups.push('points');
+            return '__POINTS__';
+        }
         groups.push(name);
         return COORD_PLACEHOLDERS.has(name) ? '__COORD__' : '__FIELD__';
     });
@@ -164,9 +275,34 @@ export function templateToRegex(template: string): { regex: RegExp; groups: stri
         t = t.replace('__KBUILDER_OPT__', '(?:, (.+))?');
     }
     t = t.replace(/__COORD__/g, '(-?[\\d.]+)');
+    // Greedy: the block's own text is full of the same punctuation that closes it, so matching
+    // backwards from the end of the chunk finds the real terminator far faster than forwards.
+    // Chunks are grown smallest-first, so this cannot swallow a following segment.
+    t = t.replace(/__POINTS__/g, '([\\s\\S]+)');
     t = t.replace(/__FIELD__/g, '([^,)]+?)');
 
-    return { regex: new RegExp(`^\\s*${t}\\s*$`), groups };
+    // Unanchored is for matching one entry inside a larger block, where the surrounding text is
+    // the rest of the vector rather than the end of the line
+    return { regex: new RegExp(anchored ? `^\\s*${t}\\s*$` : t), groups };
+}
+
+/**
+ * Pulls the coordinates out of an expanded point block, ignoring everything wrapped around them.
+ * Deliberately loose about the surrounding syntax: the point template is user editable, so the
+ * only thing that can be relied on is a pair of numbers with an optional unit suffix, optionally
+ * followed by a heading on the point that carries one.
+ */
+function parsePointBlock(block: string): { points: Coordinate[]; endAngle: number | null } {
+    const points: Coordinate[] = [];
+    let endAngle: number | null = null;
+
+    const pointRegex = /\{\s*(-?[\d.]+)\s*\w*\s*,\s*(-?[\d.]+)\s*\w*\s*(?:,\s*(-?[\d.]+)\s*\w*\s*)?\}/g;
+    for (const match of block.matchAll(pointRegex)) {
+        points.push({ x: parseFloat(match[1]), y: parseFloat(match[2]) });
+        endAngle = match[3] !== undefined ? parseFloat(match[3]) : null;
+    }
+
+    return { points, endAngle };
 }
 
 function parseSegmentLine<F extends Format>(
@@ -175,7 +311,7 @@ function parseSegmentLine<F extends Format>(
     segDef: SegmentDef<F>,
     formatDef: FormatDef<F>,
     format: F
-): Segment | null {
+): { seg: Segment; points?: Coordinate[] } | null {
     if (!segDef.toStringTemplate) return null;
     const { regex, groups } = templateToRegex(segDef.toStringTemplate);
     const match = line.match(regex);
@@ -183,6 +319,35 @@ function parseSegmentLine<F extends Format>(
 
     const captured: Record<string, string> = {};
     groups.forEach((name, i) => { captured[name] = match[i + 1] ?? ''; });
+
+    // A point block stands in for the coordinates the template would otherwise name directly:
+    // the curve ends on the last waypoint, and a heading there is the pose it boomerangs onto
+    let blockPoints: Coordinate[] | undefined;
+    if ('points' in captured) {
+        const { points, endAngle } = parsePointBlock(captured.points);
+        if (points.length === 0) return null;
+
+        // Constants written into each point, like direction and speed, are only named by the
+        // point template, so the outer match never sees them. They are the same on every entry,
+        // so matching the first one recovers them for the constants pass below.
+        if (segDef.pointTemplate) {
+            const interior = segDef.pointTemplate.replace(/,\s*[^,{}]*\$\{angle\}[^,{}]*/, '');
+            const { regex: pointRegex, groups: pointGroups } = templateToRegex(interior, false);
+            const pointMatch = captured.points.match(pointRegex);
+            if (pointMatch) {
+                pointGroups.forEach((name, i) => {
+                    if (COORD_PLACEHOLDERS.has(name) || name in captured) return;
+                    captured[name] = pointMatch[i + 1] ?? '';
+                });
+            }
+        }
+
+        const end = points[points.length - 1];
+        captured.x = String(end.x);
+        captured.y = String(end.y);
+        if (endAngle !== null) captured.angle = String(endAngle);
+        blockPoints = points;
+    }
 
     const pointBased = isPointBased(kind);
     const capturedX = 'x' in captured ? parseFloat(captured.x) : null;
@@ -209,7 +374,7 @@ function parseSegmentLine<F extends Format>(
     }
 
     for (const [name, value] of Object.entries(captured)) {
-        if (COORD_PLACEHOLDERS.has(name) || name === 'kBuilder' || !value) continue;
+        if (COORD_PLACEHOLDERS.has(name) || name === 'kBuilder' || name === 'points' || !value) continue;
         const num = parseFloat(value);
         const parsed: unknown = isNaN(num) ? value.trim() : num;
         // ${idx:key} placeholders address one constants group by position instead of broadcasting by key
@@ -241,18 +406,21 @@ function parseSegmentLine<F extends Format>(
     }
 
     return {
-        id: makeId(10),
-        selected: false, disabled: false, visible: true,
-        format,
-        kind,
-        pose: { x, y, angle },
-        turnPose: { x: pointBased ? capturedX : 0, y: pointBased ? capturedY : 0, angle: turnAngle },
-        // The pasted coordinate may or may not be one the path derives; paste decides (applyTurnLocks)
-        turnLocked: false,
-        constants,
-        controls,
-        distance: parsedDistance !== undefined && !isNaN(parsedDistance) ? parsedDistance : 0,
-        time: parsedTime !== undefined && !isNaN(parsedTime) ? parsedTime : 0,
+        seg: {
+            id: makeId(10),
+            selected: false, disabled: false, visible: true,
+            format,
+            kind,
+            pose: { x, y, angle },
+            turnPose: { x: pointBased ? capturedX : 0, y: pointBased ? capturedY : 0, angle: turnAngle },
+            // The pasted coordinate may or may not be one the path derives; paste decides (applyTurnLocks)
+            turnLocked: false,
+            constants,
+            controls,
+            distance: parsedDistance !== undefined && !isNaN(parsedDistance) ? parsedDistance : 0,
+            time: parsedTime !== undefined && !isNaN(parsedTime) ? parsedTime : 0,
+        },
+        points: blockPoints,
     };
 }
 
@@ -373,8 +541,13 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
             case "bezierCurve": {
                 const bezier = resolveBezier(path, idx);
                 if (bezier === null) break;
-                const points = sampleBezier(bezier, 400);
-                const arcLength = polylineLength(points);
+                const dense = sampleBezier(bezier, 400);
+                const arcLength = polylineLength(dense);
+                // A format that exports a waypoint vector is simulated on that same vector, at the
+                // spacing its own template asks for, so the preview shows what the robot will get
+                // rather than a curve the generated code never mentions
+                const spacing = pointSpacing(resolvedSimDef.toStringTemplate);
+                const points = spacing === null ? dense : resamplePolyline(dense, spacing);
                 auton.push(
                     (robot: Robot, dt: number): [boolean, SegmentKind, number] => {
                         if (!started) {

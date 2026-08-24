@@ -66,6 +66,12 @@ export type FormatDef<F extends Format, Segs extends Partial<Record<SegmentKind,
 export type SegmentDef<F extends Format = Format> = {
     defaults?: SegmentConstants<F>;
     toStringTemplate?: string;
+    /**
+     * Body of one point emitted by a `${points:N}` placeholder, taking the same placeholders as
+     * toStringTemplate. A term containing `${angle}` is dropped along with its leading comma on
+     * every point that carries no heading, so one template covers both shapes.
+     */
+    pointTemplate?: string;
     name?: string;
     castTo?: SegmentKind
     /** Heading a newly placed segment starts on. Left unset, kinds with an optional heading start with none. */

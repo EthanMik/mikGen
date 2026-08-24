@@ -1,9 +1,6 @@
 import { getUnequalKeys, normalizeDeg, roundOff } from "../../core/Util";
-import { type FormatDef, type NumberInputGroup, type CycleButtonField, type SegmentKind, type ActionButtonField } from "../FormatDefinition";
+import { type FormatDef, type NumberInputGroup, type CycleButtonField, type SegmentKind } from "../FormatDefinition";
 import type { Pose } from "../../core/Types/Pose";
-import { bezierEndpoints, chordControlPosition, segmentControls } from "../../core/Types/Bezier";
-import { createControlPoint } from "../../core/Types/Pose";
-import plus from "../../assets/plus.svg";
 import ccw from "../../assets/ccw.svg";
 import cw from "../../assets/cw.svg";
 import cwccw from "../../assets/cwwcw.svg";
@@ -21,6 +18,7 @@ import { swing_to_angle } from "./DriveMotions/SwingToAngle";
 import { swing_to_point } from "./DriveMotions/SwingToPoint";
 import { follow_path, reset_follow_path } from "./DriveMotions/FollowPath";
 import { turnLockButton } from "../TurnFields";
+import { addControlButton } from "../BezierFields";
 
 export interface mikConstants {
     max_voltage: number;
@@ -190,22 +188,6 @@ const turnFaceButton: CycleButton = {
     ],
     turnPoseValue: (pose) => normalizeDeg(pose.angle ?? 0) === 180 ? "180" : "0",
     turnPoseEffect: (val) => ({ angle: val === "180" ? 180 : 0 }),
-};
-
-const addControlButton: ActionButtonField = {
-    srcImg: plus,
-    label: "Add Control",
-    onPress: (path, idx) => {
-        const seg = path.segments[idx];
-        const controls = segmentControls(seg);
-        if (controls.length >= 2) return undefined;
-
-        const ends = bezierEndpoints(path, idx);
-        if (ends === null) return undefined;
-
-        const pos = chordControlPosition(ends.p0, ends.p1, controls.length);
-        return { controls: [...controls, createControlPoint(pos.x, pos.y)] };
-    },
 };
 
 export const mikLibDef = {
