@@ -150,7 +150,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		selectInversePath, undo, redo, addPointDriveSegment, addStartSegment,
 		addPointTurnSegment, addPoseDriveSegment, addAngleTurnSegment, addDistanceSegment, addStrafeSegment,
 		addAngleSwingSegment, addPointSwingSegment, addBezierSegment, fieldZoomKeyboard, fieldZoomWheel,
-		fieldPanWheel, cut, paste, copy,
+		fieldPanWheel, cut, paste, copy, addPoseDrive2Segment,
 	} = FieldMacros();
 
 	const { toggleRobotVisibility, togglePrecisePath, toggleOnionLayers, toggleLoopPath } = PathSimMacros();
@@ -737,6 +737,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		addPoseDriveSegment(evt, format, { x: pos.x, y: pos.y, angle: 0 }, setPath, path);
 		addPointDriveSegment(evt, format, pos, setPath, path);
 		addDistanceSegment(evt, format, { x: pos.x, y: pos.y, angle: null }, setPath, path);
+		addPoseDrive2Segment(evt, format, { x: pos.x, y: pos.y, angle: 0 }, setPath, path);
 		addStrafeSegment(evt, format, { x: pos.x, y: pos.y, angle: null }, setPath, path);
 		addPointTurnSegment(evt, format, setPath, path);
 		addAngleTurnSegment(evt, format, setPath, path);

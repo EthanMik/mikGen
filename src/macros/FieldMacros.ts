@@ -488,15 +488,16 @@ export default function FieldMacros() {
 
     /** Ctrl + Left click */
     const addPoseDriveSegment = (evt: React.MouseEvent<Element> | null, format: Format, position: Pose, setPath: React.Dispatch<SetStateAction<Path>>, path: Path) => {
-        if (evt !== null && !(evt.ctrlKey && !evt.altKey && evt.button === 0)) return;
+        if (evt !== null && !(evt.ctrlKey && !evt.altKey && !evt.shiftKey && evt.button === 0)) return;
         const formatDef = fileFormatStore.getState().formatDef;
         if (formatDef.segments["poseDrive"]?.castTo) return;
         if (path.segments.length === 0) return addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath);
         addSegment(createSegment(formatDef, format, "poseDrive", position), setPath);
     }
-
+    
+    /** Ctrl + Shift + Left click */
     const addPoseDrive2Segment = (evt: React.MouseEvent<Element> | null, format: Format, position: Pose, setPath: React.Dispatch<SetStateAction<Path>>, path: Path) => {
-        if (evt !== null && !(evt.ctrlKey && !evt.altKey && evt.button === 0)) return;
+        if (evt !== null && !(evt.ctrlKey && evt.shiftKey && !evt.altKey && evt.button === 0)) return;
         const formatDef = fileFormatStore.getState().formatDef;
         if (formatDef.segments["poseDrive2"]?.castTo) return;
         if (path.segments.length === 0) return addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath);
