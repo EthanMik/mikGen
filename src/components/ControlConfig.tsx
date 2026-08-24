@@ -308,13 +308,14 @@ export default function ControlConfig() {
         ) return;
 
         // Kinds whose heading is optional can be cleared back to null without changing kind
-        const headingOptional = selectedSegment.kind === "poseDrive" || selectedSegment.kind === "distanceDrive"
-            || selectedSegment.kind === "strafeDrive" || selectedSegment.kind === "bezierCurve";
+        const headingOptional = selectedSegment.kind === "poseDrive" || selectedSegment.kind === "poseDrive2"
+            || selectedSegment.kind === "distanceDrive" || selectedSegment.kind === "strafeDrive"
+            || selectedSegment.kind === "bezierCurve";
         if (newHeading === null && !headingOptional) return;
         if (newHeading !== null) newHeading = normalizeDeg(newHeading);
         setPath(prev => {
                 let kind = selectedSegment.kind;
-                if (selectedSegment.kind === "poseDrive" && newHeading === null) {
+                if ((selectedSegment.kind === "poseDrive" || selectedSegment.kind === "poseDrive2") && newHeading === null) {
                     kind = "pointDrive";
                 }
                 if (selectedSegment.kind === "pointDrive" && newHeading !== null) {

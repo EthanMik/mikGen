@@ -291,7 +291,8 @@ export const getSegmentPointsInch = (idx: number, path: Path): Coordinate[] | nu
         return sampleBezier(bezier, BEZIER_RENDER_STEPS);
     }
 
-    if ((m.kind === "poseDrive" && m.format === "Holonomic") || m.kind === "pointDrive" || m.kind === "distanceDrive" || m.kind === "strafeDrive") {
+    // poseDrive2 drives straight at its pose rather than boomeranging onto it, so it previews as a line
+    if (m.kind === "poseDrive2" || m.kind === "pointDrive" || m.kind === "distanceDrive" || m.kind === "strafeDrive") {
         return [start, end];
     }
 

@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { FORMAT_REGISTRY, getDefaultConstants, mergeFormatDef, mergeSavedConstants, resolveKind, type Format, type FormatDef } from "./FormatDefinition";
 import type { mikConstants } from "./mikLibSim/MikConstants";
 
-const holonomicDef = FORMAT_REGISTRY["Holonomic"] as FormatDef<Format>;
-const poseDefaults = holonomicDef.segments.poseDrive!.defaults!;
+const holonomicDef = FORMAT_REGISTRY["mikLib Holonomic"] as FormatDef<Format>;
+const poseDefaults = holonomicDef.segments.poseDrive2!.defaults!;
 
 describe("mergeSavedConstants", () => {
     it("pads a stale two-entry array out to the current three", () => {
@@ -64,7 +64,7 @@ describe("getDefaultConstants", () => {
     });
 
     it("falls back to the format constants for a kind it has never heard of", () => {
-        const constants = getDefaultConstants(holonomicDef, "Holonomic", "teleport" as never);
+        const constants = getDefaultConstants(holonomicDef, "mikLib Holonomic", "teleport" as never);
         expect(Array.isArray(constants)).toBe(true);
     });
 });
@@ -73,11 +73,11 @@ describe("mergeFormatDef", () => {
     it("pads stale saved defaults out to the registry shape", () => {
         const savedFile = {
             segments: {
-                poseDrive: { defaults: [{ ...poseDefaults[0], kp: 7 }, poseDefaults[1]] },
+                poseDrive2: { defaults: [{ ...poseDefaults[0], kp: 7 }, poseDefaults[1]] },
             },
         };
         const merged = mergeFormatDef(holonomicDef, savedFile);
-        const defaults = merged.segments.poseDrive!.defaults!;
+        const defaults = merged.segments.poseDrive2!.defaults!;
 
         expect(defaults).toHaveLength(3);
         expect((defaults[0] as mikConstants).kp).toBe(7);

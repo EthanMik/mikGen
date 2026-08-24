@@ -35,7 +35,7 @@ export default function RobotButton() {
     };
 
     const handleToggleHolonomic = (checked: boolean) => {
-        const newFormat = checked ? "Holonomic" : "mikLib";
+        const newFormat = checked ? "mikLib Holonomic" : "mikLib";
         const changed = prevFormatRef.current !== newFormat;
         changeFormat(newFormat);
         mergeRobot({ holonomicRobot: checked });
@@ -49,8 +49,8 @@ export default function RobotButton() {
                 <Section name="General">
                     <NumberInputButton name="Width" value={robot.width} setValue={v => v !== null && mergeRobot({ width: v })} bounds={[0, 30]} stepSize={1} roundTo={1} units="in" />
                     <NumberInputButton name="Height" value={robot.height} setValue={v => v !== null && mergeRobot({ height: v })} bounds={[0, 30]} stepSize={1} roundTo={1} units="in" />
-                    {(format === "mikLib" || format === "Holonomic") && (
-                        <ConfigCheckboxButton name="Holonomic" checked={format === "Holonomic"} label="Toggle format to mikLib Holonomic" setChecked={handleToggleHolonomic} />
+                    {(format === "mikLib" || format === "mikLib Holonomic") && (
+                        <ConfigCheckboxButton name="Holonomic" checked={format === "mikLib Holonomic"} label="Toggle format to mikLib Holonomic" setChecked={handleToggleHolonomic} />
                     )}
                 </Section>
                 <Section name="Motion" defaultCollapsed>

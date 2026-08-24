@@ -378,6 +378,10 @@ export const mikLibDef = {
 
         strafeDrive: {
             castTo: "distanceDrive"
+        },
+
+        poseDrive2: {
+            castTo: "poseDrive"
         }
 
 

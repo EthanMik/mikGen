@@ -19,6 +19,7 @@ export default function AddSegmentButton() {
         addPointDriveSegment,
         addPointTurnSegment,
         addPoseDriveSegment,
+        addPoseDrive2Segment,
         addAngleTurnSegment,
         addAngleSwingSegment,
         addPointSwingSegment,
@@ -42,6 +43,9 @@ export default function AddSegmentButton() {
             {visible("poseDrive") && <Tooltip label="Ctrl+Left Click" placement="right" speed="fast">
                 <ConfigKeybindButton name={segName("poseDrive")} color={segColor("poseDrive")} callback={() => addPoseDriveSegment(null, format, { x: 0, y: 0, angle: 0 }, setPath, getPath())} />
             </Tooltip>}
+            {visible("poseDrive2") && (
+                <ConfigKeybindButton name={segName("poseDrive2")} color={segColor("poseDrive2")} callback={() => addPoseDrive2Segment(null, format, { x: 0, y: 0, angle: 0 }, setPath, getPath())} />
+            )}
             {visible("bezierCurve") && <Tooltip label="Shift+Left Click" placement="right" speed="fast">
                 <ConfigKeybindButton name={segName("bezierCurve")} color={segColor("bezierCurve")} callback={() => addBezierSegment(null, format, { x: 0, y: 0, angle: null }, setPath, getPath())} />
             </Tooltip>}

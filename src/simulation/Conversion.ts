@@ -484,6 +484,7 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
                 break;
 
             case "poseDrive":
+            case "poseDrive2":
             case "pointDrive":
                 auton.push(
                     (robot: Robot, dt: number): [boolean, SegmentKind, number] => {

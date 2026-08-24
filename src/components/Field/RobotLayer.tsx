@@ -111,7 +111,7 @@ export default function RobotLayer({ img, robotConstants, visible, path }: Robot
     const [ format, ] = useFormat();
     const computedPath = computedPathStore.useStore();
 
-    const bgColor = format === "Holonomic" ? MECANUM_COLOR : TANK_COLOR;
+    const bgColor = format === "mikLib Holonomic" ? MECANUM_COLOR : TANK_COLOR;
 
     // Only the recompute writes the store, so the layers are sampled once per path change
     // rather than once per animation frame

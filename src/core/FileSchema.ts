@@ -4,8 +4,8 @@ import { createSegment, type Segment } from "./Types/Segment"
 import { normalizeDeg } from "./Util"
 import type { ControlPoint, Pose } from "./Types/Pose"
 import {
-    FORMAT_REGISTRY, getDefaultConstants, mergeFormatDef, mergeSavedConstants, resolveKind,
-    stripFormatDefForSave, type Format, type FormatDef,
+    FORMAT_REGISTRY, getDefaultConstants, LEGACY_FORMATS, mergeFormatDef, mergeSavedConstants,
+    resolveKind, stripFormatDefForSave, type Format, type FormatDef,
 } from "../simulation/FormatDefinition"
 
 // One list, so the type and the runtime check can never drift apart
@@ -207,6 +207,32 @@ function seedPath(formatDef: FormatDef<Format>, format: Format, raw: unknown, re
     return { name, segments };
 }
 
+type KindMap = NonNullable<(typeof LEGACY_FORMATS)[string]["kinds"]>;
+
+/** A saved path whose segments sat on kinds the format has since moved, rewritten onto the new ones. */
+function remapPathKinds(raw: unknown, kinds: KindMap): unknown {
+    const p = asRecord(raw);
+    if (!Array.isArray(p.segments)) return raw;
+    return {
+        ...p,
+        segments: p.segments.map(s => {
+            const seg = asRecord(s);
+            const moved = kinds[seg.kind as Segment["kind"]];
+            return moved ? { ...seg, kind: moved } : s;
+        }),
+    };
+}
+
+/** The same rewrite for a saved formatDef, whose per-kind edits are keyed by the old kind names. */
+function remapDefKinds(raw: unknown, kinds: KindMap): unknown {
+    const d = asRecord(raw);
+    if (!d.segments || typeof d.segments !== "object") return raw;
+    const segments = Object.fromEntries(
+        Object.entries(d.segments as object).map(([k, v]) => [kinds[k as Segment["kind"]] ?? k, v])
+    );
+    return { ...d, segments };
+}
+
 /**
  * The one way untrusted data becomes a FileFormat. Never throws and never returns a hole: anything
  * it cannot make sense of is replaced with the correct default, and what it replaced is pushed to
@@ -216,23 +242,37 @@ export function seedFileFormat(raw: unknown, repairs: string[] = []): FileFormat
     const p = asRecord(raw);
 
     let format = DEFAULT_FORMAT.format;
+    // A file saved under a format's old key ("Holonomic" before it became "mikLib Holonomic") is a
+    // rename to carry across, not an unknown format to fall back from
+    const legacy = typeof p.format === "string" ? LEGACY_FORMATS[p.format] : undefined;
     if (typeof p.format === "string" && p.format in FORMAT_REGISTRY) format = p.format as Format;
+    else if (legacy) format = legacy.format;
     else if (p.format !== undefined) repairs.push(`unknown format "${String(p.format)}"`);
 
     let field = DEFAULT_FIELD_KEY;
     if (VALID_FIELDS.has(p.field as FieldType)) field = p.field as FieldType;
     else if (p.field !== undefined) repairs.push(`unknown field "${String(p.field)}"`);
 
+    const kinds = legacy?.kinds;
     // The saved def carries the user's edited defaults and templates, so it merges over the
     // registry rather than replacing it. "defaults" is what pre-1.0.0 files called this key.
-    const formatDef = mergeFormatDef(FORMAT_REGISTRY[format] as FormatDef<Format>, p.formatDef ?? p.defaults);
+    const savedDef = p.formatDef ?? p.defaults;
+    const formatDef = mergeFormatDef(
+        FORMAT_REGISTRY[format] as FormatDef<Format>,
+        kinds ? remapDefKinds(savedDef, kinds) : savedDef,
+    );
+
+    const path = seedPath(formatDef, format, kinds ? remapPathKinds(p.path, kinds) : p.path, repairs);
+    // The old key's auto-assigned path name was baked into the file the moment the format was
+    // picked, so the rename has to reach it too. A name the user chose themselves is left alone.
+    if (legacy && path.name === legacy.pathName) path.name = formatDef.formatPathName;
 
     return {
         format,
         field,
         formatDef,
         robot: seedRobot(p.robot, repairs),
-        path: seedPath(formatDef, format, p.path, repairs),
+        path,
     };
 }
 

@@ -15,12 +15,14 @@ export type Format =
     | "JAR-Template"
     | "LemLib"
     | "RW-Template"
-    | "Holonomic"
+    | "mikLib Holonomic"
     | "EZ-Template"
 
 export type SegmentKind =
     | "pointDrive"
     | "poseDrive"
+    /** A drive to pose that goes straight at the target, so it previews as a line, not a lead curve. */
+    | "poseDrive2"
     | "pointTurn"
     | "angleTurn"
     | "angleSwing"
@@ -35,7 +37,7 @@ export type FormatConstants = {
     mikLib: mikConstants;
     "JAR-Template": JarConstants;
     LemLib: LemConstants;
-    "Holonomic": mikConstants;
+    "mikLib Holonomic": mikConstants;
     "RW-Template": mikConstants;
     "EZ-Template": EZconstants;
 };
@@ -45,10 +47,26 @@ export const FORMAT_REGISTRY = {
     mikLib: mikLibDef,
     "JAR-Template": JarTemplateDef,
     "RW-Template": LemLibDef,
-    Holonomic: holonomicDef,
+    "mikLib Holonomic": holonomicDef,
     "EZ-Template": EZTemplateDef,
 
 } as unknown as { [F in Format]: FormatDef<F> };
+
+/**
+ * Format keys that files were saved under before a rename, with the auto-assigned path name that
+ * went with them and any segment kind the format has since moved. Seeding maps all three across,
+ * so a file written under the old key opens on the renamed format with its motions intact instead
+ * of falling back to the default format.
+ */
+export const LEGACY_FORMATS: Record<string, {
+    format: Format;
+    pathName: string;
+    kinds?: Partial<Record<SegmentKind, SegmentKind>>;
+}> = {
+    // holonomic_to_pose used to be this format's poseDrive; it lives on poseDrive2 now that
+    // poseDrive carries the tank drive_to_pose as well
+    Holonomic: { format: "mikLib Holonomic", pathName: "Holonomic Path", kinds: { poseDrive: "poseDrive2" } },
+};
 
 export type FormatDef<F extends Format, Segs extends Partial<Record<SegmentKind, SegmentDef<F>>> = Partial<Record<SegmentKind, SegmentDef<F>>>> = {
     constants: SegmentConstants<F>;
@@ -187,7 +205,15 @@ export function mergeFormatDef(registry: FormatDef<Format>, saved: unknown): For
             slider: reg.slider,
         };
     }
-    return { ...registry, ...s, kBuilder: registry.kBuilder, kParser: registry.kParser, segments: segs } as FormatDef<Format>;
+    // formatPathName joins the functions in coming from the registry alone: nothing in the UI edits
+    // it, so a saved copy is only ever a stale one, and a renamed format has to reach old files
+    return {
+        ...registry, ...s,
+        formatPathName: registry.formatPathName,
+        kBuilder: registry.kBuilder,
+        kParser: registry.kParser,
+        segments: segs,
+    } as FormatDef<Format>;
 }
 
 const SEGMENT_UI_KEYS = new Set(['simFn', 'simReset', 'cycleButtons', 'actionButtons', 'numberInputs', 'slider']);

@@ -24,7 +24,7 @@ export default function FormatButton() {
     const handleClickItem = (newFormat: Format) => {
         const changed = prevFormatRef.current !== newFormat;
         changeFormat(newFormat);
-        mergeRobot({ holonomicRobot: newFormat === "Holonomic" });
+        mergeRobot({ holonomicRobot: newFormat === "mikLib Holonomic" });
         if (changed) saveSnapshot();
         prevFormatRef.current = newFormat;
     };

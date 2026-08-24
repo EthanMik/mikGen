@@ -13,7 +13,10 @@ vi.hoisted(() => {
     } as Storage;
 });
 
-import { insertIndexAfterSelection, selectedLastOrder } from "./FieldUtils";
+import { getSegmentPointsInch, insertIndexAfterSelection, selectedLastOrder } from "./FieldUtils";
+import { createSegment } from "../../core/Types/Segment";
+import { FORMAT_REGISTRY, type Format, type FormatDef } from "../../simulation/FormatDefinition";
+import type { Path } from "../../core/Types/Path";
 
 const segs = (...selected: boolean[]) => selected.map(s => ({ selected: s }));
 
@@ -89,5 +92,31 @@ describe("selectedLastOrder", () => {
             { selected: false },
         ];
         expect(selectedLastOrder(withControl)).toEqual([1, 0]);
+    });
+});
+
+const holoDef = FORMAT_REGISTRY["mikLib Holonomic"] as FormatDef<Format>;
+
+/** A start at the origin followed by one drive to a pose facing sideways, where the lead shows. */
+const holoPath = (kind: "poseDrive" | "poseDrive2"): Path => ({
+    name: "",
+    segments: [
+        createSegment(holoDef, "mikLib Holonomic", "start", { x: 0, y: 0, angle: 0 }),
+        createSegment(holoDef, "mikLib Holonomic", kind, { x: 24, y: 24, angle: 90 }),
+    ],
+});
+
+describe("getSegmentPointsInch", () => {
+    it("draws poseDrive2 as the straight line its motion actually takes", () => {
+        expect(getSegmentPointsInch(1, holoPath("poseDrive2"))).toEqual([{ x: 0, y: 0 }, { x: 24, y: 24 }]);
+    });
+
+    it("still draws poseDrive as the lead curve", () => {
+        const points = getSegmentPointsInch(1, holoPath("poseDrive"))!;
+
+        expect(points.length).toBeGreaterThan(2);
+        // Every point of a straight run from (0,0) to (24,24) sits on x === y
+        const mid = points[Math.floor(points.length / 2)];
+        expect(Math.abs(mid.x - mid.y)).toBeGreaterThan(1);
     });
 });

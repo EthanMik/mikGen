@@ -64,6 +64,22 @@ export const FIELD_COLORS: FieldColors = {
                 selectedScale: 1.12,
             },
         ],
+        poseDrive2: [
+            {
+                shape: "node",
+                baseColor: toRGBA("#056f2f", 0.5),
+                selectedColor: toRGBA("#07863a", 0.75),
+                hoverScale: 1.4,
+                selectedScale: 1,
+            },
+            {
+                shape: "line",
+                baseColor: toRGBA("#056f2f", 1),
+                selectedColor: toRGBA("#07863a", 1),
+                hoverScale: 1.2,
+                selectedScale: 1.12,
+            },
+        ],
         pointDrive: [
             {
                 shape: "node",

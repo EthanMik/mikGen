@@ -73,7 +73,8 @@ export function propagateStates(path: Path): RobotState[] {
                 break;
 
             case "pointDrive":
-            case "poseDrive": {
+            case "poseDrive":
+            case "poseDrive2": {
                 if (x === null || y === null) break;
                 const target = { x, y };
                 let bearing: number | null = pos && (pos.x !== target.x || pos.y !== target.y) ? calculateHeading(pos, target) : null;
@@ -83,7 +84,7 @@ export function propagateStates(path: Path): RobotState[] {
                     else if (direction === "fastest" && heading !== null && Math.abs(angleErrorDeg(bearing, heading)) > 90) bearing += 180;
                 }
                 pos = target;
-                heading = seg.kind === "poseDrive" && angle !== null ? angle : (bearing ?? heading);
+                heading = seg.kind !== "pointDrive" && angle !== null ? angle : (bearing ?? heading);
                 break;
             }
 

@@ -202,6 +202,10 @@ export const LemLibDef = {
             castTo: "pointDrive"
         },
 
+        poseDrive2: {
+            castTo: "poseDrive"
+        },
+
         bezierCurve: {
             castTo: "pointDrive"
         },

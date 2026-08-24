@@ -198,7 +198,10 @@ const oldDrive = {
 };
 const oldHeading = { ...oldDrive, kp: 0.4, kd: 1, settle_error: 1, timeout: 3000, slew: 0, drift: 0, lead: 0 };
 
-/** A trimmed copy of the file that crashed: old version header, stale defaults, stale robot keys. */
+/**
+ * A trimmed copy of the file that crashed: old version header, stale defaults, stale robot keys.
+ * Saved under "Holonomic", the key the format carried before it became "mikLib Holonomic".
+ */
 const staleFile = "mikGen v1.0.0\n" + JSON.stringify({
     format: "Holonomic",
     field: "pushback-vexu-match",
@@ -227,11 +230,12 @@ describe("loading a file saved before poseDrive grew translational constants", (
     it("fills the missing constants entry on segments and defaults", () => {
         const state = deserializeToState(staleFile, "Push-Back-AWP");
 
-        const pose = state.path.segments.find(s => s.kind === "poseDrive")!;
+        // The file's holonomic_to_pose was saved as poseDrive, which now means the tank drive
+        const pose = state.path.segments.find(s => s.kind === "poseDrive2")!;
         expect(pose.constants).toHaveLength(3);
         expect((pose.constants[2] as { kp: number }).kp).toBeDefined();
         expect((pose.constants[0] as { kp: number }).kp).toBe(1.5);
-        expect(state.formatDef.segments.poseDrive!.defaults!).toHaveLength(3);
+        expect(state.formatDef.segments.poseDrive2!.defaults!).toHaveLength(3);
     });
 
     it("keeps the saved robot values and fills the missing keys", () => {
@@ -263,6 +267,56 @@ describe("loading a file saved before poseDrive grew translational constants", (
         expect(sim.totalTime).toBeGreaterThan(0);
         expect(sim.trajectory.length).toBeGreaterThan(0);
         expect(Number.isFinite(sim.trajectory[sim.trajectory.length - 1].x)).toBe(true);
+    });
+});
+
+describe("loading a file saved under the old \"Holonomic\" format key", () => {
+    it("opens on mikLib Holonomic rather than falling back to the default format", () => {
+        const state = deserializeToState(staleFile, "Push-Back-AWP");
+
+        expect(state.format).toBe("mikLib Holonomic");
+        expect(state.formatDef.segments.strafeDrive!.defaults).toBeDefined();
+        expectValidFileFormat(state, "legacy Holonomic file");
+    });
+
+    it("moves its saved poseDrive motions onto poseDrive2, where holonomic_to_pose lives now", () => {
+        const state = deserializeToState(staleFile, "Push-Back-AWP");
+
+        expect(state.path.segments.map(s => s.kind)).toEqual(["start", "poseDrive2"]);
+        expect(state.formatDef.segments.poseDrive2!.name).toBe("Holonomic to Pose");
+        // The saved def's poseDrive edits moved with it, leaving the tank drive on the registry's
+        expect(state.formatDef.segments.poseDrive!.name).toBe("Drive to Pose");
+        expect(state.formatDef.segments.poseDrive!.defaults).toHaveLength(2);
+    });
+
+    it("does not report the rename as a repair", () => {
+        const repairs: string[] = [];
+        deserializeToState(staleFile, "Push-Back-AWP", repairs);
+
+        expect(repairs.some(r => r.includes("format"))).toBe(false);
+    });
+
+    it("renames the stale path name the old key auto-assigned", () => {
+        const state = seedFileFormat({ format: "Holonomic", path: { name: "Holonomic Path", segments: [] } });
+
+        expect(state.path.name).toBe("mikLib Holonomic Path");
+        expect(state.formatDef.formatPathName).toBe("mikLib Holonomic Path");
+    });
+
+    it("leaves a path name the user chose alone", () => {
+        const state = seedFileFormat({ format: "Holonomic", path: { name: "Left-Side-AWP", segments: [] } });
+
+        expect(state.path.name).toBe("Left-Side-AWP");
+    });
+
+    it("takes the format's current name over the one the file saved", () => {
+        const state = seedFileFormat({
+            format: "Holonomic",
+            formatDef: { formatPathName: "Holonomic Path" },
+            path: { name: "", segments: [] },
+        });
+
+        expect(state.formatDef.formatPathName).toBe("mikLib Holonomic Path");
     });
 });
 

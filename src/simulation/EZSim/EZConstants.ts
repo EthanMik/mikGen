@@ -422,6 +422,10 @@ export const EZTemplateDef = {
             castTo: "distanceDrive"
         },
 
+        poseDrive2: {
+            castTo: "poseDrive"
+        },
+
         bezierCurve: {
             name: "Follow Path",
             defaults: [driveConstants, boomerangConstants],

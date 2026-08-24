@@ -36,7 +36,7 @@ function loadEveryKind(format: Format, name = "My Auton") {
 
 const simulate = () => {
     const state = fileFormatStore.getState();
-    const robot = new Robot({ ...defaultRobotConstants, holonomicRobot: state.format === "Holonomic" });
+    const robot = new Robot({ ...defaultRobotConstants, holonomicRobot: state.format === "mikLib Holonomic" });
     return precomputePath(robot, convertPathToSim(state.formatDef, state.path));
 };
 
@@ -136,10 +136,10 @@ describe("changeFormat", () => {
         }
     });
 
-    it("survives the Holonomic drivetrain toggle on a path full of tank motions", () => {
+    it("survives the mikLib Holonomic drivetrain toggle on a path full of tank motions", () => {
         loadEveryKind("mikLib");
-        changeFormat("Holonomic");
-        expectValidFileFormat(fileFormatStore.getState(), "to Holonomic");
+        changeFormat("mikLib Holonomic");
+        expectValidFileFormat(fileFormatStore.getState(), "to mikLib Holonomic");
 
         changeFormat("mikLib");
         expectValidFileFormat(fileFormatStore.getState(), "back to mikLib");

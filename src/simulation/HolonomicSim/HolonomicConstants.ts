@@ -42,14 +42,15 @@ const holonomicNumberInputs = [
             { key: "starti", units: "", label: "Starti", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
         ]
     },
-] satisfies NumberInputGroup<"Holonomic">[];
+] satisfies NumberInputGroup<"mikLib Holonomic">[];
 
 export const holonomicDef = {
     ...mikLibDef,
-    formatPathName: "Holonomic Path",
+    formatPathName: "mikLib Holonomic Path",
     segments: {
         ...mikLibDef.segments,
-        poseDrive: {
+        // poseDrive stays mikLib's tank drive_to_pose, so both motions are available here
+        poseDrive2: {
             name: "Holonomic to Pose",
             defaults: [kMikDrive, kMikHeading, kTranslational],
             toStringTemplate: "chassis.holonomic_to_pose(${x}, ${y}, ${angle}, ${kBuilder});",
@@ -90,4 +91,4 @@ export const holonomicDef = {
             ],
         },
     },
-} satisfies FormatDef<"Holonomic">;
+} satisfies FormatDef<"mikLib Holonomic">;

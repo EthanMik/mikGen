@@ -274,6 +274,10 @@ export const JarTemplateDef = {
             castTo: "distanceDrive"
         },
 
+        poseDrive2: {
+            castTo: "poseDrive"
+        },
+
         bezierCurve: {
             castTo: "pointDrive"
         }
