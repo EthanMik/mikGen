@@ -50,7 +50,7 @@ export interface revConstants {
 }
 
 export const kRevDrive: revConstants = {
-    max_speed: 0.83,
+    max_speed: 0.8,
     min_speed: 0,
 
     kp: 0.125,
