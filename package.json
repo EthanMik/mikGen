@@ -9,9 +9,9 @@
     "build:docs": "cd docs && npm run build -- --out-dir ../dist/docs",
     "build:all": "npm run build && npm run build:docs",
     "lint": "eslint .",
-    "preview": "vite preview",
+    "preview": "vite preview --base /mikGen/",
     "test": "vitest",
-    "deploy": "npm run build && gh-pages -d dist --dotfiles"
+    "deploy": "npm run build:all && gh-pages -d dist"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.14",
