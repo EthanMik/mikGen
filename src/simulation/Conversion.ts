@@ -70,11 +70,20 @@ function renderPoint(
 /** The kinds that face a coordinate, and so read their target and offset off turnPose. */
 const isPointBased = (kind: SegmentKind): boolean => kind === "pointTurn" || kind === "pointSwing";
 
+/** A `, …${angle}…` argument, for templates where the heading is an optional trailing parameter. */
 const OPTIONAL_ANGLE_TERM = /,\s*[^,{}()]*\$\{angle\}[^,{}()]*/;
 
+/** The kinds a library also has an overload without a heading for. */
 const isHeadingOptional = (kind: SegmentKind): boolean =>
     kind === "distanceDrive" || kind === "strafeDrive" || kind === "bezierCurve";
 
+/**
+ * The template a segment with no heading renders through, dropping the whole `${angle}` term
+ * rather than leaving a hole behind, the same rule renderPoint applies inside a point block.
+ *
+ * Gated on the kind, not on the heading alone: a poseDrive stripped of its angle is a pointDrive
+ * line, so an ungated version lets whichever of the two the format lists first claim both.
+ */
 function templateForHeading(template: string, kind: SegmentKind, angle: number | null): string {
     return angle === null && isHeadingOptional(kind) ? template.replace(OPTIONAL_ANGLE_TERM, '') : template;
 }
@@ -336,7 +345,7 @@ function parseSegmentLine<F extends Format>(
     // Codegen drops the whole heading argument on a kind that left its heading unset, so the
     // template without it is the other shape this same kind can be written in
     if (!match) {
-        const headless = templateForHeading(segDef.toStringTemplate, null);
+        const headless = templateForHeading(segDef.toStringTemplate, kind, null);
         if (headless === segDef.toStringTemplate) return null;
         ({ regex, groups } = templateToRegex(headless));
         match = line.match(regex);
