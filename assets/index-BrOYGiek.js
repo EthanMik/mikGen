@@ -12954,10 +12954,10 @@ class LemPose {
   angle(other) {
     return Math.atan2(other.y - this.y, other.x - this.x);
   }
-  rotate(angle) {
+  rotate(angle2) {
     return new LemPose(
-      this.x * Math.cos(angle) - this.y * Math.sin(angle),
-      this.x * Math.sin(angle) + this.y * Math.cos(angle),
+      this.x * Math.cos(angle2) - this.y * Math.sin(angle2),
+      this.x * Math.sin(angle2) + this.y * Math.cos(angle2),
       this.theta
     );
   }
@@ -13005,7 +13005,7 @@ class LemTimer {
     this.paused = false;
   }
 }
-function slew$1(target2, current, maxChange) {
+function slew$2(target2, current, maxChange) {
   let change = target2 - current;
   if (maxChange === 0) return target2;
   if (change > maxChange) change = maxChange;
@@ -13022,9 +13022,9 @@ function toLemPose(pose, radians = false, standardPos = false) {
     theta
   );
 }
-function sanitizeAngle(angle, radians) {
-  if (radians) return (angle % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
-  else return (angle % 360 + 360) % 360;
+function sanitizeAngle(angle2, radians) {
+  if (radians) return (angle2 % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+  else return (angle2 % 360 + 360) % 360;
 }
 function angleError(target2, position, radians = true, direction = "AngularDirection::AUTO") {
   target2 = sanitizeAngle(target2, radians);
@@ -13052,10 +13052,10 @@ function getCurvature(pose, other) {
   if (d === 0) return 0;
   return side * (2 * x) / (d * d);
 }
-let lateralPID$1;
+let lateralPID$7;
 let lateralLargeExit$1;
 let lateralSmallExit$1;
-let angularPID$5;
+let angularPID$f;
 let lastPose;
 let timer$5;
 let close$1;
@@ -13063,16 +13063,16 @@ let prevLateralOut$1;
 let prevAngularOut;
 let prevSide;
 let target$2;
-let start$f = true;
+let start$p = true;
 function resetMoveToPoint() {
-  start$f = true;
+  start$p = true;
 }
 function moveToPoint(robot, dt, x, y, k) {
   const kLateral = k[0];
   const kAngular = k[1];
-  if (start$f) {
-    lateralPID$1 = new LemPID(kLateral);
-    angularPID$5 = new LemPID(kAngular);
+  if (start$p) {
+    lateralPID$7 = new LemPID(kLateral);
+    angularPID$f = new LemPID(kAngular);
     lateralLargeExit$1 = new LemExitCondition(kLateral.largeError, kLateral.largeErrorTimeout);
     lateralSmallExit$1 = new LemExitCondition(kLateral.smallError, kLateral.smallErrorTimeout);
     lastPose = toLemPose(robot.getPose());
@@ -13083,7 +13083,7 @@ function moveToPoint(robot, dt, x, y, k) {
     prevSide = null;
     target$2 = new LemPose(x, y);
     target$2.theta = lastPose.angle(target$2);
-    start$f = false;
+    start$p = false;
   }
   timer$5.update(dt);
   if (timer$5.isDone() || (lateralSmallExit$1.getExit() || lateralLargeExit$1.getExit()) && close$1) {
@@ -13113,13 +13113,13 @@ function moveToPoint(robot, dt, x, y, k) {
   const lateralError = pose.distance(target$2) * Math.cos(angleError(pose.theta, pose.angle(target$2)));
   lateralSmallExit$1.update(lateralError, dt);
   lateralLargeExit$1.update(lateralError, dt);
-  let lateralOut = lateralPID$1.update(lateralError);
-  let angularOut = angularPID$5.update(toDeg(angularError));
+  let lateralOut = lateralPID$7.update(lateralError);
+  let angularOut = angularPID$f.update(toDeg(angularError));
   if (close$1) angularOut = 0;
   angularOut = clamp(angularOut, -effectiveMaxSpeed, effectiveMaxSpeed);
-  angularOut = slew$1(angularOut, prevAngularOut, kAngular.slew);
+  angularOut = slew$2(angularOut, prevAngularOut, kAngular.slew);
   lateralOut = clamp(lateralOut, -effectiveMaxSpeed, effectiveMaxSpeed);
-  if (!close$1) lateralOut = slew$1(lateralOut, prevLateralOut$1, kLateral.slew);
+  if (!close$1) lateralOut = slew$2(lateralOut, prevLateralOut$1, kLateral.slew);
   if (kLateral.forwards && !close$1) lateralOut = Math.max(lateralOut, 0);
   else if (!kLateral.forwards && !close$1) lateralOut = Math.min(lateralOut, 0);
   if (kLateral.forwards && lateralOut < Math.abs(params.minSpeed) && lateralOut > 0) lateralOut = Math.abs(params.minSpeed);
@@ -13137,10 +13137,10 @@ function moveToPoint(robot, dt, x, y, k) {
   robot.tankDrive(leftPower / 127, rightPower / 127, dt);
   return false;
 }
-let lateralPID;
+let lateralPID$6;
 let lateralLargeExit;
 let lateralSmallExit;
-let angularPID$4;
+let angularPID$e;
 let angularLargeExit$4;
 let angularSmallExit$4;
 let timer$4;
@@ -13149,16 +13149,16 @@ let lateralSettled;
 let prevLateralOut;
 let prevSameSide;
 let target$1;
-let start$e = true;
+let start$o = true;
 function resetMoveToPose() {
-  start$e = true;
+  start$o = true;
 }
-function moveToPose(robot, dt, x, y, angle, k) {
+function moveToPose(robot, dt, x, y, angle2, k) {
   const kLateral = k[0];
   const kAngular = k[1];
-  if (start$e) {
-    lateralPID = new LemPID(kLateral);
-    angularPID$4 = new LemPID(kAngular);
+  if (start$o) {
+    lateralPID$6 = new LemPID(kLateral);
+    angularPID$e = new LemPID(kAngular);
     lateralLargeExit = new LemExitCondition(kLateral.largeError, kLateral.largeErrorTimeout);
     lateralSmallExit = new LemExitCondition(kLateral.smallError, kLateral.smallErrorTimeout);
     angularLargeExit$4 = new LemExitCondition(kAngular.largeError, kAngular.largeErrorTimeout);
@@ -13168,9 +13168,9 @@ function moveToPose(robot, dt, x, y, angle, k) {
     lateralSettled = false;
     prevLateralOut = 0;
     prevSameSide = false;
-    target$1 = new LemPose(x, y, Math.PI / 2 - toRad(angle));
+    target$1 = new LemPose(x, y, Math.PI / 2 - toRad(angle2));
     if (!kLateral.forwards) target$1.theta = (target$1.theta + Math.PI) % (2 * Math.PI);
-    start$e = false;
+    start$o = false;
   }
   timer$4.update(dt);
   if (timer$4.isDone() || lateralSettled && (angularLargeExit$4.getExit() || angularSmallExit$4.getExit()) && close) {
@@ -13206,11 +13206,11 @@ function moveToPose(robot, dt, x, y, angle, k) {
   lateralLargeExit.update(lateralError, dt);
   angularSmallExit$4.update(toDeg(angularError), dt);
   angularLargeExit$4.update(toDeg(angularError), dt);
-  let lateralOut = lateralPID.update(lateralError);
-  let angularOut = angularPID$4.update(toDeg(angularError));
+  let lateralOut = lateralPID$6.update(lateralError);
+  let angularOut = angularPID$e.update(toDeg(angularError));
   angularOut = clamp(angularOut, -effectiveMaxSpeed, effectiveMaxSpeed);
   lateralOut = clamp(lateralOut, -effectiveMaxSpeed, effectiveMaxSpeed);
-  if (!close) lateralOut = slew$1(lateralOut, prevLateralOut, params.slew);
+  if (!close) lateralOut = slew$2(lateralOut, prevLateralOut, params.slew);
   const radius = 1 / Math.abs(getCurvature(pose, carrot));
   const horizontalDrift = params.horizontalDrift !== 0 ? params.horizontalDrift : 2;
   const maxSlipSpeed = Math.sqrt(horizontalDrift * radius * 9.8);
@@ -13232,30 +13232,30 @@ function moveToPose(robot, dt, x, y, angle, k) {
   robot.tankDrive(leftPower / 127, rightPower / 127, dt);
   return false;
 }
-let angularPID$3;
+let angularPID$d;
 let angularLargeExit$3;
 let angularSmallExit$3;
 let timer$3;
 let prevRawDeltaTheta$3;
 let prevDeltaTheta$3;
 let prevMotorPower$3;
-let settling$5;
-let start$d = true;
+let settling$7;
+let start$n = true;
 function resetSwingToHeading() {
-  start$d = true;
+  start$n = true;
 }
-function swingToHeading(robot, dt, angle, k) {
+function swingToHeading(robot, dt, angle2, k) {
   const params = k[0];
-  if (start$d) {
-    angularPID$3 = new LemPID(params);
+  if (start$n) {
+    angularPID$d = new LemPID(params);
     angularLargeExit$3 = new LemExitCondition(params.largeError, params.largeErrorTimeout);
     angularSmallExit$3 = new LemExitCondition(params.smallError, params.smallErrorTimeout);
     timer$3 = new LemTimer(params.timeout);
     prevRawDeltaTheta$3 = null;
     prevDeltaTheta$3 = null;
     prevMotorPower$3 = 0;
-    settling$5 = false;
-    start$d = false;
+    settling$7 = false;
+    start$n = false;
   }
   timer$3.update(dt);
   if (timer$3.isDone() || angularLargeExit$3.getExit() || angularSmallExit$3.getExit()) {
@@ -13264,13 +13264,13 @@ function swingToHeading(robot, dt, angle, k) {
     return true;
   }
   const pose = toLemPose(robot.getPose(), false, false);
-  const rawDeltaTheta = angleError(angle, pose.theta, false);
+  const rawDeltaTheta = angleError(angle2, pose.theta, false);
   if (prevRawDeltaTheta$3 === null) prevRawDeltaTheta$3 = rawDeltaTheta;
-  if (Math.sign(rawDeltaTheta) !== Math.sign(prevRawDeltaTheta$3)) settling$5 = true;
+  if (Math.sign(rawDeltaTheta) !== Math.sign(prevRawDeltaTheta$3)) settling$7 = true;
   prevRawDeltaTheta$3 = rawDeltaTheta;
   let deltaTheta;
-  if (settling$5) deltaTheta = angleError(angle, pose.theta, false);
-  else deltaTheta = angleError(angle, pose.theta, false, params.direction);
+  if (settling$7) deltaTheta = angleError(angle2, pose.theta, false);
+  else deltaTheta = angleError(angle2, pose.theta, false, params.direction);
   if (prevDeltaTheta$3 === null) prevDeltaTheta$3 = deltaTheta;
   if (params.minSpeed !== 0 && Math.abs(deltaTheta) < params.earlyExitRange) {
     resetSwingToHeading();
@@ -13281,12 +13281,12 @@ function swingToHeading(robot, dt, angle, k) {
     return true;
   }
   prevDeltaTheta$3 = deltaTheta;
-  let motorPower = angularPID$3.update(deltaTheta);
+  let motorPower = angularPID$d.update(deltaTheta);
   angularLargeExit$3.update(deltaTheta, dt);
   angularSmallExit$3.update(deltaTheta, dt);
   if (motorPower > params.maxSpeed) motorPower = params.maxSpeed;
   else if (motorPower < -params.maxSpeed) motorPower = -params.maxSpeed;
-  if (Math.abs(deltaTheta) > 20) motorPower = slew$1(motorPower, prevMotorPower$3, params.slew);
+  if (Math.abs(deltaTheta) > 20) motorPower = slew$2(motorPower, prevMotorPower$3, params.slew);
   if (motorPower < 0 && motorPower > -Math.abs(params.minSpeed)) motorPower = -Math.abs(params.minSpeed);
   else if (motorPower > 0 && motorPower < Math.abs(params.minSpeed)) motorPower = Math.abs(params.minSpeed);
   prevMotorPower$3 = motorPower;
@@ -13297,30 +13297,30 @@ function swingToHeading(robot, dt, angle, k) {
   }
   return false;
 }
-let angularPID$2;
+let angularPID$c;
 let angularLargeExit$2;
 let angularSmallExit$2;
 let timer$2;
 let prevRawDeltaTheta$2;
 let prevDeltaTheta$2;
 let prevMotorPower$2;
-let settling$4;
-let start$c = true;
+let settling$6;
+let start$m = true;
 function resetSwingToPoint() {
-  start$c = true;
+  start$m = true;
 }
 function swingToPoint(robot, dt, x, y, k) {
   const params = k[0];
-  if (start$c) {
-    angularPID$2 = new LemPID(params);
+  if (start$m) {
+    angularPID$c = new LemPID(params);
     angularLargeExit$2 = new LemExitCondition(params.largeError, params.largeErrorTimeout);
     angularSmallExit$2 = new LemExitCondition(params.smallError, params.smallErrorTimeout);
     timer$2 = new LemTimer(params.timeout);
     prevRawDeltaTheta$2 = null;
     prevDeltaTheta$2 = null;
     prevMotorPower$2 = 0;
-    settling$4 = false;
-    start$c = false;
+    settling$6 = false;
+    start$m = false;
   }
   timer$2.update(dt);
   if (timer$2.isDone() || angularLargeExit$2.getExit() || angularSmallExit$2.getExit()) {
@@ -13333,10 +13333,10 @@ function swingToPoint(robot, dt, x, y, k) {
   const targetTheta = toDeg(Math.atan2(x - pose.x, y - pose.y)) % 360;
   const rawDeltaTheta = angleError(targetTheta, pose.theta, false);
   if (prevRawDeltaTheta$2 === null) prevRawDeltaTheta$2 = rawDeltaTheta;
-  if (Math.sign(rawDeltaTheta) !== Math.sign(prevRawDeltaTheta$2)) settling$4 = true;
+  if (Math.sign(rawDeltaTheta) !== Math.sign(prevRawDeltaTheta$2)) settling$6 = true;
   prevRawDeltaTheta$2 = rawDeltaTheta;
   let deltaTheta;
-  if (settling$4) deltaTheta = angleError(targetTheta, pose.theta, false);
+  if (settling$6) deltaTheta = angleError(targetTheta, pose.theta, false);
   else deltaTheta = angleError(targetTheta, pose.theta, false, params.direction);
   if (prevDeltaTheta$2 === null) prevDeltaTheta$2 = deltaTheta;
   if (params.minSpeed !== 0 && Math.abs(deltaTheta) < params.earlyExitRange) {
@@ -13348,12 +13348,12 @@ function swingToPoint(robot, dt, x, y, k) {
     return true;
   }
   prevDeltaTheta$2 = deltaTheta;
-  let motorPower = angularPID$2.update(deltaTheta);
+  let motorPower = angularPID$c.update(deltaTheta);
   angularLargeExit$2.update(deltaTheta, dt);
   angularSmallExit$2.update(deltaTheta, dt);
   if (motorPower > params.maxSpeed) motorPower = params.maxSpeed;
   else if (motorPower < -params.maxSpeed) motorPower = -params.maxSpeed;
-  if (Math.abs(deltaTheta) > 20) motorPower = slew$1(motorPower, prevMotorPower$2, params.slew);
+  if (Math.abs(deltaTheta) > 20) motorPower = slew$2(motorPower, prevMotorPower$2, params.slew);
   if (motorPower < 0 && motorPower > -Math.abs(params.minSpeed)) motorPower = -Math.abs(params.minSpeed);
   else if (motorPower > 0 && motorPower < Math.abs(params.minSpeed)) motorPower = Math.abs(params.minSpeed);
   prevMotorPower$2 = motorPower;
@@ -13364,30 +13364,30 @@ function swingToPoint(robot, dt, x, y, k) {
   }
   return false;
 }
-let angularPID$1;
+let angularPID$b;
 let angularLargeExit$1;
 let angularSmallExit$1;
 let timer$1;
 let prevRawDeltaTheta$1;
 let prevDeltaTheta$1;
 let prevMotorPower$1;
-let settling$3;
-let start$b = true;
+let settling$5;
+let start$l = true;
 function resetTurnToHeading() {
-  start$b = true;
+  start$l = true;
 }
-function turnToHeading(robot, dt, angle, k) {
+function turnToHeading(robot, dt, angle2, k) {
   const params = k[0];
-  if (start$b) {
-    angularPID$1 = new LemPID(params);
+  if (start$l) {
+    angularPID$b = new LemPID(params);
     angularLargeExit$1 = new LemExitCondition(params.largeError, params.largeErrorTimeout);
     angularSmallExit$1 = new LemExitCondition(params.smallError, params.smallErrorTimeout);
     timer$1 = new LemTimer(params.timeout);
     prevRawDeltaTheta$1 = null;
     prevDeltaTheta$1 = null;
     prevMotorPower$1 = 0;
-    settling$3 = false;
-    start$b = false;
+    settling$5 = false;
+    start$l = false;
   }
   timer$1.update(dt);
   if (timer$1.isDone() || angularLargeExit$1.getExit() || angularSmallExit$1.getExit()) {
@@ -13396,13 +13396,13 @@ function turnToHeading(robot, dt, angle, k) {
     return true;
   }
   const pose = toLemPose(robot.getPose(), false, false);
-  const rawDeltaTheta = angleError(angle, pose.theta, false);
+  const rawDeltaTheta = angleError(angle2, pose.theta, false);
   if (prevRawDeltaTheta$1 === null) prevRawDeltaTheta$1 = rawDeltaTheta;
-  if (Math.sign(rawDeltaTheta) !== Math.sign(prevRawDeltaTheta$1)) settling$3 = true;
+  if (Math.sign(rawDeltaTheta) !== Math.sign(prevRawDeltaTheta$1)) settling$5 = true;
   prevRawDeltaTheta$1 = rawDeltaTheta;
   let deltaTheta;
-  if (settling$3) deltaTheta = angleError(angle, pose.theta, false);
-  else deltaTheta = angleError(angle, pose.theta, false, params.direction);
+  if (settling$5) deltaTheta = angleError(angle2, pose.theta, false);
+  else deltaTheta = angleError(angle2, pose.theta, false, params.direction);
   if (prevDeltaTheta$1 === null) prevDeltaTheta$1 = deltaTheta;
   if (params.minSpeed !== 0 && Math.abs(deltaTheta) < params.earlyExitRange) {
     resetTurnToHeading();
@@ -13413,42 +13413,42 @@ function turnToHeading(robot, dt, angle, k) {
     return true;
   }
   prevDeltaTheta$1 = deltaTheta;
-  let motorPower = angularPID$1.update(deltaTheta);
+  let motorPower = angularPID$b.update(deltaTheta);
   angularLargeExit$1.update(deltaTheta, dt);
   angularSmallExit$1.update(deltaTheta, dt);
   if (motorPower > params.maxSpeed) motorPower = params.maxSpeed;
   else if (motorPower < -params.maxSpeed) motorPower = -params.maxSpeed;
-  if (Math.abs(deltaTheta) > 20) motorPower = slew$1(motorPower, prevMotorPower$1, params.slew);
+  if (Math.abs(deltaTheta) > 20) motorPower = slew$2(motorPower, prevMotorPower$1, params.slew);
   if (motorPower < 0 && motorPower > -Math.abs(params.minSpeed)) motorPower = -Math.abs(params.minSpeed);
   else if (motorPower > 0 && motorPower < Math.abs(params.minSpeed)) motorPower = Math.abs(params.minSpeed);
   prevMotorPower$1 = motorPower;
   robot.tankDrive(motorPower / 127, -motorPower / 127, dt);
   return false;
 }
-let angularPID;
+let angularPID$a;
 let angularLargeExit;
 let angularSmallExit;
 let timer;
 let prevRawDeltaTheta;
 let prevDeltaTheta;
 let prevMotorPower;
-let settling$2;
-let start$a = true;
+let settling$4;
+let start$k = true;
 function resetTurnToPoint() {
-  start$a = true;
+  start$k = true;
 }
 function turnToPoint(robot, dt, x, y, k) {
   const params = k[0];
-  if (start$a) {
-    angularPID = new LemPID(params);
+  if (start$k) {
+    angularPID$a = new LemPID(params);
     angularLargeExit = new LemExitCondition(params.largeError, params.largeErrorTimeout);
     angularSmallExit = new LemExitCondition(params.smallError, params.smallErrorTimeout);
     timer = new LemTimer(params.timeout);
     prevRawDeltaTheta = null;
     prevDeltaTheta = null;
     prevMotorPower = 0;
-    settling$2 = false;
-    start$a = false;
+    settling$4 = false;
+    start$k = false;
   }
   timer.update(dt);
   if (timer.isDone() || angularLargeExit.getExit() || angularSmallExit.getExit()) {
@@ -13461,10 +13461,10 @@ function turnToPoint(robot, dt, x, y, k) {
   const targetTheta = toDeg(Math.atan2(x - pose.x, y - pose.y)) % 360;
   const rawDeltaTheta = angleError(targetTheta, pose.theta, false);
   if (prevRawDeltaTheta === null) prevRawDeltaTheta = rawDeltaTheta;
-  if (Math.sign(rawDeltaTheta) !== Math.sign(prevRawDeltaTheta)) settling$2 = true;
+  if (Math.sign(rawDeltaTheta) !== Math.sign(prevRawDeltaTheta)) settling$4 = true;
   prevRawDeltaTheta = rawDeltaTheta;
   let deltaTheta;
-  if (settling$2) deltaTheta = angleError(targetTheta, pose.theta, false);
+  if (settling$4) deltaTheta = angleError(targetTheta, pose.theta, false);
   else deltaTheta = angleError(targetTheta, pose.theta, false, params.direction);
   if (prevDeltaTheta === null) prevDeltaTheta = deltaTheta;
   if (params.minSpeed !== 0 && Math.abs(deltaTheta) < params.earlyExitRange) {
@@ -13476,12 +13476,12 @@ function turnToPoint(robot, dt, x, y, k) {
     return true;
   }
   prevDeltaTheta = deltaTheta;
-  let motorPower = angularPID.update(deltaTheta);
+  let motorPower = angularPID$a.update(deltaTheta);
   angularLargeExit.update(deltaTheta, dt);
   angularSmallExit.update(deltaTheta, dt);
   if (motorPower > params.maxSpeed) motorPower = params.maxSpeed;
   else if (motorPower < -params.maxSpeed) motorPower = -params.maxSpeed;
-  if (Math.abs(deltaTheta) > 20) motorPower = slew$1(motorPower, prevMotorPower, params.slew);
+  if (Math.abs(deltaTheta) > 20) motorPower = slew$2(motorPower, prevMotorPower, params.slew);
   if (motorPower < 0 && motorPower > -Math.abs(params.minSpeed)) motorPower = -Math.abs(params.minSpeed);
   else if (motorPower > 0 && motorPower < Math.abs(params.minSpeed)) motorPower = Math.abs(params.minSpeed);
   prevMotorPower = motorPower;
@@ -13600,7 +13600,7 @@ const LemLibDef = {
       name: "Start",
       defaults: [kLemLinear],
       toStringTemplate: "chassis.setPose(${x}, ${y}, ${angle});",
-      simFn: (robot, _dt, x, y, angle) => robot.setPose(x, y, angle ?? 0),
+      simFn: (robot, _dt, x, y, angle2) => robot.setPose(x, y, angle2 ?? 0),
       cycleButtons: [],
       numberInputs: []
     },
@@ -13623,7 +13623,7 @@ const LemLibDef = {
       name: "Move to Pose",
       defaults: [kLemLinear, kLemAngular],
       toStringTemplate: "chassis.moveToPose(${x}, ${y}, ${angle}, ${timeout}, ${kBuilder});",
-      simFn: (robot, dt, x, y, angle, constants) => moveToPose(robot, dt, x, y, angle ?? 0, constants),
+      simFn: (robot, dt, x, y, angle2, constants) => moveToPose(robot, dt, x, y, angle2 ?? 0, constants),
       slider: { key: "maxSpeed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
       cycleButtons: [
         { constantsIdx: 0, ...forwardsButton }
@@ -13685,7 +13685,7 @@ const LemLibDef = {
       name: "Turn to Heading",
       defaults: [kLemAngular],
       toStringTemplate: "chassis.turnToHeading(${angle}, ${timeout}, ${kBuilder});",
-      simFn: (robot, dt, _x, _y, angle, constants) => turnToHeading(robot, dt, angle ?? 0, constants),
+      simFn: (robot, dt, _x, _y, angle2, constants) => turnToHeading(robot, dt, angle2 ?? 0, constants),
       slider: { key: "maxSpeed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
       cycleButtons: [
         { constantsIdx: 0, ...directionButton }
@@ -13699,7 +13699,7 @@ const LemLibDef = {
       name: "Swing to Angle",
       defaults: [kLemAngular],
       toStringTemplate: "chassis.swingToHeading(${angle}, ${lockedSide}, ${timeout}, ${kBuilder});",
-      simFn: (robot, dt, _x, _y, angle, constants) => swingToHeading(robot, dt, angle ?? 0, constants),
+      simFn: (robot, dt, _x, _y, angle2, constants) => swingToHeading(robot, dt, angle2 ?? 0, constants),
       slider: { key: "maxSpeed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
       cycleButtons: [
         { constantsIdx: 0, ...lockedSideButton },
@@ -13789,7 +13789,7 @@ function kLemParser(kDefault, kBuilderStr, kind) {
   return [constants, poseOverride];
 }
 const fastest$1 = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_296_2)'%3e%3cpath%20d='M20%204.96211C20%204.32319%2019.4821%203.80524%2018.8431%203.80524L3.96293%203.80524L4.88155%202.87553C5.10433%202.65007%205.2155%202.35622%205.2155%202.06246C5.2155%201.76408%205.10076%201.46578%204.87173%201.2395C4.41724%200.790433%203.68478%200.794817%203.23571%201.2493L0.334011%204.18602C0.119979%204.40263%206.10352e-05%204.6948%206.10352e-05%204.99911C6.10352e-05%205.0014%206.10352e-05%205.00376%208.30708e-05%205.00603C0.00193407%205.31283%200.125554%205.60637%200.343839%205.82201L3.24109%208.68473C3.69557%209.13379%204.42804%209.12941%204.8771%208.67492C5.32621%208.22041%205.3218%207.48795%204.8673%207.03888L3.93629%206.11896L18.8432%206.11896C19.4821%206.11898%2020%205.60104%2020%204.96211Z'%20fill='white'/%3e%3cpath%20d='M6.10352e-05%2013.0379C6.10352e-05%2013.6768%200.518009%2014.1948%201.15693%2014.1948H16.0638L15.1328%2015.1147C14.6783%2015.5637%2014.6739%2016.2962%2015.123%2016.7507C15.5721%2017.2052%2016.3045%2017.2096%2016.759%2016.7605L19.6562%2013.8978C19.8745%2013.6822%2019.9982%2013.3887%2020%2013.0819C20%2013.0796%2020%2013.0772%2020%2013.0749C20%2012.7706%2019.8801%2012.4784%2019.6661%2012.2618L16.7643%209.32506C16.3153%208.87057%2015.5828%208.86619%2015.1283%209.31525C14.6738%209.76431%2014.6694%2010.4968%2015.1185%2010.9513L16.0371%2011.881H1.15693C0.518009%2011.881%206.10352e-05%2012.399%206.10352e-05%2013.0379Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_296_2'%3e%3crect%20width='20'%20height='20'%20fill='white'%20transform='matrix(0%20-1%201%200%200%2020)'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
-let PID$2 = class PID {
+let PID$3 = class PID {
   constructor(dt, kp, ki, kd, starti, settle_time, settle_error, timeout, exit_error) {
     this.dt = dt;
     this.kp = kp;
@@ -13858,7 +13858,7 @@ let PID$2 = class PID {
     this.time_spent_settled = 0;
   }
 };
-function angle_error(error, direction) {
+function angle_error$1(error, direction) {
   if (direction === "fastest") return reduce_negative_180_to_180$1(error);
   switch (direction) {
     case "cw":
@@ -13867,46 +13867,46 @@ function angle_error(error, direction) {
       return error > 0 ? error - 360 : error;
   }
 }
-function reduce_negative_180_to_180$1(angle) {
-  if (!Number.isFinite(angle)) return 0;
-  while (!(angle >= -180 && angle < 180)) {
-    if (angle < -180) {
-      angle += 360;
+function reduce_negative_180_to_180$1(angle2) {
+  if (!Number.isFinite(angle2)) return 0;
+  while (!(angle2 >= -180 && angle2 < 180)) {
+    if (angle2 < -180) {
+      angle2 += 360;
     }
-    if (angle >= 180) {
-      angle -= 360;
+    if (angle2 >= 180) {
+      angle2 -= 360;
     }
   }
-  return angle;
+  return angle2;
 }
-function reduce_negative_90_to_90$1(angle) {
-  if (!Number.isFinite(angle)) return 0;
-  while (!(angle >= -90 && angle < 90)) {
-    if (angle < -90) {
-      angle += 180;
+function reduce_negative_90_to_90$1(angle2) {
+  if (!Number.isFinite(angle2)) return 0;
+  while (!(angle2 >= -90 && angle2 < 90)) {
+    if (angle2 < -90) {
+      angle2 += 180;
     }
-    if (angle >= 90) {
-      angle -= 180;
+    if (angle2 >= 90) {
+      angle2 -= 180;
     }
   }
-  return angle;
+  return angle2;
 }
 function is_line_settled$1(desired_X, desired_Y, desired_angle_deg, current_X, current_Y, exit_error) {
   return (desired_Y - current_Y) * Math.cos(toRad(desired_angle_deg)) <= -(desired_X - current_X) * Math.sin(toRad(desired_angle_deg)) + exit_error;
 }
-function slew_scaling(drive_output, prev_drive_output2, slew2, scale = true) {
+function slew_scaling(drive_output, prev_drive_output2, slew3, scale = true) {
   let change = drive_output - prev_drive_output2;
-  if (slew2 === 0 || !scale) return drive_output;
-  if (change > slew2) change = slew2;
-  else if (change < -slew2) change = -slew2;
+  if (slew3 === 0 || !scale) return drive_output;
+  if (change > slew3) change = slew3;
+  else if (change < -slew3) change = -slew3;
   return prev_drive_output2 + change;
 }
-function clamp_max_slip(drive_output, current_X, current_Y, current_angle_deg, desired_X, desired_Y, drift) {
+function clamp_max_slip$1(drive_output, current_X, current_Y, current_angle_deg, desired_X, desired_Y, drift) {
   if (drift <= 0) return drive_output;
-  const heading = toRad(current_angle_deg);
+  const heading2 = toRad(current_angle_deg);
   const dx = desired_X - current_X;
   const dy = desired_Y - current_Y;
-  const signed_dist = Math.cos(heading) * dx - Math.sin(heading) * dy;
+  const signed_dist = Math.cos(heading2) * dx - Math.sin(heading2) * dy;
   const x = Math.abs(signed_dist);
   const dist = Math.hypot(dx, dy);
   if (x === 0) return drive_output;
@@ -13949,57 +13949,57 @@ function clamp_min_voltage$1(drive_output, drive_min_voltage) {
 }
 const DRIVE_LARGE_SETTLE_ERROR$1 = 6;
 const BOOMERANG_MIN_VOLTAGE = 6;
-let start_line_settled$1 = false;
-let prev_drive_output$6 = 0;
-let prev_slew_output$1 = 0;
-let settling$1 = false;
+let start_line_settled$3 = false;
+let prev_drive_output$c = 0;
+let prev_slew_output$3 = 0;
+let settling$3 = false;
 let drive_max_speed = 0;
 let drivePID$7;
 let headingPID$5;
-let start$9 = true;
-function reset_drive_to_pose$1() {
+let start$j = true;
+function reset_drive_to_pose$2() {
   drivePID$7.reset();
   headingPID$5.reset();
-  start_line_settled$1 = false;
-  prev_drive_output$6 = 0;
-  prev_slew_output$1 = 0;
-  settling$1 = false;
-  start$9 = true;
+  start_line_settled$3 = false;
+  prev_drive_output$c = 0;
+  prev_slew_output$3 = 0;
+  settling$3 = false;
+  start$j = true;
 }
-function drive_to_pose$1(robot, dt, x, y, angle, p) {
+function drive_to_pose$2(robot, dt, x, y, angle2, p) {
   const drive_p = p[0];
   const heading_p = p[1];
-  if (drive_p.drive_direction === "reversed") angle = normalizeDeg(angle + 180);
-  if (start$9) {
-    drivePID$7 = new PID$2(dt, drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
-    headingPID$5 = new PID$2(dt, heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
+  if (drive_p.drive_direction === "reversed") angle2 = normalizeDeg(angle2 + 180);
+  if (start$j) {
+    drivePID$7 = new PID$3(dt, drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
+    headingPID$5 = new PID$3(dt, heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
     drive_max_speed = drive_p.max_voltage;
-    start$9 = false;
-    start_line_settled$1 = is_line_settled$1(x, y, angle, robot.getX(), robot.getY(), drive_p.exit_error);
+    start$j = false;
+    start_line_settled$3 = is_line_settled$1(x, y, angle2, robot.getX(), robot.getY(), drive_p.exit_error);
   }
   if (drivePID$7.isSettled()) {
-    reset_drive_to_pose$1();
+    reset_drive_to_pose$2();
     return true;
   }
   const target_distance = Math.hypot(x - robot.getX(), y - robot.getY());
-  let carrot_X = x - Math.sin(toRad(angle)) * (drive_p.lead * target_distance);
-  let carrot_Y = y - Math.cos(toRad(angle)) * (drive_p.lead * target_distance);
-  if (target_distance < Math.max(DRIVE_LARGE_SETTLE_ERROR$1, drive_p.exit_error) && !settling$1) {
-    settling$1 = true;
-    drive_max_speed = Math.max(Math.abs(prev_drive_output$6), BOOMERANG_MIN_VOLTAGE);
+  let carrot_X = x - Math.sin(toRad(angle2)) * (drive_p.lead * target_distance);
+  let carrot_Y = y - Math.cos(toRad(angle2)) * (drive_p.lead * target_distance);
+  if (target_distance < Math.max(DRIVE_LARGE_SETTLE_ERROR$1, drive_p.exit_error) && !settling$3) {
+    settling$3 = true;
+    drive_max_speed = Math.max(Math.abs(prev_drive_output$c), BOOMERANG_MIN_VOLTAGE);
   }
-  const line_settled = is_line_settled$1(x, y, angle, robot.getX(), robot.getY(), drive_p.exit_error);
-  if (line_settled !== start_line_settled$1 && settling$1 && drive_p.min_voltage > 0) {
-    reset_drive_to_pose$1();
+  const line_settled = is_line_settled$1(x, y, angle2, robot.getX(), robot.getY(), drive_p.exit_error);
+  if (line_settled !== start_line_settled$3 && settling$3 && drive_p.min_voltage > 0) {
+    reset_drive_to_pose$2();
     return true;
   }
   let drive_error = Math.hypot(carrot_X - robot.getX(), carrot_Y - robot.getY());
   let current_angle = robot.getAngle();
   if (drive_p.drive_direction === "reversed") current_angle = current_angle + 180;
   let heading_error = reduce_negative_180_to_180$1(toDeg(Math.atan2(carrot_X - robot.getX(), carrot_Y - robot.getY())) - current_angle);
-  if (settling$1) {
+  if (settling$3) {
     drive_error = target_distance;
-    heading_error = reduce_negative_180_to_180$1(angle - current_angle);
+    heading_error = reduce_negative_180_to_180$1(angle2 - current_angle);
     drive_error *= Math.cos(toRad(reduce_negative_180_to_180$1(toDeg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle())));
     carrot_X = x;
     carrot_Y = y;
@@ -14013,14 +14013,14 @@ function drive_to_pose$1(robot, dt, x, y, angle, p) {
   let heading_output = headingPID$5.compute(heading_error);
   heading_output = clamp(heading_output, -heading_p.max_voltage, heading_p.max_voltage);
   drive_output = clamp(drive_output, -drive_max_speed, drive_max_speed);
-  drive_output = slew_scaling(drive_output, prev_slew_output$1, drive_p.slew, !settling$1);
-  prev_slew_output$1 = drive_output;
-  drive_output = clamp_max_slip(drive_output, robot.getX(), robot.getY(), current_angle, carrot_X, carrot_Y, drive_p.drift);
+  drive_output = slew_scaling(drive_output, prev_slew_output$3, drive_p.slew, !settling$3);
+  prev_slew_output$3 = drive_output;
+  drive_output = clamp_max_slip$1(drive_output, robot.getX(), robot.getY(), current_angle, carrot_X, carrot_Y, drive_p.drift);
   drive_output = overturn_scaling(drive_output, heading_output, drive_max_speed);
-  if (drive_p.drive_direction === "forwards" && !settling$1) drive_output = Math.max(drive_output, 0);
-  else if (drive_p.drive_direction === "reversed" && !settling$1) drive_output = Math.min(drive_output, 0);
+  if (drive_p.drive_direction === "forwards" && !settling$3) drive_output = Math.max(drive_output, 0);
+  else if (drive_p.drive_direction === "reversed" && !settling$3) drive_output = Math.min(drive_output, 0);
   drive_output = clamp_min_voltage$1(drive_output, drive_p.min_voltage);
-  prev_drive_output$6 = drive_output;
+  prev_drive_output$c = drive_output;
   robot.tankDrive(
     left_voltage_scaling$1(drive_output, heading_output) / 12,
     right_voltage_scaling$1(drive_output, heading_output) / 12,
@@ -14030,105 +14030,105 @@ function drive_to_pose$1(robot, dt, x, y, angle, p) {
 }
 let driveDistanceStartX$1 = 0;
 let driveDistanceStartY$1 = 0;
-let prev_drive_output$5 = 0;
-let prev_heading_output$2 = 0;
+let prev_drive_output$b = 0;
+let prev_heading_output$5 = 0;
 let drivePID$6;
 let headingPID$4;
-let start$8 = true;
+let start$i = true;
 function restart_drive_distance() {
   driveDistanceStartX$1 = 0;
   driveDistanceStartY$1 = 0;
-  prev_drive_output$5 = 0;
-  prev_heading_output$2 = 0;
+  prev_drive_output$b = 0;
+  prev_heading_output$5 = 0;
   drivePID$6.reset();
   headingPID$4.reset();
-  start$8 = true;
+  start$i = true;
 }
-function drive_distance$1(robot, dt, distance, heading, p) {
+function drive_distance$2(robot, dt, distance, heading2, p) {
   const drive_p = p[0];
   const heading_p = p[1];
-  if (heading === null) heading = robot.getAngle();
-  if (start$8) {
+  if (heading2 === null) heading2 = robot.getAngle();
+  if (start$i) {
     driveDistanceStartX$1 = robot.getX();
     driveDistanceStartY$1 = robot.getY();
-    drivePID$6 = new PID$2(dt, drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, drive_p.min_voltage > 0 ? drive_p.exit_error : 0);
-    headingPID$4 = new PID$2(dt, heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
-    start$8 = false;
+    drivePID$6 = new PID$3(dt, drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, drive_p.min_voltage > 0 ? drive_p.exit_error : 0);
+    headingPID$4 = new PID$3(dt, heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
+    start$i = false;
   }
   const dx = robot.getX() - driveDistanceStartX$1;
   const dy = robot.getY() - driveDistanceStartY$1;
-  const traveled = dx * Math.sin(toRad(heading)) + dy * Math.cos(toRad(heading));
+  const traveled = dx * Math.sin(toRad(heading2)) + dy * Math.cos(toRad(heading2));
   const drive_error = distance - traveled;
-  const heading_error = reduce_negative_180_to_180$1(heading - robot.getAngle());
+  const heading_error = reduce_negative_180_to_180$1(heading2 - robot.getAngle());
   let drive_output = drivePID$6.compute(drive_error);
   let heading_output = headingPID$4.compute(heading_error);
   drive_output = clamp(drive_output, -drive_p.max_voltage, drive_p.max_voltage);
   heading_output = clamp(heading_output, -heading_p.max_voltage, heading_p.max_voltage);
-  drive_output = slew_scaling(drive_output, prev_drive_output$5 ?? 0, drive_p.slew, Math.abs(drive_error) > drive_p.settle_error);
-  heading_output = slew_scaling(heading_output, prev_heading_output$2 ?? 0, heading_p.slew);
+  drive_output = slew_scaling(drive_output, prev_drive_output$b ?? 0, drive_p.slew, Math.abs(drive_error) > drive_p.settle_error);
+  heading_output = slew_scaling(heading_output, prev_heading_output$5 ?? 0, heading_p.slew);
   drive_output = clamp_min_voltage$1(drive_output, drive_p.min_voltage);
   if (drivePID$6.isSettled()) {
     restart_drive_distance();
     return true;
   }
   robot.tankDrive((drive_output + heading_output) / 12, (drive_output - heading_output) / 12, dt);
-  prev_drive_output$5 = drive_output;
-  prev_heading_output$2 = heading_output;
+  prev_drive_output$b = drive_output;
+  prev_heading_output$5 = heading_output;
   return false;
 }
 const DRIVE_LARGE_SETTLE_ERROR = 6;
-let desired_heading = 0;
-let prev_line_settled$2 = false;
-let prev_drive_output$4 = 0;
-let prev_heading_output$1 = 0;
-let heading_locked = false;
-let locked_heading = 0;
+let desired_heading$1 = 0;
+let prev_line_settled$4 = false;
+let prev_drive_output$a = 0;
+let prev_heading_output$4 = 0;
+let heading_locked$1 = false;
+let locked_heading$1 = 0;
 let drivePID$5;
 let headingPID$3;
-let start$7 = true;
-function reset_drive_to_point$1() {
+let start$h = true;
+function reset_drive_to_point$2() {
   drivePID$5.reset();
   headingPID$3.reset();
-  desired_heading = 0;
-  prev_line_settled$2 = false;
-  prev_drive_output$4 = 0;
-  prev_heading_output$1 = 0;
-  heading_locked = false;
-  locked_heading = 0;
-  start$7 = true;
+  desired_heading$1 = 0;
+  prev_line_settled$4 = false;
+  prev_drive_output$a = 0;
+  prev_heading_output$4 = 0;
+  heading_locked$1 = false;
+  locked_heading$1 = 0;
+  start$h = true;
 }
-function drive_to_point$1(robot, dt, x, y, p) {
+function drive_to_point$2(robot, dt, x, y, p) {
   const drive_p = p[0];
   const heading_p = p[1];
-  if (start$7) {
-    drivePID$5 = new PID$2(dt, drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
-    headingPID$3 = new PID$2(dt, heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
-    desired_heading = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
-    start$7 = false;
+  if (start$h) {
+    drivePID$5 = new PID$3(dt, drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
+    headingPID$3 = new PID$3(dt, heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
+    desired_heading$1 = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
+    start$h = false;
   }
   if (drivePID$5.isSettled()) {
-    reset_drive_to_point$1();
+    reset_drive_to_point$2();
     return true;
   }
-  const line_settled = is_line_settled$1(x, y, desired_heading, robot.getX(), robot.getY(), drive_p.exit_error);
-  if (!(line_settled === prev_line_settled$2) && drive_p.min_voltage > 0) {
-    reset_drive_to_point$1();
+  const line_settled = is_line_settled$1(x, y, desired_heading$1, robot.getX(), robot.getY(), drive_p.exit_error);
+  if (!(line_settled === prev_line_settled$4) && drive_p.min_voltage > 0) {
+    reset_drive_to_point$2();
     return true;
   }
-  prev_line_settled$2 = line_settled;
-  desired_heading = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
-  const reversed_heading = desired_heading + (drive_p.drive_direction === "reversed" ? 180 : 0);
+  prev_line_settled$4 = line_settled;
+  desired_heading$1 = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
+  const reversed_heading = desired_heading$1 + (drive_p.drive_direction === "reversed" ? 180 : 0);
   const drive_error = Math.hypot(x - robot.getX(), y - robot.getY());
   let heading_error = reduce_negative_180_to_180$1(reversed_heading - robot.getAngle());
   let drive_output = drivePID$5.compute(drive_error);
-  const heading_scale_factor = Math.cos(toRad(reduce_negative_180_to_180$1(desired_heading - robot.getAngle())));
+  const heading_scale_factor = Math.cos(toRad(reduce_negative_180_to_180$1(desired_heading$1 - robot.getAngle())));
   drive_output *= heading_scale_factor;
   if (drive_error < DRIVE_LARGE_SETTLE_ERROR) {
-    if (!heading_locked) {
-      locked_heading = reversed_heading;
-      heading_locked = true;
+    if (!heading_locked$1) {
+      locked_heading$1 = reversed_heading;
+      heading_locked$1 = true;
     }
-    heading_error = reduce_negative_180_to_180$1(locked_heading - robot.getAngle());
+    heading_error = reduce_negative_180_to_180$1(locked_heading$1 - robot.getAngle());
   }
   if (drive_p.drive_direction === "fastest") {
     heading_error = reduce_negative_90_to_90$1(heading_error);
@@ -14136,166 +14136,166 @@ function drive_to_point$1(robot, dt, x, y, p) {
   let heading_output = headingPID$3.compute(heading_error);
   drive_output = clamp(drive_output, -Math.abs(heading_scale_factor) * drive_p.max_voltage, Math.abs(heading_scale_factor) * drive_p.max_voltage);
   heading_output = clamp(heading_output, -heading_p.max_voltage, heading_p.max_voltage);
-  drive_output = slew_scaling(drive_output, prev_drive_output$4, drive_p.slew, !heading_locked);
-  heading_output = slew_scaling(heading_output, prev_heading_output$1, heading_p.slew);
-  if (drive_p.drive_direction === "forwards" && !heading_locked) drive_output = Math.max(drive_output, 0);
-  else if (drive_p.drive_direction === "reversed" && !heading_locked) drive_output = Math.min(drive_output, 0);
+  drive_output = slew_scaling(drive_output, prev_drive_output$a, drive_p.slew, !heading_locked$1);
+  heading_output = slew_scaling(heading_output, prev_heading_output$4, heading_p.slew);
+  if (drive_p.drive_direction === "forwards" && !heading_locked$1) drive_output = Math.max(drive_output, 0);
+  else if (drive_p.drive_direction === "reversed" && !heading_locked$1) drive_output = Math.min(drive_output, 0);
   drive_output = clamp_min_voltage$1(drive_output, drive_p.min_voltage);
-  prev_drive_output$4 = drive_output;
-  prev_heading_output$1 = heading_output;
+  prev_drive_output$a = drive_output;
+  prev_heading_output$4 = heading_output;
   const leftVoltage = left_voltage_scaling$1(drive_output, heading_output) / 12;
   const rightVoltage = right_voltage_scaling$1(drive_output, heading_output) / 12;
   robot.tankDrive(leftVoltage, rightVoltage, dt);
   return false;
 }
-let crossed$3 = false;
-let prev_error$2 = 0;
-let prev_raw_error$2 = 0;
-let prev_output$2 = 0;
+let crossed$8 = false;
+let prev_error$6 = 0;
+let prev_raw_error$6 = 0;
+let prev_output$6 = 0;
 let turnPID$4;
-let start$6 = true;
-function reset_turn_to_point$1() {
-  crossed$3 = false;
-  prev_error$2 = 0;
-  prev_output$2 = 0;
-  prev_raw_error$2 = 0;
+let start$g = true;
+function reset_turn_to_point$2() {
+  crossed$8 = false;
+  prev_error$6 = 0;
+  prev_output$6 = 0;
+  prev_raw_error$6 = 0;
   turnPID$4.reset();
-  start$6 = true;
+  start$g = true;
 }
-function turn_to_point$1(robot, dt, x, y, offset, p) {
+function turn_to_point$2(robot, dt, x, y, offset, p) {
   const turn_p = p[0];
-  const angle = toDeg(Math.atan2(x - robot.getX(), y - robot.getY())) + offset;
-  const raw_error = angle_error(angle - robot.getAngle(), "fastest");
-  let error = angle_error(angle - robot.getAngle(), turn_p.turn_direction);
-  if (start$6) {
-    prev_error$2 = error;
-    prev_raw_error$2 = raw_error;
-    turnPID$4 = new PID$2(dt, turn_p.kp, turn_p.ki, turn_p.kd, turn_p.starti, turn_p.settle_time, turn_p.settle_error, turn_p.timeout, turn_p.min_voltage > 0 ? turn_p.exit_error : 0);
-    start$6 = false;
+  const angle2 = toDeg(Math.atan2(x - robot.getX(), y - robot.getY())) + offset;
+  const raw_error = angle_error$1(angle2 - robot.getAngle(), "fastest");
+  let error = angle_error$1(angle2 - robot.getAngle(), turn_p.turn_direction);
+  if (start$g) {
+    prev_error$6 = error;
+    prev_raw_error$6 = raw_error;
+    turnPID$4 = new PID$3(dt, turn_p.kp, turn_p.ki, turn_p.kd, turn_p.starti, turn_p.settle_time, turn_p.settle_error, turn_p.timeout, turn_p.min_voltage > 0 ? turn_p.exit_error : 0);
+    start$g = false;
   }
-  if (Math.sign(raw_error) != Math.sign(prev_raw_error$2)) {
-    crossed$3 = true;
+  if (Math.sign(raw_error) != Math.sign(prev_raw_error$6)) {
+    crossed$8 = true;
   }
-  prev_raw_error$2 = raw_error;
-  if (crossed$3) {
+  prev_raw_error$6 = raw_error;
+  if (crossed$8) {
     error = raw_error;
   } else {
-    error = angle_error(angle - robot.getAngle(), turn_p.turn_direction);
+    error = angle_error$1(angle2 - robot.getAngle(), turn_p.turn_direction);
   }
-  if (turn_p.min_voltage != 0 && crossed$3 && Math.sign(error) != Math.sign(prev_error$2)) {
-    reset_turn_to_point$1();
+  if (turn_p.min_voltage != 0 && crossed$8 && Math.sign(error) != Math.sign(prev_error$6)) {
+    reset_turn_to_point$2();
     return true;
   }
-  prev_error$2 = error;
+  prev_error$6 = error;
   let output = turnPID$4.compute(error);
   if (turnPID$4.isSettled()) {
-    reset_turn_to_point$1();
+    reset_turn_to_point$2();
     return true;
   }
   output = clamp(output, -turn_p.max_voltage, turn_p.max_voltage);
-  output = slew_scaling(output, prev_output$2 ?? 0, turn_p.slew, Math.abs(error) > 15);
+  output = slew_scaling(output, prev_output$6 ?? 0, turn_p.slew, Math.abs(error) > 15);
   output = clamp_min_voltage$1(output, turn_p.min_voltage);
-  prev_output$2 = output;
+  prev_output$6 = output;
   robot.tankDrive(output / 12, -output / 12, dt);
   return false;
 }
-let crossed$2 = false;
-let prev_error$1 = 0;
-let prev_raw_error$1 = 0;
-let prev_output$1 = 0;
+let crossed$7 = false;
+let prev_error$5 = 0;
+let prev_raw_error$5 = 0;
+let prev_output$5 = 0;
 let turnPID$3;
-let start$5 = true;
-function reset_turn_to_angle$1() {
-  crossed$2 = false;
-  prev_error$1 = 0;
-  prev_raw_error$1 = 0;
-  prev_output$1 = 0;
+let start$f = true;
+function reset_turn_to_angle$2() {
+  crossed$7 = false;
+  prev_error$5 = 0;
+  prev_raw_error$5 = 0;
+  prev_output$5 = 0;
   turnPID$3.reset();
-  start$5 = true;
+  start$f = true;
 }
-function turn_to_angle$1(robot, dt, angle, p) {
+function turn_to_angle$2(robot, dt, angle2, p) {
   const turn_p = p[0];
-  const raw_error = angle_error(angle - robot.getAngle(), "fastest");
-  let error = angle_error(angle - robot.getAngle(), turn_p.turn_direction);
-  if (start$5) {
-    prev_error$1 = error;
-    prev_raw_error$1 = raw_error;
-    turnPID$3 = new PID$2(dt, turn_p.kp, turn_p.ki, turn_p.kd, turn_p.starti, turn_p.settle_time, turn_p.settle_error, turn_p.timeout, turn_p.min_voltage > 0 ? turn_p.exit_error : 0);
-    start$5 = false;
+  const raw_error = angle_error$1(angle2 - robot.getAngle(), "fastest");
+  let error = angle_error$1(angle2 - robot.getAngle(), turn_p.turn_direction);
+  if (start$f) {
+    prev_error$5 = error;
+    prev_raw_error$5 = raw_error;
+    turnPID$3 = new PID$3(dt, turn_p.kp, turn_p.ki, turn_p.kd, turn_p.starti, turn_p.settle_time, turn_p.settle_error, turn_p.timeout, turn_p.min_voltage > 0 ? turn_p.exit_error : 0);
+    start$f = false;
   }
-  if (Math.sign(raw_error) != Math.sign(prev_raw_error$1)) {
-    crossed$2 = true;
+  if (Math.sign(raw_error) != Math.sign(prev_raw_error$5)) {
+    crossed$7 = true;
   }
-  prev_raw_error$1 = raw_error;
-  if (crossed$2) {
+  prev_raw_error$5 = raw_error;
+  if (crossed$7) {
     error = raw_error;
   } else {
-    error = angle_error(angle - robot.getAngle(), turn_p.turn_direction);
+    error = angle_error$1(angle2 - robot.getAngle(), turn_p.turn_direction);
   }
-  if (turn_p.min_voltage != 0 && crossed$2 && Math.sign(error) != Math.sign(prev_error$1)) {
-    reset_turn_to_angle$1();
+  if (turn_p.min_voltage != 0 && crossed$7 && Math.sign(error) != Math.sign(prev_error$5)) {
+    reset_turn_to_angle$2();
     return true;
   }
-  prev_error$1 = error;
+  prev_error$5 = error;
   let output = turnPID$3.compute(error);
   if (turnPID$3.isSettled()) {
-    reset_turn_to_angle$1();
+    reset_turn_to_angle$2();
     return true;
   }
   output = clamp(output, -turn_p.max_voltage, turn_p.max_voltage);
-  output = slew_scaling(output, prev_output$1 ?? 0, turn_p.slew, Math.abs(error) > turn_p.starti);
+  output = slew_scaling(output, prev_output$5 ?? 0, turn_p.slew, Math.abs(error) > turn_p.starti);
   output = clamp_min_voltage$1(output, turn_p.min_voltage);
-  prev_output$1 = output;
+  prev_output$5 = output;
   robot.tankDrive(output / 12, -output / 12, dt);
   return false;
 }
-let crossed$1 = false;
-let prev_error = 0;
-let prev_raw_error = 0;
-let prev_output = 0;
+let crossed$6 = false;
+let prev_error$4 = 0;
+let prev_raw_error$4 = 0;
+let prev_output$4 = 0;
 let swingPID$1;
-let start$4 = true;
-function reset_swing_to_angle() {
-  crossed$1 = false;
-  prev_error = 0;
-  prev_raw_error = 0;
-  prev_output = 0;
+let start$e = true;
+function reset_swing_to_angle$1() {
+  crossed$6 = false;
+  prev_error$4 = 0;
+  prev_raw_error$4 = 0;
+  prev_output$4 = 0;
   swingPID$1.reset();
-  start$4 = true;
+  start$e = true;
 }
-function swing_to_angle$1(robot, dt, angle, p) {
+function swing_to_angle$2(robot, dt, angle2, p) {
   const turn_p = p[0];
-  const raw_error = angle_error(angle - robot.getAngle(), "fastest");
-  let error = angle_error(angle - robot.getAngle(), turn_p.turn_direction);
-  if (start$4) {
-    prev_error = error;
-    prev_raw_error = raw_error;
-    swingPID$1 = new PID$2(dt, turn_p.kp, turn_p.ki, turn_p.kd, turn_p.starti, turn_p.settle_time, turn_p.settle_error, turn_p.timeout, turn_p.min_voltage > 0 ? turn_p.exit_error : 0);
-    start$4 = false;
+  const raw_error = angle_error$1(angle2 - robot.getAngle(), "fastest");
+  let error = angle_error$1(angle2 - robot.getAngle(), turn_p.turn_direction);
+  if (start$e) {
+    prev_error$4 = error;
+    prev_raw_error$4 = raw_error;
+    swingPID$1 = new PID$3(dt, turn_p.kp, turn_p.ki, turn_p.kd, turn_p.starti, turn_p.settle_time, turn_p.settle_error, turn_p.timeout, turn_p.min_voltage > 0 ? turn_p.exit_error : 0);
+    start$e = false;
   }
-  if (Math.sign(raw_error) != Math.sign(prev_raw_error)) {
-    crossed$1 = true;
+  if (Math.sign(raw_error) != Math.sign(prev_raw_error$4)) {
+    crossed$6 = true;
   }
-  prev_raw_error = raw_error;
-  if (crossed$1) {
+  prev_raw_error$4 = raw_error;
+  if (crossed$6) {
     error = raw_error;
   } else {
-    error = angle_error(angle - robot.getAngle(), turn_p.turn_direction);
+    error = angle_error$1(angle2 - robot.getAngle(), turn_p.turn_direction);
   }
-  if (turn_p.min_voltage != 0 && crossed$1 && Math.sign(error) != Math.sign(prev_error)) {
-    reset_swing_to_angle();
+  if (turn_p.min_voltage != 0 && crossed$6 && Math.sign(error) != Math.sign(prev_error$4)) {
+    reset_swing_to_angle$1();
     return true;
   }
-  prev_error = error;
+  prev_error$4 = error;
   let output = swingPID$1.compute(error);
   if (swingPID$1.isSettled()) {
-    reset_swing_to_angle();
+    reset_swing_to_angle$1();
     return true;
   }
   output = clamp(output, -turn_p.max_voltage, turn_p.max_voltage);
-  output = slew_scaling(output, prev_output ?? 0, turn_p.slew, Math.abs(error) > turn_p.starti);
+  output = slew_scaling(output, prev_output$4 ?? 0, turn_p.slew, Math.abs(error) > turn_p.starti);
   output = clamp_min_voltage$1(output, turn_p.min_voltage);
-  prev_output = output;
+  prev_output$4 = output;
   const scale = turn_p.max_voltage !== 0 ? output / turn_p.max_voltage : 0;
   if (turn_p.swing_direction === "left") {
     robot.tankDrive(output / 12, turn_p.opposite_voltage * scale / 12, dt);
@@ -14305,7 +14305,7 @@ function swing_to_angle$1(robot, dt, angle, p) {
   return false;
 }
 let initialAngle = null;
-function swing_to_point(robot, dt, x, y, offset, swing_p) {
+function swing_to_point$1(robot, dt, x, y, offset, swing_p) {
   if (initialAngle === null) {
     initialAngle = reduce_negative_180_to_180$1(
       toDeg(Math.atan2(
@@ -14314,7 +14314,7 @@ function swing_to_point(robot, dt, x, y, offset, swing_p) {
       )) + offset
     );
   }
-  const out = swing_to_angle$1(robot, dt, initialAngle, swing_p);
+  const out = swing_to_angle$2(robot, dt, initialAngle, swing_p);
   if (out) {
     initialAngle = null;
     return true;
@@ -14322,35 +14322,35 @@ function swing_to_point(robot, dt, x, y, offset, swing_p) {
   return false;
 }
 const LOOKAHEAD_DISTANCE = 8;
-const SETTLE_DISTANCE = 7;
+const SETTLE_DISTANCE$9 = 7;
 const SETTLING_MIN_VOLTAGE = 6;
-let path_points$1 = [];
-let path_lengths$1 = [];
-let total_distance = 0;
-let final_tangent = 0;
-let settle_heading = 0;
-let start_line_settled = false;
-let prev_drive_output$3 = 0;
-let prev_slew_output = 0;
-let settling = false;
-let settling_max_speed = 0;
+let path_points$2 = [];
+let path_lengths$2 = [];
+let total_distance$1 = 0;
+let final_tangent$1 = 0;
+let settle_heading$1 = 0;
+let start_line_settled$2 = false;
+let prev_drive_output$9 = 0;
+let prev_slew_output$2 = 0;
+let settling$2 = false;
+let settling_max_speed$2 = 0;
 let drivePID$4;
 let headingPID$2;
-let start$3 = true;
+let start$d = true;
 function reset_follow_path() {
   drivePID$4?.reset();
   headingPID$2?.reset();
-  path_points$1 = [];
-  path_lengths$1 = [];
-  total_distance = 0;
-  final_tangent = 0;
-  settle_heading = 0;
-  start_line_settled = false;
-  prev_drive_output$3 = 0;
-  prev_slew_output = 0;
-  settling = false;
-  settling_max_speed = 0;
-  start$3 = true;
+  path_points$2 = [];
+  path_lengths$2 = [];
+  total_distance$1 = 0;
+  final_tangent$1 = 0;
+  settle_heading$1 = 0;
+  start_line_settled$2 = false;
+  prev_drive_output$9 = 0;
+  prev_slew_output$2 = 0;
+  settling$2 = false;
+  settling_max_speed$2 = 0;
+  start$d = true;
 }
 function cumulativeLengths$1(points) {
   const lengths = [0];
@@ -14362,76 +14362,76 @@ function cumulativeLengths$1(points) {
 function pathProgress(x, y) {
   let progress = 0;
   let closest_distance = Infinity;
-  for (let i = 0; i < path_points$1.length - 1; i++) {
-    const dx = path_points$1[i + 1].x - path_points$1[i].x;
-    const dy = path_points$1[i + 1].y - path_points$1[i].y;
+  for (let i = 0; i < path_points$2.length - 1; i++) {
+    const dx = path_points$2[i + 1].x - path_points$2[i].x;
+    const dy = path_points$2[i + 1].y - path_points$2[i].y;
     const length = Math.hypot(dx, dy);
     if (length === 0) continue;
-    const along = clamp(((x - path_points$1[i].x) * dx + (y - path_points$1[i].y) * dy) / length, 0, length);
-    const distance = Math.hypot(path_points$1[i].x + dx * (along / length) - x, path_points$1[i].y + dy * (along / length) - y);
+    const along = clamp(((x - path_points$2[i].x) * dx + (y - path_points$2[i].y) * dy) / length, 0, length);
+    const distance = Math.hypot(path_points$2[i].x + dx * (along / length) - x, path_points$2[i].y + dy * (along / length) - y);
     if (distance < closest_distance) {
       closest_distance = distance;
-      progress = path_lengths$1[i] + along;
+      progress = path_lengths$2[i] + along;
     }
   }
   return progress;
 }
 function pathPoseAt(s) {
-  const arc = clamp(s, 0, total_distance);
+  const arc = clamp(s, 0, total_distance$1);
   let i = 0;
-  while (i < path_points$1.length - 2 && path_lengths$1[i + 1] < arc) i++;
-  const length = path_lengths$1[i + 1] - path_lengths$1[i];
-  const t = length > 0 ? (arc - path_lengths$1[i]) / length : 0;
-  const dx = path_points$1[i + 1].x - path_points$1[i].x;
-  const dy = path_points$1[i + 1].y - path_points$1[i].y;
-  return { x: path_points$1[i].x + dx * t, y: path_points$1[i].y + dy * t, theta: toDeg(Math.atan2(dx, dy)) };
+  while (i < path_points$2.length - 2 && path_lengths$2[i + 1] < arc) i++;
+  const length = path_lengths$2[i + 1] - path_lengths$2[i];
+  const t = length > 0 ? (arc - path_lengths$2[i]) / length : 0;
+  const dx = path_points$2[i + 1].x - path_points$2[i].x;
+  const dy = path_points$2[i + 1].y - path_points$2[i].y;
+  return { x: path_points$2[i].x + dx * t, y: path_points$2[i].y + dy * t, theta: toDeg(Math.atan2(dx, dy)) };
 }
 function follow_path(robot, dt, points, end_angle, p) {
   if (points.length < 2) return true;
   const drive_p = p[0];
   const heading_p = p[1];
   const reversed = drive_p.drive_direction === "reversed";
-  if (start$3) {
-    path_points$1 = points;
-    path_lengths$1 = cumulativeLengths$1(path_points$1);
-    total_distance = path_lengths$1[path_lengths$1.length - 1];
-    final_tangent = pathPoseAt(total_distance).theta;
-    drivePID$4 = new PID$2(dt, drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
-    headingPID$2 = new PID$2(dt, heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
-    settling = false;
-    settling_max_speed = 0;
-    prev_drive_output$3 = 0;
-    prev_slew_output = 0;
-    settle_heading = end_angle === null ? final_tangent : reversed ? normalizeDeg(end_angle + 180) : end_angle;
-    const start_end = path_points$1[path_points$1.length - 1];
-    start_line_settled = is_line_settled$1(start_end.x, start_end.y, final_tangent, robot.getX(), robot.getY(), drive_p.exit_error);
-    start$3 = false;
+  if (start$d) {
+    path_points$2 = points;
+    path_lengths$2 = cumulativeLengths$1(path_points$2);
+    total_distance$1 = path_lengths$2[path_lengths$2.length - 1];
+    final_tangent$1 = pathPoseAt(total_distance$1).theta;
+    drivePID$4 = new PID$3(dt, drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
+    headingPID$2 = new PID$3(dt, heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
+    settling$2 = false;
+    settling_max_speed$2 = 0;
+    prev_drive_output$9 = 0;
+    prev_slew_output$2 = 0;
+    settle_heading$1 = end_angle === null ? final_tangent$1 : reversed ? normalizeDeg(end_angle + 180) : end_angle;
+    const start_end = path_points$2[path_points$2.length - 1];
+    start_line_settled$2 = is_line_settled$1(start_end.x, start_end.y, final_tangent$1, robot.getX(), robot.getY(), drive_p.exit_error);
+    start$d = false;
   }
-  const end = path_points$1[path_points$1.length - 1];
+  const end = path_points$2[path_points$2.length - 1];
   const traveled = pathProgress(robot.getX(), robot.getY());
-  const look_arc = Math.min(traveled + LOOKAHEAD_DISTANCE, total_distance);
+  const look_arc = Math.min(traveled + LOOKAHEAD_DISTANCE, total_distance$1);
   const look = pathPoseAt(look_arc);
-  const remaining_arc = total_distance - traveled;
+  const remaining_arc = total_distance$1 - traveled;
   const target_distance = Math.hypot(end.x - robot.getX(), end.y - robot.getY());
-  const settle_radius = Math.max(SETTLE_DISTANCE, drive_p.exit_error);
-  if (remaining_arc < settle_radius && target_distance < settle_radius && !settling) {
-    settling = true;
-    settling_max_speed = Math.max(Math.abs(prev_drive_output$3), SETTLING_MIN_VOLTAGE);
+  const settle_radius = Math.max(SETTLE_DISTANCE$9, drive_p.exit_error);
+  if (remaining_arc < settle_radius && target_distance < settle_radius && !settling$2) {
+    settling$2 = true;
+    settling_max_speed$2 = Math.max(Math.abs(prev_drive_output$9), SETTLING_MIN_VOLTAGE);
   }
-  const max_speed = settling ? settling_max_speed : drive_p.max_voltage;
-  const line_settled = is_line_settled$1(end.x, end.y, final_tangent, robot.getX(), robot.getY(), drive_p.exit_error);
-  if (drivePID$4.isSettled() || line_settled !== start_line_settled && settling && drive_p.min_voltage > 0) {
+  const max_speed = settling$2 ? settling_max_speed$2 : drive_p.max_voltage;
+  const line_settled = is_line_settled$1(end.x, end.y, final_tangent$1, robot.getX(), robot.getY(), drive_p.exit_error);
+  if (drivePID$4.isSettled() || line_settled !== start_line_settled$2 && settling$2 && drive_p.min_voltage > 0) {
     reset_follow_path();
     return true;
   }
   const look_bearing = toDeg(Math.atan2(look.x - robot.getX(), look.y - robot.getY()));
   const end_bearing = toDeg(Math.atan2(end.x - robot.getX(), end.y - robot.getY()));
   const current_heading = robot.getAngle() + (reversed ? 180 : 0);
-  let drive_error = Math.hypot(look.x - robot.getX(), look.y - robot.getY()) + (total_distance - look_arc);
+  let drive_error = Math.hypot(look.x - robot.getX(), look.y - robot.getY()) + (total_distance$1 - look_arc);
   let heading_error = reduce_negative_180_to_180$1(look_bearing - current_heading);
-  if (settling) {
+  if (settling$2) {
     drive_error = target_distance * Math.cos(toRad(reduce_negative_180_to_180$1(end_bearing - robot.getAngle())));
-    heading_error = reduce_negative_180_to_180$1(settle_heading - current_heading);
+    heading_error = reduce_negative_180_to_180$1(settle_heading$1 - current_heading);
   } else {
     drive_error *= Math.sign(Math.cos(toRad(reduce_negative_180_to_180$1(look_bearing - robot.getAngle()))));
   }
@@ -14440,14 +14440,14 @@ function follow_path(robot, dt, points, end_angle, p) {
   let heading_output = headingPID$2.compute(heading_error);
   heading_output = clamp(heading_output, -heading_p.max_voltage, heading_p.max_voltage);
   drive_output = clamp(drive_output, -max_speed, max_speed);
-  if (!settling) drive_output = slew_scaling(drive_output, prev_slew_output, drive_p.slew);
-  prev_slew_output = drive_output;
-  drive_output = clamp_max_slip(drive_output, robot.getX(), robot.getY(), current_heading, settling ? end.x : look.x, settling ? end.y : look.y, drive_p.drift);
+  if (!settling$2) drive_output = slew_scaling(drive_output, prev_slew_output$2, drive_p.slew);
+  prev_slew_output$2 = drive_output;
+  drive_output = clamp_max_slip$1(drive_output, robot.getX(), robot.getY(), current_heading, settling$2 ? end.x : look.x, settling$2 ? end.y : look.y, drive_p.drift);
   drive_output = overturn_scaling(drive_output, heading_output, max_speed);
-  if (drive_p.drive_direction === "forwards" && !settling) drive_output = Math.max(drive_output, 0);
-  else if (reversed && !settling) drive_output = Math.min(drive_output, 0);
+  if (drive_p.drive_direction === "forwards" && !settling$2) drive_output = Math.max(drive_output, 0);
+  else if (reversed && !settling$2) drive_output = Math.min(drive_output, 0);
   drive_output = clamp_min_voltage$1(drive_output, drive_p.min_voltage);
-  prev_drive_output$3 = drive_output;
+  prev_drive_output$9 = drive_output;
   robot.tankDrive(
     left_voltage_scaling$1(drive_output, heading_output) / 12,
     right_voltage_scaling$1(drive_output, heading_output) / 12,
@@ -14553,7 +14553,7 @@ const mikPIDConstantsSettings = [
   { key: "starti", units: "", label: "Starti", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
   { key: "slew", units: "volt/tick", label: "Slew", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 2 } }
 ];
-const driveDirectionButton$1 = {
+const driveDirectionButton$2 = {
   key: "drive_direction",
   keyValues: [
     { srcImg: fastest$1, value: "fastest" },
@@ -14561,7 +14561,7 @@ const driveDirectionButton$1 = {
     { srcImg: rev, value: "reversed" }
   ]
 };
-const turnDirectionButton$1 = {
+const turnDirectionButton$2 = {
   key: "turn_direction",
   keyValues: [
     { srcImg: refresh, value: "cw" },
@@ -14576,7 +14576,7 @@ const swingDirectionButton$2 = {
     { srcImg: leftswing, value: "left" }
   ]
 };
-const turnFaceButton$1 = {
+const turnFaceButton$2 = {
   key: "angle_offset",
   keyValues: [
     { srcImg: fwd, value: "0" },
@@ -14596,7 +14596,7 @@ const mikLibDef = {
       name: "Start",
       defaults: [kMikDrive],
       toStringTemplate: "chassis.set_coordinates(${x}, ${y}, ${angle});",
-      simFn: (robot, _dt, x, y, angle) => robot.setPose(x, y, angle ?? 0),
+      simFn: (robot, _dt, x, y, angle2) => robot.setPose(x, y, angle2 ?? 0),
       cycleButtons: [],
       numberInputs: []
     },
@@ -14619,10 +14619,10 @@ const mikLibDef = {
       name: "Drive to Pose",
       defaults: [kMikDrive, kMikHeading],
       toStringTemplate: "chassis.drive_to_pose(${x}, ${y}, ${angle}, ${kBuilder});",
-      simFn: (robot, dt, x, y, angle, constants) => drive_to_pose$1(robot, dt, x, y, angle ?? 0, constants),
+      simFn: (robot, dt, x, y, angle2, constants) => drive_to_pose$2(robot, dt, x, y, angle2 ?? 0, constants),
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [
-        { constantsIdx: 0, ...driveDirectionButton$1 }
+        { constantsIdx: 0, ...driveDirectionButton$2 }
       ],
       numberInputs: [
         {
@@ -14646,7 +14646,7 @@ const mikLibDef = {
       name: "Drive to Distance",
       defaults: [kMikDrive, kMikHeading],
       toStringTemplate: "chassis.drive_distance(${distance}, ${kBuilder});",
-      simFn: (robot, dt, distance, _y, angle, constants) => drive_distance$1(robot, dt, distance, angle, constants),
+      simFn: (robot, dt, distance, _y, angle2, constants) => drive_distance$2(robot, dt, distance, angle2, constants),
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [],
       numberInputs: [
@@ -14659,10 +14659,10 @@ const mikLibDef = {
       name: "Drive to Point",
       defaults: [kMikDrive, kMikHeading],
       toStringTemplate: "chassis.drive_to_point(${x}, ${y}, ${kBuilder});",
-      simFn: (robot, dt, x, y, _angle, constants) => drive_to_point$1(robot, dt, x, y, constants),
+      simFn: (robot, dt, x, y, _angle, constants) => drive_to_point$2(robot, dt, x, y, constants),
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [
-        { constantsIdx: 0, ...driveDirectionButton$1 }
+        { constantsIdx: 0, ...driveDirectionButton$2 }
       ],
       numberInputs: [
         { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikDriveExitConditionsSettings] },
@@ -14675,11 +14675,11 @@ const mikLibDef = {
       defaults: [kMikTurn],
       toStringTemplate: "chassis.turn_to_point(${x}, ${y}, ${kBuilder});",
       actionButtons: [turnLockButton],
-      simFn: (robot, dt, x, y, angle, constants) => turn_to_point$1(robot, dt, x, y, angle ?? 0, constants),
+      simFn: (robot, dt, x, y, angle2, constants) => turn_to_point$2(robot, dt, x, y, angle2 ?? 0, constants),
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [
-        { constantsIdx: 0, ...turnDirectionButton$1 },
-        { constantsIdx: 0, ...turnFaceButton$1 }
+        { constantsIdx: 0, ...turnDirectionButton$2 },
+        { constantsIdx: 0, ...turnFaceButton$2 }
       ],
       numberInputs: [
         { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikTurnExitConditionsSettings] },
@@ -14690,10 +14690,10 @@ const mikLibDef = {
       name: "Turn to Angle",
       defaults: [kMikTurn],
       toStringTemplate: "chassis.turn_to_angle(${angle}, ${kBuilder});",
-      simFn: (robot, dt, _x, _y, angle, constants) => turn_to_angle$1(robot, dt, angle ?? 0, constants),
+      simFn: (robot, dt, _x, _y, angle2, constants) => turn_to_angle$2(robot, dt, angle2 ?? 0, constants),
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [
-        { constantsIdx: 0, ...turnDirectionButton$1 }
+        { constantsIdx: 0, ...turnDirectionButton$2 }
       ],
       numberInputs: [
         { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikTurnExitConditionsSettings] },
@@ -14704,11 +14704,11 @@ const mikLibDef = {
       name: "Swing to Angle",
       defaults: [kMikSwing],
       toStringTemplate: "chassis.${swing_direction}_swing_to_angle(${angle}, ${kBuilder});",
-      simFn: (robot, dt, _x, _y, angle, constants) => swing_to_angle$1(robot, dt, angle ?? 0, constants),
+      simFn: (robot, dt, _x, _y, angle2, constants) => swing_to_angle$2(robot, dt, angle2 ?? 0, constants),
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [
         { constantsIdx: 0, ...swingDirectionButton$2 },
-        { constantsIdx: 0, ...turnDirectionButton$1 }
+        { constantsIdx: 0, ...turnDirectionButton$2 }
       ],
       numberInputs: [
         { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikTurnExitConditionsSettings] },
@@ -14727,12 +14727,12 @@ const mikLibDef = {
       defaults: [kMikSwing],
       toStringTemplate: "chassis.${swing_direction}_swing_to_point(${x}, ${y}, ${kBuilder});",
       actionButtons: [turnLockButton],
-      simFn: (robot, dt, x, y, angle, constants) => swing_to_point(robot, dt, x, y, angle ?? 0, constants),
+      simFn: (robot, dt, x, y, angle2, constants) => swing_to_point$1(robot, dt, x, y, angle2 ?? 0, constants),
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [
         { constantsIdx: 0, ...swingDirectionButton$2 },
-        { constantsIdx: 0, ...turnDirectionButton$1 },
-        { constantsIdx: 0, ...turnFaceButton$1 }
+        { constantsIdx: 0, ...turnDirectionButton$2 },
+        { constantsIdx: 0, ...turnFaceButton$2 }
       ],
       numberInputs: [
         { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikTurnExitConditionsSettings] },
@@ -14750,11 +14750,11 @@ const mikLibDef = {
       name: "Follow Path",
       defaults: [kMikDrive, kMikHeading],
       toStringTemplate: "chassis.follow_path({${c1x}, ${c1y}}, {${c2x}, ${c2y}}, {${x}, ${y}}, ${kBuilder});",
-      simFn: (robot, dt, _x, _y, angle, constants, points) => follow_path(robot, dt, points ?? [], angle, constants),
+      simFn: (robot, dt, _x, _y, angle2, constants, points) => follow_path(robot, dt, points ?? [], angle2, constants),
       simReset: reset_follow_path,
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [
-        { constantsIdx: 0, ...driveDirectionButton$1 }
+        { constantsIdx: 0, ...driveDirectionButton$2 }
       ],
       actionButtons: [addControlButton],
       numberInputs: [
@@ -14977,31 +14977,31 @@ const TRANSLATIONAL_STARTI = 0;
 const CURVATURE_WINDOW = 3;
 const FULL_CORRECTION_ZONE = 1;
 const HEADING_PREVIEW = 1;
-let path_points = [];
-let path_lengths = [];
-let prev_drive_output$2 = 0;
-let prev_turn_output$1 = 0;
-let prev_line_settled$1 = false;
+let path_points$1 = [];
+let path_lengths$1 = [];
+let prev_drive_output$8 = 0;
+let prev_turn_output$2 = 0;
+let prev_line_settled$3 = false;
 let prev_x$2 = 0;
 let prev_y$2 = 0;
 let have_prev_pose = false;
 let drivePID$3;
 let turnPID$2;
-let translationalPID$1;
-let start$2 = true;
+let translationalPID$2;
+let start$c = true;
 function reset_holonomic_follow_path() {
   drivePID$3?.reset();
   turnPID$2?.reset();
-  translationalPID$1?.reset();
-  path_points = [];
-  path_lengths = [];
-  prev_drive_output$2 = 0;
-  prev_turn_output$1 = 0;
-  prev_line_settled$1 = false;
+  translationalPID$2?.reset();
+  path_points$1 = [];
+  path_lengths$1 = [];
+  prev_drive_output$8 = 0;
+  prev_turn_output$2 = 0;
+  prev_line_settled$3 = false;
   prev_x$2 = 0;
   prev_y$2 = 0;
   have_prev_pose = false;
-  start$2 = true;
+  start$c = true;
 }
 function cumulativeLengths(points) {
   const lengths = [0];
@@ -15023,12 +15023,12 @@ function closestIdx(points, x, y) {
   return bestIdx;
 }
 function refineClosest(idx, x, y) {
-  let best = { point: path_points[idx], s: path_lengths[idx] };
+  let best = { point: path_points$1[idx], s: path_lengths$1[idx] };
   let bestDist = Infinity;
   for (const i of [idx - 1, idx]) {
-    if (i < 0 || i >= path_points.length - 1) continue;
-    const a = path_points[i];
-    const b = path_points[i + 1];
+    if (i < 0 || i >= path_points$1.length - 1) continue;
+    const a = path_points$1[i];
+    const b = path_points$1[i + 1];
     const dx = b.x - a.x;
     const dy = b.y - a.y;
     const segLen2 = dx * dx + dy * dy;
@@ -15039,37 +15039,37 @@ function refineClosest(idx, x, y) {
     const dist = Math.hypot(px - x, py - y);
     if (dist < bestDist) {
       bestDist = dist;
-      best = { point: { x: px, y: py }, s: path_lengths[i] + u * Math.sqrt(segLen2) };
+      best = { point: { x: px, y: py }, s: path_lengths$1[i] + u * Math.sqrt(segLen2) };
     }
   }
   return best;
 }
 function pathLength() {
-  return path_lengths[path_lengths.length - 1];
+  return path_lengths$1[path_lengths$1.length - 1];
 }
 function chordIdxAt(s) {
   const arc = clamp(s, 0, pathLength());
   let i = 0;
-  while (i < path_points.length - 2 && path_lengths[i + 1] < arc) i++;
+  while (i < path_points$1.length - 2 && path_lengths$1[i + 1] < arc) i++;
   return i;
 }
 function pointAtArc(s) {
   const arc = clamp(s, 0, pathLength());
   const i = chordIdxAt(arc);
-  const chord = path_lengths[i + 1] - path_lengths[i];
-  const t = chord > 0 ? (arc - path_lengths[i]) / chord : 0;
+  const chord = path_lengths$1[i + 1] - path_lengths$1[i];
+  const t = chord > 0 ? (arc - path_lengths$1[i]) / chord : 0;
   return {
-    x: path_points[i].x + (path_points[i + 1].x - path_points[i].x) * t,
-    y: path_points[i].y + (path_points[i + 1].y - path_points[i].y) * t
+    x: path_points$1[i].x + (path_points$1[i + 1].x - path_points$1[i].x) * t,
+    y: path_points$1[i].y + (path_points$1[i + 1].y - path_points$1[i].y) * t
   };
 }
 function tangentAt(s) {
   const i = chordIdxAt(s);
-  return toDeg(Math.atan2(path_points[i + 1].x - path_points[i].x, path_points[i + 1].y - path_points[i].y));
+  return toDeg(Math.atan2(path_points$1[i + 1].x - path_points$1[i].x, path_points$1[i + 1].y - path_points$1[i].y));
 }
 function tangentBearingAt(s) {
   const i = chordIdxAt(s);
-  return Math.atan2(path_points[i + 1].y - path_points[i].y, path_points[i + 1].x - path_points[i].x);
+  return Math.atan2(path_points$1[i + 1].y - path_points$1[i].y, path_points$1[i + 1].x - path_points$1[i].x);
 }
 function curvatureAt(s) {
   const total = pathLength();
@@ -15100,24 +15100,24 @@ function holonomic_follow_path(robot, dt, points, end_angle, p) {
   if (points.length < 2) return true;
   const drive_p = p[0];
   const heading_p = p[1];
-  if (start$2) {
-    path_points = points;
-    path_lengths = cumulativeLengths(path_points);
-    drivePID$3 = new PID$2(dt, drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
-    turnPID$2 = new PID$2(dt, heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, drive_p.timeout, 0);
-    translationalPID$1 = new PID$2(dt, TRANSLATIONAL_KP, TRANSLATIONAL_KI, TRANSLATIONAL_KD, TRANSLATIONAL_STARTI, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
-    start$2 = false;
+  if (start$c) {
+    path_points$1 = points;
+    path_lengths$1 = cumulativeLengths(path_points$1);
+    drivePID$3 = new PID$3(dt, drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
+    turnPID$2 = new PID$3(dt, heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, drive_p.timeout, 0);
+    translationalPID$2 = new PID$3(dt, TRANSLATIONAL_KP, TRANSLATIONAL_KI, TRANSLATIONAL_KD, TRANSLATIONAL_STARTI, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
+    start$c = false;
     have_prev_pose = false;
-    const end2 = path_points[path_points.length - 1];
-    prev_line_settled$1 = is_line_settled$1(end2.x, end2.y, tangentAt(pathLength()), robot.getX(), robot.getY(), drive_p.exit_error);
+    const end2 = path_points$1[path_points$1.length - 1];
+    prev_line_settled$3 = is_line_settled$1(end2.x, end2.y, tangentAt(pathLength()), robot.getX(), robot.getY(), drive_p.exit_error);
   }
   if (drivePID$3.isSettled() && turnPID$2.isSettled()) {
     reset_holonomic_follow_path();
     return true;
   }
-  const last = path_points.length - 1;
-  const end = path_points[last];
-  const closest = closestIdx(path_points, robot.getX(), robot.getY());
+  const last = path_points$1.length - 1;
+  const end = path_points$1[last];
+  const closest = closestIdx(path_points$1, robot.getX(), robot.getY());
   const { point: foot, s: distanceAlong } = refineClosest(closest, robot.getX(), robot.getY());
   const tangent = tangentBearingAt(distanceAlong);
   const tx = Math.cos(tangent);
@@ -15126,11 +15126,11 @@ function holonomic_follow_path(robot, dt, points, end_angle, p) {
   const vy = have_prev_pose && dt > 0 ? (robot.getY() - prev_y$2) / dt : 0;
   const tangentialSpeed = vx * tx + vy * ty;
   const line_settled = is_line_settled$1(end.x, end.y, tangentAt(pathLength()), robot.getX(), robot.getY(), drive_p.exit_error);
-  if (!(line_settled === prev_line_settled$1) && drive_p.min_voltage > 0) {
+  if (!(line_settled === prev_line_settled$3) && drive_p.min_voltage > 0) {
     reset_holonomic_follow_path();
     return true;
   }
-  prev_line_settled$1 = line_settled;
+  prev_line_settled$3 = line_settled;
   const drive_error = pathLength() - distanceAlong;
   let errX = foot.x - robot.getX();
   let errY = foot.y - robot.getY();
@@ -15145,12 +15145,12 @@ function holonomic_follow_path(robot, dt, points, end_angle, p) {
   const turn_error = reduce_negative_180_to_180$1(desired_angle - robot.getAngle());
   let drive_output = drivePID$3.compute(drive_error);
   let turn_output = turnPID$2.compute(turn_error);
-  let trans_output = translationalPID$1.compute(cross_error);
+  let trans_output = translationalPID$2.compute(cross_error);
   drive_output = clamp(drive_output, -drive_p.max_voltage, drive_p.max_voltage);
   turn_output = clamp(turn_output, -heading_p.max_voltage, heading_p.max_voltage);
   trans_output = clamp(trans_output, -drive_p.max_voltage, drive_p.max_voltage);
-  drive_output = slew_scaling(drive_output, prev_drive_output$2, drive_p.slew, Math.abs(drive_error) > drive_p.settle_error);
-  turn_output = slew_scaling(turn_output, prev_turn_output$1, heading_p.slew);
+  drive_output = slew_scaling(drive_output, prev_drive_output$8, drive_p.slew, Math.abs(drive_error) > drive_p.settle_error);
+  turn_output = slew_scaling(turn_output, prev_turn_output$2, heading_p.slew);
   drive_output = clamp_min_voltage$1(drive_output, drive_p.min_voltage);
   turn_output = clamp_min_voltage$1(turn_output, heading_p.min_voltage);
   const cent_output = clamp(CENTRIPETAL_SCALING * tangentialSpeed * tangentialSpeed * curvatureAt(distanceAlong), -drive_p.max_voltage, drive_p.max_voltage);
@@ -15178,8 +15178,8 @@ function holonomic_follow_path(robot, dt, points, end_angle, p) {
   const right_back_output = (drive_magnitude * Math.cos(toRad(robot.getAngle()) + heading_error - Math.PI / 4) - turn_output) / 12;
   const right_front_output = (drive_magnitude * Math.cos(-toRad(robot.getAngle()) - heading_error + 3 * Math.PI / 4) - turn_output) / 12;
   robot.mecanumDrive(left_front_output, right_front_output, left_back_output, right_back_output, dt);
-  prev_drive_output$2 = drive_output;
-  prev_turn_output$1 = turn_output;
+  prev_drive_output$8 = drive_output;
+  prev_turn_output$2 = turn_output;
   prev_x$2 = robot.getX();
   prev_y$2 = robot.getY();
   have_prev_pose = true;
@@ -15187,73 +15187,73 @@ function holonomic_follow_path(robot, dt, points, end_angle, p) {
 }
 let line_start_x = 0;
 let line_start_y = 0;
-let line_angle = 0;
-let prev_drive_output$1 = 0;
-let prev_turn_output = 0;
-let prev_turn_error = 0;
-let prev_line_settled = false;
-let crossed = false;
+let line_angle$1 = 0;
+let prev_drive_output$7 = 0;
+let prev_turn_output$1 = 0;
+let prev_turn_error$1 = 0;
+let prev_line_settled$2 = false;
+let crossed$5 = false;
 let drivePID$2;
 let turnPID$1;
-let translationalPID;
-let start$1 = true;
+let translationalPID$1;
+let start$b = true;
 function reset_holonomic_to_pose() {
   drivePID$2?.reset();
   turnPID$1?.reset();
-  translationalPID?.reset();
+  translationalPID$1?.reset();
   line_start_x = 0;
   line_start_y = 0;
-  line_angle = 0;
-  prev_drive_output$1 = 0;
-  prev_turn_output = 0;
-  prev_turn_error = 0;
-  prev_line_settled = false;
-  crossed = false;
-  start$1 = true;
+  line_angle$1 = 0;
+  prev_drive_output$7 = 0;
+  prev_turn_output$1 = 0;
+  prev_turn_error$1 = 0;
+  prev_line_settled$2 = false;
+  crossed$5 = false;
+  start$b = true;
 }
-function holonomic_to_pose(robot, dt, x, y, angle, p) {
+function holonomic_to_pose(robot, dt, x, y, angle2, p) {
   const drive_p = p[0];
   const heading_p = p[1];
   const trans_p = p[2];
-  if (start$1) {
-    drivePID$2 = new PID$2(dt, drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
-    turnPID$1 = new PID$2(dt, heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, drive_p.timeout, 0);
-    translationalPID = new PID$2(dt, trans_p.kp, trans_p.ki, trans_p.kd, trans_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
+  if (start$b) {
+    drivePID$2 = new PID$3(dt, drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
+    turnPID$1 = new PID$3(dt, heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, heading_p.settle_time, heading_p.settle_error, drive_p.timeout, 0);
+    translationalPID$1 = new PID$3(dt, trans_p.kp, trans_p.ki, trans_p.kd, trans_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, 0);
     line_start_x = robot.getX();
     line_start_y = robot.getY();
-    line_angle = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
-    start$1 = false;
+    line_angle$1 = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
+    start$b = false;
   }
-  if (drivePID$2.isSettled() && (turnPID$1.isSettled() || drive_p.min_voltage > 0 && crossed)) {
+  if (drivePID$2.isSettled() && (turnPID$1.isSettled() || drive_p.min_voltage > 0 && crossed$5)) {
     reset_holonomic_to_pose();
     return true;
   }
   const desired_heading2 = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
   const line_settled = is_line_settled$1(x, y, desired_heading2, robot.getX(), robot.getY(), drive_p.exit_error);
-  if (!(line_settled === prev_line_settled) && drive_p.min_voltage > 0) {
+  if (!(line_settled === prev_line_settled$2) && drive_p.min_voltage > 0) {
     reset_holonomic_to_pose();
     return true;
   }
-  prev_line_settled = line_settled;
+  prev_line_settled$2 = line_settled;
   const drive_error = Math.hypot(x - robot.getX(), y - robot.getY());
-  const turn_error = reduce_negative_180_to_180$1(angle - robot.getAngle());
-  const cross_error = (robot.getY() - line_start_y) * Math.sin(toRad(line_angle)) - (robot.getX() - line_start_x) * Math.cos(toRad(line_angle));
-  crossed = Math.sign(turn_error) !== Math.sign(prev_turn_error);
-  prev_turn_error = turn_error;
+  const turn_error = reduce_negative_180_to_180$1(angle2 - robot.getAngle());
+  const cross_error = (robot.getY() - line_start_y) * Math.sin(toRad(line_angle$1)) - (robot.getX() - line_start_x) * Math.cos(toRad(line_angle$1));
+  crossed$5 = Math.sign(turn_error) !== Math.sign(prev_turn_error$1);
+  prev_turn_error$1 = turn_error;
   let drive_output = drivePID$2.compute(drive_error);
   let turn_output = turnPID$1.compute(turn_error);
-  let trans_output = translationalPID.compute(cross_error);
+  let trans_output = translationalPID$1.compute(cross_error);
   drive_output = clamp(drive_output, -drive_p.max_voltage, drive_p.max_voltage);
   turn_output = clamp(turn_output, -heading_p.max_voltage, heading_p.max_voltage);
   trans_output = clamp(trans_output, -drive_p.max_voltage, drive_p.max_voltage);
-  drive_output = slew_scaling(drive_output, prev_drive_output$1, drive_p.slew, Math.abs(drive_error) > drive_p.settle_error);
-  turn_output = slew_scaling(turn_output, prev_turn_output, heading_p.slew);
+  drive_output = slew_scaling(drive_output, prev_drive_output$7, drive_p.slew, Math.abs(drive_error) > drive_p.settle_error);
+  turn_output = slew_scaling(turn_output, prev_turn_output$1, heading_p.slew);
   drive_output = clamp_min_voltage$1(drive_output, drive_p.min_voltage);
   turn_output = clamp_min_voltage$1(turn_output, drive_p.min_voltage);
   const drive_x = drive_output * Math.sin(toRad(desired_heading2));
   const drive_y = drive_output * Math.cos(toRad(desired_heading2));
-  const cross_x = trans_output * Math.cos(toRad(line_angle));
-  const cross_y = -trans_output * Math.sin(toRad(line_angle));
+  const cross_x = trans_output * Math.cos(toRad(line_angle$1));
+  const cross_y = -trans_output * Math.sin(toRad(line_angle$1));
   let total_x = drive_x + cross_x;
   let total_y = drive_y + cross_y;
   if (Math.hypot(total_x, total_y) > drive_p.max_voltage) {
@@ -15265,8 +15265,8 @@ function holonomic_to_pose(robot, dt, x, y, angle, p) {
   }
   const total_voltage = Math.hypot(total_x, total_y);
   const total_angle = Math.atan2(total_y, total_x);
-  prev_drive_output$1 = drive_output;
-  prev_turn_output = turn_output;
+  prev_drive_output$7 = drive_output;
+  prev_turn_output$1 = turn_output;
   const forward_diagonal = total_voltage * Math.cos(toRad(robot.getAngle()) + total_angle - Math.PI / 4);
   const reverse_diagonal = total_voltage * Math.cos(-toRad(robot.getAngle()) - total_angle + 3 * Math.PI / 4);
   robot.mecanumDrive(
@@ -15280,45 +15280,45 @@ function holonomic_to_pose(robot, dt, x, y, angle, p) {
 }
 let driveDistanceStartX = 0;
 let driveDistanceStartY = 0;
-let prev_drive_output = 0;
-let prev_heading_output = 0;
+let prev_drive_output$6 = 0;
+let prev_heading_output$3 = 0;
 let drivePID$1;
 let headingPID$1;
-let start = true;
-function reset_strafe_distance() {
+let start$a = true;
+function reset_strafe_distance$1() {
   driveDistanceStartX = 0;
   driveDistanceStartY = 0;
-  prev_drive_output = 0;
-  prev_heading_output = 0;
+  prev_drive_output$6 = 0;
+  prev_heading_output$3 = 0;
   drivePID$1.reset();
   headingPID$1.reset();
-  start = true;
+  start$a = true;
 }
-function strafe_distance(robot, dt, distance, heading, p) {
+function strafe_distance$1(robot, dt, distance, heading2, p) {
   const drive_p = p[0];
   const heading_p = p[1];
-  if (heading === null) heading = robot.getAngle();
-  if (start) {
+  if (heading2 === null) heading2 = robot.getAngle();
+  if (start$a) {
     driveDistanceStartX = robot.getX();
     driveDistanceStartY = robot.getY();
-    drivePID$1 = new PID$2(dt, drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, drive_p.min_voltage > 0 ? drive_p.exit_error : 0);
-    headingPID$1 = new PID$2(dt, heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
-    start = false;
+    drivePID$1 = new PID$3(dt, drive_p.kp, drive_p.ki, drive_p.kd, drive_p.starti, drive_p.settle_time, drive_p.settle_error, drive_p.timeout, drive_p.min_voltage > 0 ? drive_p.exit_error : 0);
+    headingPID$1 = new PID$3(dt, heading_p.kp, heading_p.ki, heading_p.kd, heading_p.starti, 0, 0, 0, 0);
+    start$a = false;
   }
   const dx = robot.getX() - driveDistanceStartX;
   const dy = robot.getY() - driveDistanceStartY;
-  const traveled = dx * Math.cos(toRad(heading)) - dy * Math.sin(toRad(heading));
+  const traveled = dx * Math.cos(toRad(heading2)) - dy * Math.sin(toRad(heading2));
   const drive_error = distance - traveled;
-  const heading_error = reduce_negative_180_to_180$1(heading - robot.getAngle());
+  const heading_error = reduce_negative_180_to_180$1(heading2 - robot.getAngle());
   let drive_output = drivePID$1.compute(drive_error);
   let heading_output = headingPID$1.compute(heading_error);
   drive_output = clamp(drive_output, -drive_p.max_voltage, drive_p.max_voltage);
   heading_output = clamp(heading_output, -heading_p.max_voltage, heading_p.max_voltage);
-  drive_output = slew_scaling(drive_output, prev_drive_output ?? 0, drive_p.slew, Math.abs(drive_error) > drive_p.settle_error);
-  heading_output = slew_scaling(heading_output, prev_heading_output ?? 0, heading_p.slew);
+  drive_output = slew_scaling(drive_output, prev_drive_output$6 ?? 0, drive_p.slew, Math.abs(drive_error) > drive_p.settle_error);
+  heading_output = slew_scaling(heading_output, prev_heading_output$3 ?? 0, heading_p.slew);
   drive_output = clamp_min_voltage$1(drive_output, drive_p.min_voltage);
   if (drivePID$1.isSettled()) {
-    reset_strafe_distance();
+    reset_strafe_distance$1();
     return true;
   }
   robot.mecanumDrive(
@@ -15328,8 +15328,8 @@ function strafe_distance(robot, dt, distance, heading, p) {
     (drive_output - heading_output) / 12,
     dt
   );
-  prev_drive_output = drive_output;
-  prev_heading_output = heading_output;
+  prev_drive_output$6 = drive_output;
+  prev_heading_output$3 = heading_output;
   return false;
 }
 const kTranslational = {
@@ -15387,7 +15387,7 @@ const holonomicDef = {
       name: "Holonomic to Pose",
       defaults: [kMikDrive, kMikHeading, kTranslational],
       toStringTemplate: "chassis.holonomic_to_pose(${x}, ${y}, ${angle}, ${kBuilder});",
-      simFn: (robot, dt, x, y, angle, constants) => holonomic_to_pose(robot, dt, x, y, angle ?? 0, constants),
+      simFn: (robot, dt, x, y, angle2, constants) => holonomic_to_pose(robot, dt, x, y, angle2 ?? 0, constants),
       simReset: reset_holonomic_to_pose,
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [],
@@ -15401,7 +15401,7 @@ const holonomicDef = {
       // Mecanum holds a heading through the curve, so a new one starts square rather than tangential
       defaultHeading: 0,
       toStringTemplate: "chassis.holonomic_follow_path({${c1x}, ${c1y}}, {${c2x}, ${c2y}}, {${x}, ${y}}, ${kBuilder});",
-      simFn: (robot, dt, _x, _y, angle, constants, points) => holonomic_follow_path(robot, dt, points ?? [], angle, constants),
+      simFn: (robot, dt, _x, _y, angle2, constants, points) => holonomic_follow_path(robot, dt, points ?? [], angle2, constants),
       simReset: reset_holonomic_follow_path,
       cycleButtons: [],
       // The follower reads only drive and heading, so the translational group would index
@@ -15412,7 +15412,7 @@ const holonomicDef = {
       name: "Strafe Distance",
       defaults: [kMikDrive, kMikHeading],
       toStringTemplate: "chassis.strafe_distance(${distance}, ${kBuilder});",
-      simFn: (robot, dt, distance, _y, angle, constants) => strafe_distance(robot, dt, distance, angle, constants),
+      simFn: (robot, dt, distance, _y, angle2, constants) => strafe_distance$1(robot, dt, distance, angle2, constants),
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [],
       numberInputs: [
@@ -15423,7 +15423,7 @@ const holonomicDef = {
     }
   }
 };
-let PID$1 = class PID2 {
+let PID$2 = class PID2 {
   constructor(dt, error, kp, ki, kd, starti, settle_error = 0, settle_time = 0, timeout = 0) {
     this.dt = dt;
     this.error = error;
@@ -15475,21 +15475,21 @@ let PID$1 = class PID2 {
     return false;
   }
 };
-function reduce_negative_180_to_180(angle) {
-  if (!Number.isFinite(angle)) return 0;
-  while (!(angle >= -180 && angle < 180)) {
-    if (angle < -180) angle += 360;
-    if (angle >= 180) angle -= 360;
+function reduce_negative_180_to_180(angle2) {
+  if (!Number.isFinite(angle2)) return 0;
+  while (!(angle2 >= -180 && angle2 < 180)) {
+    if (angle2 < -180) angle2 += 360;
+    if (angle2 >= 180) angle2 -= 360;
   }
-  return angle;
+  return angle2;
 }
-function reduce_negative_90_to_90(angle) {
-  if (!Number.isFinite(angle)) return 0;
-  while (!(angle >= -90 && angle < 90)) {
-    if (angle < -90) angle += 180;
-    if (angle >= 90) angle -= 180;
+function reduce_negative_90_to_90(angle2) {
+  if (!Number.isFinite(angle2)) return 0;
+  while (!(angle2 >= -90 && angle2 < 90)) {
+    if (angle2 < -90) angle2 += 180;
+    if (angle2 >= 90) angle2 -= 180;
   }
-  return angle;
+  return angle2;
 }
 function to_rad(angle_deg) {
   return angle_deg * (Math.PI / 180);
@@ -15518,20 +15518,20 @@ function clamp_min_voltage(drive_output, drive_min_voltage) {
 }
 let turnPID_ta;
 let start_ta = true;
-function reset_turn_to_angle() {
+function reset_turn_to_angle$1() {
   start_ta = true;
 }
-function turn_to_angle(robot, dt, angle, constants) {
+function turn_to_angle$1(robot, dt, angle2, constants) {
   const turn = constants[0];
   if (start_ta) {
-    turnPID_ta = new PID$1(dt, reduce_negative_180_to_180(angle - robot.getAngle()), turn.kp, turn.ki, turn.kd, turn.starti, turn.settle_error, turn.settle_time, turn.timeout);
+    turnPID_ta = new PID$2(dt, reduce_negative_180_to_180(angle2 - robot.getAngle()), turn.kp, turn.ki, turn.kd, turn.starti, turn.settle_error, turn.settle_time, turn.timeout);
     start_ta = false;
   }
   if (turnPID_ta.is_settled()) {
-    reset_turn_to_angle();
+    reset_turn_to_angle$1();
     return true;
   }
-  const error = reduce_negative_180_to_180(angle - robot.getAngle());
+  const error = reduce_negative_180_to_180(angle2 - robot.getAngle());
   let output = turnPID_ta.compute(error);
   output = clamp$1(output, -turn.max_voltage, turn.max_voltage);
   robot.tankDrive(output / 12, -output / 12, dt);
@@ -15542,29 +15542,29 @@ let headingPID_dd;
 let startX_dd = 0;
 let startY_dd = 0;
 let start_dd = true;
-function reset_drive_distance() {
+function reset_drive_distance$1() {
   start_dd = true;
 }
-function drive_distance(robot, dt, distance, heading, constants) {
+function drive_distance$1(robot, dt, distance, heading2, constants) {
   const drive = constants[0];
   const heading_c = constants[1];
-  if (heading === null) heading = robot.getAngle();
+  if (heading2 === null) heading2 = robot.getAngle();
   if (start_dd) {
     startX_dd = robot.getX();
     startY_dd = robot.getY();
-    drivePID_dd = new PID$1(dt, distance, drive.kp, drive.ki, drive.kd, drive.starti, drive.settle_error, drive.settle_time, drive.timeout);
-    headingPID_dd = new PID$1(dt, reduce_negative_180_to_180(heading - robot.getAngle()), heading_c.kp, heading_c.ki, heading_c.kd, heading_c.starti);
+    drivePID_dd = new PID$2(dt, distance, drive.kp, drive.ki, drive.kd, drive.starti, drive.settle_error, drive.settle_time, drive.timeout);
+    headingPID_dd = new PID$2(dt, reduce_negative_180_to_180(heading2 - robot.getAngle()), heading_c.kp, heading_c.ki, heading_c.kd, heading_c.starti);
     start_dd = false;
   }
   if (drivePID_dd.is_settled()) {
-    reset_drive_distance();
+    reset_drive_distance$1();
     return true;
   }
   const dx = robot.getX() - startX_dd;
   const dy = robot.getY() - startY_dd;
-  const dist_traveled = dx * Math.sin(to_rad(heading)) + dy * Math.cos(to_rad(heading));
+  const dist_traveled = dx * Math.sin(to_rad(heading2)) + dy * Math.cos(to_rad(heading2));
   const drive_error = distance - dist_traveled;
-  const heading_error = reduce_negative_180_to_180(heading - robot.getAngle());
+  const heading_error = reduce_negative_180_to_180(heading2 - robot.getAngle());
   let drive_output = drivePID_dd.compute(drive_error);
   let heading_output = headingPID_dd.compute(heading_error);
   drive_output = clamp$1(drive_output, -drive.max_voltage, drive.max_voltage);
@@ -15581,17 +15581,17 @@ let start_s = true;
 function reset_swing() {
   start_s = true;
 }
-function swing_to_angle(robot, dt, angle, constants) {
+function swing_to_angle$1(robot, dt, angle2, constants) {
   const swing = constants[0];
   if (start_s) {
-    swingPID_s = new PID$1(dt, reduce_negative_180_to_180(angle - robot.getAngle()), swing.kp, swing.ki, swing.kd, swing.starti, swing.settle_error, swing.settle_time, swing.timeout);
+    swingPID_s = new PID$2(dt, reduce_negative_180_to_180(angle2 - robot.getAngle()), swing.kp, swing.ki, swing.kd, swing.starti, swing.settle_error, swing.settle_time, swing.timeout);
     start_s = false;
   }
   if (swingPID_s.is_settled()) {
     reset_swing();
     return true;
   }
-  const error = reduce_negative_180_to_180(angle - robot.getAngle());
+  const error = reduce_negative_180_to_180(angle2 - robot.getAngle());
   let output = swingPID_s.compute(error);
   output = clamp$1(output, -swing.max_voltage, swing.max_voltage);
   if (swing.swing_direction === "left") {
@@ -15606,26 +15606,26 @@ let headingPID_dtp;
 let start_angle_dtp = 0;
 let prev_line_settled_dtp = false;
 let start_dtp = true;
-function reset_drive_to_point() {
+function reset_drive_to_point$1() {
   start_dtp = true;
 }
-function drive_to_point(robot, dt, x, y, constants) {
+function drive_to_point$1(robot, dt, x, y, constants) {
   const drive = constants[0];
   const heading_c = constants[1];
   if (start_dtp) {
     start_angle_dtp = to_deg(Math.atan2(x - robot.getX(), y - robot.getY()));
-    drivePID_dtp = new PID$1(dt, Math.hypot(x - robot.getX(), y - robot.getY()), drive.kp, drive.ki, drive.kd, drive.starti, drive.settle_error, drive.settle_time, drive.timeout);
-    headingPID_dtp = new PID$1(dt, start_angle_dtp - robot.getAngle(), heading_c.kp, heading_c.ki, heading_c.kd, heading_c.starti);
+    drivePID_dtp = new PID$2(dt, Math.hypot(x - robot.getX(), y - robot.getY()), drive.kp, drive.ki, drive.kd, drive.starti, drive.settle_error, drive.settle_time, drive.timeout);
+    headingPID_dtp = new PID$2(dt, start_angle_dtp - robot.getAngle(), heading_c.kp, heading_c.ki, heading_c.kd, heading_c.starti);
     prev_line_settled_dtp = is_line_settled(x, y, start_angle_dtp, robot.getX(), robot.getY());
     start_dtp = false;
   }
   if (drivePID_dtp.is_settled()) {
-    reset_drive_to_point();
+    reset_drive_to_point$1();
     return true;
   }
   const line_settled = is_line_settled(x, y, start_angle_dtp, robot.getX(), robot.getY());
   if (line_settled && !prev_line_settled_dtp) {
-    reset_drive_to_point();
+    reset_drive_to_point$1();
     return true;
   }
   prev_line_settled_dtp = line_settled;
@@ -15654,42 +15654,42 @@ let crossed_center_line_dpose = false;
 let center_line_side_dpose = false;
 let prev_center_line_side_dpose = false;
 let start_dpose = true;
-function reset_drive_to_pose() {
+function reset_drive_to_pose$1() {
   start_dpose = true;
 }
-function drive_to_pose(robot, dt, x, y, angle, constants) {
+function drive_to_pose$1(robot, dt, x, y, angle2, constants) {
   const drive = constants[0];
   const heading_c = constants[1];
   if (start_dpose) {
     const target_distance2 = Math.hypot(x - robot.getX(), y - robot.getY());
-    drivePID_dpose = new PID$1(dt, target_distance2, drive.kp, drive.ki, drive.kd, drive.starti, drive.settle_error, drive.settle_time, drive.timeout);
-    headingPID_dpose = new PID$1(dt, to_deg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle(), heading_c.kp, heading_c.ki, heading_c.kd, heading_c.starti);
-    prev_line_settled_dpose = is_line_settled(x, y, angle, robot.getX(), robot.getY());
+    drivePID_dpose = new PID$2(dt, target_distance2, drive.kp, drive.ki, drive.kd, drive.starti, drive.settle_error, drive.settle_time, drive.timeout);
+    headingPID_dpose = new PID$2(dt, to_deg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle(), heading_c.kp, heading_c.ki, heading_c.kd, heading_c.starti);
+    prev_line_settled_dpose = is_line_settled(x, y, angle2, robot.getX(), robot.getY());
     crossed_center_line_dpose = false;
-    center_line_side_dpose = is_line_settled(x, y, angle + 90, robot.getX(), robot.getY());
+    center_line_side_dpose = is_line_settled(x, y, angle2 + 90, robot.getX(), robot.getY());
     prev_center_line_side_dpose = center_line_side_dpose;
     start_dpose = false;
   }
   if (drivePID_dpose.is_settled()) {
-    reset_drive_to_pose();
+    reset_drive_to_pose$1();
     return true;
   }
-  const line_settled = is_line_settled(x, y, angle, robot.getX(), robot.getY());
+  const line_settled = is_line_settled(x, y, angle2, robot.getX(), robot.getY());
   if (line_settled && !prev_line_settled_dpose) {
-    reset_drive_to_pose();
+    reset_drive_to_pose$1();
     return true;
   }
   prev_line_settled_dpose = line_settled;
-  center_line_side_dpose = is_line_settled(x, y, angle + 90, robot.getX(), robot.getY());
+  center_line_side_dpose = is_line_settled(x, y, angle2 + 90, robot.getX(), robot.getY());
   if (center_line_side_dpose !== prev_center_line_side_dpose) crossed_center_line_dpose = true;
   prev_center_line_side_dpose = center_line_side_dpose;
   const target_distance = Math.hypot(x - robot.getX(), y - robot.getY());
-  const carrot_X = x - Math.sin(to_rad(angle)) * (drive.lead * target_distance + drive.setback);
-  const carrot_Y = y - Math.cos(to_rad(angle)) * (drive.lead * target_distance + drive.setback);
+  const carrot_X = x - Math.sin(to_rad(angle2)) * (drive.lead * target_distance + drive.setback);
+  const carrot_Y = y - Math.cos(to_rad(angle2)) * (drive.lead * target_distance + drive.setback);
   let drive_error = Math.hypot(carrot_X - robot.getX(), carrot_Y - robot.getY());
   let heading_error = reduce_negative_180_to_180(to_deg(Math.atan2(carrot_X - robot.getX(), carrot_Y - robot.getY())) - robot.getAngle());
   if (drive_error < drive.settle_error || crossed_center_line_dpose || drive_error < drive.setback) {
-    heading_error = reduce_negative_180_to_180(angle - robot.getAngle());
+    heading_error = reduce_negative_180_to_180(angle2 - robot.getAngle());
     drive_error = target_distance;
   }
   let drive_output = drivePID_dpose.compute(drive_error);
@@ -15709,18 +15709,18 @@ function drive_to_pose(robot, dt, x, y, angle, constants) {
 }
 let turnPID_ttp;
 let start_ttp = true;
-function reset_turn_to_point() {
+function reset_turn_to_point$1() {
   start_ttp = true;
 }
-function turn_to_point(robot, dt, x, y, extra_angle, constants) {
+function turn_to_point$1(robot, dt, x, y, extra_angle, constants) {
   const turn = constants[0];
   if (start_ttp) {
     const initial_error = reduce_negative_180_to_180(to_deg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle());
-    turnPID_ttp = new PID$1(dt, initial_error, turn.kp, turn.ki, turn.kd, turn.starti, turn.settle_error, turn.settle_time, turn.timeout);
+    turnPID_ttp = new PID$2(dt, initial_error, turn.kp, turn.ki, turn.kd, turn.starti, turn.settle_error, turn.settle_time, turn.timeout);
     start_ttp = false;
   }
   if (turnPID_ttp.is_settled()) {
-    reset_turn_to_point();
+    reset_turn_to_point$1();
     return true;
   }
   const error = reduce_negative_180_to_180(to_deg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle() + extra_angle);
@@ -15808,7 +15808,7 @@ const swingDirectionButton$1 = {
     { srcImg: leftswing, value: "left" }
   ]
 };
-const turnFaceButton = {
+const turnFaceButton$1 = {
   key: "angle_offset",
   keyValues: [
     { srcImg: fwd, value: "0" },
@@ -15828,7 +15828,7 @@ const JarTemplateDef = {
       name: "Start",
       defaults: [kJarDrive],
       toStringTemplate: "chassis.set_coordinates(${x}, ${y}, ${angle});",
-      simFn: (robot, _dt, x, y, angle) => robot.setPose(x, y, angle ?? 0),
+      simFn: (robot, _dt, x, y, angle2) => robot.setPose(x, y, angle2 ?? 0),
       cycleButtons: [],
       numberInputs: []
     },
@@ -15851,7 +15851,7 @@ const JarTemplateDef = {
       name: "Drive to Pose",
       defaults: [kJarDrive, kJarHeading],
       toStringTemplate: "chassis.drive_to_pose(${x}, ${y}, ${angle}, ${kBuilder});",
-      simFn: (robot, dt, x, y, angle, constants) => drive_to_pose(robot, dt, x, y, angle ?? 0, constants),
+      simFn: (robot, dt, x, y, angle2, constants) => drive_to_pose$1(robot, dt, x, y, angle2 ?? 0, constants),
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [],
       numberInputs: [
@@ -15876,7 +15876,7 @@ const JarTemplateDef = {
       name: "Drive to Distance",
       defaults: [kJarDrive, kJarHeading],
       toStringTemplate: "chassis.drive_distance(${distance}, ${kBuilder});",
-      simFn: (robot, dt, distance, _y, angle, constants) => drive_distance(robot, dt, distance, angle, constants),
+      simFn: (robot, dt, distance, _y, angle2, constants) => drive_distance$1(robot, dt, distance, angle2, constants),
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [],
       numberInputs: [
@@ -15889,7 +15889,7 @@ const JarTemplateDef = {
       name: "Drive to Point",
       defaults: [kJarDrive, kJarHeading],
       toStringTemplate: "chassis.drive_to_point(${x}, ${y}, ${kBuilder});",
-      simFn: (robot, dt, x, y, _angle, constants) => drive_to_point(robot, dt, x, y, constants),
+      simFn: (robot, dt, x, y, _angle, constants) => drive_to_point$1(robot, dt, x, y, constants),
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [],
       numberInputs: [
@@ -15903,10 +15903,10 @@ const JarTemplateDef = {
       defaults: [kJarTurn],
       toStringTemplate: "chassis.turn_to_point(${x}, ${y}, ${kBuilder});",
       actionButtons: [turnLockButton],
-      simFn: (robot, dt, x, y, angle, constants) => turn_to_point(robot, dt, x, y, angle ?? 0, constants),
+      simFn: (robot, dt, x, y, angle2, constants) => turn_to_point$1(robot, dt, x, y, angle2 ?? 0, constants),
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [
-        { constantsIdx: 0, ...turnFaceButton }
+        { constantsIdx: 0, ...turnFaceButton$1 }
       ],
       numberInputs: [
         { constantsIdx: 0, headerName: "Exit Conditions", fields: [...JarTurnExitConditions] },
@@ -15917,7 +15917,7 @@ const JarTemplateDef = {
       name: "Turn to Angle",
       defaults: [kJarTurn],
       toStringTemplate: "chassis.turn_to_angle(${angle}, ${kBuilder});",
-      simFn: (robot, dt, _x, _y, angle, constants) => turn_to_angle(robot, dt, angle ?? 0, constants),
+      simFn: (robot, dt, _x, _y, angle2, constants) => turn_to_angle$1(robot, dt, angle2 ?? 0, constants),
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [],
       numberInputs: [
@@ -15929,7 +15929,7 @@ const JarTemplateDef = {
       name: "Swing to Angle",
       defaults: [kJarSwing],
       toStringTemplate: "chassis.${swing_direction}_swing_to_angle(${angle}, ${kBuilder});",
-      simFn: (robot, dt, _x, _y, angle, constants) => swing_to_angle(robot, dt, angle ?? 0, constants),
+      simFn: (robot, dt, _x, _y, angle2, constants) => swing_to_angle$1(robot, dt, angle2 ?? 0, constants),
       slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
       cycleButtons: [
         { constantsIdx: 0, ...swingDirectionButton$1 }
@@ -16023,15 +16023,15 @@ function kJarBuilder(defaultConstants, constants, pose, kind) {
     return "";
   }
   if (kind === "distanceDrive") {
-    const heading = pose?.angle ?? null;
+    const heading2 = pose?.angle ?? null;
     if (anyPIDChanged)
-      return `${roundOff(heading ?? 0, 2)}, ${formatDriveVoltages()}, ${formatExitConditions(driveConstants2)}, ${formatBothPIDs()}`;
+      return `${roundOff(heading2 ?? 0, 2)}, ${formatDriveVoltages()}, ${formatExitConditions(driveConstants2)}, ${formatBothPIDs()}`;
     if (exitConditionsChanged)
-      return `${roundOff(heading ?? 0, 2)}, ${formatDriveVoltages()}, ${formatExitConditions(driveConstants2)}`;
+      return `${roundOff(heading2 ?? 0, 2)}, ${formatDriveVoltages()}, ${formatExitConditions(driveConstants2)}`;
     if (anyVoltageChanged)
-      return `${roundOff(heading ?? 0, 2)}, ${formatDriveVoltages()}`;
-    if (heading !== null)
-      return `${roundOff(heading, 2)}`;
+      return `${roundOff(heading2 ?? 0, 2)}, ${formatDriveVoltages()}`;
+    if (heading2 !== null)
+      return `${roundOff(heading2, 2)}`;
     return "";
   }
   if (kind === "pointDrive") {
@@ -16189,8 +16189,8 @@ function pointSpacing(template) {
   const spacing = match[1] === void 0 ? DEFAULT_POINT_SPACING : parseFloat(match[1]);
   return Number.isFinite(spacing) && spacing > 0 ? spacing : DEFAULT_POINT_SPACING;
 }
-function renderPoint(pointTemplate, point, angle, mergedK, k) {
-  let line = angle === null ? pointTemplate.replace(/,\s*[^,{}]*\$\{angle\}[^,{}]*/, "") : pointTemplate.replace(/\$\{angle\}/g, roundOff(angle, 2));
+function renderPoint(pointTemplate, point, angle2, mergedK, k) {
+  let line = angle2 === null ? pointTemplate.replace(/,\s*[^,{}]*\$\{angle\}[^,{}]*/, "") : pointTemplate.replace(/\$\{angle\}/g, roundOff(angle2, 2));
   line = line.replace(/\$\{x\}/g, roundOff(point.x, 2)).replace(/\$\{y\}/g, roundOff(point.y, 2));
   for (const key of Object.keys(mergedK)) {
     line = line.replace(new RegExp(`\\$\\{${key}\\}`, "g"), String(mergedK[key]));
@@ -16202,8 +16202,9 @@ function renderPoint(pointTemplate, point, angle, mergedK, k) {
 }
 const isPointBased = (kind) => kind === "pointTurn" || kind === "pointSwing";
 const OPTIONAL_ANGLE_TERM = /,\s*[^,{}()]*\$\{angle\}[^,{}()]*/;
-function templateForHeading(template, angle) {
-  return angle === null ? template.replace(OPTIONAL_ANGLE_TERM, "") : template;
+const isHeadingOptional = (kind) => kind === "distanceDrive" || kind === "strafeDrive" || kind === "bezierCurve";
+function templateForHeading(template, kind, angle2) {
+  return angle2 === null && isHeadingOptional(kind) ? template.replace(OPTIONAL_ANGLE_TERM, "") : template;
 }
 function applyTurnLocks(path, from, to) {
   const segments = [...path.segments];
@@ -16227,7 +16228,7 @@ function convertPathToString(formatDef, path, selected = false) {
     const facing = isPointBased(seg.kind) ? resolveTurnPose(path, idx) : seg.pose;
     const x = roundOff(facing.x, 2);
     const y = roundOff(facing.y, 2);
-    const angle = roundOff(facing.angle, 2);
+    const angle2 = roundOff(facing.angle, 2);
     const rawDistance = seg.kind === "distanceDrive" ? seg.distance ?? getSegmentDistance(path, idx) : seg.distance;
     const distance = roundOff(rawDistance, 2);
     const time = roundOff(seg.time, 0);
@@ -16239,7 +16240,7 @@ function convertPathToString(formatDef, path, selected = false) {
     if (!resolvedDef.toStringTemplate) continue;
     const mergedK = Object.assign({}, ...k);
     const kBuilderStr = formatDef.kBuilder ? formatDef.kBuilder(resolvedDef.defaults ?? formatDef.constants, k, facing, kind) : "";
-    let line = templateForHeading(resolvedDef.toStringTemplate, facing.angle).replace(/\$\{x\}/g, x).replace(/\$\{y\}/g, y).replace(/\$\{angle\}/g, angle).replace(/\$\{distance\}/g, distance).replace(/\$\{time\}/g, time);
+    let line = templateForHeading(resolvedDef.toStringTemplate, kind, facing.angle).replace(/\$\{x\}/g, x).replace(/\$\{y\}/g, y).replace(/\$\{angle\}/g, angle2).replace(/\$\{distance\}/g, distance).replace(/\$\{time\}/g, time);
     let bezier = null;
     if (kind === "bezierCurve") {
       bezier = resolveBezier(path, idx);
@@ -16366,7 +16367,7 @@ function parseSegmentLine(line, kind, segDef, formatDef, format) {
   let { regex, groups } = templateToRegex(segDef.toStringTemplate);
   let match = line.match(regex);
   if (!match) {
-    const headless = templateForHeading(segDef.toStringTemplate, null);
+    const headless = templateForHeading(segDef.toStringTemplate, kind, null);
     if (headless === segDef.toStringTemplate) return null;
     ({ regex, groups } = templateToRegex(headless));
     match = line.match(regex);
@@ -16402,9 +16403,9 @@ function parseSegmentLine(line, kind, segDef, formatDef, format) {
   const capturedY = "y" in captured ? parseFloat(captured.y) : null;
   const x = pointBased ? null : capturedX;
   const y = pointBased ? null : capturedY;
-  let angle = "angle" in captured ? parseFloat(captured.angle) : null;
-  let turnAngle = pointBased ? angle ?? 0 : 0;
-  if (pointBased) angle = null;
+  let angle2 = "angle" in captured ? parseFloat(captured.angle) : null;
+  let turnAngle = pointBased ? angle2 ?? 0 : 0;
+  if (pointBased) angle2 = null;
   const defaults = getDefaultConstants(formatDef, format, kind);
   let constants;
   if (formatDef.kParser) {
@@ -16412,7 +16413,7 @@ function parseSegmentLine(line, kind, segDef, formatDef, format) {
     constants = parsedConstants;
     if (poseOverride?.angle != null) {
       if (pointBased) turnAngle = poseOverride.angle;
-      else angle = poseOverride.angle;
+      else angle2 = poseOverride.angle;
     }
   } else {
     constants = defaults.map((k) => ({ ...k }));
@@ -16453,7 +16454,7 @@ function parseSegmentLine(line, kind, segDef, formatDef, format) {
       visible: true,
       format,
       kind,
-      pose: { x, y, angle },
+      pose: { x, y, angle: angle2 },
       turnPose: { x: pointBased ? capturedX : 0, y: pointBased ? capturedY : 0, angle: turnAngle },
       // The pasted coordinate may or may not be one the path derives; paste decides (applyTurnLocks)
       turnLocked: false,
@@ -16477,7 +16478,7 @@ function convertPathToSim(formatDef, path) {
     const x = seg.pose.x ?? 0;
     const time = seg.time ?? 0;
     const y = seg.pose.y ?? 0;
-    const angle = seg.pose.angle ?? 0;
+    const angle2 = seg.pose.angle ?? 0;
     const k = seg.constants;
     const kind = seg.kind;
     const turn = isPointBased(kind) ? resolveTurnPose(path, idx) : null;
@@ -16494,7 +16495,7 @@ function convertPathToSim(formatDef, path) {
         auton.push(
           (robot, dt) => {
             DEBUG_printRobotState(robot, dt);
-            const output = simFn(robot, dt, x, y, angle, k);
+            const output = simFn(robot, dt, x, y, angle2, k);
             return [output, kind, 0];
           }
         );
@@ -16527,7 +16528,7 @@ function convertPathToSim(formatDef, path) {
               started = true;
             }
             DEBUG_printRobotState(robot, dt);
-            const output = simFn(robot, dt, x, y, angle, k);
+            const output = simFn(robot, dt, x, y, angle2, k);
             if (output) DEBUG_printSegmentEnd(idx, formatDef, kind);
             return [output, kind, targetDist];
           }
@@ -16541,7 +16542,7 @@ function convertPathToSim(formatDef, path) {
               simReset?.();
               DEBUG_printSegmentStart(idx, formatDef, kind);
               const targetAngle = toDeg(Math.atan2(turn.x - robot.getX(), turn.y - robot.getY())) + turn.angle;
-              targetDist = Math.abs(angle_error(targetAngle - robot.getAngle(), "fastest"));
+              targetDist = Math.abs(angle_error$1(targetAngle - robot.getAngle(), "fastest"));
               started = true;
             }
             DEBUG_printRobotState(robot, dt);
@@ -16558,11 +16559,11 @@ function convertPathToSim(formatDef, path) {
             if (!started) {
               simReset?.();
               DEBUG_printSegmentStart(idx, formatDef, kind);
-              targetDist = Math.abs(angle_error(angle - robot.getAngle(), "fastest"));
+              targetDist = Math.abs(angle_error$1(angle2 - robot.getAngle(), "fastest"));
               started = true;
             }
             DEBUG_printRobotState(robot, dt);
-            const output = simFn(robot, dt, x, y, angle, k);
+            const output = simFn(robot, dt, x, y, angle2, k);
             if (output) DEBUG_printSegmentEnd(idx, formatDef, kind);
             return [output, kind, targetDist];
           }
@@ -16670,7 +16671,7 @@ function pid_wait_quick_chain(pid, current_dist, chain_target_start2, chain_cons
   }
   return false;
 }
-class PID3 {
+let PID$1 = class PID3 {
   constructor(dt, kp, ki, kd, start_i, small_exit_time = 0, small_error = 0, big_exit_time = 0, big_error = 0, velocity_exit_time = 0) {
     this.dt = dt;
     this.kp = kp;
@@ -16773,8 +16774,8 @@ class PID3 {
     }
     return "RUNNING";
   }
-}
-class slew {
+};
+let slew$1 = class slew {
   constructor(min_speed, distance_to_travel) {
     this.min_speed = min_speed;
     this.distance_to_travel = distance_to_travel;
@@ -16811,13 +16812,13 @@ class slew {
     }
     return this.last_output;
   }
-}
+};
 let drive_start = true;
 let drivePID;
 let headingPID;
 let slew_both$2;
-let start_x$2 = 0;
-let start_y$2 = 0;
+let start_x$5 = 0;
+let start_y$5 = 0;
 function resetDrivePid() {
   drive_start = true;
 }
@@ -16826,18 +16827,18 @@ function pid_drive_set(robot, dt, target2, p) {
   const heading_p = p[1];
   if (drive_start) {
     drive_start = false;
-    start_x$2 = robot.getX();
-    start_y$2 = robot.getY();
-    drivePID = new PID3(dt, drive_p.p, drive_p.i, drive_p.d, drive_p.start_i, drive_p.small_exit_time, drive_p.small_error, drive_p.big_exit_time, drive_p.big_error, drive_p.velocity_exit_time);
-    headingPID = new PID3(dt, heading_p.p, heading_p.i, heading_p.d, heading_p.start_i);
-    slew_both$2 = new slew(drive_p.slew_min_speed, drive_p.slew_distance);
+    start_x$5 = robot.getX();
+    start_y$5 = robot.getY();
+    drivePID = new PID$1(dt, drive_p.p, drive_p.i, drive_p.d, drive_p.start_i, drive_p.small_exit_time, drive_p.small_error, drive_p.big_exit_time, drive_p.big_error, drive_p.velocity_exit_time);
+    headingPID = new PID$1(dt, heading_p.p, heading_p.i, heading_p.d, heading_p.start_i);
+    slew_both$2 = new slew$1(drive_p.slew_min_speed, drive_p.slew_distance);
     drivePID.target_set(target2);
     headingPID.target_set(robot.getRotation());
     headingPID.sensor_set(robot.getRotation());
     slew_both$2.initialize(drive_p.slew, drive_p.speed, target2, 0);
     return false;
   }
-  const current_dist = (robot.getX() - start_x$2) * Math.sin(toRad(headingPID.target_get())) + (robot.getY() - start_y$2) * Math.cos(toRad(headingPID.target_get()));
+  const current_dist = (robot.getX() - start_x$5) * Math.sin(toRad(headingPID.target_get())) + (robot.getY() - start_y$5) * Math.cos(toRad(headingPID.target_get()));
   let drive_out = drivePID.compute(current_dist);
   const imu_out = headingPID.compute(robot.getRotation());
   const max_slew_out = slew_both$2.iterate(current_dist);
@@ -16890,13 +16891,13 @@ function find_point_to_face(current, target2, dir) {
   }
   const tx_cx = target2.x - current.x;
   let m = 0;
-  let angle = 0;
+  let angle2 = 0;
   if (tx_cx != 0) {
     m = (target2.y - current.y) / tx_cx;
-    angle = 90 - to_deg(Math.atan(m));
+    angle2 = 90 - to_deg(Math.atan(m));
   }
-  const ptf1 = vector_off_point(7.5, { x: target2.x, y: target2.y, theta: angle });
-  const ptf2 = vector_off_point(-7.5, { x: target2.x, y: target2.y, theta: angle });
+  const ptf1 = vector_off_point(7.5, { x: target2.x, y: target2.y, theta: angle2 });
+  const ptf2 = vector_off_point(-7.5, { x: target2.x, y: target2.y, theta: angle2 });
   const ptf1_dist = distance_to_point(ptf1, current);
   const ptf2_dist = distance_to_point(ptf2, current);
   if (ptf1_dist > ptf2_dist) {
@@ -17005,8 +17006,8 @@ function pid_turn_set(robot, dt, target2, p) {
     sensor_start$1 = robot.getRotation();
     target2 = new_turn_target_compute(target2, sensor_start$1, turn_p.angle_behavior);
     chain_target_start$1 = target2 - sensor_start$1;
-    turnPID = new PID3(dt, turn_p.p, turn_p.i, turn_p.d, turn_p.start_i, turn_p.small_exit_time, turn_p.small_error, turn_p.big_exit_time, turn_p.big_error, turn_p.velocity_exit_time);
-    slew_turn = new slew(turn_p.slew_min_speed, turn_p.slew_distance);
+    turnPID = new PID$1(dt, turn_p.p, turn_p.i, turn_p.d, turn_p.start_i, turn_p.small_exit_time, turn_p.small_error, turn_p.big_exit_time, turn_p.big_error, turn_p.velocity_exit_time);
+    slew_turn = new slew$1(turn_p.slew_min_speed, turn_p.slew_distance);
     turnPID.target_set(target2);
     turnPID.sensor_set(sensor_start$1);
     slew_turn.initialize(turn_p.slew, turn_p.speed, target2, sensor_start$1);
@@ -17061,8 +17062,8 @@ function pid_swing_set(robot, dt, target2, p) {
     sensor_start = robot.getRotation();
     target2 = new_turn_target_compute(target2, sensor_start, swing_p.angle_behavior);
     chain_target_start = target2 - sensor_start;
-    swingPID = new PID3(dt, swing_p.p, swing_p.i, swing_p.d, swing_p.start_i, swing_p.small_exit_time, swing_p.small_error, swing_p.big_exit_time, swing_p.big_error, swing_p.velocity_exit_time);
-    slew_swing = new slew(swing_p.slew_min_speed, swing_p.slew_distance);
+    swingPID = new PID$1(dt, swing_p.p, swing_p.i, swing_p.d, swing_p.start_i, swing_p.small_exit_time, swing_p.small_error, swing_p.big_exit_time, swing_p.big_error, swing_p.velocity_exit_time);
+    slew_swing = new slew$1(swing_p.slew_min_speed, swing_p.slew_distance);
     swingPID.target_set(target2);
     swingPID.sensor_set(sensor_start);
     slew_swing.initialize(swing_p.slew, swing_p.speed, target2, sensor_start);
@@ -17098,8 +17099,8 @@ let point_to_face$1;
 let odom_target$1;
 let odom_target_start$1;
 let past_target$1 = 0;
-let start_x$1 = 0;
-let start_y$1 = 0;
+let start_x$4 = 0;
+let start_y$4 = 0;
 let odom_imu_start$1 = 0;
 let prev_x$1 = 0;
 let prev_y$1 = 0;
@@ -17126,15 +17127,15 @@ function pid_odom_set(robot, dt, x, y, p) {
   const odom_pose_get = () => ({ x: robot.getX(), y: robot.getY(), theta: robot.getRotation() });
   if (ptp_start) {
     ptp_start = false;
-    start_x$1 = robot.getX();
-    start_y$1 = robot.getY();
+    start_x$4 = robot.getX();
+    start_y$4 = robot.getY();
     prev_x$1 = robot.getX();
     prev_y$1 = robot.getY();
     new_current_fake$1 = 0;
     chain_applied$1 = false;
-    xyPID$1 = new PID3(dt, drive_p.p, drive_p.i, drive_p.d, drive_p.start_i, drive_p.small_exit_time, drive_p.small_error, drive_p.big_exit_time, drive_p.big_error, drive_p.velocity_exit_time);
-    current_a_odomPID$1 = new PID3(dt, heading_p.p, heading_p.i, heading_p.d, heading_p.start_i);
-    slew_both$1 = new slew(drive_p.slew_min_speed, drive_p.slew_distance);
+    xyPID$1 = new PID$1(dt, drive_p.p, drive_p.i, drive_p.d, drive_p.start_i, drive_p.small_exit_time, drive_p.small_error, drive_p.big_exit_time, drive_p.big_error, drive_p.velocity_exit_time);
+    current_a_odomPID$1 = new PID$1(dt, heading_p.p, heading_p.i, heading_p.d, heading_p.start_i);
+    slew_both$1 = new slew$1(drive_p.slew_min_speed, drive_p.slew_distance);
     odom_target$1 = { x, y, theta: 0 };
     odom_target_start$1 = { x, y, theta: 0 };
     point_to_face$1 = find_point_to_face(odom_pose_get(), odom_target$1, drive_p.drive_directions);
@@ -17145,7 +17146,7 @@ function pid_odom_set(robot, dt, x, y, p) {
     return false;
   }
   const dir = drive_p.drive_directions === "rev" ? -1 : 1;
-  const current_dist = Math.hypot(robot.getX() - start_x$1, robot.getY() - start_y$1);
+  const current_dist = Math.hypot(robot.getX() - start_x$4, robot.getY() - start_y$4);
   const signed_dist = current_dist * dir;
   const max_slew_out = slew_both$1.iterate(signed_dist);
   const temp_target = is_past_target(odom_target$1, odom_pose_get(), point_to_face$1, drive_p.drive_directions);
@@ -17200,8 +17201,8 @@ function odom_exit(drive_p, current_pose) {
     case "wait_quick_chain":
       if (!chain_applied$1) {
         chain_applied$1 = true;
-        const angle = absolute_angle_to_point(odom_target_start$1, { x: start_x$1, y: start_y$1 });
-        const extended = vector_off_point(drive_p.chain_constant, { x: odom_target_start$1.x, y: odom_target_start$1.y, theta: angle });
+        const angle2 = absolute_angle_to_point(odom_target_start$1, { x: start_x$4, y: start_y$4 });
+        const extended = vector_off_point(drive_p.chain_constant, { x: odom_target_start$1.x, y: odom_target_start$1.y, theta: angle2 });
         odom_target$1.x = extended.x;
         odom_target$1.y = extended.y;
       }
@@ -17222,8 +17223,8 @@ let odom_target;
 let odom_target_start;
 let final_target;
 let past_target = 0;
-let start_x = 0;
-let start_y = 0;
+let start_x$3 = 0;
+let start_y$3 = 0;
 let odom_imu_start = 0;
 let prev_x = 0;
 let prev_y = 0;
@@ -17241,26 +17242,26 @@ function compute_carrot$1(current, dir, drive_p) {
 function resetBoomerangSet() {
   boomerang_start = true;
 }
-function pid_odom_boomerang_set(robot, dt, x, y, angle, p) {
+function pid_odom_boomerang_set(robot, dt, x, y, angle2, p) {
   const drive_p = p[0];
   const heading_p = p[1];
   const odom_pose_get = () => ({ x: robot.getX(), y: robot.getY(), theta: robot.getRotation() });
   const dir = drive_p.drive_directions === "rev" ? -1 : 1;
   if (boomerang_start) {
     boomerang_start = false;
-    start_x = robot.getX();
-    start_y = robot.getY();
+    start_x$3 = robot.getX();
+    start_y$3 = robot.getY();
     prev_x = robot.getX();
     prev_y = robot.getY();
     new_current_fake = 0;
     chain_applied = false;
-    final_target = { x, y, theta: angle };
+    final_target = { x, y, theta: angle2 };
     odom_target_start = { x, y, theta: 0 };
-    xyPID = new PID3(dt, drive_p.p, drive_p.i, drive_p.d, drive_p.start_i, drive_p.small_exit_time, drive_p.small_error, drive_p.big_exit_time, drive_p.big_error, drive_p.velocity_exit_time);
-    current_a_odomPID = new PID3(dt, heading_p.p, heading_p.i, heading_p.d, heading_p.start_i);
-    slew_both = new slew(drive_p.slew_min_speed, drive_p.slew_distance);
+    xyPID = new PID$1(dt, drive_p.p, drive_p.i, drive_p.d, drive_p.start_i, drive_p.small_exit_time, drive_p.small_error, drive_p.big_exit_time, drive_p.big_error, drive_p.velocity_exit_time);
+    current_a_odomPID = new PID$1(dt, heading_p.p, heading_p.i, heading_p.d, heading_p.start_i);
+    slew_both = new slew$1(drive_p.slew_min_speed, drive_p.slew_distance);
     const initial_carrot = compute_carrot$1(odom_pose_get(), dir, drive_p);
-    odom_target = { x: initial_carrot.x, y: initial_carrot.y, theta: angle };
+    odom_target = { x: initial_carrot.x, y: initial_carrot.y, theta: angle2 };
     point_to_face = find_point_to_face(odom_pose_get(), odom_target, drive_p.drive_directions);
     past_target = Math.sign(is_past_target(odom_target, odom_pose_get(), point_to_face, drive_p.drive_directions));
     odom_imu_start = robot.getRotation();
@@ -17276,7 +17277,7 @@ function pid_odom_boomerang_set(robot, dt, x, y, angle, p) {
       past_target = Math.sign(is_past_target(odom_target, odom_pose_get(), point_to_face, drive_p.drive_directions));
     }
   }
-  const current_dist = Math.hypot(robot.getX() - start_x, robot.getY() - start_y);
+  const current_dist = Math.hypot(robot.getX() - start_x$3, robot.getY() - start_y$3);
   const signed_dist = current_dist * dir;
   const max_slew_out = slew_both.iterate(signed_dist);
   const temp_target = is_past_target(odom_target, odom_pose_get(), point_to_face, drive_p.drive_directions);
@@ -17364,9 +17365,9 @@ function inject_points(current, movements, spacing, lookahead, dir) {
     output.push({ ...from });
     if (to.theta !== null) continue;
     const fits = Math.floor(distance_to_point({ x: to.x, y: to.y }, { x: from.x, y: from.y }) / spacing);
-    const heading = absolute_angle_to_point({ x: to.x, y: to.y }, { x: from.x, y: from.y });
+    const heading2 = absolute_angle_to_point({ x: to.x, y: to.y }, { x: from.x, y: from.y });
     for (let j = 0; j < fits; j++) {
-      const injected = vector_off_point(spacing * (j + 1), { x: from.x, y: from.y, theta: heading });
+      const injected = vector_off_point(spacing * (j + 1), { x: from.x, y: from.y, theta: heading2 });
       if (distance_to_point(injected, { x: input[0].x, y: input[0].y }) >= lookahead) allow_injecting = true;
       if (!allow_injecting) continue;
       if (distance_to_point(injected, { x: to.x, y: to.y }) < spacing) continue;
@@ -17415,7 +17416,7 @@ function compute_carrot(target2, current, dir, drive_p) {
   const pulled = vector_off_point(-h, { x: target2.x, y: target2.y, theta: target2.theta });
   return { x: pulled.x, y: pulled.y };
 }
-function pid_odom_pp_set(robot, dt, points, angle, p) {
+function pid_odom_pp_set(robot, dt, points, angle2, p) {
   const drive_p = p[0];
   const odom_pose_get = () => ({ x: robot.getX(), y: robot.getY(), theta: robot.getRotation() });
   const dir = drive_p.drive_directions === "rev" ? -1 : 1;
@@ -17425,7 +17426,7 @@ function pid_odom_pp_set(robot, dt, points, angle, p) {
     const raw = points.map((pt, i) => ({
       x: pt.x,
       y: pt.y,
-      theta: i === points.length - 1 ? angle : null
+      theta: i === points.length - 1 ? angle2 : null
     }));
     if (drive_p.pp_mode === "pid_odom_pp_set") {
       pp_movements = raw;
@@ -17568,14 +17569,14 @@ const pidSlewSettings = (type) => [
   { key: "slew_min_speed", units: "", label: "Slew Min Speed", input: { bounds: [0, 127], stepSize: 1, roundTo: 1 } },
   { key: "slew", units: "", label: "Slew Enabled 0-1", input: { bounds: [0, 1], stepSize: 1, roundTo: 0 } }
 ];
-const driveDirectionButton = {
+const driveDirectionButton$1 = {
   key: "drive_directions",
   keyValues: [
     { srcImg: fwd, value: "fwd" },
     { srcImg: rev, value: "rev" }
   ]
 };
-const turnDirectionButton = {
+const turnDirectionButton$1 = {
   key: "angle_behavior",
   keyValues: [
     { srcImg: slowest, value: "longest" },
@@ -17618,7 +17619,7 @@ const EZTemplateDef = {
       name: "Start",
       defaults: [driveConstants],
       toStringTemplate: "chassis.odom_xyt_set(${x}_in, ${y}_in, ${angle}_deg);",
-      simFn: (robot, _dt, x, y, angle) => robot.setPose(x, y, angle ?? 0),
+      simFn: (robot, _dt, x, y, angle2) => robot.setPose(x, y, angle2 ?? 0),
       cycleButtons: [],
       numberInputs: []
     },
@@ -17657,12 +17658,12 @@ const EZTemplateDef = {
       name: "Odom Boomerang",
       defaults: [driveConstants, boomerangConstants],
       toStringTemplate: "chassis.pid_odom_set({{${x}_in, ${y}_in, ${angle}_deg}, ${0:drive_directions}, ${0:speed}}, ${0:slew});\nchassis.pid_${0:wait}();",
-      simFn: (robot, dt, x, y, angle, constants) => pid_odom_boomerang_set(robot, dt, x, y, angle ?? 0, constants),
+      simFn: (robot, dt, x, y, angle2, constants) => pid_odom_boomerang_set(robot, dt, x, y, angle2 ?? 0, constants),
       simReset: () => resetBoomerangSet(),
       slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
       cycleButtons: [
         { constantsIdx: 0, ...waitButton },
-        { constantsIdx: 0, ...driveDirectionButton }
+        { constantsIdx: 0, ...driveDirectionButton$1 }
       ],
       numberInputs: [
         { constantsIdx: 0, headerName: "Exit Conditions", fields: exitConditions("DRIVE") },
@@ -17689,7 +17690,7 @@ const EZTemplateDef = {
       slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
       cycleButtons: [
         { constantsIdx: 0, ...waitButton },
-        { constantsIdx: 0, ...driveDirectionButton }
+        { constantsIdx: 0, ...driveDirectionButton$1 }
       ],
       numberInputs: [
         { constantsIdx: 0, headerName: "Exit Conditions", fields: exitConditions("DRIVE") },
@@ -17714,8 +17715,8 @@ const EZTemplateDef = {
       slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
       cycleButtons: [
         { constantsIdx: 0, ...waitButton },
-        { constantsIdx: 0, ...driveDirectionButton, turnPoseEffect: (val) => ({ angle: val === "fwd" ? 0 : 180 }) },
-        { constantsIdx: 0, ...turnDirectionButton }
+        { constantsIdx: 0, ...driveDirectionButton$1, turnPoseEffect: (val) => ({ angle: val === "fwd" ? 0 : 180 }) },
+        { constantsIdx: 0, ...turnDirectionButton$1 }
       ],
       numberInputs: [
         { constantsIdx: 0, headerName: "Exit Conditions", fields: exitConditions("TURN") },
@@ -17726,12 +17727,12 @@ const EZTemplateDef = {
       name: "Turn",
       defaults: [turnConstants],
       toStringTemplate: "chassis.pid_turn_set(${angle}_deg, ${speed}, ${angle_behavior}, ${slew});\nchassis.pid_${0:wait}();",
-      simFn: (robot, dt, _x, _y, angle, constants) => pid_turn_set(robot, dt, angle ?? 0, constants),
+      simFn: (robot, dt, _x, _y, angle2, constants) => pid_turn_set(robot, dt, angle2 ?? 0, constants),
       simReset: () => resetTurnPid(),
       slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
       cycleButtons: [
         { constantsIdx: 0, ...waitButton },
-        { constantsIdx: 0, ...turnDirectionButton }
+        { constantsIdx: 0, ...turnDirectionButton$1 }
       ],
       numberInputs: [
         { constantsIdx: 0, headerName: "Exit Conditions", fields: exitConditions("TURN") },
@@ -17742,13 +17743,13 @@ const EZTemplateDef = {
       name: "Swing",
       defaults: [swingConstants],
       toStringTemplate: "chassis.pid_swing_set(${swing}, ${angle}_deg, ${speed}, ${opposite_speed}, ${angle_behavior}, ${slew});\nchassis.pid_${0:wait}();",
-      simFn: (robot, dt, _x, _y, angle, constants) => pid_swing_set(robot, dt, angle ?? 0, constants),
+      simFn: (robot, dt, _x, _y, angle2, constants) => pid_swing_set(robot, dt, angle2 ?? 0, constants),
       simReset: () => resetSwingPid(),
       slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
       cycleButtons: [
         { constantsIdx: 0, ...swingDirectionButton },
         { constantsIdx: 0, ...waitButton },
-        { constantsIdx: 0, ...turnDirectionButton }
+        { constantsIdx: 0, ...turnDirectionButton$1 }
       ],
       numberInputs: [
         { constantsIdx: 0, headerName: "Exit Conditions", fields: exitConditions("TURN") },
@@ -17781,13 +17782,13 @@ const EZTemplateDef = {
       // a visibly different curve, while finer than two mostly buys longer output.
       toStringTemplate: "chassis.${0:pp_mode}({${points:2}}, ${0:slew});\nchassis.pid_${0:wait}();",
       pointTemplate: "{{${x}_in, ${y}_in, ${angle}_deg}, ${0:drive_directions}, ${0:speed}}",
-      simFn: (robot, dt, _x, _y, angle, constants, points) => pid_odom_pp_set(robot, dt, points ?? [], angle, constants),
+      simFn: (robot, dt, _x, _y, angle2, constants, points) => pid_odom_pp_set(robot, dt, points ?? [], angle2, constants),
       simReset: () => resetPpSet(),
       slider: { key: "speed", bounds: [0, 127], roundTo: 1, constantsIdx: 0 },
       actionButtons: [addControlButton],
       cycleButtons: [
         { constantsIdx: 0, ...waitButton },
-        { constantsIdx: 0, ...driveDirectionButton },
+        { constantsIdx: 0, ...driveDirectionButton$1 },
         { constantsIdx: 0, ...ppModeButton }
       ],
       numberInputs: [
@@ -17818,14 +17819,1630 @@ const EZTemplateDef = {
     }
   }
 };
+class PID4 {
+  constructor(dt, kp, ki, kd, kf, start_i, settle_error, settle_time, large_settle_error, large_settle_time, exit_error, stall_timeout, timeout) {
+    this.dt = dt;
+    this.kp = kp;
+    this.ki = ki;
+    this.kd = kd;
+    this.kf = kf;
+    this.start_i = start_i;
+    this.settle_error = settle_error;
+    this.settle_time = settle_time;
+    this.large_settle_error = large_settle_error;
+    this.large_settle_time = large_settle_time;
+    this.exit_error = exit_error;
+    this.stall_timeout = stall_timeout;
+    this.timeout = timeout;
+  }
+  dt;
+  kp;
+  ki;
+  kd;
+  kf;
+  start_i;
+  settle_error;
+  settle_time;
+  large_settle_error;
+  large_settle_time;
+  exit_error;
+  stall_timeout;
+  timeout;
+  accumulated_error = 0;
+  previous_error = 0;
+  time_spent_settled = 0;
+  time_spent_large_settled = 0;
+  time_spent_stalled = 0;
+  time_spent_running = 0;
+  exiting = false;
+  sign_reset = true;
+  derivative = 0;
+  compute(error) {
+    if (Math.abs(error) < this.start_i) {
+      this.accumulated_error += error;
+    }
+    if (Math.sign(error) !== Math.sign(this.previous_error) && this.sign_reset) {
+      this.accumulated_error = 0;
+    }
+    const derivative = error - this.previous_error;
+    const output = this.kp * error + this.ki * this.accumulated_error + this.kd * derivative + this.kf * Math.sign(error);
+    this.derivative = derivative;
+    this.previous_error = error;
+    const ms = this.dt * 1e3;
+    if (Math.abs(error) < this.settle_error) this.time_spent_settled += ms;
+    else this.time_spent_settled = 0;
+    if (Math.abs(derivative) < 0.05) this.time_spent_stalled += ms;
+    else this.time_spent_stalled = 0;
+    if (Math.abs(error) < this.large_settle_error) this.time_spent_large_settled += ms;
+    else this.time_spent_large_settled = 0;
+    if (Math.abs(error) < this.exit_error && this.exit_error !== 0) {
+      this.exiting = true;
+    }
+    this.time_spent_running += ms;
+    return output;
+  }
+  isSettled() {
+    if (this.time_spent_stalled > this.stall_timeout && this.stall_timeout !== 0 && this.timeout !== 0) {
+      return true;
+    }
+    if (this.time_spent_running > this.timeout && this.timeout !== 0) {
+      return true;
+    }
+    if (this.time_spent_settled > this.settle_time || this.time_spent_large_settled > this.large_settle_time) {
+      return true;
+    }
+    if (this.exiting) {
+      this.exiting = false;
+      return true;
+    }
+    return false;
+  }
+  reset() {
+    this.accumulated_error = 0;
+    this.previous_error = 0;
+    this.derivative = 0;
+    this.exiting = false;
+    this.time_spent_settled = 0;
+    this.time_spent_large_settled = 0;
+    this.time_spent_stalled = 0;
+    this.time_spent_running = 0;
+  }
+}
+function wrap_angle_180(angle2) {
+  if (!Number.isFinite(angle2)) return 0;
+  let a = (angle2 + 180) % 360;
+  if (a < 0) a += 360;
+  return a - 180;
+}
+function wrap_angle_360(angle2) {
+  if (!Number.isFinite(angle2)) return 0;
+  let a = angle2 % 360;
+  if (a < 0) a += 360;
+  return a;
+}
+function wrap_angle_90(angle2) {
+  if (!Number.isFinite(angle2)) return 0;
+  let a = (angle2 + 90) % 180;
+  if (a < 0) a += 180;
+  return a - 90;
+}
+function slew2(output, prev_output2, slew_rate) {
+  if (slew_rate === 0) return output;
+  let change = output - prev_output2;
+  if (change > slew_rate) change = slew_rate;
+  else if (change < -slew_rate) change = -slew_rate;
+  return prev_output2 + change;
+}
+function angle_error(error, direction) {
+  if (direction === "cw") return error < 0 ? error + 360 : error;
+  if (direction === "ccw") return error > 0 ? error - 360 : error;
+  return wrap_angle_180(error);
+}
+function line_crossed(desired_x, desired_y, desired_angle, current_x, current_y, exit_error) {
+  return (desired_y - current_y) * Math.cos(toRad(desired_angle)) <= -(desired_x - current_x) * Math.sin(toRad(desired_angle)) + exit_error;
+}
+function clamp_min_speed(output, min_speed) {
+  if (output < 0 && output > -min_speed) return -min_speed;
+  if (output > 0 && output < min_speed) return min_speed;
+  return output;
+}
+function clamp_max_slip(output, current_x, current_y, current_angle, target_x, target_y, max_slip) {
+  if (max_slip <= 0) return output;
+  const dx = target_x - current_x;
+  const dy = target_y - current_y;
+  const perp_dist = Math.abs(Math.cos(toRad(current_angle)) * dx - Math.sin(toRad(current_angle)) * dy);
+  if (perp_dist === 0) return output;
+  const dist = Math.hypot(dx, dy);
+  const slip_limit = Math.sqrt(dist * dist / (2 * perp_dist) * (max_slip * 12)) / 12;
+  return clamp(output, -slip_limit, slip_limit);
+}
+function clamp_overturn(drive_output, heading_output, max_speed) {
+  const overturn = Math.abs(heading_output) + Math.abs(drive_output) - max_speed;
+  if (overturn > 0) {
+    if (drive_output > 0) return Math.max(drive_output - overturn, 0);
+    if (drive_output < 0) return Math.min(drive_output + overturn, 0);
+  }
+  return drive_output;
+}
+function cumulative_lengths(points) {
+  const lengths = [];
+  if (points.length === 0) return lengths;
+  lengths.push(0);
+  for (let i = 1; i < points.length; i++) {
+    lengths.push(lengths[i - 1] + Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y));
+  }
+  return lengths;
+}
+function path_progress(points, lengths, current) {
+  if (points.length === 0) return 0;
+  let closest_arc = 0;
+  let closest_distance = Math.hypot(points[0].x - current.x, points[0].y - current.y);
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1];
+    const b = points[i];
+    const chord = lengths[i] - lengths[i - 1];
+    if (chord === 0) continue;
+    const t = clamp(
+      ((current.x - a.x) * (b.x - a.x) + (current.y - a.y) * (b.y - a.y)) / (chord * chord),
+      0,
+      1
+    );
+    const distance = Math.hypot(a.x + (b.x - a.x) * t - current.x, a.y + (b.y - a.y) * t - current.y);
+    if (distance < closest_distance) {
+      closest_distance = distance;
+      closest_arc = lengths[i - 1] + chord * t;
+    }
+  }
+  return closest_arc;
+}
+function path_pose_at(points, lengths, distance) {
+  if (points.length === 0) return { x: 0, y: 0, theta: 0 };
+  const last = points[points.length - 1];
+  const pose = { x: last.x, y: last.y, theta: 0 };
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1];
+    const b = points[i];
+    const chord = lengths[i] - lengths[i - 1];
+    if (chord === 0) continue;
+    pose.theta = toDeg(Math.atan2(b.x - a.x, b.y - a.y));
+    if (distance <= lengths[i] || i === points.length - 1) {
+      const t = clamp((distance - lengths[i - 1]) / chord, 0, 1);
+      pose.x = a.x + (b.x - a.x) * t;
+      pose.y = a.y + (b.y - a.y) * t;
+      return pose;
+    }
+  }
+  return pose;
+}
+function to_tank_voltage(forward, turn) {
+  let left = forward + turn;
+  let right = forward - turn;
+  const ratio = Math.max(Math.abs(left), Math.abs(right));
+  if (ratio > 1) {
+    left /= ratio;
+    right /= ratio;
+  }
+  return [left, right];
+}
+function to_holonomic_voltage(forward, strafe, turn) {
+  let lf = forward + strafe + turn;
+  let lb = forward - strafe + turn;
+  let rf = forward - strafe - turn;
+  let rb = forward + strafe - turn;
+  const ratio = Math.max(Math.abs(lf), Math.abs(lb), Math.abs(rf), Math.abs(rb));
+  if (ratio > 1) {
+    lf /= ratio;
+    lb /= ratio;
+    rf /= ratio;
+    rb /= ratio;
+  }
+  return [lf, lb, rf, rb];
+}
+const SETTLE_DISTANCE$8 = 7;
+const SETTLING_MAX_SPEED_FLOOR$1 = 0.5;
+let lateralPID$5;
+let angularPID$9;
+let angle$2 = 0;
+let settling$1 = false;
+let start_line_settled$1 = false;
+let prev_drive_output$5 = 0;
+let prev_slew_output$1 = 0;
+let settling_max_speed$1 = 0;
+let start$9 = true;
+function reset_drive_to_pose() {
+  lateralPID$5?.reset();
+  angularPID$9?.reset();
+  angle$2 = 0;
+  settling$1 = false;
+  start_line_settled$1 = false;
+  prev_drive_output$5 = 0;
+  prev_slew_output$1 = 0;
+  settling_max_speed$1 = 0;
+  start$9 = true;
+}
+function drive_to_pose(robot, dt, x, y, target_angle2, p) {
+  const lat = p[0];
+  const ang = p[1];
+  if (start$9) {
+    lateralPID$5 = new PID4(
+      dt,
+      lat.kp,
+      lat.ki,
+      lat.kd,
+      lat.kf,
+      lat.start_i,
+      lat.settle_error,
+      lat.settle_time,
+      lat.large_settle_error,
+      lat.large_settle_time,
+      lat.exit_error,
+      lat.stall_timeout,
+      lat.timeout
+    );
+    angularPID$9 = new PID4(dt, ang.kp, ang.ki, ang.kd, ang.kf, ang.start_i, 0, 0, 0, 0, 0, 0, 0);
+    angle$2 = target_angle2;
+    if (lat.drive_direction === "reversed") angle$2 = wrap_angle_360(angle$2 + 180);
+    settling$1 = false;
+    start_line_settled$1 = line_crossed(x, y, angle$2, robot.getX(), robot.getY(), lat.exit_error);
+    prev_drive_output$5 = 0;
+    prev_slew_output$1 = 0;
+    settling_max_speed$1 = 0;
+    start$9 = false;
+  }
+  const target_distance = Math.hypot(x - robot.getX(), y - robot.getY());
+  let carrot_x = x - Math.sin(toRad(angle$2)) * (lat.lead * target_distance);
+  let carrot_y = y - Math.cos(toRad(angle$2)) * (lat.lead * target_distance);
+  if (target_distance < Math.max(SETTLE_DISTANCE$8, lat.exit_error) && !settling$1) {
+    settling$1 = true;
+    settling_max_speed$1 = Math.max(Math.abs(prev_drive_output$5), SETTLING_MAX_SPEED_FLOOR$1);
+  }
+  const max_speed = settling$1 ? settling_max_speed$1 : lat.max_speed;
+  const line_settled = line_crossed(x, y, angle$2, robot.getX(), robot.getY(), lat.exit_error);
+  if (lateralPID$5.isSettled() || line_settled !== start_line_settled$1 && settling$1 && lat.min_speed > 0) {
+    reset_drive_to_pose();
+    return true;
+  }
+  let drive_error = Math.hypot(carrot_x - robot.getX(), carrot_y - robot.getY());
+  let current_heading = robot.getAngle();
+  if (lat.drive_direction === "reversed") current_heading += 180;
+  let heading_error = wrap_angle_180(toDeg(Math.atan2(carrot_x - robot.getX(), carrot_y - robot.getY())) - current_heading);
+  if (settling$1) {
+    drive_error = target_distance * Math.cos(toRad(wrap_angle_180(
+      toDeg(Math.atan2(x - robot.getX(), y - robot.getY())) - robot.getAngle()
+    )));
+    heading_error = wrap_angle_180(angle$2 - current_heading);
+    carrot_x = x;
+    carrot_y = y;
+  } else {
+    drive_error *= Math.sign(Math.cos(toRad(wrap_angle_180(
+      toDeg(Math.atan2(carrot_x - robot.getX(), carrot_y - robot.getY())) - robot.getAngle()
+    ))));
+  }
+  if (lat.drive_direction === "fastest") heading_error = wrap_angle_90(heading_error);
+  let drive_output = lateralPID$5.compute(drive_error);
+  let heading_output = angularPID$9.compute(heading_error);
+  heading_output = clamp(heading_output, -ang.max_speed, ang.max_speed);
+  drive_output = clamp(drive_output, -max_speed, max_speed);
+  if (!settling$1) drive_output = slew2(drive_output, prev_slew_output$1, lat.slew);
+  prev_slew_output$1 = drive_output;
+  drive_output = clamp_max_slip(drive_output, robot.getX(), robot.getY(), current_heading, carrot_x, carrot_y, lat.max_slip);
+  drive_output = clamp_overturn(drive_output, heading_output, max_speed);
+  if (lat.drive_direction === "forwards" && !settling$1) drive_output = Math.max(drive_output, 0);
+  else if (lat.drive_direction === "reversed" && !settling$1) drive_output = Math.min(drive_output, 0);
+  drive_output = clamp_min_speed(drive_output, lat.min_speed);
+  prev_drive_output$5 = drive_output;
+  const [left, right] = to_tank_voltage(drive_output, heading_output);
+  robot.tankDrive(left, right, dt);
+  return false;
+}
+const SETTLE_DISTANCE$7 = 7;
+let lateralPID$4;
+let angularPID$8;
+let desired_heading = 0;
+let heading_locked = false;
+let locked_heading = 0;
+let prev_line_settled$1 = false;
+let prev_drive_output$4 = 0;
+let prev_heading_output$2 = 0;
+let start$8 = true;
+function reset_drive_to_point() {
+  lateralPID$4?.reset();
+  angularPID$8?.reset();
+  desired_heading = 0;
+  heading_locked = false;
+  locked_heading = 0;
+  prev_line_settled$1 = false;
+  prev_drive_output$4 = 0;
+  prev_heading_output$2 = 0;
+  start$8 = true;
+}
+function drive_to_point(robot, dt, x, y, p) {
+  const lat = p[0];
+  const ang = p[1];
+  if (start$8) {
+    lateralPID$4 = new PID4(
+      dt,
+      lat.kp,
+      lat.ki,
+      lat.kd,
+      lat.kf,
+      lat.start_i,
+      lat.settle_error,
+      lat.settle_time,
+      lat.large_settle_error,
+      lat.large_settle_time,
+      lat.exit_error,
+      lat.stall_timeout,
+      lat.timeout
+    );
+    angularPID$8 = new PID4(dt, ang.kp, ang.ki, ang.kd, ang.kf, ang.start_i, 0, 0, 0, 0, 0, 0, 0);
+    desired_heading = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
+    heading_locked = false;
+    locked_heading = 0;
+    prev_line_settled$1 = line_crossed(x, y, desired_heading, robot.getX(), robot.getY(), lat.exit_error);
+    prev_drive_output$4 = 0;
+    prev_heading_output$2 = 0;
+    start$8 = false;
+  }
+  const line_settled = line_crossed(x, y, desired_heading, robot.getX(), robot.getY(), lat.exit_error);
+  if (line_settled !== prev_line_settled$1 && lat.min_speed > 0 || lateralPID$4.isSettled()) {
+    reset_drive_to_point();
+    return true;
+  }
+  prev_line_settled$1 = line_settled;
+  const target_heading = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
+  const reversed_heading = target_heading + (lat.drive_direction === "reversed" ? 180 : 0);
+  const drive_error = Math.hypot(x - robot.getX(), y - robot.getY());
+  let heading_error = wrap_angle_180(reversed_heading - robot.getAngle());
+  const heading_scale_factor = Math.cos(toRad(wrap_angle_180(target_heading - robot.getAngle())));
+  let drive_output = lateralPID$4.compute(drive_error) * heading_scale_factor;
+  if (drive_error < SETTLE_DISTANCE$7) {
+    if (!heading_locked) {
+      locked_heading = reversed_heading;
+      heading_locked = true;
+    }
+    heading_error = wrap_angle_180(locked_heading - robot.getAngle());
+  }
+  if (lat.drive_direction === "fastest") heading_error = wrap_angle_90(heading_error);
+  let heading_output = angularPID$8.compute(heading_error);
+  drive_output = clamp(
+    drive_output,
+    -Math.abs(heading_scale_factor) * lat.max_speed,
+    Math.abs(heading_scale_factor) * lat.max_speed
+  );
+  heading_output = clamp(heading_output, -ang.max_speed, ang.max_speed);
+  if (!heading_locked) drive_output = slew2(drive_output, prev_drive_output$4, lat.slew);
+  heading_output = slew2(heading_output, prev_heading_output$2, ang.slew);
+  if (lat.drive_direction === "forwards" && !heading_locked) drive_output = Math.max(drive_output, 0);
+  else if (lat.drive_direction === "reversed" && !heading_locked) drive_output = Math.min(drive_output, 0);
+  drive_output = clamp_min_speed(drive_output, lat.min_speed);
+  prev_drive_output$4 = drive_output;
+  prev_heading_output$2 = heading_output;
+  const [left, right] = to_tank_voltage(drive_output, heading_output);
+  robot.tankDrive(left, right, dt);
+  return false;
+}
+const SETTLE_DISTANCE$6 = 7;
+let lateralPID$3;
+let angularPID$7;
+let start_x$2 = 0;
+let start_y$2 = 0;
+let heading$1 = 0;
+let prev_drive_output$3 = 0;
+let prev_heading_output$1 = 0;
+let start$7 = true;
+function reset_drive_distance() {
+  lateralPID$3?.reset();
+  angularPID$7?.reset();
+  start_x$2 = 0;
+  start_y$2 = 0;
+  heading$1 = 0;
+  prev_drive_output$3 = 0;
+  prev_heading_output$1 = 0;
+  start$7 = true;
+}
+function drive_distance(robot, dt, distance, target_heading, p) {
+  const lat = p[0];
+  const ang = p[1];
+  if (start$7) {
+    lateralPID$3 = new PID4(
+      dt,
+      lat.kp,
+      lat.ki,
+      lat.kd,
+      lat.kf,
+      lat.start_i,
+      lat.settle_error,
+      lat.settle_time,
+      lat.large_settle_error,
+      lat.large_settle_time,
+      lat.exit_error,
+      lat.stall_timeout,
+      lat.timeout
+    );
+    angularPID$7 = new PID4(dt, ang.kp, ang.ki, ang.kd, ang.kf, ang.start_i, 0, 0, 0, 0, 0, 0, 0);
+    start_x$2 = robot.getX();
+    start_y$2 = robot.getY();
+    heading$1 = target_heading ?? robot.getAngle();
+    prev_drive_output$3 = 0;
+    prev_heading_output$1 = 0;
+    start$7 = false;
+  }
+  if (lateralPID$3.isSettled()) {
+    reset_drive_distance();
+    return true;
+  }
+  const traveled = (robot.getX() - start_x$2) * Math.sin(toRad(heading$1)) + (robot.getY() - start_y$2) * Math.cos(toRad(heading$1));
+  const drive_error = distance - traveled;
+  const heading_error = wrap_angle_180(heading$1 - robot.getAngle());
+  let drive_output = lateralPID$3.compute(drive_error);
+  let heading_output = angularPID$7.compute(heading_error);
+  drive_output = clamp(drive_output, -lat.max_speed, lat.max_speed);
+  heading_output = clamp(heading_output, -ang.max_speed, ang.max_speed);
+  if (Math.abs(drive_error) > SETTLE_DISTANCE$6) drive_output = slew2(drive_output, prev_drive_output$3, lat.slew);
+  heading_output = slew2(heading_output, prev_heading_output$1, ang.slew);
+  drive_output = clamp_min_speed(drive_output, lat.min_speed);
+  prev_drive_output$3 = drive_output;
+  prev_heading_output$1 = heading_output;
+  const [left, right] = to_tank_voltage(drive_output, heading_output);
+  robot.tankDrive(left, right, dt);
+  return false;
+}
+const SETTLE_DISTANCE$5 = 20;
+let angularPID$6;
+let crossed$4 = false;
+let prev_raw_error$3 = 0;
+let prev_error$3 = 0;
+let prev_output$3 = 0;
+let start$6 = true;
+function reset_turn_to_angle() {
+  angularPID$6?.reset();
+  crossed$4 = false;
+  prev_raw_error$3 = 0;
+  prev_error$3 = 0;
+  prev_output$3 = 0;
+  start$6 = true;
+}
+function turn_to_angle(robot, dt, angle2, p) {
+  const ang = p[0];
+  if (start$6) {
+    angularPID$6 = new PID4(
+      dt,
+      ang.kp,
+      ang.ki,
+      ang.kd,
+      ang.kf,
+      ang.start_i,
+      ang.settle_error,
+      ang.settle_time,
+      ang.large_settle_error,
+      ang.large_settle_time,
+      ang.exit_error,
+      ang.stall_timeout,
+      ang.timeout
+    );
+    crossed$4 = false;
+    prev_raw_error$3 = angle_error(angle2 - robot.getAngle(), "shortest");
+    prev_error$3 = angle_error(angle2 - robot.getAngle(), ang.turn_direction);
+    prev_output$3 = 0;
+    start$6 = false;
+  }
+  const raw_error = angle_error(angle2 - robot.getAngle(), "shortest");
+  if (Math.sign(raw_error) !== Math.sign(prev_raw_error$3)) crossed$4 = true;
+  prev_raw_error$3 = raw_error;
+  const error = crossed$4 ? raw_error : angle_error(angle2 - robot.getAngle(), ang.turn_direction);
+  if (angularPID$6.isSettled() || ang.min_speed > 0 && Math.sign(error) !== Math.sign(prev_error$3)) {
+    reset_turn_to_angle();
+    return true;
+  }
+  prev_error$3 = error;
+  let output = angularPID$6.compute(error);
+  output = clamp(output, -ang.max_speed, ang.max_speed);
+  if (Math.abs(error) > SETTLE_DISTANCE$5) output = slew2(output, prev_output$3, ang.slew);
+  output = clamp_min_speed(output, ang.min_speed);
+  prev_output$3 = output;
+  const [left, right] = to_tank_voltage(0, output);
+  robot.tankDrive(left, right, dt);
+  return false;
+}
+const SETTLE_DISTANCE$4 = 20;
+let angularPID$5;
+let angle$1 = 0;
+let crossed$3 = false;
+let prev_raw_error$2 = 0;
+let prev_error$2 = 0;
+let prev_output$2 = 0;
+let start$5 = true;
+function reset_turn_to_point() {
+  angularPID$5?.reset();
+  angle$1 = 0;
+  crossed$3 = false;
+  prev_raw_error$2 = 0;
+  prev_error$2 = 0;
+  prev_output$2 = 0;
+  start$5 = true;
+}
+function turn_to_point(robot, dt, x, y, offset, p) {
+  const ang = p[0];
+  if (start$5) {
+    angularPID$5 = new PID4(
+      dt,
+      ang.kp,
+      ang.ki,
+      ang.kd,
+      ang.kf,
+      ang.start_i,
+      ang.settle_error,
+      ang.settle_time,
+      ang.large_settle_error,
+      ang.large_settle_time,
+      ang.exit_error,
+      ang.stall_timeout,
+      ang.timeout
+    );
+    angle$1 = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
+    crossed$3 = false;
+    prev_raw_error$2 = angle_error(angle$1 - robot.getAngle() + offset, "shortest");
+    prev_error$2 = angle_error(angle$1 - robot.getAngle() + offset, ang.turn_direction);
+    prev_output$2 = 0;
+    start$5 = false;
+  }
+  const raw_error = angle_error(angle$1 - robot.getAngle() + offset, "shortest");
+  if (Math.sign(raw_error) !== Math.sign(prev_raw_error$2)) crossed$3 = true;
+  prev_raw_error$2 = raw_error;
+  const error = crossed$3 ? raw_error : angle_error(angle$1 - robot.getAngle() + offset, ang.turn_direction);
+  if (angularPID$5.isSettled() || ang.min_speed > 0 && Math.sign(error) !== Math.sign(prev_error$2)) {
+    reset_turn_to_point();
+    return true;
+  }
+  prev_error$2 = error;
+  let output = angularPID$5.compute(error);
+  output = clamp(output, -ang.max_speed, ang.max_speed);
+  if (Math.abs(error) > SETTLE_DISTANCE$4) output = slew2(output, prev_output$2, ang.slew);
+  output = clamp_min_speed(output, ang.min_speed);
+  prev_output$2 = output;
+  const [left, right] = to_tank_voltage(0, output);
+  robot.tankDrive(left, right, dt);
+  return false;
+}
+const SETTLE_DISTANCE$3 = 20;
+let angularPID$4;
+let crossed$2 = false;
+let prev_raw_error$1 = 0;
+let prev_error$1 = 0;
+let prev_output$1 = 0;
+let start$4 = true;
+function reset_swing_to_angle() {
+  angularPID$4?.reset();
+  crossed$2 = false;
+  prev_raw_error$1 = 0;
+  prev_error$1 = 0;
+  prev_output$1 = 0;
+  start$4 = true;
+}
+function swing_to_angle(robot, dt, angle2, p) {
+  const ang = p[0];
+  if (start$4) {
+    angularPID$4 = new PID4(
+      dt,
+      ang.kp,
+      ang.ki,
+      ang.kd,
+      ang.kf,
+      ang.start_i,
+      ang.settle_error,
+      ang.settle_time,
+      ang.large_settle_error,
+      ang.large_settle_time,
+      ang.exit_error,
+      ang.stall_timeout,
+      ang.timeout
+    );
+    crossed$2 = false;
+    prev_raw_error$1 = angle_error(angle2 - robot.getAngle(), "shortest");
+    prev_error$1 = angle_error(angle2 - robot.getAngle(), ang.turn_direction);
+    prev_output$1 = 0;
+    start$4 = false;
+  }
+  const raw_error = angle_error(angle2 - robot.getAngle(), "shortest");
+  if (Math.sign(raw_error) !== Math.sign(prev_raw_error$1)) crossed$2 = true;
+  prev_raw_error$1 = raw_error;
+  const error = crossed$2 ? raw_error : angle_error(angle2 - robot.getAngle(), ang.turn_direction);
+  if (angularPID$4.isSettled() || ang.min_speed > 0 && Math.sign(error) !== Math.sign(prev_error$1)) {
+    reset_swing_to_angle();
+    return true;
+  }
+  prev_error$1 = error;
+  let output = angularPID$4.compute(error);
+  output = clamp(output, -ang.max_speed, ang.max_speed);
+  if (Math.abs(error) > SETTLE_DISTANCE$3) output = slew2(output, prev_output$1, ang.slew);
+  output = clamp_min_speed(output, ang.min_speed);
+  prev_output$1 = output;
+  const opposite_output = ang.opposite_speed !== 0 && ang.max_speed !== 0 ? ang.opposite_speed * (output / ang.max_speed) : 0;
+  if (ang.swing_side === "SwingSide::LEFT") robot.tankDrive(output, opposite_output, dt);
+  else robot.tankDrive(-opposite_output, -output, dt);
+  return false;
+}
+const SETTLE_DISTANCE$2 = 20;
+let angularPID$3;
+let angle = 0;
+let crossed$1 = false;
+let prev_raw_error = 0;
+let prev_error = 0;
+let prev_output = 0;
+let start$3 = true;
+function reset_swing_to_point() {
+  angularPID$3?.reset();
+  angle = 0;
+  crossed$1 = false;
+  prev_raw_error = 0;
+  prev_error = 0;
+  prev_output = 0;
+  start$3 = true;
+}
+function swing_to_point(robot, dt, x, y, offset, p) {
+  const ang = p[0];
+  if (start$3) {
+    angularPID$3 = new PID4(
+      dt,
+      ang.kp,
+      ang.ki,
+      ang.kd,
+      ang.kf,
+      ang.start_i,
+      ang.settle_error,
+      ang.settle_time,
+      ang.large_settle_error,
+      ang.large_settle_time,
+      ang.exit_error,
+      ang.stall_timeout,
+      ang.timeout
+    );
+    angle = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
+    crossed$1 = false;
+    prev_raw_error = angle_error(angle - robot.getAngle() + offset, "shortest");
+    prev_error = angle_error(angle - robot.getAngle() + offset, ang.turn_direction);
+    prev_output = 0;
+    start$3 = false;
+  }
+  const raw_error = angle_error(angle - robot.getAngle() + offset, "shortest");
+  if (Math.sign(raw_error) !== Math.sign(prev_raw_error)) crossed$1 = true;
+  prev_raw_error = raw_error;
+  const error = crossed$1 ? raw_error : angle_error(angle - robot.getAngle() + offset, ang.turn_direction);
+  if (angularPID$3.isSettled() || ang.min_speed > 0 && Math.sign(error) !== Math.sign(prev_error)) {
+    reset_swing_to_point();
+    return true;
+  }
+  prev_error = error;
+  let output = angularPID$3.compute(error);
+  output = clamp(output, -ang.max_speed, ang.max_speed);
+  if (Math.abs(error) > SETTLE_DISTANCE$2) output = slew2(output, prev_output, ang.slew);
+  output = clamp_min_speed(output, ang.min_speed);
+  prev_output = output;
+  const opposite_output = ang.opposite_speed !== 0 && ang.max_speed !== 0 ? ang.opposite_speed * (output / ang.max_speed) : 0;
+  if (ang.swing_side === "SwingSide::LEFT") robot.tankDrive(output, opposite_output, dt);
+  else robot.tankDrive(-opposite_output, -output, dt);
+  return false;
+}
+const SETTLE_DISTANCE$1 = 7;
+const SETTLING_MAX_SPEED_FLOOR = 0.5;
+let lateralPID$2;
+let angularPID$2;
+let path_points = [];
+let path_lengths = [];
+let total_distance = 0;
+let final_tangent = 0;
+let settle_heading = 0;
+let settling = false;
+let start_line_settled = false;
+let prev_drive_output$2 = 0;
+let prev_slew_output = 0;
+let settling_max_speed = 0;
+let start$2 = true;
+function reset_drive_on_path() {
+  lateralPID$2?.reset();
+  angularPID$2?.reset();
+  path_points = [];
+  path_lengths = [];
+  total_distance = 0;
+  final_tangent = 0;
+  settle_heading = 0;
+  settling = false;
+  start_line_settled = false;
+  prev_drive_output$2 = 0;
+  prev_slew_output = 0;
+  settling_max_speed = 0;
+  start$2 = true;
+}
+function drive_on_path(robot, dt, points, end_angle, p) {
+  const lat = p[0];
+  const ang = p[1];
+  if (start$2) {
+    lateralPID$2 = new PID4(
+      dt,
+      lat.kp,
+      lat.ki,
+      lat.kd,
+      lat.kf,
+      lat.start_i,
+      lat.settle_error,
+      lat.settle_time,
+      lat.large_settle_error,
+      lat.large_settle_time,
+      lat.exit_error,
+      lat.stall_timeout,
+      lat.timeout
+    );
+    angularPID$2 = new PID4(dt, ang.kp, ang.ki, ang.kd, ang.kf, ang.start_i, 0, 0, 0, 0, 0, 0, 0);
+    path_points = points;
+    path_lengths = cumulative_lengths(path_points);
+    settling = false;
+    prev_drive_output$2 = 0;
+    prev_slew_output = 0;
+    settling_max_speed = 0;
+    start$2 = false;
+    if (path_points.length >= 2) {
+      const end2 = path_points[path_points.length - 1];
+      total_distance = path_lengths[path_lengths.length - 1];
+      final_tangent = path_pose_at(path_points, path_lengths, total_distance).theta;
+      settle_heading = final_tangent;
+      if (end_angle !== null) {
+        settle_heading = end_angle;
+        if (lat.drive_direction === "reversed") settle_heading = wrap_angle_360(end_angle + 180);
+      }
+      start_line_settled = line_crossed(end2.x, end2.y, final_tangent, robot.getX(), robot.getY(), lat.exit_error);
+    }
+  }
+  if (path_points.length < 2) {
+    reset_drive_on_path();
+    return true;
+  }
+  const end = path_points[path_points.length - 1];
+  const traveled = path_progress(path_points, path_lengths, { x: robot.getX(), y: robot.getY() });
+  const look_arc = Math.min(traveled + lat.lookahead, total_distance);
+  const look = path_pose_at(path_points, path_lengths, look_arc);
+  const remaining_arc = total_distance - traveled;
+  const target_distance = Math.hypot(end.x - robot.getX(), end.y - robot.getY());
+  const settle_radius = Math.max(SETTLE_DISTANCE$1, lat.exit_error);
+  if (remaining_arc < settle_radius && target_distance < settle_radius && !settling) {
+    settling = true;
+    settling_max_speed = Math.max(Math.abs(prev_drive_output$2), SETTLING_MAX_SPEED_FLOOR);
+  }
+  const max_speed = settling ? settling_max_speed : lat.max_speed;
+  const line_settled = line_crossed(end.x, end.y, final_tangent, robot.getX(), robot.getY(), lat.exit_error);
+  if (lateralPID$2.isSettled() || line_settled !== start_line_settled && settling && lat.min_speed > 0) {
+    reset_drive_on_path();
+    return true;
+  }
+  let drive_error = Math.hypot(look.x - robot.getX(), look.y - robot.getY()) + (total_distance - look_arc);
+  let current_heading = robot.getAngle();
+  if (lat.drive_direction === "reversed") current_heading += 180;
+  let heading_error = wrap_angle_180(toDeg(Math.atan2(look.x - robot.getX(), look.y - robot.getY())) - current_heading);
+  if (settling) {
+    drive_error = target_distance * Math.cos(toRad(wrap_angle_180(
+      toDeg(Math.atan2(end.x - robot.getX(), end.y - robot.getY())) - robot.getAngle()
+    )));
+    heading_error = wrap_angle_180(settle_heading - current_heading);
+  } else {
+    drive_error *= Math.sign(Math.cos(toRad(wrap_angle_180(
+      toDeg(Math.atan2(look.x - robot.getX(), look.y - robot.getY())) - robot.getAngle()
+    ))));
+  }
+  if (lat.drive_direction === "fastest") heading_error = wrap_angle_90(heading_error);
+  let drive_output = lateralPID$2.compute(drive_error);
+  let heading_output = angularPID$2.compute(heading_error);
+  heading_output = clamp(heading_output, -ang.max_speed, ang.max_speed);
+  drive_output = clamp(drive_output, -max_speed, max_speed);
+  if (!settling) drive_output = slew2(drive_output, prev_slew_output, lat.slew);
+  prev_slew_output = drive_output;
+  drive_output = clamp_max_slip(
+    drive_output,
+    robot.getX(),
+    robot.getY(),
+    current_heading,
+    settling ? end.x : look.x,
+    settling ? end.y : look.y,
+    lat.max_slip
+  );
+  drive_output = clamp_overturn(drive_output, heading_output, max_speed);
+  if (lat.drive_direction === "forwards" && !settling) drive_output = Math.max(drive_output, 0);
+  else if (lat.drive_direction === "reversed" && !settling) drive_output = Math.min(drive_output, 0);
+  drive_output = clamp_min_speed(drive_output, lat.min_speed);
+  prev_drive_output$2 = drive_output;
+  const [left, right] = to_tank_voltage(drive_output, heading_output);
+  robot.tankDrive(left, right, dt);
+  return false;
+}
+const kRevDrive = {
+  max_speed: 0.8,
+  min_speed: 0,
+  kp: 0.125,
+  ki: 0,
+  kd: 0.85,
+  kf: 0,
+  start_i: 0,
+  slew: 0,
+  settle_error: 1,
+  settle_time: 100,
+  large_settle_error: 3,
+  large_settle_time: 500,
+  exit_error: 0,
+  stall_timeout: 0,
+  timeout: 5e3,
+  lead: 0.5,
+  max_slip: 0.17,
+  lookahead: 8,
+  drive_direction: "fastest",
+  turn_direction: "shortest",
+  swing_side: "SwingSide::LEFT",
+  opposite_speed: 0
+};
+const kRevHeading = {
+  ...kRevDrive,
+  max_speed: 1,
+  kp: 0.036,
+  ki: 0,
+  kd: 0.25,
+  kf: 0,
+  start_i: 0,
+  slew: 0,
+  settle_error: 1,
+  settle_time: 100,
+  large_settle_error: 3,
+  large_settle_time: 500,
+  timeout: 3e3
+};
+const kRevTurn = {
+  ...kRevHeading,
+  max_speed: 1,
+  min_speed: 0,
+  exit_error: 0,
+  stall_timeout: 0,
+  timeout: 3e3
+};
+const kRevTranslational = {
+  ...kRevDrive,
+  kp: 0.1,
+  ki: 0,
+  kd: 0,
+  kf: 0,
+  start_i: 0
+};
+const revDriveExitConditionsSettings = [
+  { key: "settle_error", units: "in", label: "Settle Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
+  { key: "settle_time", units: "ms", label: "Settle Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+  { key: "large_settle_error", units: "in", label: "Large Settle Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
+  { key: "large_settle_time", units: "ms", label: "Large Settle Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+  { key: "exit_error", units: "in", label: "Exit Error", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } },
+  { key: "stall_timeout", units: "ms", label: "Stall Timeout", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+  { key: "timeout", units: "ms", label: "Timeout", input: { bounds: [0, 9999], stepSize: 100, roundTo: 0 } },
+  { key: "min_speed", units: "", label: "Min Speed", input: { bounds: [0, 1], stepSize: 0.05, roundTo: 2 } }
+];
+const revTurnExitConditionsSettings = [
+  { key: "settle_error", units: "deg", label: "Settle Error", input: { bounds: [0, 360], stepSize: 0.5, roundTo: 2 } },
+  { key: "settle_time", units: "ms", label: "Settle Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+  { key: "large_settle_error", units: "deg", label: "Large Settle Error", input: { bounds: [0, 360], stepSize: 0.5, roundTo: 2 } },
+  { key: "large_settle_time", units: "ms", label: "Large Settle Time", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+  { key: "exit_error", units: "deg", label: "Exit Error", input: { bounds: [0, 360], stepSize: 5, roundTo: 2 } },
+  { key: "stall_timeout", units: "ms", label: "Stall Timeout", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } },
+  { key: "timeout", units: "ms", label: "Timeout", input: { bounds: [0, 9999], stepSize: 100, roundTo: 0 } },
+  { key: "min_speed", units: "", label: "Min Speed", input: { bounds: [0, 1], stepSize: 0.05, roundTo: 2 } }
+];
+const revLateralPIDSettings = [
+  { key: "max_speed", units: "", label: "Max Speed", input: { bounds: [0, 1], stepSize: 0.05, roundTo: 2 } },
+  { key: "kp", label: "kP", units: "", input: { bounds: [0, 100], stepSize: 5e-3, roundTo: 5 } },
+  { key: "ki", label: "kI", units: "", input: { bounds: [0, 100], stepSize: 1e-3, roundTo: 5 } },
+  { key: "kd", label: "kD", units: "", input: { bounds: [0, 100], stepSize: 0.05, roundTo: 5 } },
+  { key: "kf", label: "kF", units: "", input: { bounds: [0, 1], stepSize: 0.01, roundTo: 5 } },
+  { key: "start_i", units: "in", label: "Start I", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
+  { key: "slew", units: "/tick", label: "Slew", input: { bounds: [0, 1], stepSize: 0.01, roundTo: 3 } }
+];
+const revAngularPIDSettings = [
+  { key: "max_speed", units: "", label: "Max Speed", input: { bounds: [0, 1], stepSize: 0.05, roundTo: 2 } },
+  { key: "kp", label: "kP", units: "", input: { bounds: [0, 100], stepSize: 5e-3, roundTo: 5 } },
+  { key: "ki", label: "kI", units: "", input: { bounds: [0, 100], stepSize: 1e-3, roundTo: 5 } },
+  { key: "kd", label: "kD", units: "", input: { bounds: [0, 100], stepSize: 0.05, roundTo: 5 } },
+  { key: "kf", label: "kF", units: "", input: { bounds: [0, 1], stepSize: 0.01, roundTo: 5 } },
+  { key: "start_i", units: "deg", label: "Start I", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
+  { key: "slew", units: "/tick", label: "Slew", input: { bounds: [0, 1], stepSize: 0.01, roundTo: 3 } }
+];
+const revTranslationalPIDSettings = [
+  { key: "kp", label: "kP", units: "", input: { bounds: [0, 100], stepSize: 5e-3, roundTo: 5 } },
+  { key: "ki", label: "kI", units: "", input: { bounds: [0, 100], stepSize: 1e-3, roundTo: 5 } },
+  { key: "kd", label: "kD", units: "", input: { bounds: [0, 100], stepSize: 0.05, roundTo: 5 } },
+  { key: "kf", label: "kF", units: "", input: { bounds: [0, 1], stepSize: 0.01, roundTo: 5 } },
+  { key: "start_i", units: "in", label: "Start I", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } }
+];
+const revLeadField = { key: "lead", label: "Lead", units: "", input: { bounds: [0, 1], stepSize: 0.05, roundTo: 2 } };
+const revMaxSlipField = { key: "max_slip", label: "Max Slip", units: "", input: { bounds: [0, 1], stepSize: 0.01, roundTo: 3 } };
+const revLookaheadField = { key: "lookahead", label: "Lookahead", units: "in", input: { bounds: [0, 100], stepSize: 0.5, roundTo: 2 } };
+const revOppositeSpeedField = { key: "opposite_speed", label: "Opposite Speed", units: "", input: { bounds: [0, 1], stepSize: 0.05, roundTo: 2 } };
+const driveDirectionButton = {
+  key: "drive_direction",
+  keyValues: [
+    { srcImg: fastest$1, value: "fastest" },
+    { srcImg: fwd, value: "forwards" },
+    { srcImg: rev, value: "reversed" }
+  ]
+};
+const turnDirectionButton = {
+  key: "turn_direction",
+  keyValues: [
+    { srcImg: refresh, value: "cw" },
+    { srcImg: ccw, value: "ccw" },
+    { srcImg: cwccw, value: "shortest" }
+  ]
+};
+const swingSideButton = {
+  key: "swing_side",
+  keyValues: [
+    { srcImg: rightswing, value: "SwingSide::RIGHT" },
+    { srcImg: leftswing, value: "SwingSide::LEFT" }
+  ]
+};
+const turnFaceButton = {
+  key: "angle_offset",
+  keyValues: [
+    { srcImg: fwd, value: "0" },
+    { srcImg: rev, value: "180" }
+  ],
+  turnPoseValue: (pose) => normalizeDeg(pose.angle ?? 0) === 180 ? "180" : "0",
+  turnPoseEffect: (val) => ({ angle: val === "180" ? 180 : 0 })
+};
+const reveilLibDef = {
+  constants: [kRevDrive],
+  kMaxSpeed: 1,
+  formatPathName: "ReveilLib Path",
+  kBuilder: kRevBuilder,
+  kParser: kRevParser,
+  segments: {
+    start: {
+      name: "Start",
+      defaults: [kRevDrive],
+      toStringTemplate: "odom.set_pose({${x}_in, ${y}_in, ${angle}_deg});",
+      simFn: (robot, _dt, x, y, angle2) => robot.setPose(x, y, angle2 ?? 0),
+      cycleButtons: [],
+      numberInputs: []
+    },
+    wait: {
+      name: "Wait",
+      defaults: [kRevDrive],
+      toStringTemplate: "pros::delay(${time});",
+      simFn: (robot, dt, time) => robot.wait(time, dt),
+      slider: { key: "time", bounds: [0, 1e3], roundTo: 10, constantsIdx: 0 },
+      cycleButtons: [],
+      numberInputs: [{
+        constantsIdx: 0,
+        headerName: "Wait Settings",
+        fields: [
+          { key: "time", label: "Time", units: "ms", input: { bounds: [0, 9999], stepSize: 10, roundTo: 0 } }
+        ]
+      }]
+    },
+    poseDrive: {
+      name: "Drive to Pose",
+      defaults: [kRevDrive, kRevHeading],
+      toStringTemplate: "reckless.go(DriveToPose({${x}_in, ${y}_in, ${angle}_deg})${kBuilder});",
+      simFn: (robot, dt, x, y, angle2, constants) => drive_to_pose(robot, dt, x, y, angle2 ?? 0, constants),
+      simReset: reset_drive_to_pose,
+      slider: { key: "max_speed", bounds: [0, 1], roundTo: 0.01, constantsIdx: 0 },
+      cycleButtons: [
+        { constantsIdx: 0, ...driveDirectionButton }
+      ],
+      numberInputs: [
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...revDriveExitConditionsSettings] },
+        { constantsIdx: 0, headerName: "Drive Constants", fields: [...revLateralPIDSettings, revLeadField, revMaxSlipField] },
+        { constantsIdx: 1, headerName: "Heading Constants", fields: [...revAngularPIDSettings] }
+      ]
+    },
+    pointDrive: {
+      name: "Drive to Point",
+      defaults: [kRevDrive, kRevHeading],
+      toStringTemplate: "reckless.go(DriveToPoint({${x}_in, ${y}_in})${kBuilder});",
+      simFn: (robot, dt, x, y, _angle, constants) => drive_to_point(robot, dt, x, y, constants),
+      simReset: reset_drive_to_point,
+      slider: { key: "max_speed", bounds: [0, 1], roundTo: 0.01, constantsIdx: 0 },
+      cycleButtons: [
+        { constantsIdx: 0, ...driveDirectionButton }
+      ],
+      numberInputs: [
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...revDriveExitConditionsSettings] },
+        { constantsIdx: 0, headerName: "Drive Constants", fields: [...revLateralPIDSettings] },
+        { constantsIdx: 1, headerName: "Heading Constants", fields: [...revAngularPIDSettings] }
+      ]
+    },
+    distanceDrive: {
+      name: "Drive Distance",
+      defaults: [kRevDrive, kRevHeading],
+      toStringTemplate: "reckless.go(DriveDistance(${distance}_in, ${angle}_deg)${kBuilder});",
+      simFn: (robot, dt, distance, _y, angle2, constants) => drive_distance(robot, dt, distance, angle2, constants),
+      simReset: reset_drive_distance,
+      slider: { key: "max_speed", bounds: [0, 1], roundTo: 0.01, constantsIdx: 0 },
+      cycleButtons: [],
+      numberInputs: [
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...revDriveExitConditionsSettings] },
+        { constantsIdx: 0, headerName: "Drive Constants", fields: [...revLateralPIDSettings] },
+        { constantsIdx: 1, headerName: "Heading Constants", fields: [...revAngularPIDSettings] }
+      ]
+    },
+    pointTurn: {
+      name: "Turn to Point",
+      defaults: [kRevTurn],
+      toStringTemplate: "reckless.go(Turn({${x}_in, ${y}_in})${kBuilder});",
+      actionButtons: [turnLockButton],
+      simFn: (robot, dt, x, y, angle2, constants) => turn_to_point(robot, dt, x, y, angle2 ?? 0, constants),
+      simReset: reset_turn_to_point,
+      slider: { key: "max_speed", bounds: [0, 1], roundTo: 0.01, constantsIdx: 0 },
+      cycleButtons: [
+        { constantsIdx: 0, ...turnDirectionButton },
+        { constantsIdx: 0, ...turnFaceButton }
+      ],
+      numberInputs: [
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...revTurnExitConditionsSettings] },
+        { constantsIdx: 0, headerName: "Turn Constants", fields: [...revAngularPIDSettings] }
+      ]
+    },
+    angleTurn: {
+      name: "Turn to Angle",
+      defaults: [kRevTurn],
+      toStringTemplate: "reckless.go(Turn(${angle}_deg)${kBuilder});",
+      simFn: (robot, dt, _x, _y, angle2, constants) => turn_to_angle(robot, dt, angle2 ?? 0, constants),
+      simReset: reset_turn_to_angle,
+      slider: { key: "max_speed", bounds: [0, 1], roundTo: 0.01, constantsIdx: 0 },
+      cycleButtons: [
+        { constantsIdx: 0, ...turnDirectionButton }
+      ],
+      numberInputs: [
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...revTurnExitConditionsSettings] },
+        { constantsIdx: 0, headerName: "Turn Constants", fields: [...revAngularPIDSettings] }
+      ]
+    },
+    pointSwing: {
+      name: "Swing to Point",
+      defaults: [kRevTurn],
+      toStringTemplate: "reckless.go(Swing(${swing_side}, {${x}_in, ${y}_in})${kBuilder});",
+      actionButtons: [turnLockButton],
+      simFn: (robot, dt, x, y, angle2, constants) => swing_to_point(robot, dt, x, y, angle2 ?? 0, constants),
+      simReset: reset_swing_to_point,
+      slider: { key: "max_speed", bounds: [0, 1], roundTo: 0.01, constantsIdx: 0 },
+      cycleButtons: [
+        { constantsIdx: 0, ...swingSideButton },
+        { constantsIdx: 0, ...turnDirectionButton },
+        { constantsIdx: 0, ...turnFaceButton }
+      ],
+      numberInputs: [
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...revTurnExitConditionsSettings] },
+        { constantsIdx: 0, headerName: "Swing Constants", fields: [...revAngularPIDSettings, revOppositeSpeedField] }
+      ]
+    },
+    angleSwing: {
+      name: "Swing to Angle",
+      defaults: [kRevTurn],
+      toStringTemplate: "reckless.go(Swing(${swing_side}, ${angle}_deg)${kBuilder});",
+      simFn: (robot, dt, _x, _y, angle2, constants) => swing_to_angle(robot, dt, angle2 ?? 0, constants),
+      simReset: reset_swing_to_angle,
+      slider: { key: "max_speed", bounds: [0, 1], roundTo: 0.01, constantsIdx: 0 },
+      cycleButtons: [
+        { constantsIdx: 0, ...swingSideButton },
+        { constantsIdx: 0, ...turnDirectionButton }
+      ],
+      numberInputs: [
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...revTurnExitConditionsSettings] },
+        { constantsIdx: 0, headerName: "Swing Constants", fields: [...revAngularPIDSettings, revOppositeSpeedField] }
+      ]
+    },
+    bezierCurve: {
+      name: "Drive on Path",
+      defaults: [kRevDrive, kRevHeading],
+      toStringTemplate: "reckless.go(DriveOnPath({${c1x}_in, ${c1y}_in}, {${c2x}_in, ${c2y}_in}, {${x}_in, ${y}_in}, ${angle}_deg)${kBuilder});",
+      simFn: (robot, dt, _x, _y, angle2, constants, points) => drive_on_path(robot, dt, points ?? [], angle2, constants),
+      simReset: reset_drive_on_path,
+      slider: { key: "max_speed", bounds: [0, 1], roundTo: 0.01, constantsIdx: 0 },
+      cycleButtons: [
+        { constantsIdx: 0, ...driveDirectionButton }
+      ],
+      actionButtons: [addControlButton],
+      numberInputs: [
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...revDriveExitConditionsSettings] },
+        { constantsIdx: 0, headerName: "Drive Constants", fields: [...revLateralPIDSettings, revLookaheadField, revMaxSlipField] },
+        { constantsIdx: 1, headerName: "Heading Constants", fields: [...revAngularPIDSettings] }
+      ]
+    },
+    strafeDrive: {
+      castTo: "distanceDrive"
+    },
+    poseDrive2: {
+      castTo: "poseDrive"
+    }
+  }
+};
+const DRIVE_DIRECTION_LITERALS = {
+  "DriveDirection::FASTEST": "fastest",
+  "DriveDirection::FWD": "forwards",
+  "DriveDirection::FORWARD": "forwards",
+  "DriveDirection::REV": "reversed",
+  "DriveDirection::REVERSE": "reversed"
+};
+const TURN_DIRECTION_LITERALS = {
+  "TurnDirection::SHORTEST": "shortest",
+  "TurnDirection::CW": "cw",
+  "TurnDirection::CLOCKWISE": "cw",
+  "TurnDirection::CCW": "ccw",
+  "TurnDirection::COUNTERCLOCKWISE": "ccw"
+};
+function kRevBuilder(kDefault, constants, pose, kind) {
+  const isStrafePose = kind === "poseDrive2";
+  const keyToLateral = (key, value) => {
+    switch (key) {
+      case "max_speed":
+        return `.max_speed(${roundOff(value, 3)})`;
+      case "min_speed":
+        return `.min_speed(${roundOff(value, 3)})`;
+      case "kp":
+        return `.lateral_kp(${roundOff(value, 5)})`;
+      case "ki":
+        return `.lateral_ki(${roundOff(value, 5)})`;
+      case "kd":
+        return `.lateral_kd(${roundOff(value, 5)})`;
+      case "kf":
+        return `.lateral_kf(${roundOff(value, 5)})`;
+      case "start_i":
+        return `.lateral_start_i(${roundOff(value, 2)}_in)`;
+      case "slew":
+        return `.lateral_slew(${roundOff(value, 3)})`;
+      case "settle_error":
+        return `.settle_error(${roundOff(value, 2)}_in)`;
+      case "settle_time":
+        return `.settle_time(${roundOff(value, 0)}_ms)`;
+      case "large_settle_error":
+        return `.large_settle_error(${roundOff(value, 2)}_in)`;
+      case "large_settle_time":
+        return `.large_settle_time(${roundOff(value, 0)}_ms)`;
+      case "exit_error":
+        return `.exit_error(${roundOff(value, 2)}_in)`;
+      case "stall_timeout":
+        return `.stall_timeout(${roundOff(value, 0)}_ms)`;
+      case "timeout":
+        return `.timeout(${roundOff(value, 0)}_ms)`;
+      case "lead":
+        return `.lead(${roundOff(value, 3)})`;
+      case "max_slip":
+        return `.max_slip(${roundOff(value, 3)})`;
+      case "lookahead":
+        return `.lookahead(${roundOff(value, 2)}_in)`;
+      case "drive_direction":
+        if (value === "fastest") return "";
+        return `.direction(DriveDirection::${value === "reversed" ? "REV" : "FWD"})`;
+    }
+    return "";
+  };
+  const keyToAngular = (key, value) => {
+    switch (key) {
+      case "max_speed":
+        return `.angular_max_speed(${roundOff(value, 3)})`;
+      case "kp":
+        return `.angular_kp(${roundOff(value, 5)})`;
+      case "ki":
+        return `.angular_ki(${roundOff(value, 5)})`;
+      case "kd":
+        return `.angular_kd(${roundOff(value, 5)})`;
+      case "kf":
+        return `.angular_kf(${roundOff(value, 5)})`;
+      case "start_i":
+        return `.angular_start_i(${roundOff(value, 2)}_deg)`;
+      case "slew":
+        return `.angular_slew(${roundOff(value, 3)})`;
+      case "settle_error":
+        return isStrafePose ? `.angular_settle_error(${roundOff(value, 2)}_deg)` : "";
+      case "settle_time":
+        return isStrafePose ? `.angular_settle_time(${roundOff(value, 0)}_ms)` : "";
+      case "large_settle_error":
+        return isStrafePose ? `.angular_large_settle_error(${roundOff(value, 2)}_deg)` : "";
+      case "large_settle_time":
+        return isStrafePose ? `.angular_large_settle_time(${roundOff(value, 0)}_ms)` : "";
+    }
+    return "";
+  };
+  const keyToTranslational = (key, value) => {
+    switch (key) {
+      case "kp":
+        return `.translational_kp(${roundOff(value, 5)})`;
+      case "ki":
+        return `.translational_ki(${roundOff(value, 5)})`;
+      case "kd":
+        return `.translational_kd(${roundOff(value, 5)})`;
+      case "kf":
+        return `.translational_kf(${roundOff(value, 5)})`;
+      case "start_i":
+        return `.translational_start_i(${roundOff(value, 2)}_in)`;
+    }
+    return "";
+  };
+  const keyToTurn = (key, value) => {
+    switch (key) {
+      case "max_speed":
+        return `.max_speed(${roundOff(value, 3)})`;
+      case "min_speed":
+        return `.min_speed(${roundOff(value, 3)})`;
+      case "kp":
+        return `.angular_kp(${roundOff(value, 5)})`;
+      case "ki":
+        return `.angular_ki(${roundOff(value, 5)})`;
+      case "kd":
+        return `.angular_kd(${roundOff(value, 5)})`;
+      case "kf":
+        return `.angular_kf(${roundOff(value, 5)})`;
+      case "start_i":
+        return `.angular_start_i(${roundOff(value, 2)}_deg)`;
+      case "slew":
+        return `.angular_slew(${roundOff(value, 3)})`;
+      case "settle_error":
+        return `.settle_error(${roundOff(value, 2)}_deg)`;
+      case "settle_time":
+        return `.settle_time(${roundOff(value, 0)}_ms)`;
+      case "large_settle_error":
+        return `.large_settle_error(${roundOff(value, 2)}_deg)`;
+      case "large_settle_time":
+        return `.large_settle_time(${roundOff(value, 0)}_ms)`;
+      case "exit_error":
+        return `.exit_error(${roundOff(value, 2)}_deg)`;
+      case "stall_timeout":
+        return `.stall_timeout(${roundOff(value, 0)}_ms)`;
+      case "timeout":
+        return `.timeout(${roundOff(value, 0)}_ms)`;
+      case "opposite_speed":
+        return `.opposite_speed(${roundOff(value, 3)})`;
+      case "turn_direction":
+        if (value === "shortest") return "";
+        return `.direction(TurnDirection::${value === "cw" ? "CW" : "CCW"})`;
+    }
+    return "";
+  };
+  const buildList = (kDef, k, mapper) => {
+    const unequal = getUnequalKeys(kDef, k);
+    const list = [];
+    for (const key of Object.keys(unequal)) {
+      const value = unequal[key];
+      if (value === void 0) continue;
+      const c = mapper(key, value);
+      if (c !== "") list.push(c);
+    }
+    return list;
+  };
+  const isDrive = kDefault.length >= 2;
+  const constantsList = [];
+  if (isDrive) {
+    constantsList.push(...buildList(kDefault[0], constants[0], keyToLateral));
+    constantsList.push(...buildList(kDefault[1], constants[1], keyToAngular));
+    if (kDefault.length >= 3 && constants[2]) {
+      constantsList.push(...buildList(kDefault[2], constants[2], keyToTranslational));
+    }
+  } else {
+    constantsList.push(...buildList(kDefault[0], constants[0], keyToTurn));
+    if (pose?.angle && kind !== "angleSwing" && kind !== "angleTurn") {
+      constantsList.push(`.offset(${roundOff(pose.angle, 2)}_deg)`);
+    }
+  }
+  return constantsList.join("");
+}
+function kRevParser(kDefault, kBuilderStr, kind) {
+  const constants = kDefault.map((k) => ({ ...k }));
+  if (!kBuilderStr.trim()) return [constants];
+  const isDrive = kDefault.length >= 2;
+  let poseAngle;
+  for (const match of kBuilderStr.matchAll(/\.(\w+)\(([^)]*)\)/g)) {
+    const key = match[1];
+    const rawValue = match[2].trim();
+    const num = parseFloat(rawValue);
+    if (isDrive) {
+      if (key === "max_speed") constants[0].max_speed = num;
+      else if (key === "min_speed") constants[0].min_speed = num;
+      else if (key === "lateral_kp") constants[0].kp = num;
+      else if (key === "lateral_ki") constants[0].ki = num;
+      else if (key === "lateral_kd") constants[0].kd = num;
+      else if (key === "lateral_kf") constants[0].kf = num;
+      else if (key === "lateral_start_i") constants[0].start_i = num;
+      else if (key === "lateral_slew") constants[0].slew = num;
+      else if (key === "settle_error") constants[0].settle_error = num;
+      else if (key === "settle_time") constants[0].settle_time = num;
+      else if (key === "large_settle_error") constants[0].large_settle_error = num;
+      else if (key === "large_settle_time") constants[0].large_settle_time = num;
+      else if (key === "exit_error") constants[0].exit_error = num;
+      else if (key === "stall_timeout") constants[0].stall_timeout = num;
+      else if (key === "timeout") constants[0].timeout = num;
+      else if (key === "lead") constants[0].lead = num;
+      else if (key === "max_slip") constants[0].max_slip = num;
+      else if (key === "lookahead") constants[0].lookahead = num;
+      else if (key === "direction") constants[0].drive_direction = DRIVE_DIRECTION_LITERALS[rawValue] ?? "fastest";
+      else if (key === "angular_max_speed") constants[1].max_speed = num;
+      else if (key === "angular_kp") constants[1].kp = num;
+      else if (key === "angular_ki") constants[1].ki = num;
+      else if (key === "angular_kd") constants[1].kd = num;
+      else if (key === "angular_kf") constants[1].kf = num;
+      else if (key === "angular_start_i") constants[1].start_i = num;
+      else if (key === "angular_slew") constants[1].slew = num;
+      else if (key === "angular_settle_error") constants[1].settle_error = num;
+      else if (key === "angular_settle_time") constants[1].settle_time = num;
+      else if (key === "angular_large_settle_error") constants[1].large_settle_error = num;
+      else if (key === "angular_large_settle_time") constants[1].large_settle_time = num;
+      else if (constants[2] && key === "translational_kp") constants[2].kp = num;
+      else if (constants[2] && key === "translational_ki") constants[2].ki = num;
+      else if (constants[2] && key === "translational_kd") constants[2].kd = num;
+      else if (constants[2] && key === "translational_kf") constants[2].kf = num;
+      else if (constants[2] && key === "translational_start_i") constants[2].start_i = num;
+    } else {
+      if (key === "max_speed") constants[0].max_speed = num;
+      else if (key === "min_speed") constants[0].min_speed = num;
+      else if (key === "angular_kp") constants[0].kp = num;
+      else if (key === "angular_ki") constants[0].ki = num;
+      else if (key === "angular_kd") constants[0].kd = num;
+      else if (key === "angular_kf") constants[0].kf = num;
+      else if (key === "angular_start_i") constants[0].start_i = num;
+      else if (key === "angular_slew") constants[0].slew = num;
+      else if (key === "settle_error") constants[0].settle_error = num;
+      else if (key === "settle_time") constants[0].settle_time = num;
+      else if (key === "large_settle_error") constants[0].large_settle_error = num;
+      else if (key === "large_settle_time") constants[0].large_settle_time = num;
+      else if (key === "exit_error") constants[0].exit_error = num;
+      else if (key === "stall_timeout") constants[0].stall_timeout = num;
+      else if (key === "timeout") constants[0].timeout = num;
+      else if (key === "opposite_speed") constants[0].opposite_speed = num;
+      else if (key === "direction") constants[0].turn_direction = TURN_DIRECTION_LITERALS[rawValue] ?? "shortest";
+      else if (key === "offset") poseAngle = num;
+    }
+  }
+  return poseAngle !== void 0 ? [constants, { angle: poseAngle }] : [constants];
+}
+let lateralPID$1;
+let angularPID$1;
+let translationalPID;
+let start_x$1 = 0;
+let start_y$1 = 0;
+let target_angle = 0;
+let line_angle = 0;
+let prev_line_settled = false;
+let crossed = false;
+let prev_turn_error = 0;
+let prev_drive_output$1 = 0;
+let prev_turn_output = 0;
+let start$1 = true;
+function reset_strafe_to_pose() {
+  lateralPID$1?.reset();
+  angularPID$1?.reset();
+  translationalPID?.reset();
+  start_x$1 = 0;
+  start_y$1 = 0;
+  target_angle = 0;
+  line_angle = 0;
+  prev_line_settled = false;
+  crossed = false;
+  prev_turn_error = 0;
+  prev_drive_output$1 = 0;
+  prev_turn_output = 0;
+  start$1 = true;
+}
+function strafe_to_pose(robot, dt, x, y, angle2, p) {
+  const lat = p[0];
+  const ang = p[1];
+  const trans = p[2];
+  if (start$1) {
+    lateralPID$1 = new PID4(
+      dt,
+      lat.kp,
+      lat.ki,
+      lat.kd,
+      lat.kf,
+      lat.start_i,
+      lat.settle_error,
+      lat.settle_time,
+      lat.large_settle_error,
+      lat.large_settle_time,
+      lat.exit_error,
+      lat.stall_timeout,
+      lat.timeout
+    );
+    angularPID$1 = new PID4(
+      dt,
+      ang.kp,
+      ang.ki,
+      ang.kd,
+      ang.kf,
+      ang.start_i,
+      ang.settle_error,
+      ang.settle_time,
+      ang.large_settle_error,
+      ang.large_settle_time,
+      0,
+      lat.stall_timeout,
+      lat.timeout
+    );
+    translationalPID = new PID4(dt, trans.kp, trans.ki, trans.kd, trans.kf, trans.start_i, 0, 0, 0, 0, 0, 0, 0);
+    start_x$1 = robot.getX();
+    start_y$1 = robot.getY();
+    target_angle = angle2;
+    line_angle = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
+    prev_line_settled = line_crossed(x, y, line_angle, robot.getX(), robot.getY(), lat.exit_error);
+    crossed = false;
+    prev_turn_error = 0;
+    prev_drive_output$1 = 0;
+    prev_turn_output = 0;
+    start$1 = false;
+  }
+  if (lateralPID$1.isSettled() && (angularPID$1.isSettled() || crossed && lat.min_speed > 0)) {
+    reset_strafe_to_pose();
+    return true;
+  }
+  const desired_heading2 = toDeg(Math.atan2(x - robot.getX(), y - robot.getY()));
+  const line_settled = line_crossed(x, y, desired_heading2, robot.getX(), robot.getY(), lat.exit_error);
+  if (line_settled !== prev_line_settled && lat.min_speed > 0) {
+    reset_strafe_to_pose();
+    return true;
+  }
+  prev_line_settled = line_settled;
+  const drive_error = Math.hypot(x - robot.getX(), y - robot.getY());
+  const turn_error = wrap_angle_180(target_angle - robot.getAngle());
+  const cross_error = (robot.getY() - start_y$1) * Math.sin(toRad(line_angle)) - (robot.getX() - start_x$1) * Math.cos(toRad(line_angle));
+  crossed = Math.sign(turn_error) !== Math.sign(prev_turn_error);
+  prev_turn_error = turn_error;
+  let drive_output = lateralPID$1.compute(drive_error);
+  let turn_output = angularPID$1.compute(turn_error);
+  let trans_output = translationalPID.compute(cross_error);
+  drive_output = clamp(drive_output, -lat.max_speed, lat.max_speed);
+  turn_output = clamp(turn_output, -ang.max_speed, ang.max_speed);
+  trans_output = clamp(trans_output, -lat.max_speed, lat.max_speed);
+  if (drive_error > lat.settle_error) drive_output = slew2(drive_output, prev_drive_output$1, lat.slew);
+  turn_output = slew2(turn_output, prev_turn_output, ang.slew);
+  drive_output = clamp_min_speed(drive_output, lat.min_speed);
+  turn_output = clamp_min_speed(turn_output, lat.min_speed);
+  prev_drive_output$1 = drive_output;
+  prev_turn_output = turn_output;
+  const drive_x = drive_output * Math.sin(toRad(desired_heading2));
+  const drive_y = drive_output * Math.cos(toRad(desired_heading2));
+  const cross_x = trans_output * Math.cos(toRad(line_angle));
+  const cross_y = -trans_output * Math.sin(toRad(line_angle));
+  let total_x = drive_x + cross_x;
+  let total_y = drive_y + cross_y;
+  if (Math.hypot(total_x, total_y) > lat.max_speed) {
+    const alignment = cross_x * drive_x + cross_y * drive_y;
+    const overshoot = trans_output * trans_output - lat.max_speed * lat.max_speed;
+    const drive_scale = clamp(
+      (Math.sqrt(alignment * alignment - drive_output * drive_output * overshoot) - alignment) / (drive_output * drive_output),
+      0,
+      1
+    );
+    total_x = drive_x * drive_scale + cross_x;
+    total_y = drive_y * drive_scale + cross_y;
+  }
+  const total_output = Math.hypot(total_x, total_y);
+  const inv_sqrt2 = 1 / Math.SQRT2;
+  const alpha = toRad(robot.getAngle()) + Math.atan2(total_y, total_x);
+  const forward = inv_sqrt2 * total_output * Math.sin(alpha);
+  const strafe = inv_sqrt2 * total_output * Math.cos(alpha);
+  const [lf, lb, rf, rb] = to_holonomic_voltage(forward, strafe, turn_output);
+  robot.mecanumDrive(lf, rf, lb, rb, dt);
+  return false;
+}
+const SETTLE_DISTANCE = 7;
+let lateralPID;
+let angularPID;
+let start_x = 0;
+let start_y = 0;
+let heading = 0;
+let prev_drive_output = 0;
+let prev_heading_output = 0;
+let start = true;
+function reset_strafe_distance() {
+  lateralPID?.reset();
+  angularPID?.reset();
+  start_x = 0;
+  start_y = 0;
+  heading = 0;
+  prev_drive_output = 0;
+  prev_heading_output = 0;
+  start = true;
+}
+function strafe_distance(robot, dt, distance, target_heading, p) {
+  const lat = p[0];
+  const ang = p[1];
+  if (start) {
+    lateralPID = new PID4(
+      dt,
+      lat.kp,
+      lat.ki,
+      lat.kd,
+      lat.kf,
+      lat.start_i,
+      lat.settle_error,
+      lat.settle_time,
+      lat.large_settle_error,
+      lat.large_settle_time,
+      lat.exit_error,
+      lat.stall_timeout,
+      lat.timeout
+    );
+    angularPID = new PID4(dt, ang.kp, ang.ki, ang.kd, ang.kf, ang.start_i, 0, 0, 0, 0, 0, 0, 0);
+    start_x = robot.getX();
+    start_y = robot.getY();
+    heading = target_heading ?? robot.getAngle();
+    prev_drive_output = 0;
+    prev_heading_output = 0;
+    start = false;
+  }
+  if (lateralPID.isSettled()) {
+    reset_strafe_distance();
+    return true;
+  }
+  const traveled = (robot.getX() - start_x) * Math.cos(toRad(heading)) - (robot.getY() - start_y) * Math.sin(toRad(heading));
+  const drive_error = distance - traveled;
+  const heading_error = wrap_angle_180(heading - robot.getAngle());
+  let drive_output = lateralPID.compute(drive_error);
+  let heading_output = angularPID.compute(heading_error);
+  drive_output = clamp(drive_output, -lat.max_speed, lat.max_speed);
+  heading_output = clamp(heading_output, -ang.max_speed, ang.max_speed);
+  if (Math.abs(drive_error) > SETTLE_DISTANCE) drive_output = slew2(drive_output, prev_drive_output, lat.slew);
+  heading_output = slew2(heading_output, prev_heading_output, ang.slew);
+  drive_output = clamp_min_speed(drive_output, lat.min_speed);
+  prev_drive_output = drive_output;
+  prev_heading_output = heading_output;
+  const [lf, lb, rf, rb] = to_holonomic_voltage(0, drive_output, heading_output);
+  robot.mecanumDrive(lf, rf, lb, rb, dt);
+  return false;
+}
+const reveilLibHolonomicDef = {
+  ...reveilLibDef,
+  formatPathName: "ReveilLib Holonomic Path",
+  segments: {
+    ...reveilLibDef.segments,
+    poseDrive2: {
+      name: "Strafe to Pose",
+      defaults: [kRevDrive, kRevHeading, kRevTranslational],
+      toStringTemplate: "reckless.go(StrafeToPose({${x}_in, ${y}_in, ${angle}_deg})${kBuilder});",
+      simFn: (robot, dt, x, y, angle2, constants) => strafe_to_pose(robot, dt, x, y, angle2 ?? 0, constants),
+      simReset: reset_strafe_to_pose,
+      slider: { key: "max_speed", bounds: [0, 1], roundTo: 0.01, constantsIdx: 0 },
+      cycleButtons: [],
+      numberInputs: [
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...revDriveExitConditionsSettings] },
+        { constantsIdx: 0, headerName: "Drive Constants", fields: [...revLateralPIDSettings] },
+        { constantsIdx: 1, headerName: "Heading Constants", fields: [...revAngularPIDSettings] },
+        { constantsIdx: 2, headerName: "Translational Constants", fields: [...revTranslationalPIDSettings] }
+      ]
+    },
+    strafeDrive: {
+      name: "Strafe Distance",
+      defaults: [kRevDrive, kRevHeading],
+      toStringTemplate: "reckless.go(StrafeDistance(${distance}_in, ${angle}_deg)${kBuilder});",
+      simFn: (robot, dt, distance, _y, angle2, constants) => strafe_distance(robot, dt, distance, angle2, constants),
+      simReset: reset_strafe_distance,
+      slider: { key: "max_speed", bounds: [0, 1], roundTo: 0.01, constantsIdx: 0 },
+      cycleButtons: [],
+      numberInputs: [
+        { constantsIdx: 0, headerName: "Exit Conditions", fields: [...revDriveExitConditionsSettings] },
+        { constantsIdx: 0, headerName: "Drive Constants", fields: [...revLateralPIDSettings] },
+        { constantsIdx: 1, headerName: "Heading Constants", fields: [...revAngularPIDSettings] }
+      ]
+    }
+  }
+};
 const FORMAT_REGISTRY = {
   LemLib: LemLibDef,
   mikLib: mikLibDef,
   "JAR-Template": JarTemplateDef,
   "RW-Template": LemLibDef,
   "mikLib Holonomic": holonomicDef,
-  "EZ-Template": EZTemplateDef
+  "EZ-Template": EZTemplateDef,
+  "ReveilLib": reveilLibDef,
+  "ReveilLib Holonomic": reveilLibHolonomicDef
 };
+const HOLONOMIC_PAIRS = {
+  "mikLib": "mikLib Holonomic",
+  "mikLib Holonomic": "mikLib",
+  "ReveilLib": "ReveilLib Holonomic",
+  "ReveilLib Holonomic": "ReveilLib"
+};
+function isHolonomicFormat(format) {
+  return format === "mikLib Holonomic" || format === "ReveilLib Holonomic";
+}
 const LEGACY_FORMATS = {
   // holonomic_to_pose used to be this format's poseDrive; it lives on poseDrive2 now that
   // poseDrive carries the tank drive_to_pose as well
@@ -17962,15 +19579,15 @@ function driveDirection(seg) {
 function propagateStates(path) {
   const states = [];
   let pos = null;
-  let heading = null;
+  let heading2 = null;
   for (let i = 0; i < path.segments.length; i++) {
-    states.push({ pos, heading });
+    states.push({ pos, heading: heading2 });
     const seg = path.segments[i];
-    const { x, y, angle } = seg.pose;
+    const { x, y, angle: angle2 } = seg.pose;
     switch (seg.kind) {
       case "start":
         if (x !== null && y !== null) pos = { x, y };
-        if (angle !== null) heading = angle;
+        if (angle2 !== null) heading2 = angle2;
         break;
       case "pointDrive":
       case "poseDrive":
@@ -17981,42 +19598,42 @@ function propagateStates(path) {
         if (bearing !== null) {
           const direction = driveDirection(seg);
           if (direction === "reversed") bearing += 180;
-          else if (direction === "fastest" && heading !== null && Math.abs(angleErrorDeg(bearing, heading)) > 90) bearing += 180;
+          else if (direction === "fastest" && heading2 !== null && Math.abs(angleErrorDeg(bearing, heading2)) > 90) bearing += 180;
         }
         pos = target2;
-        heading = seg.kind !== "pointDrive" && angle !== null ? angle : bearing ?? heading;
+        heading2 = seg.kind !== "pointDrive" && angle2 !== null ? angle2 : bearing ?? heading2;
         break;
       }
       case "bezierCurve": {
         if (x === null || y === null) break;
         const bezier = resolveBezier(path, i);
         pos = { x, y };
-        if (angle !== null) {
-          heading = angle;
+        if (angle2 !== null) {
+          heading2 = angle2;
         } else if (bezier !== null) {
           const tangent = bezierTangentAt(bezier, 1);
-          heading = calculateHeading({ x: 0, y: 0 }, tangent);
+          heading2 = calculateHeading({ x: 0, y: 0 }, tangent);
         }
         break;
       }
       case "distanceDrive":
       case "strafeDrive": {
-        const h = angle ?? heading;
+        const h = angle2 ?? heading2;
         if (h === null) break;
         const move = seg.kind === "strafeDrive" ? h + 90 : h;
         if (pos) pos = { x: pos.x + Math.sin(toRad(move)) * seg.distance, y: pos.y + Math.cos(toRad(move)) * seg.distance };
-        heading = h;
+        heading2 = h;
         break;
       }
       case "pointTurn":
       case "pointSwing": {
         if (!pos) break;
-        heading = turnHeadingAt(path, i, pos);
+        heading2 = turnHeadingAt(path, i, pos);
         break;
       }
       case "angleTurn":
       case "angleSwing":
-        if (angle !== null) heading = angle;
+        if (angle2 !== null) heading2 = angle2;
         break;
     }
   }
@@ -18038,10 +19655,10 @@ function getSegmentDistance(path, idx, offset = 0) {
   if (!resolved) {
     return Math.hypot((seg.pose.x ?? 0) - (anchorPose.x ?? 0), (seg.pose.y ?? 0) - (anchorPose.y ?? 0));
   }
-  const { heading, headingMag } = resolved;
+  const { heading: heading2, headingMag } = resolved;
   const offsetX = (seg.pose.x ?? 0) - (anchorPose.x ?? 0);
   const offsetY = (seg.pose.y ?? 0) - (anchorPose.y ?? 0);
-  return (offsetX * heading.x + offsetY * heading.y) / headingMag;
+  return (offsetX * heading2.x + offsetY * heading2.y) / headingMag;
 }
 function distanceToPosition(path, idx, distance, offset = 0) {
   if (idx <= 0) return null;
@@ -18078,8 +19695,8 @@ function calculateHeading(currentPos, desiredPos) {
   const dPos = vector2Subtract(desiredPos, currentPos);
   return toDeg(Math.atan2(dPos.x, dPos.y));
 }
-function normalizeDeg(angle) {
-  return (angle % 360 + 360) % 360;
+function normalizeDeg(angle2) {
+  return (angle2 % 360 + 360) % 360;
 }
 function shortAngleDelta(a, b) {
   return ((b - a) % 360 + 540) % 360 - 180;
@@ -18129,10 +19746,10 @@ function findPointToFace(path, idx) {
 function resolveTurnPose(path, idx) {
   const seg = path.segments[idx];
   const turn = seg?.turnPose;
-  const angle = turn?.angle ?? 0;
+  const angle2 = turn?.angle ?? 0;
   const stored = turn?.x != null && turn?.y != null ? { x: turn.x, y: turn.y } : null;
-  if (seg?.turnLocked && stored) return { ...stored, angle };
-  return { ...forwardTurnTarget(path, idx) ?? stored ?? turnTargetFallback(path, idx), angle };
+  if (seg?.turnLocked && stored) return { ...stored, angle: angle2 };
+  return { ...forwardTurnTarget(path, idx) ?? stored ?? turnTargetFallback(path, idx), angle: angle2 };
 }
 function toRGB(rgba) {
   return rgba.match(/[\d.]+/g).map(Number);
@@ -18238,12 +19855,12 @@ function deepEqual(a, b) {
   };
   return eq(a, b);
 }
-function newDriveState(x, y, angle) {
+function newDriveState(x, y, angle2) {
   return {
     x,
     y,
-    angle,
-    rotation: angle,
+    angle: angle2,
+    rotation: angle2,
     velX: 0,
     velY: 0,
     vL: 0,
@@ -18548,11 +20165,11 @@ class Robot {
     stopDriveState(this.state);
   }
   /** x, y are the CoG offset point; converts to kinematic center internally. */
-  setPose(x, y, angle) {
+  setPose(x, y, angle2) {
     const s = this.state;
-    s.angle = angle;
-    s.rotation = angle;
-    const theta = toRad(angle);
+    s.angle = angle2;
+    s.rotation = angle2;
+    const theta = toRad(angle2);
     s.x = x - (this.cogOffsetX * Math.cos(theta) + this.cogOffsetY * Math.sin(theta));
     s.y = y - (-this.cogOffsetX * Math.sin(theta) + this.cogOffsetY * Math.cos(theta));
     s.velX = 0;
@@ -21371,6 +22988,8 @@ function flipSwingDirection(constants) {
     flipped = { ...k, swing: k.swing === "LEFT_SWING" ? "RIGHT_SWING" : "LEFT_SWING" };
   else if (k.lockedSide !== void 0)
     flipped = { ...k, lockedSide: k.lockedSide === "DriveSide::LEFT" ? "DriveSide::RIGHT" : "DriveSide::LEFT" };
+  else if (k.swing_side !== void 0)
+    flipped = { ...k, swing_side: k.swing_side === "SwingSide::LEFT" ? "SwingSide::RIGHT" : "SwingSide::LEFT" };
   else
     flipped = k;
   return [flipped, ...rest];
@@ -21529,9 +23148,9 @@ function ControlConfig() {
     if (soleControl) return null;
     const selectedCount = path.segments.filter((c) => c.selected).length;
     if (selectedCount !== 1) return null;
-    const heading = path.segments.find((c) => c.selected)?.pose.angle;
-    if (heading === null || heading === void 0) return null;
-    return heading;
+    const heading2 = path.segments.find((c) => c.selected)?.pose.angle;
+    if (heading2 === null || heading2 === void 0) return null;
+    return heading2;
   };
   const updateXValue = (newX) => {
     if (soleControl) return updateControlPos({ x: newX });
@@ -23120,8 +24739,8 @@ function FieldMacros() {
     const insertIdx = insertIndexAfterSelection(path.segments);
     const startPose = getBackwardsSnapPose(path, insertIdx - 1);
     const start2 = startPose !== null && startPose.x !== null && startPose.y !== null ? { x: startPose.x, y: startPose.y } : end;
-    const angle = formatDef.segments["bezierCurve"]?.defaultHeading ?? null;
-    const segment = createSegment(formatDef, format, "bezierCurve", { x: end.x, y: end.y, angle });
+    const angle2 = formatDef.segments["bezierCurve"]?.defaultHeading ?? null;
+    const segment = createSegment(formatDef, format, "bezierCurve", { x: end.x, y: end.y, angle: angle2 });
     segment.controls = seedControls$1(start2, end);
     addSegment(segment, setPath);
   };
@@ -24132,7 +25751,8 @@ const FORMATS = [
   { name: "mikLib v2.3.0", format: "mikLib" },
   { name: "LemLib v0.5.6", format: "LemLib" },
   { name: "JAR-Template", format: "JAR-Template" },
-  { name: "EZ-Template v3.2.2", format: "EZ-Template" }
+  { name: "EZ-Template v3.2.2", format: "EZ-Template" },
+  { name: "ReveilLib v4.0", format: "ReveilLib" }
 ];
 function FormatButton() {
   const [format] = useFormat();
@@ -24140,7 +25760,7 @@ function FormatButton() {
   const handleClickItem = (newFormat) => {
     const changed = prevFormatRef.current !== newFormat;
     changeFormat(newFormat);
-    mergeRobot({ holonomicRobot: newFormat === "mikLib Holonomic" });
+    mergeRobot({ holonomicRobot: isHolonomicFormat(newFormat) });
     if (changed) saveSnapshot();
     prevFormatRef.current = newFormat;
   };
@@ -24179,19 +25799,21 @@ function RobotButton() {
     mergeRobot({ [`sensor${side}Disabled`]: !checked });
     saveSnapshot();
   };
+  const holonomic = isHolonomicFormat(format);
+  const twin = HOLONOMIC_PAIRS[format];
   const handleToggleHolonomic = (checked) => {
-    const newFormat = checked ? "mikLib Holonomic" : "mikLib";
-    const changed = prevFormatRef.current !== newFormat;
-    changeFormat(newFormat);
+    if (!twin || checked === holonomic) return;
+    const changed = prevFormatRef.current !== twin;
+    changeFormat(twin);
     mergeRobot({ holonomicRobot: checked });
     if (changed) saveSnapshot();
-    prevFormatRef.current = newFormat;
+    prevFormatRef.current = twin;
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigButtonTemplate, { title: "Robot", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-1.5", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs(Section, { name: "General", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Width", value: robot.width, setValue: (v) => v !== null && mergeRobot({ width: v }), bounds: [0, 30], stepSize: 1, roundTo: 1, units: "in" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Height", value: robot.height, setValue: (v) => v !== null && mergeRobot({ height: v }), bounds: [0, 30], stepSize: 1, roundTo: 1, units: "in" }),
-      (format === "mikLib" || format === "mikLib Holonomic") && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigCheckboxButton, { name: "Holonomic", checked: format === "mikLib Holonomic", label: "Toggle format to mikLib Holonomic", setChecked: handleToggleHolonomic })
+      twin && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigCheckboxButton, { name: "Holonomic", checked: holonomic, label: `Toggle format to ${holonomic ? format : twin}`, setChecked: handleToggleHolonomic })
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs(Section, { name: "Motion", defaultCollapsed: true, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Speed", label: "Max velocity; measure on actual robot", value: robot.speed, setValue: (v) => v !== null && mergeRobot({ speed: v }), bounds: [0, 100], stepSize: 0.5, roundTo: 2, units: "ft/s" }),
@@ -24537,7 +26159,7 @@ function RobotView({
   img,
   x,
   y,
-  angle,
+  angle: angle2,
   width,
   height,
   bg,
@@ -24554,7 +26176,7 @@ function RobotView({
   const pxWidth = toPxWidth(img.w, width);
   const pxHeight = toPxHeight(img.h, height);
   const pos = toPX({ x, y }, FIELD_REAL_DIMENSIONS, img);
-  const normAngle = normalizeDeg(angle);
+  const normAngle = normalizeDeg(angle2);
   const cogPxX = toPxWidth(img.w, cogOffsetX);
   const cogPxY = -toPxHeight(img.h, cogOffsetY);
   const pxFrontExpansion = toPxHeight(img.h, frontExpansion ?? 0);
@@ -24881,11 +26503,11 @@ function shapeScale(attr, selected, hovered) {
 function indicatorThickness(selected, hovered) {
   return selected ? 5 : hovered ? 4 : 2;
 }
-function indicatorTipPx(ctx, snapPose, angle, r) {
+function indicatorTipPx(ctx, snapPose, angle2, r) {
   return toPX(
     {
-      x: snapPose.x + r * FIELD_REAL_DIMENSIONS.w / ctx.img.w * Math.sin(toRad(angle)),
-      y: snapPose.y + r * FIELD_REAL_DIMENSIONS.h / ctx.img.h * Math.cos(toRad(angle))
+      x: snapPose.x + r * FIELD_REAL_DIMENSIONS.w / ctx.img.w * Math.sin(toRad(angle2)),
+      y: snapPose.y + r * FIELD_REAL_DIMENSIONS.h / ctx.img.h * Math.cos(toRad(angle2))
     },
     FIELD_REAL_DIMENSIONS,
     ctx.img
@@ -24913,10 +26535,10 @@ function renderLine(ctx, attr) {
   if (snapPose === null) return null;
   const { seg } = ctx;
   const r = ctx.radius * shapeScale(attr, seg.selected, ctx.hovered);
-  const angle = ctx.geom.indicatorAngle;
-  if (angle === null) return null;
+  const angle2 = ctx.geom.indicatorAngle;
+  if (angle2 === null) return null;
   const basePx = toPX(snapPose, FIELD_REAL_DIMENSIONS, ctx.img);
-  const tipPx = indicatorTipPx(ctx, snapPose, angle, r);
+  const tipPx = indicatorTipPx(ctx, snapPose, angle2, r);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "line",
     {
@@ -24937,11 +26559,11 @@ function renderCurve(ctx, attr) {
   const { seg } = ctx;
   const r = ctx.radius * shapeScale(attr, seg.selected, ctx.hovered);
   const thickness = indicatorThickness(seg.selected, ctx.hovered);
-  const angle = ctx.geom.indicatorAngle;
-  if (angle === null) return null;
+  const angle2 = ctx.geom.indicatorAngle;
+  if (angle2 === null) return null;
   const rInner = Math.max(0, r - thickness * 0.6);
   const basePx = toPX(snapPose, FIELD_REAL_DIMENSIONS, ctx.img);
-  const tipPx = indicatorTipPx(ctx, snapPose, angle, rInner);
+  const tipPx = indicatorTipPx(ctx, snapPose, angle2, rInner);
   const dx = tipPx.x - basePx.x;
   const dy = tipPx.y - basePx.y;
   const len = Math.hypot(dx, dy) || 1;
@@ -26037,4 +27659,4 @@ document.addEventListener("auxclick", blockMiddleClick, { capture: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-Bbwm6cXV.js.map
+//# sourceMappingURL=index-BrOYGiek.js.map
