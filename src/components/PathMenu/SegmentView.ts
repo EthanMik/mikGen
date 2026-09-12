@@ -155,7 +155,10 @@ export function buildSegmentView(formatDef: FormatDef<Format>, segment: Segment)
     const segDef = formatDef.segments[kind] ?? alias;
     const defaults = getDefaultConstants(formatDef, segment.format, kind);
 
-    const groups = (segDef?.numberInputs ?? []).map(group => {
+    // A group whose mode the segment is not in is dropped rather than shown inert
+    const visibleInputs = (segDef?.numberInputs ?? []).filter(group => group.visibleWhen?.(segment.constants) ?? true);
+
+    const groups = visibleInputs.map(group => {
         const fields = group.fields.map(field => {
             const key = String(field.key);
             const source = fieldSource(segment, group.constantsIdx, key);

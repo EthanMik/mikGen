@@ -7,12 +7,14 @@ import { loadContentIntoState, loadFromHandle, fileSaveStore, fileHandleStore, d
 import MenuButtonTemplate from "../Util/MenuButtonTemplate";
 import { MenuKeybindButton } from "../Util/KeybindButton";
 import Section from "../Util/Section";
+import { looksLikeRunLog, parseRunCsv, recordedRunStore } from "../../core/RecordedRun";
 
 // Firefox has no File System Access API, so saving in place is impossible there and only downloading works
 const canSaveToDisk = 'showSaveFilePicker' in window;
 
 export default function FileButton() {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const runInputRef = useRef<HTMLInputElement>(null);
     const renameResolveRef = useRef<((name: string | null) => void) | null>(null);
     const underlineRef = useRef<((val: boolean) => void) | undefined>(undefined);
 
@@ -88,6 +90,42 @@ export default function FileButton() {
         fileHandleStore.setState(null);
         setIsSaved(true);
     };
+
+    /**
+     * Loads a run log recorded by the robot. Deliberately separate from opening a path: a run is
+     * overlaid on whatever path is already open and must never replace it.
+     */
+    const handleImportRun = () => {
+        runInputRef.current?.click();
+    };
+
+    const handleRunSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        event.target.value = '';
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = e => {
+            const text = e.target?.result as string;
+            // The mirror of the guard in loadContentIntoState: a path opened here would otherwise
+            // just report a missing column, which says nothing about what went wrong
+            if (!looksLikeRunLog(text)) {
+                alert(`"${file.name}" is not a recorded run.\n\nUse File > Open File to open a path.`);
+                return;
+            }
+
+            const { run, warnings } = parseRunCsv(text, file.name.replace(/\.[^/.]+$/, ""));
+            if (run === null) {
+                alert("Could not read run log:\n" + warnings.join("\n"));
+                return;
+            }
+            if (warnings.length > 0) console.warn(`Run log "${file.name}":`, warnings);
+            recordedRunStore.setState(run);
+        };
+        reader.readAsText(file);
+    };
+
+    const handleClearRun = () => recordedRunStore.setState(null);
 
     const handleOpenFile = async () => {
         if (!('showOpenFilePicker' in window)) {
@@ -280,6 +318,13 @@ export default function FileButton() {
                 style={{ display: "none" }}
                 onChange={handleFileSelect}
             />
+            <input
+                ref={runInputRef}
+                type="file"
+                accept=".txt,.csv"
+                style={{ display: "none" }}
+                onChange={handleRunSelect}
+            />
             <MenuButtonTemplate title="File" underlineRef={underlineRef} width={44}>
                 <MenuKeybindButton name="New File" keybind="Ctrl+P" callback={handleNewFile} />
                 <Section />
@@ -290,6 +335,9 @@ export default function FileButton() {
                     tooltip={canSaveToDisk ? undefined : "Your browser doesn't support file writing. Use Download instead."} />
                 <MenuKeybindButton name="Save As" keybind="Ctrl+⇧S" callback={handleSaveAs} disabled={!canSaveToDisk}
                     tooltip={canSaveToDisk ? undefined : "Your browser doesn't support file writing. Use Download As instead."} />
+                <Section />
+                <MenuKeybindButton name="Import Run" keybind="" callback={handleImportRun} />
+                <MenuKeybindButton name="Clear Run" keybind="" callback={handleClearRun} />
                 <Section />
                 <MenuKeybindButton name="Download" keybind="Ctrl+D" callback={handleDownload} />
                 <MenuKeybindButton name="Download As" keybind="Ctrl+⇧D" callback={handleDownloadAs} />

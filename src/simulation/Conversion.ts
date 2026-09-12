@@ -594,7 +594,7 @@ export function convertPathToSim<F extends Format, Segs extends Partial<Record<S
                         }
                         DEBUG_printRobotState(robot, dt);
                         // A commanded heading is what the follower lands on; null leaves it on the exit tangent
-                        const output = simFn(robot, dt, x, y, seg.pose.angle, k, points);
+                        const output = simFn(robot, dt, x, y, seg.pose.angle, k, points, bezier);
                         if (output) DEBUG_printSegmentEnd(idx, formatDef, kind);
                         return [output, kind, targetDist];
                     }

@@ -35,6 +35,7 @@ export default function SettingsButton() {
 
                     <MenuCheckboxButton name="Robot Position" label="Displays robots's actual position" checked={settings.robotPosition} setChecked={set("robotPosition")} />
                     <MenuCheckboxButton name="Precise Path" label="Displays robots exact path taken (P)" checked={settings.precisePath} setChecked={set("precisePath")} />
+                    <MenuCheckboxButton name="Cross Track Error" label="Overlays an imported run and its deviation (E)" checked={settings.crossTrackError} setChecked={set("crossTrackError")} />
                     <MenuCheckboxButton name="Numbered Path" label="Displays number labels for notebook screenshots" checked={settings.numberedPath} setChecked={set("numberedPath")} />
                     <NumberInputCheckboxButton width={40} name="Onion Layers" checkLabel="Displays end positions when sim is off (O)" label="Distance between outlines. 0 shows only end positions" checked={settings.onionLayers} setChecked={set("onionLayers")} value={settings.onionSpacing} setValue={v => v !== null && set("onionSpacing")(v)} bounds={[0, 48]} stepSize={5} roundTo={0} units="in" />
 

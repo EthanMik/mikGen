@@ -6,6 +6,8 @@ export type Settings = {
     onionSpacing: number;
     robotPosition: boolean;
     precisePath: boolean;
+    /** Draws an imported run over the planned path, with its cross-track error. */
+    crossTrackError: boolean;
     numberedPath: boolean;
     loopPath: boolean;
     snapToGrid: number;
@@ -17,6 +19,7 @@ const DEFAULTS: Settings = {
     onionSpacing: 0,
     robotPosition: false,
     precisePath: false,
+    crossTrackError: false,
     numberedPath: false,
     loopPath: false,
     snapToGrid: 0.5,

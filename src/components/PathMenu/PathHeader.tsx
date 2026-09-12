@@ -6,6 +6,7 @@ import clockOpen from "../../assets/clock-open.svg";
 import downArrow from "../../assets/down-arrow.svg";
 import { usePathVisibility } from "../../hooks/usePathVisibility";
 import { fileFormatStore, updatePath } from "../../hooks/useFileFormat";
+import { recordedRunStore } from "../../core/RecordedRun";
 import Tooltip from "../Util/Tooltip";
 
 type PathConfigHeaderProps = {
@@ -20,6 +21,9 @@ export default function PathConfigHeader({ isOpen, setOpen, isTelemetryOpen, onT
     const name = fileFormatStore.useSelector(s => s.path.name || s.formatDef.formatPathName);
     // The shared flag reads as "path hidden": the field layer draws nothing while it is set
     const [pathHidden, setPathHidden] = usePathVisibility();
+    // Which run is overlaid is not otherwise visible anywhere, and the overlay is easy to
+    // mistake for part of the path once it is drawn
+    const run = recordedRunStore.useStore();
     const [editing, setEditing] = useState(false);
     const [draft, setDraft] = useState("");
     const inputRef = useRef<HTMLInputElement>(null);
@@ -42,21 +46,34 @@ export default function PathConfigHeader({ isOpen, setOpen, isTelemetryOpen, onT
 
     return (
         <div className="w-full flex flex-row items-center justify-between min-w-0">
-            {editing ? (
-                <input
-                    ref={inputRef}
-                    value={draft}
-                    onChange={e => setDraft(e.target.value)}
-                    onBlur={commit}
-                    onKeyDown={handleKeyDown}
-                    className="text-[20px] bg-blackgray outline-none rounded-lg px-2 w-40 min-w-0"
-                    autoFocus
-                />
-            ) : (
-                <span className="block text-[20px] cursor-text truncate min-w-0" onClick={startEditing}>
-                    {name}
-                </span>
-            )}
+            <div className="flex flex-col min-w-0">
+                {editing ? (
+                    <input
+                        ref={inputRef}
+                        value={draft}
+                        onChange={e => setDraft(e.target.value)}
+                        onBlur={commit}
+                        onKeyDown={handleKeyDown}
+                        className="text-[20px] bg-blackgray outline-none rounded-lg px-2 w-40 min-w-0"
+                        autoFocus
+                    />
+                ) : (
+                    <span className="block text-[20px] cursor-text truncate min-w-0" onClick={startEditing}>
+                        {name}
+                    </span>
+                )}
+
+                {run !== null && (
+                    <Tooltip
+                        label={`${run.samples.length} samples, error ${run.hasAlgError ? "reported by the robot" : "measured against the path"}. File > Clear Run to remove.`}
+                        placement="bottom"
+                    >
+                        <span className="block text-[11px] text-lightgray truncate min-w-0 leading-tight">
+                            run: {run.name}
+                        </span>
+                    </Tooltip>
+                )}
+            </div>
             <div className="flex flex-row gap-[10px] items-center shrink-0">
 
                 <Tooltip label="Hide Path" placement="bottom" >
