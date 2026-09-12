@@ -5,19 +5,38 @@ import type { Path } from "../../core/Types/Path";
 import { FIELD_REAL_DIMENSIONS, type Rectangle } from "../../core/Util";
 import { getSegmentPointsInch } from "./FieldUtils";
 
-/** Error that saturates the warm end of the trace colouring, per unit. Degrees and inches are
- *  nowhere near the same scale, so one shared number would paint every turn solid red. */
+/**
+ * The error at which the trace reaches the warm end of its ramp, per unit. Anything past this is
+ * drawn the same, so it sets what counts as "as bad as it gets" on the field.
+ *
+ * Two numbers rather than one because degrees and inches are nowhere near the same scale. A single
+ * shared value would paint every turn saturated the instant it began, since a 90 degree turn opens
+ * at 90 degrees of error while a good drive never leaves single digit inches.
+ */
 const FULL_SCALE = { in: 4, deg: 15 };
-/** Draw one tie line per this many samples, so a 50 Hz run does not become a solid block. */
+/**
+ * Draw one tie line per this many samples. At 50 Hz an unthinned ladder is roughly one line per
+ * third of an inch travelled, which fills in solid and hides the very trace it is annotating.
+ */
 const TIE_EVERY = 5;
 
-/** Motions whose error is an angle. Mirrors the turnKinds set ComputePathSim uses for telemetry. */
+/**
+ * Motions whose error is an angle rather than a distance. Mirrors the turnKinds set ComputePathSim
+ * already uses for its telemetry, so both parts of the app agree on what counts as a turn.
+ */
 const TURN_KINDS = new Set(["pointTurn", "angleTurn", "angleSwing", "pointSwing"]);
 
-/** The boomerang carrot trail. Distinct from both the planned blue and the error ramp. */
+/**
+ * The boomerang carrot trail. Chosen to sit apart from everything else on screen: the planned path
+ * is blue, the trace ramps green to magenta, and the field art is mostly red, yellow and grey.
+ */
 const CARROT_COLOR = "rgb(140,200,255)";
 
-/** Painted under the trace so it reads against the field art rather than sinking into it. */
+/**
+ * Painted underneath the trace as a casing. This is what lets the trace stay thin: contrast comes
+ * from the dark outline rather than from making the coloured line itself heavier, so it stays
+ * legible crossing a pale tile or a red waypoint without dominating the field.
+ */
 const HALO_COLOR = "rgb(10,10,12)";
 
 /**
@@ -43,10 +62,17 @@ type RunLayerProps = {
 /**
  * Draws an imported run over the planned path.
  *
- * The error plotted is whatever the run reported for itself: when the log carries the motion
- * algorithm's own cross-track error that is used untouched, and the geometric fallback only runs
- * for a log that has none. The two are not interchangeable, so the source is surfaced rather than
- * hidden - see CrossTrackError.ts.
+ * Three things end up on the field, back to front: the carrot trail a boomerang was steering at,
+ * a dark casing under each driven trace, and the trace itself cut into short coloured pieces so
+ * every sample can carry its own error colour. A single ring marks the worst sample of the run.
+ *
+ * The error plotted is whatever the run reported for itself. When a log carries the motion
+ * algorithm's own cross track error that number is used untouched; the geometric fallback runs
+ * only for a log that has none. The two are not interchangeable, so CrossTrackError records which
+ * was used rather than quietly blending them.
+ *
+ * Renders nothing at all unless the setting is on and a run is loaded, which is what keeps mikGen
+ * looking exactly as it did for anyone not using the feature.
  */
 export default memo(function RunLayer({ path, img, visible }: RunLayerProps) {
     const run = recordedRunStore.useStore();
@@ -63,7 +89,9 @@ export default memo(function RunLayer({ path, img, visible }: RunLayerProps) {
             const pathIdx = idx + 1;
             const reference = getSegmentPointsInch(pathIdx, path) ?? [];
             // Units decide the colour scale and keep the run summary's two halves apart, so they
-            // have to come from what the motion actually is, not from a default.
+            // have to come from what the motion actually is rather than from a default. The path
+            // is the authority here, not the log: the log records what the robot did, the path
+            // records what it was asked to do, and the kind of motion is the latter.
             const kind = path.segments[pathIdx]?.kind;
             const isTurn = kind !== undefined && TURN_KINDS.has(kind);
 
@@ -96,18 +124,21 @@ export default memo(function RunLayer({ path, img, visible }: RunLayerProps) {
 
     if (!visible || run === null) return null;
 
-    // Same inch -> pixel mapping PathLayer uses, so both layers stay locked together while panning
+    // The same inch to pixel mapping PathLayer builds, repeated rather than shared so this layer
+    // stays independent of it. Both derive from the identical img rectangle, so the planned path
+    // and the driven trace stay locked together through every pan and zoom.
     const sx = img.w / FIELD_REAL_DIMENSIONS.w;
     const sy = img.h / FIELD_REAL_DIMENSIONS.h;
     const tx = img.x - sx * FIELD_REAL_DIMENSIONS.x;
     const ty = img.y + sy * FIELD_REAL_DIMENSIONS.y;
     const transform = `translate(${tx},${ty}) scale(${sx},${-sy})`;
 
-    // Strokes live inside the inch-space group, so a width here is inches on the field and stays
-    // the same real size at every zoom level, which is what makes the trace readable when zoomed out
+    // Strokes live inside the group that scales inches to pixels, so a width written here is a
+    // width in field inches. The practical effect is that the trace keeps a constant real world
+    // thickness: zooming out does not thin it into invisibility, and zooming in does not bloat it.
     const traceWidth = 0.45;
-    // A dark casing rather than a wider line: it separates the trace from whatever it crosses
-    // without making the trace itself any heavier
+    // Wide enough to show a rim either side of the trace, narrow enough not to read as a line of
+    // its own. See HALO_COLOR above for why the casing exists at all.
     const haloWidth = traceWidth + 0.32;
 
     return (

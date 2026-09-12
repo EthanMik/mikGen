@@ -1,33 +1,62 @@
 import { createStore } from "./Store";
 
 /**
- * One row of a run log written by the robot. Positions are field-centric inches and angles are
- * degrees with 0 along +Y and clockwise positive, which is mikLib's odometry convention and
- * mikGen's field convention already agreeing, so nothing here converts frames.
+ * One row of a run log written by the robot, sampled at 50 Hz by mik::run_log.
+ *
+ * Positions are field centric inches and angles are degrees with 0 along +Y and clockwise
+ * positive. That is mikLib's odometry convention and mikGen's field convention already agreeing
+ * exactly, so nothing in this file converts units, flips an axis, or offsets an angle. If a log
+ * ever lands rotated or mirrored on the field, suspect the robot's starting pose rather than
+ * anything here.
+ *
+ * Everything past x, y and angle is optional. A log from older firmware simply omits columns, and
+ * the parser leaves the matching fields undefined rather than inventing values for them.
  */
 export type RunSample = {
-    /** Seconds since the logger started, converted from the log's milliseconds. */
+    /**
+     * Seconds since the logger started. The file counts milliseconds; the division happens once
+     * here so that everything downstream shares the simulator's unit.
+     */
     t: number,
     x: number,
     y: number,
     angle: number,
-    /** Where the running motion wanted the robot to be, when the algorithm has a positional target. */
+    /**
+     * The motion's final target. Fixed for the whole motion rather than a moving reference, because
+     * mikLib assigns desired_X_position once before the control loop starts. Plotting it therefore
+     * gives one point per motion, not a trail. The moving reference is the carrot below.
+     */
     target?: { x: number, y: number, angle: number },
     /**
-     * The point a boomerang was steering at when the row was taken. It moves with the robot, so it
-     * exists only in the log. nothing downstream can rebuild it from the pose.
+     * The point a boomerang was actually steering at when this row was taken.
+     *
+     * Only drive_to_pose has one, and it is recomputed every tick from the robot's own remaining
+     * distance to the target, so it sweeps inward as the robot closes. That dependence on where the
+     * robot happened to be at that instant is exactly why it cannot be reconstructed afterwards
+     * from a list of poses, and why the firmware has to write it down as it goes.
+     *
+     * Every other motion writes nan here, which arrives as undefined.
      */
     carrot?: { x: number, y: number },
     /**
-     * The motion algorithm's own cross-track error, signed, positive to the robot's left. Inches for
-     * drives and degrees for turns. Absent when the firmware predates the field, in which case the
-     * importer falls back to measuring against path geometry.
+     * The motion algorithm's own cross track error, signed, positive to the robot's left. Inches
+     * for drives, degrees for turns.
+     *
+     * Absent when the firmware predates the field, or when the motion does not compute one, in
+     * which case CrossTrackError falls back to measuring the pose against path geometry.
      */
     xte?: number,
-    /** Index of the motion this row belongs to, counted from the first motion of the run. */
+    /**
+     * Which motion this row belongs to, counted from zero at the first motion of the run. The
+     * firmware derives it by watching motion_running go false to true, so autons need no changes.
+     *
+     * Mind the offset against a mikGen path: path.segments[0] is the start pose, which the robot
+     * never drives, so log motion 0 lines up with path segment 1.
+     */
     seg: number,
-    /** Which motion algorithm produced the row, for deciding how to read xte. */
+    /** Which motion algorithm produced the row. Parsed if present; mikLib does not write it yet. */
     kind?: string,
+    /** False while the robot is between motions, for instance settling after one has exited. */
     moving: boolean,
 };
 
@@ -64,7 +93,14 @@ export type ParseResult = {
     warnings: string[],
 };
 
-/** Column names accepted for each field, so a log can spell them a few reasonable ways. */
+/**
+ * Column names accepted for each field.
+ *
+ * The header drives the mapping rather than column position, which buys two things: a log may list
+ * its columns in any order, and a newer firmware may add columns an older importer has never heard
+ * of without breaking it. The first name in each list is the one mikLib actually writes, and is
+ * also the name quoted back at the reader when a required column turns out to be missing.
+ */
 const ALIASES: Record<string, string[]> = {
     t: ["t_ms", "time_ms", "t", "time"],
     x: ["x", "x_pos", "x_position"],
@@ -93,7 +129,17 @@ function buildColumnMap(header: string[]): Record<string, number> {
     return map;
 }
 
-/** Reads a cell as a number, treating blanks and non-numbers as absent rather than as zero. */
+/**
+ * Reads a cell as a number, treating a blank or an unparseable value as absent rather than as zero.
+ *
+ * The distinction carries real weight. Zero is a perfectly good cross track error, meaning the
+ * robot was exactly on line, and a perfectly good coordinate, meaning the centre of the field. If
+ * missing data collapsed to zero, a log with no carrot would draw a trail to the middle of the
+ * field and a log with no error column would look like a flawless run.
+ *
+ * mikLib writes the literal text nan for a carrot that does not exist, and Number("nan") is NaN,
+ * which is not finite, so it lands here as undefined with no special casing needed.
+ */
 function num(cells: string[], at: number | undefined): number | undefined {
     if (at === undefined) return undefined;
     const raw = cells[at];

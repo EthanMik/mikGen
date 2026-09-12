@@ -6,7 +6,11 @@ export type Settings = {
     onionSpacing: number;
     robotPosition: boolean;
     precisePath: boolean;
-    /** Draws an imported run over the planned path, with its cross-track error. */
+    /**
+     * Draws an imported run over the planned path, coloured by its cross track error.
+     * Off by default, and RunLayer additionally renders nothing until a run is loaded, so
+     * the field looks untouched for anyone not using the feature.
+     */
     crossTrackError: boolean;
     numberedPath: boolean;
     loopPath: boolean;

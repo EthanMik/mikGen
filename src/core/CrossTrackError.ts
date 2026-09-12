@@ -1,56 +1,95 @@
 import type { Coordinate } from "./Types/Coordinate";
 
 /**
- * Cross-track error for one instant. Positive is to the robot's left of where it should be.
+ * Cross track error for one instant: how far sideways the robot sat from where it was supposed to
+ * be. Positive means it was to its own left. Sideways is the whole point; how far along it had got
+ * is a separate question this number deliberately says nothing about, which is why a robot that
+ * overshoots a target by five inches and comes back can score near zero the entire way.
  *
- * The number can come from two places and they are not equally good. When a motion algorithm
- * reports its own error, that is what the controller was actually reacting to, carrot position and
- * all, and it is used as-is. Only when a log predates that field does this module fall back to
- * measuring the pose against path geometry, which is an approximation: a time-indexed controller
- * such as Ramsete can be far from where it should be right now while still sitting exactly on the
- * curve, and nearest-point geometry scores that as perfect.
+ * The number reaches here from one of two places, and they are not equally trustworthy.
+ *
+ * The good source is the motion algorithm itself. Every follower keeps a running idea of where the
+ * robot ought to be this instant, and that idea moves: a boomerang chases a carrot recomputed each
+ * tick from its own distance to the target, and a schedule driven follower picks its reference by
+ * the clock. Those references cannot be rebuilt afterwards from a list of poses, because each one
+ * depended on where the robot happened to be at that moment. So the algorithm reports its own
+ * number and this module passes it through untouched.
+ *
+ * The weak source is geometry: take the logged pose, find the closest point on the planned path,
+ * measure the gap. It only runs when no sample carried a reported error. It is an approximation and
+ * can be confidently wrong. A robot running ten seconds late but sitting perfectly on the curve
+ * scores zero, because closest point has no notion of when the robot was meant to be there.
+ *
+ * Which one produced a result is recorded on SegmentXte.source rather than hidden, so a reader is
+ * never left guessing which of the two they are looking at.
  */
 export type XtePoint = {
     t: number,
-    /** Signed error in inches, or degrees for a turn. */
+    /** Signed error, positive to the robot's left. Inches for a drive, degrees for a turn. */
     e: number,
-    /** The pose that produced it, for drawing a tie line. */
+    /** Where the robot actually was. Kept so a tie line can be drawn from here to the reference. */
     x: number,
     y: number,
-    /** Point on the reference the error was measured to. Absent for a reported error. */
+    /**
+     * The point on the reference this error was measured against. Present only in geometry mode,
+     * because that is the only mode that computes one. An algorithm hands over a bare number with
+     * no accompanying point, so a reported error can be coloured but not tied to anything.
+     */
     rx?: number,
     ry?: number,
 };
 
+/** Which of the two sources above produced a segment's numbers. */
 export type XteSource = "algorithm" | "geometry";
 
+/** Every sample of one motion, plus the three summary figures worth reading at a glance. */
 export type SegmentXte = {
     points: XtePoint[],
     source: XteSource,
+    /** Worst deviation anywhere in the motion, unsigned. The number that says how bad it got. */
     maxAbs: number,
+    /** Root mean square. Punishes a few large excursions harder than meanAbs does. */
     rms: number,
+    /** Average deviation, unsigned. Says how bad it was typically, not at its worst. */
     meanAbs: number,
-    /** Degrees for turns, inches otherwise, mirroring how SegmentTelemetry labels its numbers. */
+    /**
+     * Degrees for turns, inches otherwise, mirroring how SegmentTelemetry labels its numbers.
+     * Carried on every segment because the two never share a scale and must never be pooled:
+     * see summarizeRun, which exists mostly to keep them apart.
+     */
     units: string,
 };
 
 export type NearestResult = {
+    /** The projected point itself, lying on the reference. */
     x: number,
     y: number,
-    /** Unsigned distance to the reference. */
+    /** Unsigned distance from the query point to that projection. */
     distance: number,
-    /** Signed distance, positive when the query point is left of the reference's travel direction. */
+    /** The same distance, signed positive when the query point is left of the travel direction. */
     signed: number,
-    /** Arc length from the start of the reference to the projected point. */
+    /**
+     * Distance along the reference from its start to the projection. Not used by the overlay yet,
+     * but it is what an along track measure would be built from, so it is returned rather than
+     * thrown away.
+     */
     arcLength: number,
 };
 
 /**
- * Closest point on a polyline, with the side the query point falls on.
+ * Closest point on a polyline, plus which side of it the query point falls on.
  *
- * The sign uses the 2D cross product of the reference direction and the offset to the point. Inches
- * are y-up here, so a positive cross product puts the point counter-clockwise from the direction of
- * travel, which is the robot's left.
+ * Every segment of the polyline is tested in turn. For each one the query point is projected onto
+ * the infinite line through it, that projection is clamped back into the segment so a point beyond
+ * either end attaches to the end rather than to empty space, and the nearest result wins.
+ *
+ * The sign comes from the 2D cross product of the segment direction and the offset to the query
+ * point. Field inches are y up, so a positive cross product puts the query point counter clockwise
+ * from the direction of travel, which is the robot's left. mikLib's signed_offset_from_line uses
+ * the same formula, which is what keeps a reported error and a measured one pointing the same way.
+ *
+ * Returns null when there is nothing to measure against: an empty reference, or one whose points
+ * are all identical and so carries no direction to take a side from.
  */
 export function nearestOnPolyline(reference: Coordinate[], x: number, y: number): NearestResult | null {
     if (reference.length === 0) return null;
@@ -71,15 +110,23 @@ export function nearestOnPolyline(reference: Coordinate[], x: number, y: number)
         const lengthSq = dx * dx + dy * dy;
         const length = Math.sqrt(lengthSq);
 
-        // A repeated point carries no direction, so it cannot host a projection or a sign
+        // Two identical points in a row give a zero length segment. It has no direction, so there
+        // is no side to be on and no projection to make. Skipping it is not a loss: any real
+        // neighbouring segment covers the same place on the field.
         if (lengthSq === 0) continue;
 
+        // Where the query point lands along this segment, as a fraction from its start to its end.
+        // Clamping to 0..1 is what turns an infinite line into a finite segment: a robot past the
+        // end measures to the end point rather than to a spot that does not exist.
         const alpha = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / lengthSq));
         const px = ax + alpha * dx;
         const py = ay + alpha * dy;
         const distance = Math.hypot(x - px, y - py);
 
         if (best === null || distance < best.distance) {
+            // Positive when the query point sits counter clockwise of the travel direction, which
+            // in a y up frame is the robot's left. Only the sign is wanted; the magnitude comes
+            // from the projection above, which is already the true perpendicular distance.
             const cross = dx * (y - ay) - dy * (x - ax);
             best = {
                 x: px,
@@ -96,6 +143,7 @@ export function nearestOnPolyline(reference: Coordinate[], x: number, y: number)
     return best;
 }
 
+/** Rolls a list of samples into max, rms and mean. Sign is dropped: all three ask how far off. */
 function summarize(points: XtePoint[], source: XteSource, units: string): SegmentXte {
     if (points.length === 0) {
         return { points, source, maxAbs: 0, rms: 0, meanAbs: 0, units };
@@ -122,14 +170,20 @@ function summarize(points: XtePoint[], source: XteSource, units: string): Segmen
     };
 }
 
+/** The least a sample needs to carry to be measured. RunSample satisfies this structurally. */
 export type PoseSample = { t: number, x: number, y: number, xte?: number };
 
 /**
- * Error for one motion. Prefers the algorithm's own number and falls back to geometry only when
- * every sample lacks one, so a run logged by newer firmware is never silently downgraded.
+ * Error for one motion.
  *
- * A reference of fewer than two points, which is what a turn or a wait produces, yields an empty
- * result rather than a misleading zero.
+ * The choice of source is deliberately all or nothing. If any sample carried a reported error, the
+ * reported ones are used and the rest are dropped, rather than filling gaps with geometry. Mixing
+ * the two inside a single motion would produce a curve whose parts mean different things, and whose
+ * max and rms could not be honestly labelled.
+ *
+ * A reference with fewer than two points cannot be measured against at all. That is what a turn or
+ * a wait produces, and the result is an empty segment rather than a row of zeroes, because zero
+ * would read as perfect tracking when the truth is that nothing was measured.
  */
 export function computeSegmentXte(
     samples: PoseSample[],
