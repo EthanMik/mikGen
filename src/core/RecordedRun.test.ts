@@ -129,3 +129,24 @@ describe("samplesBySegment", () => {
         expect(grouped[2]).toHaveLength(1);
     });
 });
+
+describe("samplesBySegment robustness", () => {
+    const rows = (...segs: (number | string)[]) =>
+        parseRunCsv("t_ms,x,y,theta,seg\n" + segs.map((s, i) => `${i * 20},1,2,3,${s}`).join("\n"), "r").run!;
+
+    it("drops rows from before the first motion instead of padding motion 0", () => {
+        const g = samplesBySegment(rows(-1, -1, 0, 0));
+        expect(g).toHaveLength(1);
+        expect(g[0]).toHaveLength(2);
+    });
+
+    it("refuses an implausible index rather than allocating for it", () => {
+        const g = samplesBySegment(rows(0, 999999999, 1));
+        expect(g).toHaveLength(2);
+        expect(g.flat()).toHaveLength(2);
+    });
+
+    it("ignores a fractional index", () => {
+        expect(samplesBySegment(rows(0, 1.5)).flat()).toHaveLength(1);
+    });
+});

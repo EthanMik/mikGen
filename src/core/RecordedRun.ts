@@ -230,10 +230,28 @@ export function parseRunCsv(content: string, name: string): ParseResult {
 }
 
 /** Splits a run into one array per motion, indexed by the log's own seg counter. */
+/**
+ * Far more motions than any auton could hold. Purely a guard: the segment index arrives from a
+ * file, and the grouping below fills every slot up to it, so a single corrupt row reading
+ * 999999999 would otherwise try to allocate a billion arrays and take the tab down with it.
+ */
+const MAX_SEGMENTS = 512;
+
+/**
+ * Splits a run into one array per motion, indexed by the log's own seg counter.
+ *
+ * Gaps are kept as empty arrays rather than closed up, because the index carries meaning: it is
+ * what lines a logged motion up against a segment of the path. Collapsing a gap would silently
+ * shift every later motion onto the wrong part of the path.
+ *
+ * Three kinds of index are refused. A negative one marks a row from before the first motion, when
+ * the robot is sitting still with nothing to attribute the row to. A fractional one cannot be an
+ * index at all. One past MAX_SEGMENTS is corrupt, and acting on it would hang the tab.
+ */
 export function samplesBySegment(run: RecordedRun): RunSample[][] {
     const out: RunSample[][] = [];
     for (const s of run.samples) {
-        if (s.seg < 0) continue;
+        if (s.seg < 0 || s.seg >= MAX_SEGMENTS || !Number.isInteger(s.seg)) continue;
         while (out.length <= s.seg) out.push([]);
         out[s.seg].push(s);
     }
