@@ -9,8 +9,6 @@ import rev from "../../assets/reverse.svg";
 import fastest from "../../assets/fwdrev.svg"
 import leftswing from "../../assets/leftswing.svg";
 import rightswing from "../../assets/rightswing.svg";
-import pidFollower from "../../assets/pid-follower.svg";
-import ramseteFollower from "../../assets/ramsete-follower.svg";
 import { drive_to_pose } from "./DriveMotions/DriveToPose";
 import { drive_distance } from "./DriveMotions/DriveDistance";
 import { drive_to_point } from "./DriveMotions/DriveToPoint";
@@ -19,7 +17,6 @@ import { turn_to_angle } from "./DriveMotions/TurnToAngle";
 import { swing_to_angle } from "./DriveMotions/SwingToAngle";
 import { swing_to_point } from "./DriveMotions/SwingToPoint";
 import { follow_path, reset_follow_path } from "./DriveMotions/FollowPath";
-import { ramsete_follow_path, reset_ramsete_follow_path } from "./DriveMotions/RamseteFollowPath";
 import { turnLockButton } from "../TurnFields";
 import { addControlButton } from "../BezierFields";
 
@@ -40,24 +37,6 @@ export interface mikConstants {
     drift: number,
     slew: number,
     lead: number,
-
-    /** Which follower a bezier segment runs. Interpolated into the exported call name. */
-    follower: "pid" | "ramsete",
-
-    // pid_follow_path
-    lookahead: number,
-
-    // ramsete_follow_path
-    max_velocity: number,
-    max_accel: number,
-    friction_limit: number,
-    start_velocity: number,
-    end_velocity: number,
-    kS: number,
-    kV: number,
-    kA: number,
-    b: number,
-    zeta: number,
 
     turn_direction: "fastest" | "cw" | "ccw",
     drive_direction: "fastest" | "forwards" | "reversed",
@@ -84,21 +63,6 @@ export const kMikDrive: mikConstants = {
     slew: 2,
     drift: 2,
     lead: 0.5,
-
-    follower: "pid",
-
-    lookahead: 8,
-
-    max_velocity: 50,
-    max_accel: 80,
-    friction_limit: 120,
-    start_velocity: 0,
-    end_velocity: 0,
-    kS: 0.8,
-    kV: 0.185,
-    kA: 0,
-    b: 10,
-    zeta: 0.7,
 
     turn_direction: "fastest",
     drive_direction: "fastest",
@@ -188,27 +152,6 @@ export const mikPIDConstantsSettings: Fields = [
     { key: "slew", units: "volt/tick", label: "Slew", input: { bounds: [0, 100], stepSize: .1, roundTo: 2 } },
 ];
 
-export const mikLookaheadSettings: Fields = [
-    { key: "lookahead", units: "in", label: "Lookahead", input: { bounds: [0, 48], stepSize: 1, roundTo: 2 } },
-];
-
-export const mikRamseteProfileSettings: Fields = [
-    { key: "max_velocity", units: "in/s", label: "Max Velocity", input: { bounds: [0, 200], stepSize: 1, roundTo: 2 } },
-    { key: "max_accel", units: "in/s2", label: "Max Accel", input: { bounds: [0, 500], stepSize: 5, roundTo: 2 } },
-    { key: "friction_limit", units: "in/s2", label: "Grip Limit", input: { bounds: [0, 500], stepSize: 5, roundTo: 2 } },
-    { key: "start_velocity", units: "in/s", label: "Start Velocity", input: { bounds: [0, 200], stepSize: 1, roundTo: 2 } },
-    { key: "end_velocity", units: "in/s", label: "End Velocity", input: { bounds: [0, 200], stepSize: 1, roundTo: 2 } },
-];
-
-export const mikRamseteGainSettings: Fields = [
-    { key: "max_voltage", units: "volt", label: "Max Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
-    { key: "kS", units: "volt", label: "kS", input: { bounds: [0, 12], stepSize: 0.1, roundTo: 3 } },
-    { key: "kV", units: "volt/in/s", label: "kV", input: { bounds: [0, 12], stepSize: 0.01, roundTo: 4 } },
-    { key: "kA", units: "volt/in/s2", label: "kA", input: { bounds: [0, 12], stepSize: 0.01, roundTo: 4 } },
-    { key: "b", units: "1/m2", label: "b", input: { bounds: [0, 100], stepSize: 1, roundTo: 2 } },
-    { key: "zeta", units: "", label: "zeta", input: { bounds: [0, 1], stepSize: 0.05, roundTo: 2 } },
-];
-
 type CycleButton = Omit<CycleButtonField<"mikLib">, "constantsIdx">;
 
 const driveDirectionButton: CycleButton = {
@@ -217,17 +160,6 @@ const driveDirectionButton: CycleButton = {
         { srcImg: fastest, value: "fastest" },
         { srcImg: fwd, value: "forwards" },
         { srcImg: rev, value: "reversed" },
-    ],
-};
-
-const isRamseteFollower = (k: mikConstants[]) => k[0]?.follower === "ramsete";
-const isPidFollower = (k: mikConstants[]) => k[0]?.follower !== "ramsete";
-
-const followerButton: CycleButton = {
-    key: "follower",
-    keyValues: [
-        { srcImg: pidFollower, value: "pid" },
-        { srcImg: ramseteFollower, value: "ramsete" },
     ],
 };
 
@@ -423,32 +355,24 @@ export const mikLibDef = {
         bezierCurve: {
             name: "Follow Path",
             defaults: [kMikDrive, kMikHeading],
-            // The follower constant picks the call name, so one segment kind covers both followers
-            toStringTemplate: "chassis.${follower}_follow_path({${c1x}, ${c1y}}, {${c2x}, ${c2y}}, {${x}, ${y}}, ${kBuilder});",
-            simFn: (robot, dt, _x, _y, angle, constants, points, bezier) => constants[0].follower === "ramsete"
-                ? ramsete_follow_path(robot, dt, bezier, constants)
-                : follow_path(robot, dt, points ?? [], angle, constants),
-            simReset: () => { reset_follow_path(); reset_ramsete_follow_path(); },
+            toStringTemplate: "chassis.follow_path({${c1x}, ${c1y}}, {${c2x}, ${c2y}}, {${x}, ${y}}, ${kBuilder});",
+            simFn: (robot, dt, _x, _y, angle, constants, points) => follow_path(robot, dt, points ?? [], angle, constants),
+            simReset: reset_follow_path,
             slider: { key: "max_voltage", bounds: [0, 12], roundTo: 0.1, constantsIdx: 0 },
             cycleButtons: [
-                { constantsIdx: 0, ...followerButton },
                 { constantsIdx: 0, ...driveDirectionButton },
             ],
             actionButtons: [addControlButton],
-            // Each follower takes a different parameter struct, so only the groups the selected
-            // one actually reads are shown. The rest would export nothing and change nothing.
             numberInputs: [
-                { constantsIdx: 0, headerName: "Exit Conditions", visibleWhen: isPidFollower, fields: [...mikDriveExitConditionsSettings] },
+                { constantsIdx: 0, headerName: "Exit Conditions", fields: [...mikDriveExitConditionsSettings] },
                 {
-                    constantsIdx: 0, headerName: "Drive Constants", visibleWhen: isPidFollower, fields: [
+                    constantsIdx: 0, headerName: "Drive Constants", fields: [
                         ...mikPIDConstantsSettings,
-                        ...mikLookaheadSettings,
                         { key: "drift", label: "Drift", units: "", input: { bounds: [0, 100], stepSize: 1, roundTo: 1 } },
+                        { key: "lead", label: "Lead", units: "in", input: { bounds: [0, 1], stepSize: 0.1, roundTo: 1 } },
                     ]
                 },
-                { constantsIdx: 1, headerName: "Heading Constants", visibleWhen: isPidFollower, fields: [...mikPIDConstantsSettings] },
-                { constantsIdx: 0, headerName: "Ramsete Profile", visibleWhen: isRamseteFollower, fields: [...mikRamseteProfileSettings] },
-                { constantsIdx: 0, headerName: "Ramsete Gains", visibleWhen: isRamseteFollower, fields: [...mikRamseteGainSettings] },
+                { constantsIdx: 1, headerName: "Heading Constants", fields: [...mikPIDConstantsSettings] },
             ],
         },
 
@@ -465,32 +389,8 @@ export const mikLibDef = {
 } satisfies FormatDef<"mikLib">;
 
 function kMikBuilder(kDefault: mikConstants[], constants: mikConstants[], pose?: Pose, kind?: SegmentKind): string {
-    // The two path followers take different parameter structs, so a bezier segment emits one set
-    // of keys or the other rather than the union of both
-    const ramsete = kind === "bezierCurve" && constants[0]?.follower === "ramsete";
-
     const keyToDriveConstant = (key: keyof mikConstants, value: mikConstants[keyof mikConstants]): string => {
-        if (ramsete) {
-            switch (key) {
-                case "max_velocity": return `.max_velocity = ${roundOff(value as number, 2)}`;
-                case "max_accel": return `.max_accel = ${roundOff(value as number, 2)}`;
-                case "friction_limit": return `.friction_limit = ${roundOff(value as number, 2)}`;
-                case "start_velocity": return `.start_velocity = ${roundOff(value as number, 2)}`;
-                case "end_velocity": return `.end_velocity = ${roundOff(value as number, 2)}`;
-                case "max_voltage": return `.max_voltage = ${roundOff(value as number, 1)}`;
-                case "kS": return `.kS = ${roundOff(value as number, 3)}`;
-                case "kV": return `.kV = ${roundOff(value as number, 4)}`;
-                case "kA": return `.kA = ${roundOff(value as number, 4)}`;
-                case "b": return `.b = ${roundOff(value as number, 2)}`;
-                case "zeta": return `.zeta = ${roundOff(value as number, 2)}`;
-                // ramsete_params carries a plain reverse flag, not mikLib's directionType
-                case "drive_direction": return value === "reversed" ? ".reverse = true" : "";
-                case "wait": return `.wait = ${value ? "true" : "false"}`;
-            }
-            return "";
-        }
         switch (key) {
-            case "lookahead": return `.lookahead = ${roundOff(value as number, 2)}`;
             case "kp": return `.drive_k.p = ${roundOff(value as number, 3)}`;
             case "ki": return `.drive_k.i = ${roundOff(value as number, 5)}`;
             case "kd": return `.drive_k.d = ${roundOff(value as number, 3)}`;
@@ -514,8 +414,6 @@ function kMikBuilder(kDefault: mikConstants[], constants: mikConstants[], pose?:
     };
 
     const keyToHeadingConstant = (key: keyof mikConstants, value: mikConstants[keyof mikConstants]): string => {
-        // Ramsete has no separate heading loop, so the second constants group has nothing to say
-        if (ramsete) return "";
         switch (key) {
             case "kp": return `.heading_k.p = ${roundOff(value as number, 3)}`;
             case "ki": return `.heading_k.i = ${roundOff(value as number, 5)}`;
@@ -571,7 +469,7 @@ function kMikBuilder(kDefault: mikConstants[], constants: mikConstants[], pose?:
 
     let constantsList: string[] = [];
 
-    if (pose?.angle !== null && !ramsete && (kind === "distanceDrive" || kind === "strafeDrive" || kind === "bezierCurve")) {
+    if (pose?.angle !== null && (kind === "distanceDrive" || kind === "strafeDrive" || kind === "bezierCurve")) {
         constantsList.push(`.heading = ${roundOff(pose?.angle, 2)}`);
     }
 
@@ -646,18 +544,6 @@ function kMikParser(kDefault: mikConstants[], kBuilderStr: string, kind: Segment
             else if (rawKey === "turn_settle_error") constants[1].settle_error = num;
             else if (rawKey === "turn_settle_time") constants[1].settle_time = num;
             else if (rawKey === "heading") poseAngle = num;
-            else if (rawKey === "lookahead") constants[0].lookahead = num;
-            else if (rawKey === "max_velocity") constants[0].max_velocity = num;
-            else if (rawKey === "max_accel") constants[0].max_accel = num;
-            else if (rawKey === "friction_limit") constants[0].friction_limit = num;
-            else if (rawKey === "start_velocity") constants[0].start_velocity = num;
-            else if (rawKey === "end_velocity") constants[0].end_velocity = num;
-            else if (rawKey === "kS") constants[0].kS = num;
-            else if (rawKey === "kV") constants[0].kV = num;
-            else if (rawKey === "kA") constants[0].kA = num;
-            else if (rawKey === "b") constants[0].b = num;
-            else if (rawKey === "zeta") constants[0].zeta = num;
-            else if (rawKey === "reverse") constants[0].drive_direction = rawValue === "true" ? "reversed" : "fastest";
             else if (rawKey === "wait") constants[0].wait = rawValue === "true";
         } else {
             if (rawKey === "k.p") constants[0].kp = num;

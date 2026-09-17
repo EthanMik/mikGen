@@ -255,7 +255,7 @@ describe("convertPathToString (mikLib)", () => {
             mikSeg("bezierCurve", { x: 30, y: 60, angle: null }, { controls: [createControlPoint(6, 12), createControlPoint(18, 42)] }),
         ]));
 
-        expect(out.split("\n")[1]).toBe("chassis.pid_follow_path({6, 12}, {18, 42}, {30, 60});");
+        expect(out.split("\n")[1]).toBe("chassis.follow_path({6, 12}, {18, 42}, {30, 60});");
     });
 
     it("degree elevates a single-control bezier to a cubic", () => {
@@ -265,7 +265,7 @@ describe("convertPathToString (mikLib)", () => {
         ]));
 
         // Quadratic P0 (0,0), C (12,24), P1 (30,60) elevated: c1 = P0 + 2/3 (C - P0), c2 = P1 + 2/3 (C - P1)
-        expect(out.split("\n")[1]).toBe("chassis.pid_follow_path({8, 16}, {18, 36}, {30, 60});");
+        expect(out.split("\n")[1]).toBe("chassis.follow_path({8, 16}, {18, 36}, {30, 60});");
     });
 
     it("emits a control-less bezier with controls at the endpoints", () => {
@@ -274,7 +274,7 @@ describe("convertPathToString (mikLib)", () => {
             mikSeg("bezierCurve", { x: 30, y: 60, angle: null }),
         ]));
 
-        expect(out.split("\n")[1]).toBe("chassis.pid_follow_path({0, 0}, {30, 60}, {30, 60});");
+        expect(out.split("\n")[1]).toBe("chassis.follow_path({0, 0}, {30, 60}, {30, 60});");
     });
 
     it("emits a bezier heading through the kBuilder when one is commanded", () => {
@@ -283,7 +283,7 @@ describe("convertPathToString (mikLib)", () => {
             mikSeg("bezierCurve", { x: 30, y: 60, angle: 45 }, { controls: [createControlPoint(6, 12), createControlPoint(18, 42)] }),
         ]));
 
-        expect(out.split("\n")[1]).toBe("chassis.pid_follow_path({6, 12}, {18, 42}, {30, 60}, {.heading = 45});");
+        expect(out.split("\n")[1]).toBe("chassis.follow_path({6, 12}, {18, 42}, {30, 60}, {.heading = 45});");
     });
 
     it("resolves castTo kinds to the target segment template", () => {
@@ -450,7 +450,7 @@ describe("convertStringToPath (mikLib)", () => {
     });
 
     it("parses bezier control points into segment controls", () => {
-        const segs = convertStringToPath(mikDef, "mikLib", "chassis.pid_follow_path({6, 12}, {18, 42}, {30, 60});");
+        const segs = convertStringToPath(mikDef, "mikLib", "chassis.follow_path({6, 12}, {18, 42}, {30, 60});");
 
         expect(segs[0].kind).toBe("bezierCurve");
         expect(segs[0].pose.x).toBe(30);
@@ -650,7 +650,7 @@ describe("round trips", () => {
                 controls: [createControlPoint(18, 12), createControlPoint(-18, 28)],
             }),
         ]));
-        expect(out).toContain("chassis.pid_follow_path({18, 12}, {-18, 28}, {0, 40}");
+        expect(out).toContain("chassis.follow_path({18, 12}, {-18, 28}, {0, 40}");
         expect(out).not.toContain("_in,");
     });
 

@@ -5,6 +5,8 @@ import { type mikConstants } from "../MikConstants";
 import { PID } from "../PID";
 import { clamp_max_slip, clamp_min_voltage, is_line_settled, left_voltage_scaling, overturn_scaling, reduce_negative_180_to_180, reduce_negative_90_to_90, right_voltage_scaling, slew_scaling } from "../Util";
 
+/** Inches further along the path the chased point is drawn from. */
+const LOOKAHEAD_DISTANCE = 8;
 /** Distance to the end at which the settle phase begins. */
 const SETTLE_DISTANCE = 7;
 /** Lower bound on the speed captured when settling starts, so it can still reach the end. */
@@ -119,7 +121,7 @@ export function follow_path(robot: Robot, dt: number, points: Coordinate[], end_
     const end = path_points[path_points.length - 1];
 
     const traveled = pathProgress(robot.getX(), robot.getY());
-    const look_arc = Math.min(traveled + drive_p.lookahead, total_distance);
+    const look_arc = Math.min(traveled + LOOKAHEAD_DISTANCE, total_distance);
     const look = pathPoseAt(look_arc);
 
     const remaining_arc = total_distance - traveled;

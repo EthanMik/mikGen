@@ -4,7 +4,6 @@ import type { Robot } from "../core/Robot";
 import type { Dispatch, SetStateAction } from "react";
 import type { Path } from "../core/Types/Path";
 import type { Coordinate } from "../core/Types/Coordinate";
-import type { Bezier } from "../core/Types/Bezier";
 import type { Pose } from "../core/Types/Pose";
 import { holonomicDef } from "./HolonomicSim/HolonomicConstants";
 import type { Segment } from "../core/Types/Segment";
@@ -164,11 +163,6 @@ export type CycleButtonField<F extends Format = Format,
 export type NumberInputGroup<F extends Format = Format> = {
     constantsIdx: number;
     headerName: string;
-    /**
-     * Hides the whole group when it returns false. Lets one segment kind carry the knobs for more
-     * than one mode without showing the reader knobs the mode it is in would ignore.
-     */
-    visibleWhen?: (constants: SegmentConstants<F>) => boolean;
     fields: {
         key: keyof FormatConstants[F] | keyof Segment;
         units: string;
@@ -189,9 +183,7 @@ export type SegmentFactory<F extends Format = Format> = (
     angle: number | null,
     constants: SegmentConstants<F>,
     /** Pre-sampled trajectory, only supplied for path-following kinds like bezierCurve. */
-    points?: Coordinate[],
-    /** The curve itself, for followers that want its curvature analytically rather than sampled. */
-    bezier?: Bezier
+    points?: Coordinate[]
 ) => boolean;
 
 export type ConstantValue = number | boolean | string;
