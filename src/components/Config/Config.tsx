@@ -10,6 +10,7 @@ import FolderButton from "./FolderButton";
 import FormatButton from "./FormatButton";
 import HelpButton from "./HelpButton";
 import RobotButton from "./RobotButton";
+import RunsButton from "../Runs/RunsButton";
 import ViewButton from "./ViewButton";
 
 type ConfigProps = { fillHeight?: boolean };
@@ -32,6 +33,7 @@ export default function Config({ fillHeight = false }: ConfigProps) {
                 <FieldButton/>
                 <FormatButton />
                 <ExportButton />
+                <RunsButton />
             </div>
         </div>
     );

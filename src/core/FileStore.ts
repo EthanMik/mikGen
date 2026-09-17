@@ -13,7 +13,7 @@ export const dirHandleStore = createStore<FileSystemDirectoryHandle | null>(null
 export function loadContentIntoState(content: string, fileName: string) {
     // Not JSON, so deserializing would "repair" it into an empty path and lose the open one
     if (looksLikeRunLog(content)) {
-        alert(`"${fileName}" is a recorded run, not a path.\n\nUse File > Import Run to overlay it on the current path.`);
+        alert(`"${fileName}" is a recorded run, not a path.\n\nUse Runs > Choose File to overlay it on the current path.`);
         return;
     }
 

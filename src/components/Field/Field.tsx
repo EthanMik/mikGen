@@ -154,7 +154,8 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		fieldPanWheel, cut, paste, copy, addPoseDrive2Segment,
 	} = FieldMacros();
 
-	const { toggleRobotVisibility, togglePrecisePath, toggleCrossTrackError, toggleOnionLayers, toggleLoopPath } = PathSimMacros();
+	const { toggleRobotVisibility, togglePrecisePath, toggleOnionLayers, toggleLoopPath } = PathSimMacros();
+	const { toggleShowRun } = PathSimMacros();
 
 	const hiddenInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -199,7 +200,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 			fieldZoomKeyboard(evt, setImg);
 			toggleRobotVisibility(evt, setRobotVisibility);
 			togglePrecisePath(evt, setSettings);
-			toggleCrossTrackError(evt, setSettings);
+			toggleShowRun(evt, setSettings);
 			toggleOnionLayers(evt, setSettings);
 			toggleLoopPath(evt, setSettings);
 		};
@@ -234,7 +235,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		fieldZoomKeyboard,
 		toggleRobotVisibility,
 		togglePrecisePath,
-		toggleCrossTrackError,
+		toggleShowRun,
 		toggleOnionLayers,
 		toggleLoopPath,
 		cut,
@@ -821,7 +822,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 
 				<PathLayer path={path} img={img} visible={pathVisible} precise={settings.precisePath} />
 
-				<RunLayer path={path} img={img} visible={settings.crossTrackError} />
+				<RunLayer img={img} visible={settings.showRun} errorOnHover={settings.runErrorOnHover} />
 
 				<RobotLayer
 					img={img}

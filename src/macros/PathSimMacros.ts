@@ -22,12 +22,12 @@ export function PathSimMacros() {
         }
     }
 
-    function toggleCrossTrackError(
+    function toggleShowRun(
         evt: KeyboardEvent,
         setSettings: React.Dispatch<SetStateAction<Settings>>,
     ) {
         if (evt.key.toLowerCase() === "e" && !evt.ctrlKey) {
-            setSettings((prev) => ({ ...prev, crossTrackError: !prev.crossTrackError }));
+            setSettings((prev) => ({ ...prev, showRun: !prev.showRun }));
         }
     }
 
@@ -137,7 +137,7 @@ export function PathSimMacros() {
     return {
         toggleRobotVisibility,
         togglePrecisePath,
-        toggleCrossTrackError,
+        toggleShowRun,
         toggleOnionLayers,
         toggleLoopPath,
         pauseSimulator,

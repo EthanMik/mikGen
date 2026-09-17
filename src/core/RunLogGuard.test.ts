@@ -58,7 +58,7 @@ describe("opening a run log as a path", () => {
         // wrote that empty path back over the log on disk.
         expect(fileFormatStore.getState().path.name).toBe("keep me");
         expect(alertSpy).toHaveBeenCalledOnce();
-        expect(String(alertSpy.mock.calls[0][0])).toContain("Import Run");
+        expect(String(alertSpy.mock.calls[0][0])).toContain("Runs > Choose File");
     });
 
     it("still opens a real path file", () => {
