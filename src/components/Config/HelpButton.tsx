@@ -1,20 +1,34 @@
-// The docs are a separate Docusaurus build deployed next to the app rather than a route inside
-// it, so this is a plain link out instead of anything the app routes to itself
-const DOCS_URL = "https://mikgen.com/docs";
+import { MenuKeybindButton } from "../Util/KeybindButton";
+import MenuButtonTemplate from "../Util/MenuButtonTemplate";
+import folderIcon from "../../assets/file.svg"
+import github from "../../assets/github.svg"
+import discord from "../../assets/discord.svg"
 
-// Styled to match MenuButtonTemplate's trigger so it lines up with File/Edit/View/Settings, but it
-// opens the docs instead of a menu, so it has none of that template's open/close machinery
+
 export default function HelpButton() {
     return (
-        <div className="relative rounded-sm hover:bg-medgray_hover">
-            <a
-                href={DOCS_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-block px-1 cursor-pointer"
-            >
-                <span className="text-[12px] leading-none">Help</span>
-            </a>
-        </div>
+        <>
+            <MenuButtonTemplate title="Help" width={27}>
+                <MenuKeybindButton name="Docs" callback={() => {
+                    window.open("https://mikgen.com/docs")
+                }}
+                    keybind={<img src={folderIcon} className="w-3.5 h-3.5" />}
+                    />
+                
+                <MenuKeybindButton name="Github" callback={() => {
+                    window.open("https://github.com/ethanmik/mikgen")
+                }}
+                    keybind={<img className="w-3.5 h-3.5" src={github}/>}
+                />
+                
+                <MenuKeybindButton name="Discord" callback={() => {
+                    window.open("https://discord.gg/UKbzef8GrA")
+                }}
+                keybind={<img className="w-3.5 h-3.5" src={discord}/>}
+                />
+
+
+            </MenuButtonTemplate>
+        </>
     );
 }
