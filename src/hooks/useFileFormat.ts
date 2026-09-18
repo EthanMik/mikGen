@@ -38,13 +38,15 @@ export const fileFormatStore = createStore<FileFormat>(VALIDATED_APP_STATE);
  * format registry never has to import app state, which would make the two modules circular.
  */
 export function changeFormat(newFormat: Format) {
-    const newFormatDef = FORMAT_REGISTRY[newFormat] as FormatDef<Format>;
-    fileFormatStore.setState(prev => ({
-        ...prev,
-        format: newFormat,
-        formatDef: newFormatDef,
-        path: recastPath(newFormatDef, newFormat, prev.path),
-    }));
+    if (window.confirm("This will reset all your segments to the new formats defaults")) {
+        const newFormatDef = FORMAT_REGISTRY[newFormat] as FormatDef<Format>;
+        fileFormatStore.setState(prev => ({
+            ...prev,
+            format: newFormat,
+            formatDef: newFormatDef,
+            path: recastPath(newFormatDef, newFormat, prev.path),
+        }));
+    }
 }
 
 export function useFileFormat() {
