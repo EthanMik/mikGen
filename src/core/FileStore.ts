@@ -1,6 +1,7 @@
 import { createStore } from "./Store";
 import { fileFormatStore } from "../hooks/useFileFormat";
 import { deserializeToState, serializeFile } from "./FileSchema";
+import { looksLikeRunLog } from "./RecordedRun";
 import { saveSnapshot, fileUndosStore } from "./Undo/UndoHistory";
 
 /** Bumped on every write, so the folder browser knows to re-read the directory. */
@@ -10,6 +11,12 @@ export const dirHandleStore = createStore<FileSystemDirectoryHandle | null>(null
 
 /** Seeding cannot throw, so the only thing left to report is that the file needed fixing up. */
 export function loadContentIntoState(content: string, fileName: string) {
+    // Not JSON, so deserializing would "repair" it into an empty path and lose the open one
+    if (looksLikeRunLog(content)) {
+        alert(`"${fileName}" is a recorded run, not a path.\n\nUse Runs > Choose File to overlay it on the current path.`);
+        return;
+    }
+
     const repairs: string[] = [];
     fileFormatStore.setState(deserializeToState(content, fileName, repairs));
     if (repairs.length > 0) {

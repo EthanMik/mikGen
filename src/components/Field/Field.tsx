@@ -17,6 +17,7 @@ import { useFieldGesture } from "./useFieldGesture";
 import { usePointerCoarse } from "../../hooks/usePointerCoarse";
 import RobotLayer from "./RobotLayer";
 import PathLayer from "./PathLayer";
+import RunLayer from "./RunLayer";
 import ControlsLayer from "./ControlsLayer";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import { resolveHeading, getBackwardsSnapPose, getBackwardsSnapIdx, distanceToPosition, getSegmentDistance, type Path } from "../../core/Types/Path";
@@ -154,6 +155,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 	} = FieldMacros();
 
 	const { toggleRobotVisibility, togglePrecisePath, toggleOnionLayers, toggleLoopPath } = PathSimMacros();
+	const { toggleShowRun } = PathSimMacros();
 
 	const hiddenInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -198,6 +200,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 			fieldZoomKeyboard(evt, setImg);
 			toggleRobotVisibility(evt, setRobotVisibility);
 			togglePrecisePath(evt, setSettings);
+			toggleShowRun(evt, setSettings);
 			toggleOnionLayers(evt, setSettings);
 			toggleLoopPath(evt, setSettings);
 		};
@@ -232,6 +235,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		fieldZoomKeyboard,
 		toggleRobotVisibility,
 		togglePrecisePath,
+		toggleShowRun,
 		toggleOnionLayers,
 		toggleLoopPath,
 		cut,
@@ -817,6 +821,8 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 				<image href={getFieldSrcFromKey(fieldKey)} x={img.x} y={img.y} width={img.w} height={img.h} />
 
 				<PathLayer path={path} img={img} visible={pathVisible} precise={settings.precisePath} />
+
+				<RunLayer img={img} visible={settings.showRun} errorOnHover={settings.runErrorOnHover} />
 
 				<RobotLayer
 					img={img}
