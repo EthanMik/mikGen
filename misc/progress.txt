@@ -1,18 +1,16 @@
 Live Progress Txt
 
 Bugs:
+- File buttons get light instead of darker
 
 Todo:
 - add example paths
-- add help button
 - google analytics
+- Make it so you can view multiple paths
+
 
 Later:
-- visually see when you can and cant undo
-- load last 3 undos under local
 - have a dropdown for the file view
-- Bezier path following + velocity editing 
 
 Docs:
 - A better way to plan VEX Autonoumous - EthanMik Channel
-- Readthedocs.io showing all the keybinds
