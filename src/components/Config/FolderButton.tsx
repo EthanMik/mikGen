@@ -40,7 +40,8 @@ type FolderEntryProps = {
 function FolderEntry({ entry, isSelected, onEnterFolder, onSelectFile }: FolderEntryProps) {
     return (
         <button
-            className="flex flex-row px-2 py-0.5 items-center justify-between cursor-pointer rounded-sm w-full text-left hover:bg-medlightgray"
+            className={`flex flex-row px-2 py-0.5 items-center justify-between cursor-pointer rounded-sm w-full 
+            text-left bg-medgray hover:brightness-92 cursor-pointer rounded-sm ${isSelected ? "bg-medlightgray" : ""}`}
             onClick={() => {
                 if (entry.kind === "directory") {
                     onEnterFolder(entry.handle as FileSystemDirectoryHandle);

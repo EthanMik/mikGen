@@ -5,25 +5,33 @@ import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import ConfigButtonTemplate from "./ConfigButtonTemplate";
 import { ConfigCheckButton } from "../Util/CheckButton";
 import { isHolonomicFormat } from "../../simulation/FormatDefinition";
+import Section from "../Util/Section";
+import Tooltip from "../Util/Tooltip";
 
 type PathFormats = {
-    name: string,
-    format: Format,
+    name: string | "section",
+    format?: Format,
+    tooltip?: string
 }
 
 const FORMATS: PathFormats[] = [
     { name: "mikLib v2.3.0", format: "mikLib" },
+    { name: "mikLib-Holonomic v2.3.0", format: "mikLib Holonomic", tooltip: "Swaps drivetrain to holonomic" },
+    { name: "Section" },
     { name: "LemLib v0.5.6", format: "LemLib" },
     { name: "JAR-Template", format: "JAR-Template" },
     { name: "EZ-Template v3.2.2", format: "EZ-Template" },
+    { name: "Section" },
     { name: "ReveilLib v4.0", format: "ReveilLib" },
+    { name: "ReveilLib-Holonomic v4.0", format: "ReveilLib Holonomic", tooltip: "Swaps drivetrain to holonomic" }
 ];
 
 export default function FormatButton() {
     const [format] = useFormat();
     const prevFormatRef = useRef<Format>(format);
 
-    const handleClickItem = (newFormat: Format) => {
+    const handleClickItem = (newFormat: Format | undefined) => {
+        if (newFormat === undefined) return;
         const changed = prevFormatRef.current !== newFormat;
         if (!changed) return;
         changeFormat(newFormat);
@@ -35,7 +43,14 @@ export default function FormatButton() {
     return (
         <ConfigButtonTemplate title="Format">
             {FORMATS.map((c) => (
-                <ConfigCheckButton key={c.format} checked={format === c.format} setChecked={() => handleClickItem(c.format)} name={c.name}/>
+                <>
+                    {c.name === "Section" && <Section />}
+                    {c.name !== "Section" &&
+                        <Tooltip label={c.tooltip} placement={"right"}>
+                            <ConfigCheckButton key={c.format} checked={format === c.format} setChecked={() => handleClickItem(c.format)} name={c.name} />
+                        </Tooltip>
+                    }
+                </>
             ))}
         </ConfigButtonTemplate>
     );

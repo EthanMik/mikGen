@@ -32,11 +32,6 @@ export { DEFAULT_FORMAT, DEFAULT_FIELD_KEY, VALIDATED_APP_STATE }
 
 export const fileFormatStore = createStore<FileFormat>(VALIDATED_APP_STATE);
 
-/**
- * Switches the whole file to another library, recasting every segment to the nearest kind that
- * format has and reseeding its constants. Lives here rather than in FormatDefinition so the
- * format registry never has to import app state, which would make the two modules circular.
- */
 export function changeFormat(newFormat: Format) {
     if (window.confirm("This will reset all your segments to the new formats defaults")) {
         const newFormatDef = FORMAT_REGISTRY[newFormat] as FormatDef<Format>;

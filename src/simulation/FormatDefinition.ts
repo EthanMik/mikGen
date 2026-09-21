@@ -59,13 +59,6 @@ export const FORMAT_REGISTRY = {
 
 } as unknown as { [F in Format]: FormatDef<F> };
 
-export const HOLONOMIC_PAIRS: Partial<Record<Format, Format>> = {
-    "mikLib": "mikLib Holonomic",
-    "mikLib Holonomic": "mikLib",
-    "ReveilLib": "ReveilLib Holonomic",
-    "ReveilLib Holonomic": "ReveilLib",
-};
-
 export function isHolonomicFormat(format: Format): boolean {
     return format === "mikLib Holonomic" || format === "ReveilLib Holonomic";
 }

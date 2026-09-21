@@ -1,18 +1,13 @@
-import { useRef } from "react";
-import { changeFormat, useFormat, mergeRobot, fileFormatStore, type Format } from "../../hooks/useFileFormat";
+import { mergeRobot, fileFormatStore } from "../../hooks/useFileFormat";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";
 import Section from "../Util/Section";
 import ConfigButtonTemplate from "./ConfigButtonTemplate";
-import { ConfigCheckboxButton } from "../Util/CheckboxButton";
 import { DualNumberInputCheckboxButton, NumberInputButton, NumberInputCheckboxButton } from "../Util/NumberInputButton";
 import { SENSOR_COLORS } from "../Field/FieldColors";
-import { HOLONOMIC_PAIRS, isHolonomicFormat } from "../../simulation/FormatDefinition";
 
 type ExpansionSide = "Front" | "Left" | "Right" | "Rear";
 
 export default function RobotButton() {
-    const [format] = useFormat();
-    const prevFormatRef = useRef<Format>(format);
     const robot = fileFormatStore.useSelector(s => s.robot);
 
     const handleExpansionChange = (side: ExpansionSide, v: number | null) => {
@@ -35,27 +30,12 @@ export default function RobotButton() {
         saveSnapshot();
     };
 
-    const holonomic = isHolonomicFormat(format);
-    const twin = HOLONOMIC_PAIRS[format];
-
-    const handleToggleHolonomic = (checked: boolean) => {
-        if (!twin || checked === holonomic) return;
-        const changed = prevFormatRef.current !== twin;
-        changeFormat(twin);
-        mergeRobot({ holonomicRobot: checked });
-        if (changed) saveSnapshot();
-        prevFormatRef.current = twin;
-    };
-
     return (
         <ConfigButtonTemplate title="Robot">
             <div className="flex flex-col gap-1.5">
                 <Section name="General">
                     <NumberInputButton name="Width" value={robot.width} setValue={v => v !== null && mergeRobot({ width: v })} bounds={[0, 30]} stepSize={1} roundTo={1} units="in" />
                     <NumberInputButton name="Height" value={robot.height} setValue={v => v !== null && mergeRobot({ height: v })} bounds={[0, 30]} stepSize={1} roundTo={1} units="in" />
-                    {twin && (
-                        <ConfigCheckboxButton name="Holonomic" checked={holonomic} label={`Toggle format to ${holonomic ? format : twin}`} setChecked={handleToggleHolonomic} />
-                    )}
                 </Section>
                 <Section name="Motion" defaultCollapsed>
                     <NumberInputButton name="Speed" label="Max velocity; measure on actual robot" value={robot.speed} setValue={v => v !== null && mergeRobot({ speed: v })} bounds={[0, 100]} stepSize={0.5} roundTo={2} units="ft/s" />
