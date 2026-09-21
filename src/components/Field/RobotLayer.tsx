@@ -9,6 +9,7 @@ import { useFormat } from "../../hooks/useFileFormat";
 import { usePose } from "../../hooks/usePose";
 import { useRobotPose } from "../../hooks/useRobotPose";
 import { computedPathStore, type Snapshot } from "../../core/ComputePathSim";
+import { isHolonomicFormat } from "../../simulation/FormatDefinition";
 
 type RobotLayerProps = {
     img: Rectangle;
@@ -24,11 +25,6 @@ const EXPANSION_TRANSPARENCY: number = 0.18;
 const GHOST_TRANSPARENCY: number = 0.05;
 const BG_TRANSPARENCY: number = 0.4;
 
-/**
- * Poses every `spacing` inches of travel along one segment, for the onion layers between its
- * start and its end. The end pose is drawn on its own, so a layer that would land on top of it
- * is dropped rather than doubling up the outline.
- */
 function onionLayerPoses(segment: Snapshot[], spacing: number): Pose[] {
     if (spacing <= 0 || segment.length < 2) return [];
 
@@ -47,7 +43,6 @@ function onionLayerPoses(segment: Snapshot[], spacing: number): Pose[] {
         travelled += steps[i - 1];
         if (travelled < next || total - travelled < spacing / 2) continue;
         poses.push({ x: segment[i].x, y: segment[i].y, angle: segment[i].angle });
-        // measured from where the layer actually landed, so the sampling cannot drift
         next = travelled + spacing;
     }
     return poses;
@@ -111,7 +106,7 @@ export default function RobotLayer({ img, robotConstants, visible, path }: Robot
     const [ format, ] = useFormat();
     const computedPath = computedPathStore.useStore();
 
-    const bgColor = format === "mikLib Holonomic" ? MECANUM_COLOR : TANK_COLOR;
+    const bgColor = isHolonomicFormat(format) ? MECANUM_COLOR : TANK_COLOR;
 
     // Only the recompute writes the store, so the layers are sampled once per path change
     // rather than once per animation frame

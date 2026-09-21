@@ -321,3 +321,4 @@ function loadAppState(): FileFormat {
 }
 
 export const VALIDATED_APP_STATE = loadAppState();
+

@@ -25,7 +25,6 @@ export type Format =
 export type SegmentKind =
     | "pointDrive"
     | "poseDrive"
-    /** A drive to pose that goes straight at the target, so it previews as a line, not a lead curve. */
     | "poseDrive2"
     | "pointTurn"
     | "angleTurn"
@@ -71,19 +70,11 @@ export function isHolonomicFormat(format: Format): boolean {
     return format === "mikLib Holonomic" || format === "ReveilLib Holonomic";
 }
 
-/**
- * Format keys that files were saved under before a rename, with the auto-assigned path name that
- * went with them and any segment kind the format has since moved. Seeding maps all three across,
- * so a file written under the old key opens on the renamed format with its motions intact instead
- * of falling back to the default format.
- */
 export const LEGACY_FORMATS: Record<string, {
     format: Format;
     pathName: string;
     kinds?: Partial<Record<SegmentKind, SegmentKind>>;
 }> = {
-    // holonomic_to_pose used to be this format's poseDrive; it lives on poseDrive2 now that
-    // poseDrive carries the tank drive_to_pose as well
     Holonomic: { format: "mikLib Holonomic", pathName: "Holonomic Path", kinds: { poseDrive: "poseDrive2" } },
 };
 

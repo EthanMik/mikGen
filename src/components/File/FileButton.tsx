@@ -7,6 +7,7 @@ import { loadContentIntoState, loadFromHandle, fileSaveStore, fileHandleStore, d
 import MenuButtonTemplate from "../Util/MenuButtonTemplate";
 import { MenuKeybindButton } from "../Util/KeybindButton";
 import Section from "../Util/Section";
+import { set } from "idb-keyval";
 
 // Firefox has no File System Access API, so saving in place is impossible there and only downloading works
 const canSaveToDisk = 'showSaveFilePicker' in window;
@@ -29,6 +30,16 @@ export default function FileButton() {
     useEffect(() => {
         underlineRef.current?.(!isSaved);
     }, [isSaved]);
+
+    const dirHandle = dirHandleStore.useStore();
+    
+    const saveOpenedFolderDB = async () => {
+        await set("saved", dirHandle); 
+    }
+
+    useEffect(() => {
+        saveOpenedFolderDB();
+    }, [dirHandle]);
 
     const getFileName = (fileName = ""): string => {
         const { path, format } = fileFormatStore.getState();
@@ -121,6 +132,7 @@ export default function FileButton() {
             // @ts-expect-error showDirectoryPicker not in all TS DOM libs
             const handle = await window.showDirectoryPicker({ mode: "read" });
             dirHandleStore.setState(handle);
+
         } catch (error) {
             if ((error as Error).name !== 'AbortError') {
                 console.error('Error opening folder:', error);

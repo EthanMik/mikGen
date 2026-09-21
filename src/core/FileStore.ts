@@ -2,6 +2,7 @@ import { createStore } from "./Store";
 import { fileFormatStore } from "../hooks/useFileFormat";
 import { deserializeToState, serializeFile } from "./FileSchema";
 import { saveSnapshot, fileUndosStore } from "./Undo/UndoHistory";
+import { get } from "idb-keyval"
 
 /** Bumped on every write, so the folder browser knows to re-read the directory. */
 export const fileSaveStore = createStore(0);
@@ -41,3 +42,8 @@ export async function loadFromHandle(handle: FileSystemFileHandle): Promise<void
     loadContentIntoState(await file.text(), handle.name.replace(/\.[^/.]+$/, ""));
     fileHandleStore.setState(handle);
 }
+const getSavedHandle = async() => {
+    const data = await get('saved');
+    dirHandleStore.setState(data);
+}
+getSavedHandle();
