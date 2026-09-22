@@ -1704,15 +1704,15 @@ function requireReactDomClient_production() {
       valueField
     );
     if (!node.hasOwnProperty(valueField) && "undefined" !== typeof descriptor && "function" === typeof descriptor.get && "function" === typeof descriptor.set) {
-      var get = descriptor.get, set = descriptor.set;
+      var get2 = descriptor.get, set2 = descriptor.set;
       Object.defineProperty(node, valueField, {
         configurable: true,
         get: function() {
-          return get.call(this);
+          return get2.call(this);
         },
         set: function(value) {
           currentValue = "" + value;
-          set.call(this, value);
+          set2.call(this, value);
         }
       });
       Object.defineProperty(node, valueField, {
@@ -12595,7 +12595,7 @@ function registerSW(options = {}) {
   registerPromise = register();
   return updateServiceWorker;
 }
-function createStore(initial2) {
+function createStore$1(initial2) {
   let state = initial2;
   const listeners = /* @__PURE__ */ new Set();
   const getState = () => state;
@@ -12625,7 +12625,7 @@ function createStore(initial2) {
   };
   return { getState, setState, subscribe, useStore, useSelector };
 }
-const viewModeStore = createStore("automatic");
+const viewModeStore = createStore$1("automatic");
 function useViewMode() {
   return [viewModeStore.useStore(), viewModeStore.setState];
 }
@@ -12651,17 +12651,17 @@ function bezierEndpoints(path, idx) {
   if (idx <= 0) return null;
   const seg = path.segments[idx];
   if (seg === void 0 || seg.pose.x === null || seg.pose.y === null) return null;
-  const startPose = getBackwardsSnapPose(path, idx - 1);
-  if (startPose === null || startPose.x === null || startPose.y === null) return null;
-  return { p0: { x: startPose.x, y: startPose.y }, p1: { x: seg.pose.x, y: seg.pose.y } };
+  const startPose2 = getBackwardsSnapPose(path, idx - 1);
+  if (startPose2 === null || startPose2.x === null || startPose2.y === null) return null;
+  return { p0: { x: startPose2.x, y: startPose2.y }, p1: { x: seg.pose.x, y: seg.pose.y } };
 }
 function resolveBezier(path, idx) {
   if (idx <= 0) return null;
   const seg = path.segments[idx];
   if (seg === void 0 || seg.pose.x === null || seg.pose.y === null) return null;
-  const startPose = getBackwardsSnapPose(path, idx - 1);
-  if (startPose === null || startPose.x === null || startPose.y === null) return null;
-  const p0 = { x: startPose.x, y: startPose.y };
+  const startPose2 = getBackwardsSnapPose(path, idx - 1);
+  if (startPose2 === null || startPose2.x === null || startPose2.y === null) return null;
+  const p0 = { x: startPose2.x, y: startPose2.y };
   const p1 = { x: seg.pose.x, y: seg.pose.y };
   const controls = segmentControls(seg).filter((c) => c.x !== null && c.y !== null);
   if (controls.length >= 2) {
@@ -16314,10 +16314,10 @@ function convertStringToPath(formatDef, format, pathString) {
   for (const [idx, points] of pendingPoints) {
     const seg = segments[idx];
     if (seg.pose.x === null || seg.pose.y === null) continue;
-    const startPose = getBackwardsSnapPose({ segments }, idx - 1);
-    if (startPose === null || startPose.x === null || startPose.y === null) continue;
+    const startPose2 = getBackwardsSnapPose({ segments }, idx - 1);
+    if (startPose2 === null || startPose2.x === null || startPose2.y === null) continue;
     const [c1, c2] = fitCubic(
-      { x: startPose.x, y: startPose.y },
+      { x: startPose2.x, y: startPose2.y },
       { x: seg.pose.x, y: seg.pose.y },
       points
     );
@@ -16466,7 +16466,7 @@ function parseSegmentLine(line, kind, segDef, formatDef, format) {
     points: blockPoints
   };
 }
-const debugStore = createStore(false);
+const debugStore = createStore$1(false);
 let currentPathTime = -2 / 60;
 let simComputed = 0;
 function convertPathToSim(formatDef, path) {
@@ -19434,18 +19434,10 @@ const FORMAT_REGISTRY = {
   "ReveilLib": reveilLibDef,
   "ReveilLib Holonomic": reveilLibHolonomicDef
 };
-const HOLONOMIC_PAIRS = {
-  "mikLib": "mikLib Holonomic",
-  "mikLib Holonomic": "mikLib",
-  "ReveilLib": "ReveilLib Holonomic",
-  "ReveilLib Holonomic": "ReveilLib"
-};
 function isHolonomicFormat(format) {
   return format === "mikLib Holonomic" || format === "ReveilLib Holonomic";
 }
 const LEGACY_FORMATS = {
-  // holonomic_to_pose used to be this format's poseDrive; it lives on poseDrive2 now that
-  // poseDrive carries the tank drive_to_pose as well
   Holonomic: { format: "mikLib Holonomic", pathName: "Holonomic Path", kinds: { poseDrive: "poseDrive2" } }
 };
 function mergeSavedConstants(current, saved2) {
@@ -20245,7 +20237,7 @@ function seedTurnPose(raw, migrated) {
 }
 function seedControls(raw) {
   if (!Array.isArray(raw)) return [];
-  return raw.map((c) => ({ ...seedPose(c), selected: flag(asRecord(c).selected, false), visible: flag(asRecord(c).visible, true) }));
+  return raw.map((c) => ({ ...seedPose(c), selected: false, visible: flag(asRecord(c).visible, true) }));
 }
 function seedRobot(raw, repairs) {
   const robot = asRecord(raw);
@@ -20290,7 +20282,7 @@ function seedSegment(formatDef, format, raw, ids, repairs) {
     ...base,
     id,
     ...typeof s.groupId === "string" ? { groupId: s.groupId } : {},
-    selected: flag(s.selected, false),
+    selected: false,
     disabled: flag(s.disabled, false),
     visible: flag(s.visible, true),
     turnPose,
@@ -20415,7 +20407,10 @@ const highstakesVEXUSkillsField = "/assets/VURC-HighStakes-Skills-TopDownHighlig
 const highstakesV5MatchField = "/assets/V5RC-HighStakes-H2H-TopDownHighlighted-TileColor66_71@4.0-nPCijn3u.png";
 const highstakesV5SkillsField = "/assets/V5RC-HighStakes-Skills-TopDownHighlighted-TileColor66_71@4.0-DT0jEjfK.png";
 const emptyField = "/assets/empty-field-DoV3rtqm.png";
-const fileFormatStore = createStore(VALIDATED_APP_STATE);
+const fileFormatStore = createStore$1(VALIDATED_APP_STATE);
+const ghostFilesStore = createStore$1([
+  // { handle: null, fileFormat: seedFileFormat(dummyFormat) }
+]);
 function changeFormat(newFormat) {
   const newFormatDef = FORMAT_REGISTRY[newFormat];
   fileFormatStore.setState((prev) => ({
@@ -20516,8 +20511,8 @@ function useFormatDef() {
 function setFormatDef(next) {
   fileFormatStore.setState((prev) => ({ ...prev, formatDef: next }));
 }
-const openEye = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='white'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M12%205C8.24261%205%205.43602%207.4404%203.76737%209.43934C2.51521%2010.9394%202.51521%2013.0606%203.76737%2014.5607C5.43602%2016.5596%208.24261%2019%2012%2019C15.7574%2019%2018.564%2016.5596%2020.2326%2014.5607C21.4848%2013.0606%2021.4848%2010.9394%2020.2326%209.43934C18.564%207.4404%2015.7574%205%2012%205Z'%20stroke='%23ffffffff'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M12%2015C13.6569%2015%2015%2013.6569%2015%2012C15%2010.3431%2013.6569%209%2012%209C10.3431%209%209%2010.3431%209%2012C9%2013.6569%2010.3431%2015%2012%2015Z'%20stroke='%233C3B3B'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e";
-const closedEye = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M9.76404%205.29519C10.4664%205.10724%2011.2123%205%2012%205C15.7574%205%2018.564%207.4404%2020.2326%209.43934C21.4848%2010.9394%2021.4846%2013.0609%2020.2324%2014.5609C20.0406%2014.7907%2019.8337%2015.0264%2019.612%2015.2635M12.5%209.04148C13.7563%209.25224%2014.7478%2010.2437%2014.9585%2011.5M3%203L21%2021M11.5%2014.9585C10.4158%2014.7766%209.52884%2014.0132%209.17072%2013M4.34914%208.77822C4.14213%209.00124%203.94821%209.22274%203.76762%209.43907C2.51542%2010.9391%202.51523%2013.0606%203.76739%2014.5607C5.43604%2016.5596%208.24263%2019%2012%2019C12.8021%2019%2013.5608%2018.8888%2014.2744%2018.6944'%20stroke='%23ffffffff'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e";
+const eyeOpen = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='white'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M12%205C8.24261%205%205.43602%207.4404%203.76737%209.43934C2.51521%2010.9394%202.51521%2013.0606%203.76737%2014.5607C5.43602%2016.5596%208.24261%2019%2012%2019C15.7574%2019%2018.564%2016.5596%2020.2326%2014.5607C21.4848%2013.0606%2021.4848%2010.9394%2020.2326%209.43934C18.564%207.4404%2015.7574%205%2012%205Z'%20stroke='%23ffffffff'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M12%2015C13.6569%2015%2015%2013.6569%2015%2012C15%2010.3431%2013.6569%209%2012%209C10.3431%209%209%2010.3431%209%2012C9%2013.6569%2010.3431%2015%2012%2015Z'%20stroke='%233C3B3B'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e";
+const eyeClose = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M9.76404%205.29519C10.4664%205.10724%2011.2123%205%2012%205C15.7574%205%2018.564%207.4404%2020.2326%209.43934C21.4848%2010.9394%2021.4846%2013.0609%2020.2324%2014.5609C20.0406%2014.7907%2019.8337%2015.0264%2019.612%2015.2635M12.5%209.04148C13.7563%209.25224%2014.7478%2010.2437%2014.9585%2011.5M3%203L21%2021M11.5%2014.9585C10.4158%2014.7766%209.52884%2014.0132%209.17072%2013M4.34914%208.77822C4.14213%209.00124%203.94821%209.22274%203.76762%209.43907C2.51542%2010.9391%202.51523%2013.0606%203.76739%2014.5607C5.43604%2016.5596%208.24263%2019%2012%2019C12.8021%2019%2013.5608%2018.8888%2014.2744%2018.6944'%20stroke='%23ffffffff'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e";
 const clockClose = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M12%2017V12L14.5%2010.5M21%2012C21%2016.9706%2016.9706%2021%2012%2021C7.02944%2021%203%2016.9706%203%2012C3%207.02944%207.02944%203%2012%203C16.9706%203%2021%207.02944%2021%2012Z'%20stroke='%23FFFFFF'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e";
 const clockOpen = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M12%207V12L14.5%2010.5M21%2012C21%2016.9706%2016.9706%2021%2012%2021C7.02944%2021%203%2016.9706%203%2012C3%207.02944%207.02944%203%2012%203C16.9706%203%2021%207.02944%2021%2012Z'%20stroke='%23FFFFFF'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e";
 const downArrow = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='100px'%20height='100px'%20viewBox='5%2010%2014%205'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M6%2010L12%2015L18%2010'%20stroke='%23FFFFFF'%20stroke-width='2.5'/%3e%3c/svg%3e";
@@ -20607,9 +20602,9 @@ function Slider({
     }
   );
 }
-const undoHistory = createStore([fileFormatStore.getState()]);
-const redoHistory = createStore([]);
-const fileUndosStore = createStore(0);
+const undoHistory = createStore$1([fileFormatStore.getState()]);
+const redoHistory = createStore$1([]);
+const fileUndosStore = createStore$1(0);
 function saveSnapshot() {
   const snapshot = fileFormatStore.getState();
   const current = undoHistory.getState();
@@ -20958,10 +20953,10 @@ function ConstantRow({ field, modified, selected, onToggleSelect, onChange }) {
   );
 }
 const SIM_LENGTH_SECONDS = 99;
-const pathTelemetry = createStore([]);
-const activeSimSegmentStore = createStore(-1);
-const simJumpStore = createStore(null);
-const computedPathStore = createStore({
+const pathTelemetry = createStore$1([]);
+const activeSimSegmentStore = createStore$1(-1);
+const simJumpStore = createStore$1(null);
+const computedPathStore = createStore$1({
   totalTime: 0,
   dt: 0.01,
   trajectory: [],
@@ -20971,10 +20966,11 @@ const computedPathStore = createStore({
   segmentTimeRanges: [],
   timeOffset: 0
 });
+const ghostComputedPathStore = createStore$1([]);
 function activeSegmentAtTime(path, t) {
   return path.segmentTimeRanges.findIndex((r) => t >= r.startT && t < r.endT);
 }
-function precomputePath(robot, auton) {
+function precomputePath(robot, auton, setPathTelemetry = true) {
   let autoIdx = 0;
   const trajectory = [];
   const endTrajectory = [];
@@ -21063,7 +21059,9 @@ function precomputePath(robot, auton) {
       units: isTurn ? "deg" : "in"
     };
   });
-  pathTelemetry.setState(telemetry);
+  if (setPathTelemetry) {
+    pathTelemetry.setState(telemetry);
+  }
   return { totalTime: t, dt, trajectory, endTrajectory, segmentTrajectorys, segmentCumulativeDists, segmentTimeRanges, timeOffset: 0 };
 }
 const BEZIER_RENDER_STEPS = 30;
@@ -21222,9 +21220,8 @@ function selectionCount(segments) {
     0
   );
 }
-const getPreciseSegmentDots = (idx, spacing) => {
-  const path = computedPathStore.getState();
-  const segPts = path.segmentTrajectorys[idx];
+const getPreciseSegmentDots = (path, idx, spacing) => {
+  const segPts = path?.segmentTrajectorys[idx];
   if (segPts === void 0 || segPts.length === 0) return null;
   const maxSpeedIn = fileFormatStore.getState().robot.speed * 12;
   const dots = [];
@@ -21252,9 +21249,9 @@ const getSegmentPointsInch = (idx, path) => {
   if (idx <= 0) return null;
   const m = path.segments[idx];
   if (m.pose.x === null || m.pose.y === null) return null;
-  const startPose = getBackwardsSnapPose(path, idx - 1);
-  if (startPose === null || startPose.x === null || startPose.y === null) return null;
-  const start2 = { x: startPose.x, y: startPose.y };
+  const startPose2 = getBackwardsSnapPose(path, idx - 1);
+  if (startPose2 === null || startPose2.x === null || startPose2.y === null) return null;
+  const start2 = { x: startPose2.x, y: startPose2.y };
   const end = { x: m.pose.x, y: m.pose.y };
   if (m.kind === "bezierCurve") {
     const bezier = resolveBezier(path, idx);
@@ -21670,8 +21667,8 @@ function CycleImageButton({
     }
   ) });
 }
-const hoveredSegmentStore = createStore(null);
-const copiedSegmentsStore = createStore([]);
+const hoveredSegmentStore = createStore$1(null);
+const copiedSegmentsStore = createStore$1([]);
 const FIELD_COLORS = {
   pathBaseColor: toRGBA("#1560BD", 0.75),
   pathHoverColor: toRGBA("#a02807", 1),
@@ -21869,6 +21866,7 @@ const SENSOR_COLORS = {
   right: "#058d29",
   rear: "#c66719"
 };
+const GHOST_PATH_OPACITY = 0.5;
 const SEGMENT_FIELD_DEFAULTS = { distance: 0, time: 0 };
 const isSegmentNumericKey = (key) => key in SEGMENT_FIELD_DEFAULTS;
 const constantsAt = (constants, idx) => constants[idx];
@@ -22014,7 +22012,7 @@ const ControlsList = reactExports.memo(function ControlsList2({ segmentId }) {
         /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "cursor-pointer shrink-0", onClick: (e) => {
           e.stopPropagation();
           toggleVisible(i);
-        }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "w-[20px] h-[20px]", src: control.visible ? openEye : closedEye }) }),
+        }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "w-[20px] h-[20px]", src: control.visible ? eyeOpen : eyeClose }) }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "shrink-0 text-left text-[14px]", children: [
           "Control ",
           i + 1
@@ -22150,7 +22148,7 @@ const SegmentList = reactExports.memo(function SegmentList2({
               /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "cursor-pointer shrink-0", onClick: (e) => {
                 e.stopPropagation();
                 handleEyeOnClick();
-              }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "w-[20px] h-[20px]", src: segment.visible ? openEye : closedEye }) }),
+              }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "w-[20px] h-[20px]", src: segment.visible ? eyeOpen : eyeClose }) }),
               /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "cursor-pointer shrink-0", onClick: (e) => {
                 e.stopPropagation();
                 setTelemetryOpen(!isTelemetryOpen);
@@ -22265,7 +22263,7 @@ const SegmentList = reactExports.memo(function SegmentList2({
   );
 });
 function createSharedState(initialValue) {
-  const store = createStore(initialValue);
+  const store = createStore$1(initialValue);
   const useSharedState = () => [store.useStore(), store.setState];
   return Object.assign(useSharedState, store);
 }
@@ -22312,7 +22310,7 @@ function PathConfigHeader({ isOpen, setOpen, isTelemetryOpen, onTelemetryToggle 
             "img",
             {
               className: "w-[20px] h-[22px]",
-              src: pathHidden ? closedEye : openEye
+              src: pathHidden ? eyeClose : eyeOpen
             }
           )
         }
@@ -22542,6 +22540,7 @@ function PathConfig() {
 }
 const pause = "data:image/svg+xml,%3csvg%20width='28'%20height='28'%20viewBox='0%200%2028%2028'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M6.0235%204.4555C5.83334%204.82883%205.83334%205.31883%205.83334%206.3V21.7C5.83334%2022.68%205.83334%2023.17%206.0235%2023.5445C6.19153%2023.8736%206.45944%2024.1411%206.78884%2024.3087C7.16217%2024.5%207.65217%2024.5%208.63334%2024.5H8.86667C9.84667%2024.5%2010.3367%2024.5%2010.7112%2024.3098C11.0407%2024.142%2011.3087%2023.8741%2011.4765%2023.5445C11.6667%2023.1712%2011.6667%2022.6812%2011.6667%2021.7V6.3C11.6667%205.32%2011.6667%204.83%2011.4765%204.4555C11.3087%204.12593%2011.0407%203.858%2010.7112%203.69017C10.3378%203.5%209.84784%203.5%208.86667%203.5H8.63334C7.65334%203.5%207.16334%203.5%206.78884%203.69017C6.45926%203.858%206.19133%204.12593%206.0235%204.4555ZM16.5235%204.4555C16.3333%204.82883%2016.3333%205.31883%2016.3333%206.3V21.7C16.3333%2022.68%2016.3333%2023.17%2016.5247%2023.5445C16.6924%2023.8735%2016.9599%2024.1409%2017.2888%2024.3087C17.6622%2024.5%2018.1522%2024.5%2019.1333%2024.5H19.3667C20.3467%2024.5%2020.8367%2024.5%2021.2112%2024.3098C21.5403%2024.1418%2021.8078%2023.8739%2021.9753%2023.5445C22.1667%2023.1712%2022.1667%2022.6812%2022.1667%2021.7V6.3C22.1667%205.32%2022.1667%204.83%2021.9765%204.4555C21.8087%204.12593%2021.5407%203.858%2021.2112%203.69017C20.8378%203.5%2020.3478%203.5%2019.3667%203.5H19.1333C18.1533%203.5%2017.6633%203.5%2017.2888%203.69017C16.9597%203.85819%2016.691%204.1261%2016.5235%204.4555Z'%20fill='%23DBDBDB'/%3e%3c/svg%3e";
 const usePose = createSharedState(null);
+const useGhostPoses = createSharedState([]);
 const useRobotVisibility = createSharedState(false);
 const checkedBox = "data:image/svg+xml,%3csvg%20width='22'%20height='22'%20viewBox='0%200%2022%2022'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M3%201H19C20.1046%201%2021%201.89543%2021%203V19C21%2020.1046%2020.1046%2021%2019%2021H3C1.89543%2021%201%2020.1046%201%2019V3C1%201.89543%201.89543%201%203%201Z'%20fill='%23848484'%20stroke='%23848484'%20stroke-width='2'/%3e%3cpath%20d='M4.5%2012.5L9.16752%2016.7432C9.61058%2017.146%2010.3059%2017.0717%2010.6539%2016.5845L17.5%207'%20stroke='white'%20stroke-width='2'%20stroke-linecap='round'/%3e%3c/svg%3e";
 const uncheckedBox = "data:image/svg+xml,%3csvg%20width='22'%20height='22'%20viewBox='0%200%2022%2022'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M3%201H19C20.1046%201%2021%201.89543%2021%203V19C21%2020.1046%2020.1046%2021%2019%2021H3C1.89543%2021%201%2020.1046%201%2019V3C1%201.89543%201.89543%201%203%201Z'%20stroke='%23848484'%20stroke-width='2'/%3e%3c/svg%3e";
@@ -22611,10 +22610,10 @@ function PathSimMacros() {
     togglePlaying(setPlaying, setVisibility);
     evt.stopPropagation();
   };
-  const scrubSimulator = (evt, setPercent, setPlaying, setVisibility, skip, computedPath, smallStep, largeStep) => {
+  const scrubSimulator = (evt, setPercent, setPlaying, setVisibility, skip, totalTime, smallStep, largeStep) => {
     const FAST_SCRUB_STEP = largeStep;
     const SLOW_SCRUB_STEP = smallStep;
-    const scrub = evt.shiftKey ? FAST_SCRUB_STEP / computedPath.totalTime * 100 : SLOW_SCRUB_STEP / computedPath.totalTime * 100;
+    const scrub = evt.shiftKey ? FAST_SCRUB_STEP / totalTime * 100 : SLOW_SCRUB_STEP / totalTime * 100;
     if (evt.key.toLowerCase() === "l") {
       setVisibility(true);
       setPercent((p) => {
@@ -22722,6 +22721,25 @@ function poseAtPercent(path, percent) {
     angle: normalizeDeg(from.angle + shortAngleDelta(from.angle, to.angle) * frac)
   };
 }
+function poseAtTime(path, t) {
+  return poseAtPercent(path, path.totalTime > 0 ? t / path.totalTime : 0);
+}
+function longestTime(path, ghostPaths) {
+  return Math.max(path.totalTime, ...ghostPaths.map((g) => g.totalTime));
+}
+function hasTrajectory(path, ghostPaths) {
+  return path.trajectory.length > 0 || ghostPaths.some((g) => g.trajectory.length > 0);
+}
+function startPose(path) {
+  const start2 = path?.segments[0];
+  if (start2?.kind !== "start" || start2.pose.x === null || start2.pose.y === null) return null;
+  return { x: start2.pose.x, y: start2.pose.y, angle: start2.pose.angle ?? 0 };
+}
+function poseOf(sim, path, t) {
+  if (!sim?.trajectory.length) return startPose(path);
+  const snap = poseAtTime(sim, t);
+  return { x: snap.x, y: snap.y, angle: snap.angle };
+}
 function createRobot() {
   return new Robot(fileFormatStore.getState().robot);
 }
@@ -22731,6 +22749,7 @@ function PathSimulator() {
   const timeRef = reactExports.useRef(time);
   timeRef.current = time;
   const [pose, setPose] = usePose();
+  const [, setGhostPoses] = useGhostPoses();
   const [, setRobotPose] = useRobotPose();
   const robot = fileFormatStore.useSelector((s) => s.robot);
   const [playing, setPlaying] = reactExports.useState(false);
@@ -22738,6 +22757,8 @@ function PathSimulator() {
   playingRef.current = playing;
   const [robotVisible, setRobotVisibility] = useRobotVisibility();
   const [path] = usePath();
+  const pathRef = reactExports.useRef(path);
+  pathRef.current = path;
   const formatDef = fileFormatStore.useSelector((s) => s.formatDef);
   const skip = reactExports.useRef(false);
   const [settings, setSettings] = useSettings();
@@ -22745,10 +22766,18 @@ function PathSimulator() {
   const loopingRef = reactExports.useRef(looping);
   loopingRef.current = looping;
   const computedPath = computedPathStore.useStore();
+  const ghostComputedPath = ghostComputedPathStore.useStore();
   const computedPathRef = reactExports.useRef(computedPath);
   computedPathRef.current = computedPath;
+  const ghostComputedPathRef = reactExports.useRef(ghostComputedPath);
+  ghostComputedPathRef.current = ghostComputedPath;
+  const maxTimeRef = reactExports.useRef(0);
+  maxTimeRef.current = longestTime(computedPath, ghostComputedPath);
   const [simulatedGroups] = useSimulateGroup();
   const simJump = simJumpStore.useStore();
+  const ghostFiles = ghostFilesStore.useStore();
+  const ghostFilesRef = reactExports.useRef(ghostFiles);
+  ghostFilesRef.current = ghostFiles;
   const { pauseSimulator, releaseSimulator, scrubSimulator } = PathSimMacros();
   const scheduleRecompute = useRafThrottle();
   const segmentGeoKey = reactExports.useMemo(
@@ -22756,25 +22785,36 @@ function PathSimulator() {
     [path.segments]
   );
   reactExports.useEffect(() => {
+    ghostComputedPathStore.setState(
+      ghostFiles.map(({ fileFormat: g }) => {
+        const path2 = precomputePath(new Robot(g.robot), convertPathToSim(g.formatDef, g.path), false);
+        return path2;
+      })
+    );
+  }, [ghostFiles]);
+  reactExports.useEffect(() => {
     if (simJump === null) return;
     setRobotVisibility(true);
     skip.current = false;
+    const jumpTime = simJump / 100 * computedPathRef.current.totalTime;
+    const jumpValue = maxTimeRef.current > 0 ? jumpTime / maxTimeRef.current * 100 : 0;
     if (loopingRef.current && playingRef.current) {
-      setValue(simJump);
-      const jumpTime = simJump / 100 * computedPathRef.current.totalTime;
+      setValue(jumpValue);
       setTime(jumpTime);
       timeRef.current = jumpTime;
     } else {
       setPlaying(false);
-      setValue(simJump);
+      setValue(jumpValue);
     }
     simJumpStore.setState(null);
   }, [simJump, setRobotVisibility]);
   reactExports.useEffect(() => {
     scheduleRecompute(() => {
-      if (path.segments.length === 0) {
-        computedPathStore.setState(precomputePath(createRobot(), convertPathToSim(formatDef, path)));
-        setRobotPose(computedPath.endTrajectory);
+      const pathSim = precomputePath(createRobot(), convertPathToSim(formatDef, path));
+      computedPathStore.setState(pathSim);
+      setRobotPose(pathSim.endTrajectory);
+      const ghostPaths = ghostComputedPathRef.current;
+      if (path.segments.length === 0 && ghostPaths.length === 0) {
         setPlaying(false);
         setTime(0);
         setValue(0);
@@ -22782,27 +22822,20 @@ function PathSimulator() {
         setPose({ x: 0, y: 0, angle: 0 });
         return;
       }
-      const pathSim = precomputePath(createRobot(), convertPathToSim(formatDef, path));
-      computedPathStore.setState(pathSim);
-      setRobotPose(pathSim.endTrajectory);
       if (!robotVisible) {
         setPlaying(false);
         return;
       }
-      if (!pathSim.trajectory.length || pathSim.totalTime <= 0) {
-        if (robotVisible) {
-          const start2 = path.segments[0];
-          if (start2?.kind === "start" && start2.pose.x !== null && start2.pose.y !== null) {
-            setPose({ x: start2.pose.x, y: start2.pose.y, angle: start2.pose.angle ?? 0 });
-          }
-        }
+      const maxTime = longestTime(pathSim, ghostPaths);
+      if (!hasTrajectory(pathSim, ghostPaths) || maxTime <= 0) {
+        snapPoses(pathSim, ghostPaths, 0);
         return;
       }
-      const clampedTime = clamp(time, 0, pathSim.totalTime);
+      const clampedTime = clamp(time, 0, maxTime);
       if (clampedTime !== time) setTime(clampedTime);
-      if (robotVisible) forceSnapTime(pathSim, clampedTime);
+      forceSnapTime(pathSim, ghostPaths, clampedTime);
       skip.current = true;
-      setValue(clampedTime / pathSim.totalTime * 100);
+      setValue(clampedTime / maxTime * 100);
     });
   }, [segmentGeoKey, robot, robotVisible, simulatedGroups]);
   reactExports.useEffect(() => {
@@ -22811,7 +22844,7 @@ function PathSimulator() {
       return;
     }
     if (!playing) {
-      setPathPercent(computedPath, value);
+      setPathPercent(computedPath, ghostComputedPath, value);
     }
   }, [value]);
   reactExports.useEffect(() => {
@@ -22852,7 +22885,7 @@ function PathSimulator() {
       const target2 = evt.target;
       if (target2?.isContentEditable || target2?.tagName === "INPUT") return;
       pauseSimulator(evt, setPlaying, setRobotVisibility);
-      scrubSimulator(evt, setValue, setPlaying, setRobotVisibility, skip, computedPathRef.current, 0.01, 0.25);
+      scrubSimulator(evt, setValue, setPlaying, setRobotVisibility, skip, maxTimeRef.current, 0.01, 0.25);
     };
     const handleKeyUp = (evt) => {
       const target2 = evt.target;
@@ -22866,28 +22899,30 @@ function PathSimulator() {
       document.removeEventListener("keyup", handleKeyUp);
     };
   }, []);
-  const setPathPercent = (path2, percent) => {
-    if (!path2.trajectory.length) return;
-    const snap = poseAtPercent(path2, clamp(percent, 0, 100) / 100);
-    setTime(snap.t);
-    setPose({ x: snap.x, y: snap.y, angle: snap.angle });
+  const snapPoses = (path2, ghostPath, t) => {
+    setPose(poseOf(path2, pathRef.current, t));
+    setGhostPoses(ghostPath.map((g, i) => poseOf(g, ghostFilesRef.current[i]?.fileFormat.path, t)));
   };
-  const forceSnapTime = (path2, t) => {
-    if (!path2.trajectory.length) return;
-    const snap = poseAtPercent(path2, t / path2.totalTime);
-    setPose({ x: snap.x, y: snap.y, angle: snap.angle });
+  const setPathPercent = (path2, ghostPath, percent) => {
+    if (!hasTrajectory(path2, ghostPath)) return;
+    const t = clamp(percent, 0, 100) / 100 * longestTime(path2, ghostPath);
+    setTime(t);
+    snapPoses(path2, ghostPath, t);
   };
-  const setPathTime = (path2, t) => {
-    if (!path2.trajectory.length) return;
-    t = clamp(t, 0, path2.totalTime);
-    const percent = t / path2.totalTime;
-    setValue(percent * 100);
-    const snap = poseAtPercent(path2, percent);
-    setPose({ x: snap.x, y: snap.y, angle: snap.angle });
+  const forceSnapTime = (path2, ghostPath, t) => {
+    if (!hasTrajectory(path2, ghostPath)) return;
+    snapPoses(path2, ghostPath, t);
+  };
+  const setPathTime = (path2, ghostPath, t) => {
+    if (!hasTrajectory(path2, ghostPath)) return;
+    const maxTime = longestTime(path2, ghostPath);
+    t = clamp(t, 0, maxTime);
+    setValue(maxTime > 0 ? t / maxTime * 100 : 0);
+    snapPoses(path2, ghostPath, t);
   };
   reactExports.useEffect(() => {
     if (!playing) return;
-    if (timeRef.current + computedPathRef.current.dt >= computedPathRef.current.totalTime) {
+    if (timeRef.current + computedPathRef.current.dt >= maxTimeRef.current) {
       setTime(0);
       timeRef.current = 0;
     }
@@ -22897,16 +22932,18 @@ function PathSimulator() {
       const dtSec = (now - last) / 1e3;
       last = now;
       const path2 = computedPathRef.current;
-      const clamped = Math.min(timeRef.current + dtSec, path2.totalTime);
-      if (clamped >= path2.totalTime && !loopingRef.current) {
-        setPathTime(path2, clamped);
+      const ghostPaths = ghostComputedPathRef.current;
+      const maxTime = maxTimeRef.current;
+      const clamped = Math.min(timeRef.current + dtSec, maxTime);
+      if (clamped >= maxTime && !loopingRef.current) {
+        setPathTime(path2, ghostPaths, clamped);
         setTime(clamped);
         timeRef.current = clamped;
         setPlaying(false);
         return;
       }
-      const next = clamped >= path2.totalTime ? 0 : clamped;
-      setPathTime(path2, next);
+      const next = clamped >= maxTime ? 0 : clamped;
+      setPathTime(path2, ghostPaths, next);
       setTime(next);
       timeRef.current = next;
       raf = requestAnimationFrame(tick);
@@ -22962,7 +22999,7 @@ function PathSimulator() {
           "s"
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row items-center gap-1.5", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Toggle Robot Visibility (R)", placement: "top", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Checkbox, { checked: robotVisible, setChecked: setRobotVisibility, size: 22, checkedSvg: openEye, uncheckedSvg: closedEye }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Toggle Robot Visibility (R)", placement: "top", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Checkbox, { checked: robotVisible, setChecked: setRobotVisibility, size: 22, checkedSvg: eyeOpen, uncheckedSvg: eyeClose }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Loop Path (;)", placement: "top", speed: "fast", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
             "button",
             {
@@ -23316,9 +23353,48 @@ function ControlConfig() {
     ] })
   ] });
 }
-const fileSaveStore = createStore(0);
-const fileHandleStore = createStore(null);
-const dirHandleStore = createStore(null);
+function promisifyRequest(request) {
+  return new Promise((resolve, reject) => {
+    request.oncomplete = request.onsuccess = () => resolve(request.result);
+    request.onabort = request.onerror = () => reject(request.error);
+  });
+}
+function createStore(dbName, storeName) {
+  let dbp;
+  const getDB = () => {
+    if (dbp)
+      return dbp;
+    const request = indexedDB.open(dbName);
+    request.onupgradeneeded = () => request.result.createObjectStore(storeName);
+    dbp = promisifyRequest(request);
+    dbp.then((db) => {
+      db.onclose = () => dbp = void 0;
+    }, () => {
+      dbp = void 0;
+    });
+    return dbp;
+  };
+  return (txMode, callback) => getDB().then((db) => callback(db.transaction(storeName, txMode).objectStore(storeName)));
+}
+let defaultGetStoreFunc;
+function defaultGetStore() {
+  if (!defaultGetStoreFunc) {
+    defaultGetStoreFunc = createStore("keyval-store", "keyval");
+  }
+  return defaultGetStoreFunc;
+}
+function get(key, customStore = defaultGetStore()) {
+  return customStore("readonly", (store) => promisifyRequest(store.get(key)));
+}
+function set(key, value, customStore = defaultGetStore()) {
+  return customStore("readwrite", (store) => {
+    store.put(value, key);
+    return promisifyRequest(store.transaction);
+  });
+}
+const fileSaveStore = createStore$1(0);
+const fileHandleStore = createStore$1(null);
+const dirHandleStore = createStore$1(null);
 function loadContentIntoState(content, fileName) {
   const repairs = [];
   fileFormatStore.setState(deserializeToState(content, fileName, repairs));
@@ -23349,6 +23425,31 @@ async function loadFromHandle(handle) {
   loadContentIntoState(await file.text(), handle.name.replace(/\.[^/.]+$/, ""));
   fileHandleStore.setState(handle);
 }
+async function loadFromGhostHandle(handle) {
+  const file = await handle.getFile();
+  const fileName = handle.name.replace(/\.[^/.]+$/, "");
+  const fileFormat = deserializeToState(await file.text(), fileName, []);
+  for (const g of ghostFilesStore.getState()) {
+    if (g.handle && await g.handle.isSameEntry(handle)) {
+      ghostFilesStore.setState((prev) => prev.map((f) => f === g ? { handle, fileFormat } : f));
+      return;
+    }
+  }
+  ghostFilesStore.setState((prev) => [...prev, { handle, fileFormat }]);
+}
+async function unloadFromGhostHandle(handle) {
+  for (const g of ghostFilesStore.getState()) {
+    if (g.handle && await g.handle.isSameEntry(handle)) {
+      ghostFilesStore.setState((prev) => prev.filter((f) => f !== g));
+      return;
+    }
+  }
+}
+const getSavedHandle = async () => {
+  const data = await get("saved");
+  dirHandleStore.setState(data);
+};
+getSavedHandle();
 function TextInput({
   fontSize,
   unitsFontSize,
@@ -23803,6 +23904,13 @@ function FileButton() {
   reactExports.useEffect(() => {
     underlineRef.current?.(!isSaved);
   }, [isSaved]);
+  const dirHandle = dirHandleStore.useStore();
+  const saveOpenedFolderDB = async () => {
+    await set("saved", dirHandle);
+  };
+  reactExports.useEffect(() => {
+    saveOpenedFolderDB();
+  }, [dirHandle]);
   const getFileName = (fileName = "") => {
     const { path, format } = fileFormatStore.getState();
     const pathName = fileName === "" ? path.name : fileName;
@@ -24307,7 +24415,7 @@ function SettingsButton() {
   reactExports.useEffect(() => {
     localStorage.setItem("settings", JSON.stringify(settings));
   }, [settings]);
-  const set = (key) => (state) => setSettings((prev) => ({ ...prev, [key]: state }));
+  const set2 = (key) => (state) => setSettings((prev) => ({ ...prev, [key]: state }));
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
     popup && /* @__PURE__ */ jsxRuntimeExports.jsx(
       EditTemplatePopup,
@@ -24320,12 +24428,12 @@ function SettingsButton() {
       }
     ),
     /* @__PURE__ */ jsxRuntimeExports.jsx(MenuButtonTemplate, { title: "Settings", closeOnClick: false, width: 47, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-1.5", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Robot Position", label: "Displays robots's actual position", checked: settings.robotPosition, setChecked: set("robotPosition") }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Precise Path", label: "Displays robots exact path taken (P)", checked: settings.precisePath, setChecked: set("precisePath") }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Numbered Path", label: "Displays number labels for notebook screenshots", checked: settings.numberedPath, setChecked: set("numberedPath") }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputCheckboxButton, { width: 40, name: "Onion Layers", checkLabel: "Displays end positions when sim is off (O)", label: "Distance between outlines. 0 shows only end positions", checked: settings.onionLayers, setChecked: set("onionLayers"), value: settings.onionSpacing, setValue: (v) => v !== null && set("onionSpacing")(v), bounds: [0, 48], stepSize: 5, roundTo: 0, units: "in" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Robot Position", label: "Displays robots's actual position", checked: settings.robotPosition, setChecked: set2("robotPosition") }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Precise Path", label: "Displays robots exact path taken (P)", checked: settings.precisePath, setChecked: set2("precisePath") }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Numbered Path", label: "Displays number labels for notebook screenshots", checked: settings.numberedPath, setChecked: set2("numberedPath") }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputCheckboxButton, { width: 40, name: "Onion Layers", checkLabel: "Displays end positions when sim is off (O)", label: "Distance between outlines. 0 shows only end positions", checked: settings.onionLayers, setChecked: set2("onionLayers"), value: settings.onionSpacing, setValue: (v) => v !== null && set2("onionSpacing")(v), bounds: [0, 48], stepSize: 1, roundTo: 0, units: "in" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputCheckboxButton, { blocking: false, checked: settings.snappingEnabled, width: 40, setChecked: set("snappingEnabled"), checkLabel: "Enable snapping by default", name: "Grid Snap", label: "Snap increment. Hold Ctrl while dragging to invert snapping", value: settings.snapToGrid, setValue: (v) => v !== null && set("snapToGrid")(v), bounds: [0.1, 10], stepSize: 0.5, roundTo: 1, units: "in" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputCheckboxButton, { blocking: false, checked: settings.snappingEnabled, width: 40, setChecked: set2("snappingEnabled"), checkLabel: "Enable snapping by default", name: "Grid Snap", label: "Snap increment. Hold Ctrl while dragging to invert snapping", value: settings.snapToGrid, setValue: (v) => v !== null && set2("snapToGrid")(v), bounds: [0.1, 10], stepSize: 0.5, roundTo: 1, units: "in" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
       /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Edit Templates", keybind: "", callback: () => setPopup(true) })
     ] }) })
@@ -24737,8 +24845,8 @@ function FieldMacros() {
     if (path.segments.length === 0) return addStartSegment(format, { x: 0, y: 0, angle: 0 }, setPath);
     const end = { x: position.x ?? 0, y: position.y ?? 0 };
     const insertIdx = insertIndexAfterSelection(path.segments);
-    const startPose = getBackwardsSnapPose(path, insertIdx - 1);
-    const start2 = startPose !== null && startPose.x !== null && startPose.y !== null ? { x: startPose.x, y: startPose.y } : end;
+    const startPose2 = getBackwardsSnapPose(path, insertIdx - 1);
+    const start2 = startPose2 !== null && startPose2.x !== null && startPose2.y !== null ? { x: startPose2.x, y: startPose2.y } : end;
     const angle2 = formatDef.segments["bezierCurve"]?.defaultHeading ?? null;
     const segment = createSegment(formatDef, format, "bezierCurve", { x: end.x, y: end.y, angle: angle2 });
     segment.controls = seedControls$1(start2, end);
@@ -25000,7 +25108,7 @@ function EditButton() {
     /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Select Inverse", keybind: "Ctrl+⇧A", callback: () => selectInversePath(null, setPath) })
   ] }) });
 }
-const fileIcon = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20fill='%23000000'%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20id='file-7'%20data-name='Flat%20Color'%20xmlns='http://www.w3.org/2000/svg'%20class='icon%20flat-color'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20id='primary'%20d='M19.71,6.29l-4-4A1,1,0,0,0,15,2H6A2,2,0,0,0,4,4V20a2,2,0,0,0,2,2H18a2,2,0,0,0,2-2V7A1,1,0,0,0,19.71,6.29Z'%20style='fill:%20%23ffffff;'/%3e%3cpath%20id='secondary'%20d='M16,18H8a1,1,0,0,1,0-2h8a1,1,0,0,1,0,2Zm0-4H8a1,1,0,0,1,0-2h8a1,1,0,0,1,0,2Zm0-4H8A1,1,0,0,1,8,8h8a1,1,0,0,1,0,2Z'%20style='fill:%20%23e6e6e6;'/%3e%3c/g%3e%3c/svg%3e";
+const folderIcon$1 = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20fill='%23000000'%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20id='file-7'%20data-name='Flat%20Color'%20xmlns='http://www.w3.org/2000/svg'%20class='icon%20flat-color'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20id='primary'%20d='M19.71,6.29l-4-4A1,1,0,0,0,15,2H6A2,2,0,0,0,4,4V20a2,2,0,0,0,2,2H18a2,2,0,0,0,2-2V7A1,1,0,0,0,19.71,6.29Z'%20style='fill:%20%23ffffff;'/%3e%3cpath%20id='secondary'%20d='M16,18H8a1,1,0,0,1,0-2h8a1,1,0,0,1,0,2Zm0-4H8a1,1,0,0,1,0-2h8a1,1,0,0,1,0,2Zm0-4H8A1,1,0,0,1,8,8h8a1,1,0,0,1,0,2Z'%20style='fill:%20%23e6e6e6;'/%3e%3c/g%3e%3c/svg%3e";
 const folderIcon = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20d='M2%207c0-1.4%200-2.1.272-2.635a2.5%202.5%200%200%201%201.093-1.093C3.9%203%204.6%203%206%203h1.431c.94%200%201.409%200%201.835.13a3%203%200%200%201%201.033.552c.345.283.605.674%201.126%201.455L12%206h6c1.4%200%202.1%200%202.635.272a2.5%202.5%200%200%201%201.092%201.093C22%207.9%2022%208.6%2022%2010v5c0%201.4%200%202.1-.273%202.635a2.5%202.5%200%200%201-1.092%201.092C20.1%2019%2019.4%2019%2018%2019H6c-1.4%200-2.1%200-2.635-.273a2.5%202.5%200%200%201-1.093-1.092C2%2017.1%202%2016.4%202%2015V7z'%20fill='%23BED8FF'/%3e%3c/g%3e%3c/svg%3e";
 const back = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='4%204%2016%2018'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20transform='matrix(1,%200,%200,%20-1,%200,%200)'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M3%2014a1%201%200%200%201%201-1h12a3%203%200%200%200%203-3V6a1%201%200%201%201%202%200v4a5%205%200%200%201-5%205H4a1%201%200%200%201-1-1z'%20fill='%23ffffff'/%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M3.293%2014.707a1%201%200%200%201%200-1.414l4-4a1%201%200%200%201%201.414%201.414L5.414%2014l3.293%203.293a1%201%200%201%201-1.414%201.414l-4-4z'%20fill='%23ffffff'/%3e%3c/g%3e%3c/svg%3e";
 async function readExportDirEntries(handle) {
@@ -25329,7 +25437,7 @@ function DragAndDrop({ onHandle, onDirHandle }) {
           ConfigKeybindButton,
           {
             name: "Choose File",
-            keybind: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: fileIcon, className: "w-3.5 h-3.5" }),
+            keybind: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: folderIcon$1, className: "w-3.5 h-3.5" }),
             callback: handleFileClick,
             disabled: !canUseFileHandles
           }
@@ -25529,7 +25637,7 @@ function ExportButton() {
             onClick: () => entry.kind === "directory" ? openExportSubDir(entry.handle) : setHandle(entry.handle),
             children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[13px] truncate min-w-0", children: entry.name }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: entry.kind === "file" ? fileIcon : folderIcon, className: "w-3.5 h-3.5 shrink-0 ml-1" })
+              /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: entry.kind === "file" ? folderIcon$1 : folderIcon, className: "w-3.5 h-3.5 shrink-0 ml-1" })
             ]
           },
           entry.name
@@ -25584,7 +25692,7 @@ function ConfigCheckButton({
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "button",
     {
-      className: `flex items-center justify-between px-2 py-1 bg-medgray hover:brightness-92 cursor-pointer rounded-sm ${checked ? "bg-medlightgray" : ""}`,
+      className: `relative flex w-full items-center justify-between px-2 py-1 bg-medgray hover:brightness-92 cursor-pointer rounded-sm ${checked ? "bg-medlightgray" : ""}`,
       onClick: () => setChecked(true),
       children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: name }),
@@ -25665,23 +25773,31 @@ async function readDirEntries(handle) {
   });
   return result;
 }
-function FolderEntry({ entry, isSelected, onEnterFolder, onSelectFile }) {
+function FolderEntry({ entry, isSelected, isGhostSelected, onEnterFolder, onSelectFile, onOpenGhostFile, onCloseGhostFile }) {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "button",
     {
-      className: "flex flex-row px-2 py-0.5 items-center justify-between cursor-pointer rounded-sm w-full text-left hover:bg-medlightgray",
+      className: `flex flex-row px-2 py-0.5 items-center justify-between rounded-sm w-full 
+            text-left bg-medgray hover:brightness-92 ${isSelected ? "bg-medlightgray" : ""}`,
       onClick: () => {
         if (entry.kind === "directory") {
           onEnterFolder(entry.handle);
         } else {
           onSelectFile(entry.handle);
+          onCloseGhostFile(entry.handle);
         }
       },
       children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[13px] truncate min-w-0", children: entry.name }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center shrink-0 ml-1 gap-1", children: [
-          isSelected && /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: check, className: "w-3 h-3" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: entry.kind === "file" ? fileIcon : folderIcon, className: "w-3.5 h-3.5" })
+          /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: entry.kind === "file" ? folderIcon$1 : folderIcon, className: "w-3.5 h-3.5" }),
+          entry.kind === "file" && !isSelected && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "w-3.5 h-3.5 cursor-pointer", onClick: (e) => {
+            const handle = entry.handle;
+            if (isGhostSelected) onCloseGhostFile(handle);
+            else onOpenGhostFile(handle);
+            e.stopPropagation();
+          }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: isGhostSelected ? eyeOpen : eyeClose }) }),
+          isSelected && /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: check, className: "w-3.5 h-3.5" })
         ] })
       ]
     }
@@ -25694,6 +25810,7 @@ function FolderButton({ fileName }) {
   const [history, setHistory] = reactExports.useState([]);
   const saveCount = fileSaveStore.useStore();
   const currentHandle = fileHandleStore.useStore();
+  const ghostFiles = ghostFilesStore.useStore();
   reactExports.useEffect(() => {
     setDirHandle(rootHandle);
     setHistory([]);
@@ -25741,47 +25858,80 @@ function FolderButton({ fileName }) {
     {
       entry,
       isSelected: entry.kind === "file" && currentHandle?.name === entry.name,
+      isGhostSelected: entry.kind === "file" && ghostFiles.some((g) => g.handle?.name === entry.name),
       onEnterFolder: (h) => openDir(h),
-      onSelectFile: loadFromHandle
+      onSelectFile: loadFromHandle,
+      onOpenGhostFile: loadFromGhostHandle,
+      onCloseGhostFile: unloadFromGhostHandle
     },
     entry.name
   )) });
 }
 const FORMATS = [
   { name: "mikLib v2.3.0", format: "mikLib" },
+  { name: "mikLib-Holonomic v2.3.0", format: "mikLib Holonomic", tooltip: "Swaps drivetrain to holonomic" },
+  { name: "Section" },
   { name: "LemLib v0.5.6", format: "LemLib" },
   { name: "JAR-Template", format: "JAR-Template" },
   { name: "EZ-Template v3.2.2", format: "EZ-Template" },
-  { name: "ReveilLib v4.0", format: "ReveilLib" }
+  { name: "Section" },
+  { name: "ReveilLib v4.0", format: "ReveilLib" },
+  { name: "ReveilLib-Holonomic v4.0", format: "ReveilLib Holonomic", tooltip: "Swaps drivetrain to holonomic" }
 ];
 function FormatButton() {
   const [format] = useFormat();
   const prevFormatRef = reactExports.useRef(format);
   const handleClickItem = (newFormat) => {
+    if (newFormat === void 0) return;
     const changed = prevFormatRef.current !== newFormat;
+    if (!changed) return;
     changeFormat(newFormat);
     mergeRobot({ holonomicRobot: isHolonomicFormat(newFormat) });
-    if (changed) saveSnapshot();
+    saveSnapshot();
     prevFormatRef.current = newFormat;
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigButtonTemplate, { title: "Format", children: FORMATS.map((c) => /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigCheckButton, { checked: format === c.format, setChecked: () => handleClickItem(c.format), name: c.name }, c.format)) });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigButtonTemplate, { title: "Format", children: FORMATS.map((c) => /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+    c.name === "Section" && /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
+    c.name !== "Section" && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: c.tooltip, placement: "right", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigCheckButton, { checked: format === c.format, setChecked: () => handleClickItem(c.format), name: c.name }, c.format) })
+  ] })) });
 }
-const DOCS_URL = "https://mikgen.com/docs";
+const github = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2020%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20fill='%23000000'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3ctitle%3egithub%20[%23142]%3c/title%3e%3cdesc%3eCreated%20with%20Sketch.%3c/desc%3e%3cdefs%3e%3c/defs%3e%3cg%20id='Page-1'%20stroke='none'%20stroke-width='1'%20fill='none'%20fill-rule='evenodd'%3e%3cg%20id='Dribbble-Light-Preview'%20transform='translate(-140.000000,%20-7559.000000)'%20fill='%23ffffff'%3e%3cg%20id='icons'%20transform='translate(56.000000,%20160.000000)'%3e%3cpath%20d='M94,7399%20C99.523,7399%20104,7403.59%20104,7409.253%20C104,7413.782%20101.138,7417.624%2097.167,7418.981%20C96.66,7419.082%2096.48,7418.762%2096.48,7418.489%20C96.48,7418.151%2096.492,7417.047%2096.492,7415.675%20C96.492,7414.719%2096.172,7414.095%2095.813,7413.777%20C98.04,7413.523%20100.38,7412.656%20100.38,7408.718%20C100.38,7407.598%2099.992,7406.684%2099.35,7405.966%20C99.454,7405.707%2099.797,7404.664%2099.252,7403.252%20C99.252,7403.252%2098.414,7402.977%2096.505,7404.303%20C95.706,7404.076%2094.85,7403.962%2094,7403.958%20C93.15,7403.962%2092.295,7404.076%2091.497,7404.303%20C89.586,7402.977%2088.746,7403.252%2088.746,7403.252%20C88.203,7404.664%2088.546,7405.707%2088.649,7405.966%20C88.01,7406.684%2087.619,7407.598%2087.619,7408.718%20C87.619,7412.646%2089.954,7413.526%2092.175,7413.785%20C91.889,7414.041%2091.63,7414.493%2091.54,7415.156%20C90.97,7415.418%2089.522,7415.871%2088.63,7414.304%20C88.63,7414.304%2088.101,7413.319%2087.097,7413.247%20C87.097,7413.247%2086.122,7413.234%2087.029,7413.87%20C87.029,7413.87%2087.684,7414.185%2088.139,7415.37%20C88.139,7415.37%2088.726,7417.2%2091.508,7416.58%20C91.513,7417.437%2091.522,7418.245%2091.522,7418.489%20C91.522,7418.76%2091.338,7419.077%2090.839,7418.982%20C86.865,7417.627%2084,7413.783%2084,7409.253%20C84,7403.59%2088.478,7399%2094,7399'%20id='github-[%23142]'%3e%3c/path%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e";
+const discord = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20fill='%23ffffff'%20width='800px'%20height='800px'%20viewBox='0%200%2032%2032'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20stroke='%23ffffff'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3ctitle%3ediscord%3c/title%3e%3cpath%20d='M20.992%2020.163c-1.511-0.099-2.699-1.349-2.699-2.877%200-0.051%200.001-0.102%200.004-0.153l-0%200.007c-0.003-0.048-0.005-0.104-0.005-0.161%200-1.525%201.19-2.771%202.692-2.862l0.008-0c1.509%200.082%202.701%201.325%202.701%202.847%200%200.062-0.002%200.123-0.006%200.184l0-0.008c0.003%200.050%200.005%200.109%200.005%200.168%200%201.523-1.191%202.768-2.693%202.854l-0.008%200zM11.026%2020.163c-1.511-0.099-2.699-1.349-2.699-2.877%200-0.051%200.001-0.102%200.004-0.153l-0%200.007c-0.003-0.048-0.005-0.104-0.005-0.161%200-1.525%201.19-2.771%202.692-2.862l0.008-0c1.509%200.082%202.701%201.325%202.701%202.847%200%200.062-0.002%200.123-0.006%200.184l0-0.008c0.003%200.048%200.005%200.104%200.005%200.161%200%201.525-1.19%202.771-2.692%202.862l-0.008%200zM26.393%206.465c-1.763-0.832-3.811-1.49-5.955-1.871l-0.149-0.022c-0.005-0.001-0.011-0.002-0.017-0.002-0.035%200-0.065%200.019-0.081%200.047l-0%200c-0.234%200.411-0.488%200.924-0.717%201.45l-0.043%200.111c-1.030-0.165-2.218-0.259-3.428-0.259s-2.398%200.094-3.557%200.275l0.129-0.017c-0.27-0.63-0.528-1.142-0.813-1.638l0.041%200.077c-0.017-0.029-0.048-0.047-0.083-0.047-0.005%200-0.011%200-0.016%200.001l0.001-0c-2.293%200.403-4.342%201.060-6.256%201.957l0.151-0.064c-0.017%200.007-0.031%200.019-0.040%200.034l-0%200c-2.854%204.041-4.562%209.069-4.562%2014.496%200%200.907%200.048%201.802%200.141%202.684l-0.009-0.11c0.003%200.029%200.018%200.053%200.039%200.070l0%200c2.14%201.601%204.628%202.891%207.313%203.738l0.176%200.048c0.008%200.003%200.018%200.004%200.028%200.004%200.032%200%200.060-0.015%200.077-0.038l0-0c0.535-0.72%201.044-1.536%201.485-2.392l0.047-0.1c0.006-0.012%200.010-0.027%200.010-0.043%200-0.041-0.026-0.075-0.062-0.089l-0.001-0c-0.912-0.352-1.683-0.727-2.417-1.157l0.077%200.042c-0.029-0.017-0.048-0.048-0.048-0.083%200-0.031%200.015-0.059%200.038-0.076l0-0c0.157-0.118%200.315-0.24%200.465-0.364%200.016-0.013%200.037-0.021%200.059-0.021%200.014%200%200.027%200.003%200.038%200.008l-0.001-0c2.208%201.061%204.8%201.681%207.536%201.681s5.329-0.62%207.643-1.727l-0.107%200.046c0.012-0.006%200.025-0.009%200.040-0.009%200.022%200%200.043%200.008%200.059%200.021l-0-0c0.15%200.124%200.307%200.248%200.466%200.365%200.023%200.018%200.038%200.046%200.038%200.077%200%200.035-0.019%200.065-0.046%200.082l-0%200c-0.661%200.395-1.432%200.769-2.235%201.078l-0.105%200.036c-0.036%200.014-0.062%200.049-0.062%200.089%200%200.016%200.004%200.031%200.011%200.044l-0-0.001c0.501%200.96%201.009%201.775%201.571%202.548l-0.040-0.057c0.017%200.024%200.046%200.040%200.077%200.040%200.010%200%200.020-0.002%200.029-0.004l-0.001%200c2.865-0.892%205.358-2.182%207.566-3.832l-0.065%200.047c0.022-0.016%200.036-0.041%200.039-0.069l0-0c0.087-0.784%200.136-1.694%200.136-2.615%200-5.415-1.712-10.43-4.623-14.534l0.052%200.078c-0.008-0.016-0.022-0.029-0.038-0.036l-0-0z'/%3e%3c/g%3e%3c/svg%3e";
 function HelpButton() {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "relative rounded-sm hover:bg-medgray_hover", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "a",
-    {
-      href: DOCS_URL,
-      target: "_blank",
-      rel: "noreferrer",
-      className: "inline-block px-1 cursor-pointer",
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[12px] leading-none", children: "Help" })
-    }
-  ) });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(MenuButtonTemplate, { title: "Help", width: 27, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      MenuKeybindButton,
+      {
+        name: "Docs",
+        callback: () => {
+          window.open("https://mikgen.com/docs");
+        },
+        keybind: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: folderIcon$1, className: "w-3.5 h-3.5" })
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      MenuKeybindButton,
+      {
+        name: "Github",
+        callback: () => {
+          window.open("https://github.com/ethanmik/mikgen");
+        },
+        keybind: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "w-3.5 h-3.5", src: github })
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      MenuKeybindButton,
+      {
+        name: "Discord",
+        callback: () => {
+          window.open("https://discord.gg/UKbzef8GrA");
+        },
+        keybind: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "w-3.5 h-3.5", src: discord })
+      }
+    )
+  ] }) });
 }
 function RobotButton() {
-  const [format] = useFormat();
-  const prevFormatRef = reactExports.useRef(format);
   const robot = fileFormatStore.useSelector((s) => s.robot);
   const handleExpansionChange = (side, v) => {
     if (v === null) return;
@@ -25799,21 +25949,10 @@ function RobotButton() {
     mergeRobot({ [`sensor${side}Disabled`]: !checked });
     saveSnapshot();
   };
-  const holonomic = isHolonomicFormat(format);
-  const twin = HOLONOMIC_PAIRS[format];
-  const handleToggleHolonomic = (checked) => {
-    if (!twin || checked === holonomic) return;
-    const changed = prevFormatRef.current !== twin;
-    changeFormat(twin);
-    mergeRobot({ holonomicRobot: checked });
-    if (changed) saveSnapshot();
-    prevFormatRef.current = twin;
-  };
   return /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigButtonTemplate, { title: "Robot", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-1.5", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs(Section, { name: "General", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Width", value: robot.width, setValue: (v) => v !== null && mergeRobot({ width: v }), bounds: [0, 30], stepSize: 1, roundTo: 1, units: "in" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Height", value: robot.height, setValue: (v) => v !== null && mergeRobot({ height: v }), bounds: [0, 30], stepSize: 1, roundTo: 1, units: "in" }),
-      twin && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigCheckboxButton, { name: "Holonomic", checked: holonomic, label: `Toggle format to ${holonomic ? format : twin}`, setChecked: handleToggleHolonomic })
+      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Height", value: robot.height, setValue: (v) => v !== null && mergeRobot({ height: v }), bounds: [0, 30], stepSize: 1, roundTo: 1, units: "in" })
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs(Section, { name: "Motion", defaultCollapsed: true, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Speed", label: "Max velocity; measure on actual robot", value: robot.speed, setValue: (v) => v !== null && mergeRobot({ speed: v }), bounds: [0, 100], stepSize: 0.5, roundTo: 2, units: "ft/s" }),
@@ -26157,6 +26296,7 @@ function toPxWidth(imageWidth, value) {
 }
 function RobotView({
   img,
+  opacity,
   x,
   y,
   angle: angle2,
@@ -26211,6 +26351,7 @@ function RobotView({
         fill: `rgba(${[...bg, bgTransparency].join(", ")})`,
         stroke: "black",
         strokeWidth: 0.5,
+        opacity,
         x: robotX,
         y: robotY,
         width: pxWidth,
@@ -26223,12 +26364,22 @@ function RobotView({
         x1: 0,
         y1: 0,
         x2: 0,
+        opacity,
         y2: -pxHeight / 2,
         stroke: "black",
         strokeWidth: 1
       }
     ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("circle", { cx: cogPxX, cy: cogPxY, r: 2, fill: `rgba(${[...bg, bgTransparency].join(", ")})` }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "circle",
+      {
+        cx: cogPxX,
+        cy: cogPxY,
+        r: 2,
+        fill: `rgba(${[...bg, bgTransparency].join(", ")})`,
+        opacity
+      }
+    ),
     /* @__PURE__ */ jsxRuntimeExports.jsx(
       "rect",
       {
@@ -26236,6 +26387,7 @@ function RobotView({
         stroke: "rgb(0, 0, 0)",
         strokeWidth: 0.5,
         x: robotX,
+        opacity,
         y: robotY - pxFrontExpansion,
         width: pxWidth,
         height: pxFrontExpansion
@@ -26248,6 +26400,7 @@ function RobotView({
         stroke: "rgb(0, 0, 0)",
         strokeWidth: 0.5,
         x: robotX,
+        opacity,
         y: robotY + pxHeight,
         width: pxWidth,
         height: pxRearExpansion
@@ -26259,6 +26412,7 @@ function RobotView({
         fill: `rgba(${[...bg, expansionTransparency].join(", ")})`,
         stroke: "rgb(0, 0, 0)",
         strokeWidth: 0.5,
+        opacity,
         x: robotX - pxLeftExpansion,
         y: robotY,
         width: pxLeftExpansion,
@@ -26271,6 +26425,7 @@ function RobotView({
         fill: `rgba(${[...bg, expansionTransparency].join(", ")})`,
         stroke: "rgb(0, 0, 0)",
         strokeWidth: 0.5,
+        opacity,
         x: robotX + pxWidth,
         y: robotY,
         width: pxRightExpansion,
@@ -26284,6 +26439,7 @@ function RobotView({
           cx: r.startPxX,
           cy: r.startPxY,
           r: 2,
+          opacity,
           fill: "black"
         }
       ),
@@ -26295,6 +26451,7 @@ function RobotView({
           x2: r.endPxX,
           y2: r.endPxY,
           stroke: SENSOR_COLORS[r.face],
+          opacity,
           strokeWidth: 1.5
         }
       )
@@ -26326,7 +26483,7 @@ function onionLayerPoses(segment, spacing) {
   }
   return poses;
 }
-const OnionLayers = reactExports.memo(function OnionLayers2({ img, endPoses, layerPoses, robotConstants, path, bgColor, show }) {
+const OnionLayers = reactExports.memo(function OnionLayers2({ img, endPoses, layerPoses, opacity, robotConstants, path, bgColor, show }) {
   if (!show) return null;
   const outline = (p, key) => /* @__PURE__ */ jsxRuntimeExports.jsx(
     RobotView,
@@ -26334,6 +26491,7 @@ const OnionLayers = reactExports.memo(function OnionLayers2({ img, endPoses, lay
       img,
       x: p.x ?? 0,
       y: p.y ?? 0,
+      opacity,
       angle: p.angle ?? 0,
       width: robotConstants.width,
       height: robotConstants.height,
@@ -26348,20 +26506,16 @@ const OnionLayers = reactExports.memo(function OnionLayers2({ img, endPoses, lay
     key
   );
   return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: endPoses.map((p, idx) => /* @__PURE__ */ jsxRuntimeExports.jsx(React.Fragment, { children: path.segments[idx]?.visible && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-    layerPoses[idx]?.map((layer, i) => outline(layer, `layer-${idx}-${i}`)),
+    layerPoses?.[idx]?.map((layer, i) => outline(layer, `layer-${idx}-${i}`)),
     outline(p, `end-${idx}`)
   ] }) }, `ghost-${idx}`)) });
 });
-function RobotLayer({ img, robotConstants, visible, path }) {
-  const [pose] = usePose();
-  const [robotPose] = useRobotPose();
+function RobotLayer({ img, robotConstants, visible, path, opacity, pose, robotPose, computedPath, format }) {
   const [settings] = useSettings();
-  const [format] = useFormat();
-  const computedPath = computedPathStore.useStore();
-  const bgColor = format === "mikLib Holonomic" ? MECANUM_COLOR : TANK_COLOR;
+  const bgColor = isHolonomicFormat(format) ? MECANUM_COLOR : TANK_COLOR;
   const spacing = settings.onionLayers ? settings.onionSpacing : 0;
   const layerPoses = reactExports.useMemo(
-    () => computedPath.segmentTrajectorys.map((segment) => onionLayerPoses(segment, spacing)),
+    () => computedPath?.segmentTrajectorys?.map((segment) => onionLayerPoses(segment, spacing)),
     [computedPath, spacing]
   );
   const sensors = ["Front", "Left", "Right", "Rear"].filter((side) => !robotConstants[`sensor${side}Disabled`]).map((side) => ({
@@ -26374,6 +26528,7 @@ function RobotLayer({ img, robotConstants, visible, path }) {
       RobotView,
       {
         img,
+        opacity,
         x: pose.x ?? 0,
         y: pose.y ?? 0,
         angle: pose.angle ?? 0,
@@ -26395,6 +26550,7 @@ function RobotLayer({ img, robotConstants, visible, path }) {
       OnionLayers,
       {
         img,
+        opacity,
         endPoses: robotPose,
         layerPoses,
         robotConstants,
@@ -26420,10 +26576,11 @@ function speedColor(t, slow2, mid, fast2, tint = 0) {
   };
   return `rgb(${channel(0)},${channel(1)},${channel(2)})`;
 }
-const PreciseDots = reactExports.memo(function PreciseDots2({ dots, hovered }) {
+const PreciseDots = reactExports.memo(function PreciseDots2({ dots, hovered, opacity }) {
   return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: dots.map((pt, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
     "circle",
     {
+      opacity,
       cx: pt.x,
       cy: pt.y,
       r: DOT_RADIUS,
@@ -26432,11 +26589,10 @@ const PreciseDots = reactExports.memo(function PreciseDots2({ dots, hovered }) {
     i
   )) });
 });
-const PathLayer = reactExports.memo(function PathLayer2({ path, img, visible, precise }) {
-  const trajectories = computedPathStore.useSelector((s) => s.segmentTrajectorys);
-  const hoveredId = hoveredSegmentStore.useStore();
+const PathLayer = reactExports.memo(function PathLayer2({ path, img, visible, precise, computedPath, hoveredId, opacity }) {
+  const trajectories = computedPath?.segmentTrajectorys;
   const allDots = reactExports.useMemo(
-    () => path.segments.map((_, idx) => getPreciseSegmentDots(idx, DOT_SPACING)),
+    () => path.segments.map((_, idx) => getPreciseSegmentDots(computedPath, idx, DOT_SPACING)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [trajectories, path.segments.length]
   );
@@ -26459,13 +26615,14 @@ const PathLayer = reactExports.memo(function PathLayer2({ path, img, visible, pr
     if (precise) {
       const dots = allDots[idx];
       if (!dots) return null;
-      return /* @__PURE__ */ jsxRuntimeExports.jsx("g", { transform: dotTransform, children: /* @__PURE__ */ jsxRuntimeExports.jsx(PreciseDots, { dots, hovered }) }, `precise-seg-${control.id}`);
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("g", { transform: dotTransform, children: /* @__PURE__ */ jsxRuntimeExports.jsx(PreciseDots, { dots, opacity, hovered }) }, `precise-seg-${control.id}`);
     }
     const points = allPoints[idx];
     if (!points) return null;
     return /* @__PURE__ */ jsxRuntimeExports.jsx(
       "polyline",
       {
+        opacity,
         points: pointsToSvg(points, img),
         fill: "none",
         stroke: color,
@@ -26513,15 +26670,16 @@ function indicatorTipPx(ctx, snapPose, angle2, r) {
     ctx.img
   );
 }
-function renderNode(ctx, attr) {
+function renderNode(ctx, attr, opacity, cursorStyle) {
   const { seg } = ctx;
   if (seg.pose.x === null || seg.pose.y === null) return null;
   const nodePx = toPX({ x: seg.pose.x, y: seg.pose.y }, FIELD_REAL_DIMENSIONS, ctx.img);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "circle",
     {
-      style: { stroke: FIELD_COLORS.endBorderColor, cursor: "grab" },
+      style: { stroke: FIELD_COLORS.endBorderColor, cursor: cursorStyle },
       id: seg.id,
+      opacity,
       cx: nodePx.x,
       cy: nodePx.y,
       r: ctx.radius * shapeScale(attr, seg.selected, ctx.hovered),
@@ -26530,7 +26688,7 @@ function renderNode(ctx, attr) {
     }
   );
 }
-function renderLine(ctx, attr) {
+function renderLine(ctx, attr, opacity) {
   const snapPose = ctx.geom.snapPose;
   if (snapPose === null) return null;
   const { seg } = ctx;
@@ -26543,6 +26701,7 @@ function renderLine(ctx, attr) {
     "line",
     {
       pointerEvents: "none",
+      opacity,
       x1: basePx.x,
       y1: basePx.y,
       x2: tipPx.x,
@@ -26553,7 +26712,7 @@ function renderLine(ctx, attr) {
     }
   );
 }
-function renderCurve(ctx, attr) {
+function renderCurve(ctx, attr, opacity) {
   const snapPose = ctx.geom.snapPose;
   if (snapPose === null) return null;
   const { seg } = ctx;
@@ -26580,13 +26739,14 @@ function renderCurve(ctx, attr) {
       pointerEvents: "none",
       d: `M ${basePx.x} ${basePx.y} Q ${cx} ${cy} ${tipPx.x} ${tipPx.y}`,
       fill: "none",
+      opacity,
       stroke: shapeColor(attr, seg.selected),
       strokeWidth: thickness * ctx.scale,
       strokeLinecap: "round"
     }
   );
 }
-function renderCircle(ctx, attr) {
+function renderCircle(ctx, attr, opacity) {
   const snapPose = ctx.geom.snapPose;
   if (snapPose === null) return null;
   const { seg } = ctx;
@@ -26597,12 +26757,13 @@ function renderCircle(ctx, attr) {
       pointerEvents: "none",
       cx: px.x,
       cy: px.y,
+      opacity,
       r: ctx.radius * shapeScale(attr, seg.selected, ctx.hovered) * 0.3,
       fill: shapeColor(attr, seg.selected)
     }
   );
 }
-function renderTurnTarget(ctx, attr) {
+function renderTurnTarget(ctx, attr, opacity) {
   const { seg, geom } = ctx;
   if (!seg.selected || geom.turnTarget === null) return null;
   const px = toPX(geom.turnTarget, FIELD_REAL_DIMENSIONS, ctx.img);
@@ -26612,12 +26773,13 @@ function renderTurnTarget(ctx, attr) {
       pointerEvents: "none",
       cx: px.x,
       cy: px.y,
+      opacity,
       r: ctx.radius * 0.35,
       fill: attr.selectedColor
     }
   );
 }
-function renderControls(ctx, attr) {
+function renderControls(ctx, attr, opacity, cursorStyle) {
   const { seg } = ctx;
   const i = controlAttributes().indexOf(attr);
   const control = segmentControls(seg)[i];
@@ -26637,15 +26799,17 @@ function renderControls(ctx, attr) {
         x2: controlPx.x,
         y2: controlPx.y,
         stroke: "#00000035",
+        opacity,
         strokeWidth: 1 * ctx.scale
       }
     ),
     /* @__PURE__ */ jsxRuntimeExports.jsx(
       "circle",
       {
-        style: { cursor: "grab" },
+        style: { cursor: cursorStyle },
         cx: controlPx.x,
         cy: controlPx.y,
+        opacity,
         r: ctx.radius * shapeScale(attr, control.selected, ctx.hovered) * 0.5,
         fill: shapeColor(attr, control.selected),
         onPointerDown: (e) => {
@@ -26666,28 +26830,27 @@ function selectedLastAttrs(seg) {
   };
   return attrs.map((attr, key) => ({ attr, key })).sort((a, b) => Number(isSelected(a.attr)) - Number(isSelected(b.attr)) || a.key - b.key);
 }
-function renderAttr(ctx, attr) {
+function renderAttr(ctx, attr, opacity, cursor) {
   switch (attr.shape) {
     case "node":
-      return renderNode(ctx, attr);
+      return renderNode(ctx, attr, opacity, cursor);
     case "line":
-      return renderLine(ctx, attr);
+      return renderLine(ctx, attr, opacity);
     case "curve":
-      return renderCurve(ctx, attr);
+      return renderCurve(ctx, attr, opacity);
     case "circle":
-      return renderCircle(ctx, attr);
+      return renderCircle(ctx, attr, opacity);
     case "control":
-      return renderControls(ctx, attr);
+      return renderControls(ctx, attr, opacity, cursor);
     case "turnTarget":
-      return renderTurnTarget(ctx, attr);
+      return renderTurnTarget(ctx, attr, opacity);
   }
 }
-const ControlsLayer = reactExports.memo(function ControlsLayer2({ path, img, radius, onPointerDown, onControlPointerDown }) {
+const ControlsLayer = reactExports.memo(function ControlsLayer2({ path, img, radius, onPointerDown, onControlPointerDown, opacity, hoveredId }) {
   const imgDefaultSize = (FIELD_IMG_DIMENSIONS.w + FIELD_IMG_DIMENSIONS.h) / 2;
   const imgRealSize = (img.w + img.h) / 2;
   const scale = imgRealSize / imgDefaultSize;
   const [settings] = useSettings();
-  const hoveredId = hoveredSegmentStore.useStore();
   radius = radius * scale;
   const snapIdx = getBackwardsSnapIdx(path, path.segments.length - 1);
   const geoms = reactExports.useMemo(() => computeSegGeoms(path), [path]);
@@ -26704,7 +26867,7 @@ const ControlsLayer = reactExports.memo(function ControlsLayer2({ path, img, rad
     renderOrder.map((idx) => {
       const seg = path.segments[idx];
       const ctx = { path, idx, seg, geom: geoms[idx], img, radius, scale, hovered: hoveredId === seg.id, snapIdx, onControlPointerDown };
-      return /* @__PURE__ */ jsxRuntimeExports.jsx("g", { onPointerDown: (e) => onPointerDown(e, seg.id), children: seg.visible && selectedLastAttrs(seg).map(({ attr, key }) => /* @__PURE__ */ jsxRuntimeExports.jsx(React.Fragment, { children: renderAttr(ctx, attr) }, key)) }, seg.id);
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("g", { onPointerDown: (e) => onPointerDown(e, seg.id), children: seg.visible && selectedLastAttrs(seg).map(({ attr, key }) => /* @__PURE__ */ jsxRuntimeExports.jsx(React.Fragment, { children: renderAttr(ctx, attr, opacity ?? 1, (opacity ?? 1) < 1 ? void 0 : "grab") }, key)) }, seg.id);
     }),
     settings.numberedPath && renderOrder.map((idx) => {
       const seg = path.segments[idx];
@@ -26737,6 +26900,11 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
   const headingHistoryTimerRef = reactExports.useRef(null);
   const moveHistoryTimerRef = reactExports.useRef(null);
   const [path, setPath] = usePath();
+  const [pose] = usePose();
+  const [robotPose] = useRobotPose();
+  const [ghostPoses] = useGhostPoses();
+  const ghostFiles = ghostFilesStore.useStore();
+  const ghostComputedPath = ghostComputedPathStore.useStore();
   pathRef.current = path;
   const repositionKey = reactExports.useMemo(
     () => path.segments.map((s) => s.kind === "distanceDrive" || s.kind === "strafeDrive" ? `${s.id}:${s.kind}:d${s.distance},a${s.pose.angle}` : `${s.id}:${s.kind}:${s.pose.x},${s.pose.y},${s.pose.angle}:t${s.turnPose.x},${s.turnPose.y},${s.turnPose.angle},${s.turnLocked}`).join("|"),
@@ -27394,26 +27562,67 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
             },
             children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("image", { href: getFieldSrcFromKey(fieldKey), x: img.x, y: img.y, width: img.w, height: img.h }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(PathLayer, { path, img, visible: pathVisible, precise: settings.precisePath }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                RobotLayer,
-                {
-                  img,
-                  robotConstants: robot,
-                  visible: robotVisible,
-                  path
-                }
-              ),
-              !pathVisible && /* @__PURE__ */ jsxRuntimeExports.jsx(
-                ControlsLayer,
-                {
-                  path,
-                  img,
-                  radius,
-                  onPointerDown: stableControlPointerDown,
-                  onControlPointerDown: stableControlPointPointerDown
-                }
-              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(PathLayer, { path, opacity: 1, img, visible: pathVisible, hoveredId: hoveredSegmentStore.getState(), computedPath: computedPathStore.getState(), precise: settings.precisePath }),
+              ghostFiles.map(({ fileFormat: f }, idx) => /* @__PURE__ */ jsxRuntimeExports.jsx(PathLayer, { path: f.path, img, opacity: GHOST_PATH_OPACITY, visible: pathVisible, hoveredId: null, computedPath: ghostComputedPath[idx], precise: settings.precisePath }, idx)),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  RobotLayer,
+                  {
+                    img,
+                    opacity: 1,
+                    pose,
+                    robotPose,
+                    computedPath: computedPathStore.getState(),
+                    robotConstants: robot,
+                    visible: robotVisible,
+                    path,
+                    format
+                  }
+                ),
+                ghostFiles.map(({ fileFormat: f }, idx) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  RobotLayer,
+                  {
+                    img,
+                    pose: ghostPoses[idx],
+                    computedPath: ghostComputedPath[idx],
+                    robotPose: ghostComputedPath[idx]?.endTrajectory ?? [],
+                    opacity: GHOST_PATH_OPACITY,
+                    robotConstants: f.robot,
+                    visible: robotVisible,
+                    path: f.path,
+                    format: f.format
+                  },
+                  idx
+                ))
+              ] }),
+              !pathVisible && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+                ghostFiles.map(({ fileFormat: f }, idx) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  ControlsLayer,
+                  {
+                    path: f.path,
+                    img,
+                    radius,
+                    opacity: GHOST_PATH_OPACITY,
+                    onPointerDown: () => {
+                    },
+                    onControlPointerDown: () => {
+                    },
+                    hoveredId: null
+                  },
+                  idx
+                )),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  ControlsLayer,
+                  {
+                    path,
+                    img,
+                    radius,
+                    onPointerDown: stableControlPointerDown,
+                    onControlPointerDown: stableControlPointPointerDown,
+                    hoveredId: hoveredSegmentStore.getState()
+                  }
+                )
+              ] }),
               boxSelectRect && /* @__PURE__ */ jsxRuntimeExports.jsx(
                 "rect",
                 {
@@ -27650,13 +27859,7 @@ function App() {
   ] }) });
 }
 registerSW({ immediate: true });
-const blockMiddleClick = (e) => {
-  if (e.button === 1) e.preventDefault();
-};
-document.addEventListener("mousedown", blockMiddleClick, { capture: true });
-document.addEventListener("mouseup", blockMiddleClick, { capture: true });
-document.addEventListener("auxclick", blockMiddleClick, { capture: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-BrOYGiek.js.map
+//# sourceMappingURL=index-DFdKF-cQ.js.map
