@@ -3,7 +3,7 @@ import type { Coordinate } from "../../core/Types/Coordinate";
 import homeButton from "../../assets/home.svg";
 import type { Segment } from "../../core/Types/Segment";
 import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, toInch, toRGBA } from "../../core/Util";
-import { usePath, useFormat, useField, getFieldSrcFromKey, fileFormatStore, updatePath } from "../../hooks/useFileFormat";
+import { usePath, useFormat, useField, getFieldSrcFromKey, fileFormatStore, updatePath, ghostFilesStore } from "../../hooks/useFileFormat";
 import { usePathVisibility } from "../../hooks/usePathVisibility";
 import { useRobotVisibility } from "../../hooks/useRobotVisibility";
 import { PathSimMacros } from "../../macros/PathSimMacros";
@@ -23,6 +23,11 @@ import { resolveHeading, getBackwardsSnapPose, getBackwardsSnapIdx, distanceToPo
 import { useSettings } from "../../hooks/useSettings";
 import { queueFieldImg, useFieldImg } from "../../hooks/useFieldImg";
 import { consumeSpacePan, markSpacePan, useSpaceHeld } from "../../hooks/useSpaceHeld";
+import { useGhostPoses, usePose } from "../../hooks/usePose";
+import { useRobotPose } from "../../hooks/useRobotPose";
+import { computedPathStore, ghostComputedPathStore } from "../../core/ComputePathSim";
+import { hoveredSegmentStore } from "../../core/HoverStore";
+import { GHOST_PATH_OPACITY } from "./FieldColors";
 
 const controlDragKey = (segmentId: string, controlIdx: number) => `${segmentId}:c${controlIdx}`;
 
@@ -36,6 +41,12 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 	const moveHistoryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const [path, setPath] = usePath();
+	const [pose] = usePose();
+	const [robotPose] = useRobotPose();
+	const [ghostPoses] = useGhostPoses();
+	const ghostFiles = ghostFilesStore.useStore();
+	const ghostComputedPath = ghostComputedPathStore.useStore();
+
 	pathRef.current = path;
 
 	// Key covering every input the reposition effect reads: anchor poses come from non-distance
@@ -371,7 +382,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 
 		const dx = effectivePosInch.x - start.x;
 		const dy = effectivePosInch.y - start.y;
-		
+
 		const snapEnabled = settings.snappingEnabled !== evt.ctrlKey;
 		const snapValue = 1 / settings.snapToGrid;
 
@@ -816,22 +827,66 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 			>
 				<image href={getFieldSrcFromKey(fieldKey)} x={img.x} y={img.y} width={img.w} height={img.h} />
 
-				<PathLayer path={path} img={img} visible={pathVisible} precise={settings.precisePath} />
-
-				<RobotLayer
-					img={img}
-					robotConstants={robot}
-					visible={robotVisible}
-					path={path}
-				/>
-				{!pathVisible && (
-					<ControlsLayer
-						path={path}
+				<PathLayer path={path} opacity={1} img={img} visible={pathVisible} hoveredId={hoveredSegmentStore.getState()} computedPath={computedPathStore.getState()} precise={settings.precisePath} />
+				{ghostFiles.map(({ fileFormat: f }, idx) => (
+					<PathLayer key={idx} path={f.path} img={img} opacity={GHOST_PATH_OPACITY} visible={pathVisible} hoveredId={null} computedPath={ghostComputedPath[idx]} precise={settings.precisePath} />
+				))}
+				<>
+					<RobotLayer
 						img={img}
-						radius={radius}
-						onPointerDown={stableControlPointerDown}
-						onControlPointerDown={stableControlPointPointerDown}
+						opacity={1}
+						pose={pose}
+						robotPose={robotPose}
+						computedPath={computedPathStore.getState()}
+						robotConstants={robot}
+						visible={robotVisible}
+						path={path}
+						format={format}
 					/>
+
+					{ghostFiles.map(({ fileFormat: f }, idx) => (
+						<RobotLayer
+							key={idx}
+							img={img}
+							pose={ghostPoses[idx]}
+							computedPath={ghostComputedPath[idx]}
+							robotPose={ghostComputedPath[idx]?.endTrajectory ?? []}
+							opacity={GHOST_PATH_OPACITY}
+							robotConstants={f.robot}
+							visible={robotVisible}
+							path={f.path}
+							format={f.format}
+						/>
+					))}
+
+				</>
+				{!pathVisible && (
+					<>
+						{ghostFiles.map(({ fileFormat: f }, idx) => (
+							<ControlsLayer
+								key={idx}
+								path={f.path}
+								img={img}
+								radius={radius}
+								opacity={GHOST_PATH_OPACITY}
+								onPointerDown={() => { }}
+								onControlPointerDown={() => { }}
+								hoveredId={null}
+							/>
+						))
+
+						}
+						<ControlsLayer
+							path={path}
+							img={img}
+							radius={radius}
+							onPointerDown={stableControlPointerDown}
+							onControlPointerDown={stableControlPointPointerDown}
+							hoveredId={hoveredSegmentStore.getState()}
+						/>
+
+					</>
+
 				)}
 				{boxSelectRect && (
 					<rect

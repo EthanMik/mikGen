@@ -13,6 +13,7 @@ export type DistanceSensor = {
 
 type RobotViewProps = {
     img: Rectangle,
+    opacity: number,
     x: number,
     y: number,
     angle: number,
@@ -40,6 +41,7 @@ function toPxWidth(imageWidth: number, value: number) {
 
 export default function RobotView({
     img,
+    opacity,
     x,
     y,
     angle,
@@ -59,7 +61,7 @@ export default function RobotView({
 
     const pxWidth = toPxWidth(img.w, width);
     const pxHeight = toPxHeight(img.h, height);
-    const pos = toPX({x: x, y: y}, FIELD_REAL_DIMENSIONS, img)
+    const pos = toPX({ x: x, y: y }, FIELD_REAL_DIMENSIONS, img)
     const normAngle = normalizeDeg(angle);
 
     const cogPxX = toPxWidth(img.w, cogOffsetX);
@@ -83,9 +85,9 @@ export default function RobotView({
 
         const dirWorld =
             s.face === "front" ? fwdWorld :
-            s.face === "rear" ? { x: -fwdWorld.x, y: -fwdWorld.y } :
-            s.face === "right" ? rightWorld :
-            { x: -rightWorld.x, y: -rightWorld.y };
+                s.face === "rear" ? { x: -fwdWorld.x, y: -fwdWorld.y } :
+                    s.face === "right" ? rightWorld :
+                        { x: -rightWorld.x, y: -rightWorld.y };
 
         const hits: number[] = [];
         if (dirWorld.x !== 0) hits.push((FIELD_WALL - startWorldX) / dirWorld.x, (-FIELD_WALL - startWorldX) / dirWorld.x);
@@ -99,9 +101,9 @@ export default function RobotView({
         const lenPxY = inRange ? toPxHeight(img.h, dist) : 3;
         const [endPxX, endPxY] =
             s.face === "front" ? [startPxX, startPxY - lenPxY] :
-            s.face === "rear" ? [startPxX, startPxY + lenPxY] :
-            s.face === "right" ? [startPxX + lenPxX, startPxY] :
-            [startPxX - lenPxX, startPxY];
+                s.face === "rear" ? [startPxX, startPxY + lenPxY] :
+                    s.face === "right" ? [startPxX + lenPxX, startPxY] :
+                        [startPxX - lenPxX, startPxY];
 
         return { face: s.face, startPxX, startPxY, endPxX, endPxY };
     });
@@ -112,6 +114,7 @@ export default function RobotView({
                 fill={`rgba(${[...bg, bgTransparency].join(", ")})`}
                 stroke="black"
                 strokeWidth={.5}
+                opacity={opacity}
                 x={robotX}
                 y={robotY}
                 width={pxWidth}
@@ -122,12 +125,16 @@ export default function RobotView({
                 x1={0}
                 y1={0}
                 x2={0}
+                opacity={opacity}
                 y2={-pxHeight / 2}
                 stroke="black"
                 strokeWidth={1}
             />
 
-            <circle cx={cogPxX} cy={cogPxY} r={2} fill={`rgba(${[...bg, bgTransparency].join(", ")})`} />
+            <circle cx={cogPxX} cy={cogPxY} r={2}
+                fill={`rgba(${[...bg, bgTransparency].join(", ")})`}
+                opacity={opacity}
+            />
 
             {/* Front expansion */}
             <rect
@@ -135,6 +142,7 @@ export default function RobotView({
                 stroke="rgb(0, 0, 0)"
                 strokeWidth={.5}
                 x={robotX}
+                opacity={opacity}
                 y={robotY - pxFrontExpansion}
                 width={pxWidth}
                 height={pxFrontExpansion}
@@ -146,6 +154,7 @@ export default function RobotView({
                 stroke="rgb(0, 0, 0)"
                 strokeWidth={.5}
                 x={robotX}
+                opacity={opacity}
                 y={robotY + pxHeight}
                 width={pxWidth}
                 height={pxRearExpansion}
@@ -156,6 +165,7 @@ export default function RobotView({
                 fill={`rgba(${[...bg, expansionTransparency].join(", ")})`}
                 stroke="rgb(0, 0, 0)"
                 strokeWidth={.5}
+                opacity={opacity}
                 x={robotX - pxLeftExpansion}
                 y={robotY}
                 width={pxLeftExpansion}
@@ -167,6 +177,7 @@ export default function RobotView({
                 fill={`rgba(${[...bg, expansionTransparency].join(", ")})`}
                 stroke="rgb(0, 0, 0)"
                 strokeWidth={.5}
+                opacity={opacity}
                 x={robotX + pxWidth}
                 y={robotY}
                 width={pxRightExpansion}
@@ -180,6 +191,7 @@ export default function RobotView({
                         cx={r.startPxX}
                         cy={r.startPxY}
                         r={2}
+                        opacity={opacity}
                         fill="black"
                     />
                     <line
@@ -188,6 +200,7 @@ export default function RobotView({
                         x2={r.endPxX}
                         y2={r.endPxY}
                         stroke={SENSOR_COLORS[r.face]}
+                        opacity={opacity}
                         strokeWidth={1.5}
                     />
                 </g>

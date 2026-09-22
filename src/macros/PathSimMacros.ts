@@ -1,5 +1,4 @@
 import type { SetStateAction } from "react";
-import type { PathSim } from "../core/ComputePathSim";
 import type { Settings } from "../hooks/useSettings";
 import { consumeSpacePan } from "../hooks/useSpaceHeld";
 
@@ -89,7 +88,7 @@ export function PathSimMacros() {
         setPlaying: React.Dispatch<React.SetStateAction<boolean>>,
         setVisibility: React.Dispatch<SetStateAction<boolean>>,    
         skip: React.RefObject<boolean>,
-        computedPath: PathSim,
+        totalTime: number,
         smallStep: number,
         largeStep: number,
     ) => {
@@ -97,8 +96,8 @@ export function PathSimMacros() {
         const SLOW_SCRUB_STEP = smallStep;
 
         const scrub = evt.shiftKey
-            ? (FAST_SCRUB_STEP / computedPath.totalTime) * 100
-            : (SLOW_SCRUB_STEP / computedPath.totalTime) * 100;
+            ? (FAST_SCRUB_STEP / totalTime) * 100
+            : (SLOW_SCRUB_STEP / totalTime) * 100;
 
         if (evt.key.toLowerCase() === "l") {
             setVisibility(true);

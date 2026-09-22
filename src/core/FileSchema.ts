@@ -100,7 +100,7 @@ function seedTurnPose(raw: unknown, migrated: number | null): Pose {
 
 function seedControls(raw: unknown): ControlPoint[] {
     if (!Array.isArray(raw)) return [];
-    return raw.map(c => ({ ...seedPose(c), selected: flag(asRecord(c).selected, false), visible: flag(asRecord(c).visible, true) }));
+    return raw.map(c => ({ ...seedPose(c), selected: false, visible: flag(asRecord(c).visible, true) }));
 }
 
 /**
@@ -160,7 +160,7 @@ function seedSegment(formatDef: FormatDef<Format>, format: Format, raw: unknown,
         ...base,
         id,
         ...(typeof s.groupId === "string" ? { groupId: s.groupId } : {}),
-        selected: flag(s.selected, false),
+        selected: false,
         disabled: flag(s.disabled, false),
         visible: flag(s.visible, true),
         turnPose,

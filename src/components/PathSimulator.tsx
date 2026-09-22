@@ -2,13 +2,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import play from "../assets/play.svg";
 import pause from "../assets/pause.svg";
 import { Robot } from "../core/Robot";
-import { activeSegmentAtTime, activeSimSegmentStore, computedPathStore, pathTelemetry, precomputePath, simJumpStore, type PathSim, type Snapshot } from "../core/ComputePathSim";
-import { usePose } from "../hooks/usePose";
+import { activeSegmentAtTime, activeSimSegmentStore, computedPathStore, ghostComputedPathStore, pathTelemetry, precomputePath, simJumpStore, type PathSim, type Snapshot } from "../core/ComputePathSim";
+import { useGhostPoses, usePose } from "../hooks/usePose";
 import { clamp, normalizeDeg, shortAngleDelta } from "../core/Util";
 import { useRobotVisibility } from "../hooks/useRobotVisibility";
 import Checkbox from "./Util/Checkbox";
 import Slider from "./Util/Slider";
-import { usePath, fileFormatStore } from "../hooks/useFileFormat";
+import { usePath, fileFormatStore, ghostFilesStore } from "../hooks/useFileFormat";
 import { PathSimMacros } from "../macros/PathSimMacros";
 import { convertPathToSim } from "../simulation/Conversion";
 import { useRobotPose } from "../hooks/useRobotPose";
@@ -16,11 +16,13 @@ import { useSettings } from "../hooks/useSettings";
 import { useSimulateGroup } from "../hooks/useSimulateGroup";
 import { useRafThrottle } from "../hooks/useRafThrottle";
 import Tooltip from "./Util/Tooltip";
-import closedEye from "../assets/eye-closed.svg"
-import openEye from "../assets/eye-open.svg"
-import loopOn from "../assets/loop.svg"
-import loopOff from "../assets/loop-disable.svg"
+import closedEye from "../assets/eye-closed.svg";
+import openEye from "../assets/eye-open.svg";
+import loopOn from "../assets/loop.svg";
+import loopOff from "../assets/loop-disable.svg";
 import type { Segment } from "../core/Types/Segment";
+import type { Path } from "../core/Types/Path";
+import type { Pose } from "../core/Types/Pose";
 
 // Segments are immutable (every write path spreads into new objects), so object identity
 // implies content and the geometry string can be cached per segment instance.
@@ -55,6 +57,34 @@ function poseAtPercent(path: PathSim, percent: number): Snapshot {
     };
 }
 
+/** Holds on the last pose once t runs past this path's end, so shorter paths wait for the longest one. */
+function poseAtTime(path: PathSim, t: number): Snapshot {
+    return poseAtPercent(path, path.totalTime > 0 ? t / path.totalTime : 0);
+}
+
+/** The timeline runs as long as the longest path, ghosts included. */
+function longestTime(path: PathSim, ghostPaths: PathSim[]): number {
+    return Math.max(path.totalTime, ...ghostPaths.map(g => g.totalTime));
+}
+
+/** True when the main path or any ghost has something to play back. */
+function hasTrajectory(path: PathSim, ghostPaths: PathSim[]): boolean {
+    return path.trajectory.length > 0 || ghostPaths.some(g => g.trajectory.length > 0);
+}
+
+function startPose(path: Path | undefined): Pose | null {
+    const start = path?.segments[0];
+    if (start?.kind !== "start" || start.pose.x === null || start.pose.y === null) return null;
+    return { x: start.pose.x, y: start.pose.y, angle: start.pose.angle ?? 0 };
+}
+
+/** Holds a path with no trajectory (empty or start only) on its start pose so the others can still play. */
+function poseOf(sim: PathSim | undefined, path: Path | undefined, t: number): Pose | null {
+    if (!sim?.trajectory.length) return startPose(path);
+    const snap = poseAtTime(sim, t);
+    return { x: snap.x, y: snap.y, angle: snap.angle };
+}
+
 function createRobot(): Robot {
     return new Robot(fileFormatStore.getState().robot);
 }
@@ -65,6 +95,7 @@ export default function PathSimulator() {
     const timeRef = useRef(time);
     timeRef.current = time;
     const [pose, setPose] = usePose()
+    const [, setGhostPoses] = useGhostPoses();
     const [, setRobotPose] = useRobotPose();
     const robot = fileFormatStore.useSelector(s => s.robot);
     const [playing, setPlaying] = useState<boolean>(false);
@@ -72,6 +103,8 @@ export default function PathSimulator() {
     playingRef.current = playing;
     const [robotVisible, setRobotVisibility] = useRobotVisibility();
     const [path,] = usePath();
+    const pathRef = useRef(path);
+    pathRef.current = path;
     const formatDef = fileFormatStore.useSelector(s => s.formatDef);
     const skip = useRef(false);
     const [settings, setSettings] = useSettings();
@@ -79,10 +112,18 @@ export default function PathSimulator() {
     const loopingRef = useRef(looping);
     loopingRef.current = looping;
     const computedPath = computedPathStore.useStore();
+    const ghostComputedPath = ghostComputedPathStore.useStore();
     const computedPathRef = useRef(computedPath);
     computedPathRef.current = computedPath;
+    const ghostComputedPathRef = useRef(ghostComputedPath);
+    ghostComputedPathRef.current = ghostComputedPath;
+    const maxTimeRef = useRef(0);
+    maxTimeRef.current = longestTime(computedPath, ghostComputedPath);
     const [simulatedGroups] = useSimulateGroup();
     const simJump = simJumpStore.useStore();
+    const ghostFiles = ghostFilesStore.useStore();
+    const ghostFilesRef = useRef(ghostFiles);
+    ghostFilesRef.current = ghostFiles;
 
     const { pauseSimulator, releaseSimulator, scrubSimulator } = PathSimMacros();
 
@@ -95,33 +136,49 @@ export default function PathSimulator() {
         path.segments.map(segmentGeoString).join('|'),
         [path.segments]
     );
+    
+    useEffect(() => {
+        ghostComputedPathStore.setState(
+            ghostFiles.map(({ fileFormat: g }) => {
+                const path = precomputePath(new Robot(g.robot), convertPathToSim(g.formatDef, g.path), false);
+                return path;
+            })
+        )
+    }, [ghostFiles, ])
 
     useEffect(() => {
         if (simJump === null) return;
         setRobotVisibility(true);
         skip.current = false;
 
+        // simJump is a percent of the main path, but the slider spans the longest path
+        const jumpTime = (simJump / 100) * computedPathRef.current.totalTime;
+        const jumpValue = maxTimeRef.current > 0 ? (jumpTime / maxTimeRef.current) * 100 : 0;
+
         if (loopingRef.current && playingRef.current) {
             // While looping, jump to the segment but keep the robot running.
-            setValue(simJump);
-            const jumpTime = (simJump / 100) * computedPathRef.current.totalTime;
+            setValue(jumpValue);
             setTime(jumpTime);
             // Keep the playback loop's ref in sync so a tick between now and the next render
             // does not resume from the pre-jump time
             timeRef.current = jumpTime;
         } else {
             setPlaying(false);
-            setValue(simJump);
+            setValue(jumpValue);
         }
         simJumpStore.setState(null);
     }, [simJump, setRobotVisibility]);
 
     useEffect(() => {
         scheduleRecompute(() => {
-            if (path.segments.length === 0) {
-                computedPathStore.setState(precomputePath(createRobot(), convertPathToSim(formatDef, path)));
+            const pathSim = precomputePath(createRobot(), convertPathToSim(formatDef, path));
+            computedPathStore.setState(pathSim);
+            setRobotPose(pathSim.endTrajectory);
 
-                setRobotPose(computedPath.endTrajectory);
+            const ghostPaths = ghostComputedPathRef.current;
+
+            // With ghosts loaded an empty main path must not reset the sim, or the ghosts could never play
+            if (path.segments.length === 0 && ghostPaths.length === 0) {
                 setPlaying(false);
                 setTime(0);
                 setValue(0);
@@ -130,34 +187,24 @@ export default function PathSimulator() {
                 return;
             }
 
-            const pathSim = precomputePath(createRobot(), convertPathToSim(formatDef, path));
-            // const pathSim = cullSimulatedPath(fullSim);
-            computedPathStore.setState(pathSim);
-
-            setRobotPose(pathSim.endTrajectory);
-
             if (!robotVisible) {
                 setPlaying(false);
                 return;
             };
 
-            if (!pathSim.trajectory.length || pathSim.totalTime <= 0) {
-                if (robotVisible) {
-                    const start = path.segments[0];
-                    if (start?.kind === "start" && start.pose.x !== null && start.pose.y !== null) {
-                        setPose({ x: start.pose.x, y: start.pose.y, angle: start.pose.angle ?? 0 });
-                    }
-                }
+            const maxTime = longestTime(pathSim, ghostPaths);
+            if (!hasTrajectory(pathSim, ghostPaths) || maxTime <= 0) {
+                snapPoses(pathSim, ghostPaths, 0);
                 return;
             }
 
-            const clampedTime = clamp(time, 0, pathSim.totalTime);
+            const clampedTime = clamp(time, 0, maxTime);
             if (clampedTime !== time) setTime(clampedTime);
 
-            if (robotVisible) forceSnapTime(pathSim, clampedTime);
+            forceSnapTime(pathSim, ghostPaths, clampedTime);
 
             skip.current = true;
-            setValue((clampedTime / pathSim.totalTime) * 100);
+            setValue((clampedTime / maxTime) * 100);
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [segmentGeoKey, robot, robotVisible, simulatedGroups]);
@@ -170,7 +217,7 @@ export default function PathSimulator() {
         }
 
         if (!playing) {
-            setPathPercent(computedPath, value);
+            setPathPercent(computedPath, ghostComputedPath, value);
         }
     }, [value]);
 
@@ -223,7 +270,7 @@ export default function PathSimulator() {
             const target = evt.target as HTMLElement | null;
             if (target?.isContentEditable || target?.tagName === "INPUT") return;
             pauseSimulator(evt, setPlaying, setRobotVisibility)
-            scrubSimulator(evt, setValue, setPlaying, setRobotVisibility, skip, computedPathRef.current, 0.01, 0.25);
+            scrubSimulator(evt, setValue, setPlaying, setRobotVisibility, skip, maxTimeRef.current, 0.01, 0.25);
         }
 
         const handleKeyUp = (evt: KeyboardEvent) => {
@@ -243,39 +290,38 @@ export default function PathSimulator() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const setPathPercent = (path: PathSim, percent: number) => {
-        if (!path.trajectory.length) return;
-
-        const snap = poseAtPercent(path, clamp(percent, 0, 100) / 100);
-        setTime(snap.t);
-
-        setPose({ x: snap.x, y: snap.y, angle: snap.angle })
-    }
-
-    const forceSnapTime = (path: PathSim, t: number) => {
-        if (!path.trajectory.length) return;
-
-        const snap = poseAtPercent(path, t / path.totalTime);
-        setPose({ x: snap.x, y: snap.y, angle: snap.angle })
+    const snapPoses = (path: PathSim, ghostPath: PathSim[], t: number) => {
+        setPose(poseOf(path, pathRef.current, t));
+        setGhostPoses(ghostPath.map((g, i) => poseOf(g, ghostFilesRef.current[i]?.fileFormat.path, t)));
     };
 
-    const setPathTime = (path: PathSim, t: number) => {
-        if (!path.trajectory.length) return;
+    const setPathPercent = (path: PathSim, ghostPath: PathSim[], percent: number) => {
+        if (!hasTrajectory(path, ghostPath)) return;
 
-        t = clamp(t, 0, path.totalTime);
+        const t = (clamp(percent, 0, 100) / 100) * longestTime(path, ghostPath);
+        setTime(t);
+        snapPoses(path, ghostPath, t);
+    }
 
-        const percent = (t / path.totalTime);
-        setValue(percent * 100);
+    const forceSnapTime = (path: PathSim, ghostPath: PathSim[], t: number) => {
+        if (!hasTrajectory(path, ghostPath)) return;
+        snapPoses(path, ghostPath, t);
+    };
 
-        const snap = poseAtPercent(path, percent);
-        setPose({ x: snap.x, y: snap.y, angle: snap.angle })
+    const setPathTime = (path: PathSim, ghostPath: PathSim[], t: number) => {
+        if (!hasTrajectory(path, ghostPath)) return;
+
+        const maxTime = longestTime(path, ghostPath);
+        t = clamp(t, 0, maxTime);
+        setValue(maxTime > 0 ? (t / maxTime) * 100 : 0);
+        snapPoses(path, ghostPath, t);
     }
 
     useEffect(() => {
         if (!playing) return;
 
         // Pressing play at the end restarts from 0
-        if (timeRef.current + computedPathRef.current.dt >= computedPathRef.current.totalTime) {
+        if (timeRef.current + computedPathRef.current.dt >= maxTimeRef.current) {
             setTime(0);
             timeRef.current = 0;
         }
@@ -288,18 +334,20 @@ export default function PathSimulator() {
             last = now;
 
             const path = computedPathRef.current;
-            const clamped = Math.min(timeRef.current + dtSec, path.totalTime);
+            const ghostPaths = ghostComputedPathRef.current;
+            const maxTime = maxTimeRef.current;
+            const clamped = Math.min(timeRef.current + dtSec, maxTime);
 
-            if (clamped >= path.totalTime && !loopingRef.current) {
-                setPathTime(path, clamped);
+            if (clamped >= maxTime && !loopingRef.current) {
+                setPathTime(path, ghostPaths, clamped);
                 setTime(clamped);
                 timeRef.current = clamped;
                 setPlaying(false);
                 return;
             }
 
-            const next = clamped >= path.totalTime ? 0 : clamped;
-            setPathTime(path, next);
+            const next = clamped >= maxTime ? 0 : clamped;
+            setPathTime(path, ghostPaths, next);
             setTime(next);
             timeRef.current = next;
             raf = requestAnimationFrame(tick);
@@ -349,7 +397,7 @@ export default function PathSimulator() {
             <span className="block w-10 ">{time.toFixed(2)}s</span>
             <div className="flex flex-row items-center gap-1.5">
                 <Tooltip label="Toggle Robot Visibility (R)" placement="top" speed="fast">
-                    <Checkbox checked={robotVisible} setChecked={setRobotVisibility} size={22} checkedSvg={openEye} uncheckedSvg={closedEye}/>
+                    <Checkbox checked={robotVisible} setChecked={setRobotVisibility} size={22} checkedSvg={openEye} uncheckedSvg={closedEye} />
                 </Tooltip>
                 <Tooltip label="Loop Path (;)" placement="top" speed="fast">
                     <button onClick={() => setSettings(prev => ({ ...prev, loopPath: !prev.loopPath }))}
@@ -357,7 +405,7 @@ export default function PathSimulator() {
                         <img className="w-[22px] h-[22px]" src={looping ? loopOn : loopOff} />
                     </button>
                 </Tooltip>
-                
+
             </div>
         </div>
     );

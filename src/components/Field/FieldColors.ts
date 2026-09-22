@@ -227,3 +227,5 @@ export const SENSOR_COLORS: Record<"front" | "left" | "right" | "rear", string> 
     right: "#058d29",
     rear: "#c66719",
 };
+
+export const GHOST_PATH_OPACITY = 0.5;

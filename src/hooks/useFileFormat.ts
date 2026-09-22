@@ -5,9 +5,9 @@ import type { Segment } from "../core/Types/Segment";
 import { FORMAT_REGISTRY, type Format, type FormatDef } from "../simulation/FormatDefinition";
 import type { RobotConstants } from "../core/Robot";
 
-import pushbackIcon from "../assets/pushbackball.svg"
-import highstakesIcon from "../assets/highstakesring.svg"
-import overrideIcon from "../assets/overridecup.svg"
+import pushbackIcon from "../assets/pushbackball.svg";
+import highstakesIcon from "../assets/highstakesring.svg";
+import overrideIcon from "../assets/overridecup.svg";
 
 
 import pushbackVEXUMatchField from "../assets/pushback-match.png";
@@ -26,11 +26,18 @@ import highstakesV5SkillsField from "../assets/V5RC-HighStakes-Skills-TopDownHig
 
 
 import emptyField from "../assets/empty-field.png";
+// import { dummyFormat } from "./useFileFormat.test";
 
 export type { FileFormat, FieldType, Format }
 export { DEFAULT_FORMAT, DEFAULT_FIELD_KEY, VALIDATED_APP_STATE }
 
 export const fileFormatStore = createStore<FileFormat>(VALIDATED_APP_STATE);
+export const ghostFilesStore = createStore<{
+    handle: FileSystemFileHandle | null;
+    fileFormat: FileFormat;
+}[]>([
+    // { handle: null, fileFormat: seedFileFormat(dummyFormat) }
+]);
 
 export function changeFormat(newFormat: Format) {
     if (window.confirm("This will reset all your segments to the new formats defaults")) {
@@ -102,7 +109,7 @@ export const FIELD_GROUPS: FieldGroup[] = [
         ]
     },
     {
-        id: "misc",  icon: "", name: "Misc", items: [
+        id: "misc", icon: "", name: "Misc", items: [
             { key: "empty", src: emptyField, name: "Empty" },
         ]
     },

@@ -5,17 +5,19 @@ import type { Path } from "../../core/Types/Path";
 import type { Rectangle } from "../../core/Util";
 import { useSettings } from "../../hooks/useSettings";
 import type { RobotConstants } from "../../core/Robot";
-import { useFormat } from "../../hooks/useFileFormat";
-import { usePose } from "../../hooks/usePose";
-import { useRobotPose } from "../../hooks/useRobotPose";
-import { computedPathStore, type Snapshot } from "../../core/ComputePathSim";
-import { isHolonomicFormat } from "../../simulation/FormatDefinition";
+import { type PathSim, type Snapshot } from "../../core/ComputePathSim";
+import { isHolonomicFormat, type Format } from "../../simulation/FormatDefinition";
 
 type RobotLayerProps = {
     img: Rectangle;
     robotConstants: RobotConstants;
-    visible: boolean;
+    pose: Pose | null;
+    robotPose: Pose[];
+    computedPath: PathSim | undefined; // undefined for a ghost on the render before its sim is computed
+    visible: boolean; 
     path: Path;
+    format: Format;
+    opacity: number;
 };
 
 const MECANUM_COLOR: number[] = [29, 100, 8];
@@ -51,7 +53,8 @@ function onionLayerPoses(segment: Snapshot[], spacing: number): Pose[] {
 type OnionLayersProps = {
     img: Rectangle;
     endPoses: Pose[];
-    layerPoses: Pose[][];
+    opacity: number;
+    layerPoses: Pose[][] | undefined;
     robotConstants: RobotConstants;
     path: Path;
     bgColor: number[];
@@ -59,7 +62,7 @@ type OnionLayersProps = {
 };
 
 /** Memoized so pose-only animation frames re-render just the active robot, not every outline. */
-const OnionLayers = memo(function OnionLayers({ img, endPoses, layerPoses, robotConstants, path, bgColor, show }: OnionLayersProps) {
+const OnionLayers = memo(function OnionLayers({ img, endPoses, layerPoses, opacity, robotConstants, path, bgColor, show }: OnionLayersProps) {
     if (!show) return null;
 
     const outline = (p: Pose, key: string) => (
@@ -68,6 +71,7 @@ const OnionLayers = memo(function OnionLayers({ img, endPoses, layerPoses, robot
             img={img}
             x={p.x ?? 0}
             y={p.y ?? 0}
+            opacity={opacity}
             angle={p.angle ?? 0}
             width={robotConstants.width}
             height={robotConstants.height}
@@ -87,7 +91,7 @@ const OnionLayers = memo(function OnionLayers({ img, endPoses, layerPoses, robot
                 <React.Fragment key={`ghost-${idx}`}>
                     {path.segments[idx]?.visible && (
                         <>
-                            {layerPoses[idx]?.map((layer, i) => outline(layer, `layer-${idx}-${i}`))}
+                            {layerPoses?.[idx]?.map((layer, i) => outline(layer, `layer-${idx}-${i}`))}
                             {outline(p, `end-${idx}`)}
                         </>
                     )}
@@ -97,14 +101,8 @@ const OnionLayers = memo(function OnionLayers({ img, endPoses, layerPoses, robot
     );
 });
 
-export default function RobotLayer({ img, robotConstants, visible, path }: RobotLayerProps) {
-    // Subscribed here rather than in Field so a pose write during playback re-renders
-    // only this layer instead of the whole SVG tree
-    const [pose] = usePose();
-    const [robotPose] = useRobotPose();
-    const [ settings, ] = useSettings();
-    const [ format, ] = useFormat();
-    const computedPath = computedPathStore.useStore();
+export default function RobotLayer({ img, robotConstants, visible, path, opacity, pose, robotPose, computedPath, format }: RobotLayerProps) {
+    const [settings,] = useSettings();
 
     const bgColor = isHolonomicFormat(format) ? MECANUM_COLOR : TANK_COLOR;
 
@@ -112,7 +110,7 @@ export default function RobotLayer({ img, robotConstants, visible, path }: Robot
     // rather than once per animation frame
     const spacing = settings.onionLayers ? settings.onionSpacing : 0;
     const layerPoses = useMemo(
-        () => computedPath.segmentTrajectorys.map(segment => onionLayerPoses(segment, spacing)),
+        () => computedPath?.segmentTrajectorys?.map(segment => onionLayerPoses(segment, spacing)),
         [computedPath, spacing]
     );
 
@@ -130,6 +128,7 @@ export default function RobotLayer({ img, robotConstants, visible, path }: Robot
             {pose && visible && (
                 <RobotView
                     img={img}
+                    opacity={opacity}
                     x={pose.x ?? 0}
                     y={pose.y ?? 0}
                     angle={pose.angle ?? 0}
@@ -151,6 +150,7 @@ export default function RobotLayer({ img, robotConstants, visible, path }: Robot
             {/* Onion Layers */}
             <OnionLayers
                 img={img}
+                opacity={opacity}
                 endPoses={robotPose}
                 layerPoses={layerPoses}
                 robotConstants={robotConstants}

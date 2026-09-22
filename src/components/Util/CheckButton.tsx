@@ -1,5 +1,4 @@
 import check from "../../assets/check.svg"
-import Tooltip from "./Tooltip";
 
 type CheckButtonProps = {
     name: string,
