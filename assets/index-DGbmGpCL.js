@@ -25831,7 +25831,12 @@ function FolderButton({ fileName }) {
   };
   const goBack = async () => {
     const prev = history[history.length - 1];
-    if (!prev) return;
+    if (!prev) {
+      if (window.confirm("Are you sure you want to close this folder?")) {
+        dirHandleStore.setState(null);
+      }
+      return;
+    }
     const result = await readDirEntries(prev);
     setHistory((h) => h.slice(0, -1));
     setDirHandle(prev);
@@ -25843,9 +25848,9 @@ function FolderButton({ fileName }) {
   });
   const backButton = {
     icon: back,
-    visible: history.length > 0,
+    visible: true,
     onClick: goBack,
-    tooltip: "Go Back"
+    tooltip: history.length > 0 ? "Go Back" : "Close Folder"
   };
   const refreshButton = {
     icon: refresh,
@@ -27862,4 +27867,4 @@ registerSW({ immediate: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-DFdKF-cQ.js.map
+//# sourceMappingURL=index-DGbmGpCL.js.map
