@@ -40,15 +40,15 @@ export const ghostFilesStore = createStore<{
 ]);
 
 export function changeFormat(newFormat: Format) {
-    if (window.confirm("This will reset all your segments to the new formats defaults")) {
-        const newFormatDef = FORMAT_REGISTRY[newFormat] as FormatDef<Format>;
-        fileFormatStore.setState(prev => ({
-            ...prev,
-            format: newFormat,
-            formatDef: newFormatDef,
-            path: recastPath(newFormatDef, newFormat, prev.path),
-        }));
-    }
+    // if (window.confirm("This will reset all your segments to the new formats defaults")) {
+    const newFormatDef = FORMAT_REGISTRY[newFormat] as FormatDef<Format>;
+    fileFormatStore.setState(prev => ({
+        ...prev,
+        format: newFormat,
+        formatDef: newFormatDef,
+        path: recastPath(newFormatDef, newFormat, prev.path),
+    }));
+    // }
 }
 
 export function useFileFormat() {

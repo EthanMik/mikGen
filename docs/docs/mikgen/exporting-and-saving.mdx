@@ -15,7 +15,63 @@ How to load, save, and export mikGen paths.
 | Ctrl + X | Cut the selected segments as code |
 | Ctrl + V | Paste code back into the path |
 
+:::note
+The copy all and copy selected buttons in the export button perform the same action.
+:::
+
 Pasting parses the code back into segments. So you can directly copy an entire path in your library the way it is and paste it into mikGen.
+
+
+## Project Files
+
+Paths can be saved and loaded as mikGen project files:
+
+<img src={require('./img/export/filebutton.png').default} width="20%"  style={{ paddingBottom: '20px' }} />
+
+Your current path and opened folder
+also auto-saves to browser storage, so you can refresh the page safely.
+
+<img src={require('./img/export/folderbutton.png').default} width="80%"  style={{ paddingBottom: '20px' }} />
+
+Opening a folder shows a file browser sidebar for switching between paths. You can view multiple paths at once by clicking on the eyeball button next to unopened folder.
+
+:::note
+When you have an underline under the file button that means you have unsaved changes. You can only save and open folder if you use a Chromium browser. 
+:::
+
+:::important
+For ease of use, store your path files inside a folder inside your library of choice. That way you can commit changes to the path so your
+teammates can have updated paths. This allows mikGen to be completely local to you, meaning that your paths are not stored on a database.
+:::
+
+## Writing to a File
+
+To export by writing to a file, click on the export button and press either the open folder or open file button:
+
+<img src={require('./img/export/exportbutton.png').default} width="20%"  style={{ paddingBottom: '20px' }} />
+
+You can then press `Ctrl+E` or use the Export button to write the path directly into a `.cpp` file in your
+project. The generated code is placed between comment markers named after your path, and only
+the code between the markers is touched on later exports:
+
+```cpp
+// [My Path]
+chassis.set_coordinates(0, 0, 0);
+chassis.drive_to_point(24, 24);
+// [My Path]
+```
+
+Two optional modes change how existing code in the file is updated:
+
+- **Merge mode** (on by default): matches segments to the code already in the file, replacing,
+  inserting, or deleting lines as needed. Hidden segments are ignored.
+- **Replace mode**: only replaces segments that match the type and count in mikGen. Hidden or
+  unselected segments are ignored.
+
+:::note
+Writing to files uses the File System Access API, which requires a Chromium-based browser
+such as Chrome or Edge.
+:::
 
 ## Edit Templates
 
@@ -109,46 +165,3 @@ produce both shapes:
 {{5.67_in, 7.31_in}, fwd, 110},          // an in-between point
 {{0_in, 30_in, 45_deg}, fwd, 110}        // the last point, when the segment has a heading
 ```
-
-## Writing to a File
-
-Press `Ctrl+E` or use the Export button to write the path directly into a `.cpp` file in your
-project. The generated code is placed between comment markers named after your path, and only
-the code between the markers is touched on later exports:
-
-```cpp
-// [My Path]
-chassis.set_coordinates(0, 0, 0);
-chassis.drive_to_point(24, 24);
-// [My Path]
-```
-
-Two optional modes change how existing code in the file is updated:
-
-- **Merge mode** (on by default): matches segments to the code already in the file, replacing,
-  inserting, or deleting lines as needed. Hidden segments are ignored.
-- **Replace mode**: only replaces segments that match the type and count in mikGen. Hidden or
-  unselected segments are ignored.
-
-:::note
-Writing to files uses the File System Access API, which requires a Chromium-based browser
-such as Chrome or Edge.
-:::
-
-## Project Files
-
-Paths can be saved and loaded as mikGen project files:
-
-<img src={require('./img/export/filebutton.png').default} width="20%"  style={{ paddingBottom: '20px' }} />
-
-Opening a folder shows a file browser sidebar for switching between paths. Your current path
-also auto-saves to browser storage, so you can refresh the page safely.
-
-:::note
-The underline under the file button means you have unsaved changes. You can only save if you use a Chromium browser, like Chrome or Edge.
-:::
-
-:::important
-For ease of use, store your path files inside a folder inside your library of choice. That way you can commit changes to the path so your
-teammates can have updated paths. This allows mikGen to be completely local to you, meaning that your paths are not stored on a database.
-:::

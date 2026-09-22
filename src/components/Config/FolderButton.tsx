@@ -115,7 +115,13 @@ export default function FolderButton({ fileName }: FolderButtonProps) {
 
     const goBack = async () => {
         const prev = history[history.length - 1];
-        if (!prev) return;
+        if (!prev) {
+            // At the root, going back closes the folder, which unmounts this component
+            if (window.confirm("Are you sure you want to close this folder?")) {
+                dirHandleStore.setState(null);
+            }
+            return;
+        }
         const result = await readDirEntries(prev);
         setHistory(h => h.slice(0, -1));
         setDirHandle(prev);
@@ -127,9 +133,9 @@ export default function FolderButton({ fileName }: FolderButtonProps) {
 
     const backButton = {
         icon: back,
-        visible: history.length > 0,
+        visible: true,
         onClick: goBack,
-        tooltip: "Go Back"
+        tooltip: history.length > 0 ? "Go Back" : "Close Folder"
     };
 
     const refreshButton = {
