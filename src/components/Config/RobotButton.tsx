@@ -4,6 +4,12 @@ import Section from "../Util/Section";
 import ConfigButtonTemplate from "./ConfigButtonTemplate";
 import { DualNumberInputCheckboxButton, NumberInputButton, NumberInputCheckboxButton } from "../Util/NumberInputButton";
 import { SENSOR_COLORS } from "../Field/FieldColors";
+import tankIcon from "../../assets/icons/robot/tank.svg";
+import expansionIcon from "../../assets/icons/robot/expansion.svg";
+import sensorIcon from "../../assets/icons/robot/sensor.svg";
+import cogIcon from "../../assets/icons/robot/cog.svg";
+import motionIcon from "../../assets/icons/robot/motion.svg";
+import clockIcon from "../../assets/icons/robot/clock.svg";
 
 type ExpansionSide = "Front" | "Left" | "Right" | "Rear";
 
@@ -33,18 +39,18 @@ export default function RobotButton() {
     return (
         <ConfigButtonTemplate title="Robot">
             <div className="flex flex-col gap-1.5">
-                <Section name="General">
+                <Section name="General" icon={tankIcon}>
                     <NumberInputButton name="Width" value={robot.width} setValue={v => v !== null && mergeRobot({ width: v })} bounds={[0, 30]} stepSize={1} roundTo={1} units="in" />
                     <NumberInputButton name="Height" value={robot.height} setValue={v => v !== null && mergeRobot({ height: v })} bounds={[0, 30]} stepSize={1} roundTo={1} units="in" />
                 </Section>
-                <Section name="Motion" defaultCollapsed>
+                <Section name="Motion" icon={motionIcon} defaultCollapsed>
                     <NumberInputButton name="Speed" label="Max velocity; measure on actual robot" value={robot.speed} setValue={v => v !== null && mergeRobot({ speed: v })} bounds={[0, 100]} stepSize={0.5} roundTo={2} units="ft/s" />
                     <NumberInputButton name="Track Width" label="Distance measured from wheel to wheel" value={robot.trackwidth} setValue={v => v !== null && mergeRobot({ trackwidth: v })} bounds={[0, 30]} stepSize={0.5} roundTo={1} units="in" />
                     <NumberInputButton name="Drive Constant" label="Time for robot to reach 63.2% of its max velocity laterally" value={robot.lateralTau} setValue={v => v !== null && mergeRobot({ lateralTau: v })} bounds={[0, 2]} stepSize={0.05} roundTo={3} units="s" />
                     <NumberInputButton name="Turn Constant" label="Time for robot to reach 63.2% of max velocity turning" value={robot.angularTau} setValue={v => v !== null && mergeRobot({ angularTau: v })} bounds={[0, 2]} stepSize={0.05} roundTo={3} units="s" />
                 </Section>
 
-                <Section name="Expansion" defaultCollapsed>
+                <Section name="Expansion" icon={expansionIcon} defaultCollapsed>
                     {(["Front", "Left", "Right", "Rear"] as const).map((side) => (
                         <NumberInputCheckboxButton
                             key={side}
@@ -61,7 +67,7 @@ export default function RobotButton() {
                     ))}
                 </Section>
 
-                <Section name="Distance Sensors" defaultCollapsed>
+                <Section name="Distance Sensors" icon={sensorIcon} defaultCollapsed>
                     {(["Front", "Left", "Right", "Rear"] as const).map((side) => (
                         <DualNumberInputCheckboxButton
                             key={side}
@@ -94,12 +100,12 @@ export default function RobotButton() {
                     ))}
                 </Section>
 
-                <Section name="CoG Offset" defaultCollapsed>
+                <Section name="CoG Offset" icon={cogIcon} defaultCollapsed>
                     <NumberInputCheckboxButton name="Lateral" value={robot.cogOffsetX} setValue={v => v !== null && mergeRobot({ cogOffsetX: v })} bounds={[-15, 15]} stepSize={0.5} roundTo={2} units="in" checked={!robot.cogOffsetXDisabled} setChecked={checked => { mergeRobot({ cogOffsetXDisabled: !checked }); saveSnapshot(); }} />
                     <NumberInputCheckboxButton name="Forward" value={robot.cogOffsetY} setValue={v => v !== null && mergeRobot({ cogOffsetY: v })} bounds={[-15, 15]} stepSize={0.5} roundTo={2} units="in" checked={!robot.cogOffsetYDisabled} setChecked={checked => { mergeRobot({ cogOffsetYDisabled: !checked }); saveSnapshot(); }} />
                 </Section>
 
-                <Section name="Extras" defaultCollapsed>
+                <Section name="Extras" icon={clockIcon} defaultCollapsed>
                     <NumberInputButton
                         name="Update Rate"
                         label="How often the simulation updates. Slew and PID gains are affected by this"
