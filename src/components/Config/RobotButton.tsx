@@ -39,7 +39,7 @@ export default function RobotButton() {
     return (
         <ConfigButtonTemplate title="Robot">
             <div className="flex flex-col gap-1.5">
-                <Section name="General" icon={tankIcon}>
+                <Section name="Size" icon={tankIcon}>
                     <NumberInputButton name="Width" value={robot.width} setValue={v => v !== null && mergeRobot({ width: v })} bounds={[0, 30]} stepSize={1} roundTo={1} units="in" />
                     <NumberInputButton name="Height" value={robot.height} setValue={v => v !== null && mergeRobot({ height: v })} bounds={[0, 30]} stepSize={1} roundTo={1} units="in" />
                 </Section>
@@ -105,7 +105,7 @@ export default function RobotButton() {
                     <NumberInputCheckboxButton name="Forward" value={robot.cogOffsetY} setValue={v => v !== null && mergeRobot({ cogOffsetY: v })} bounds={[-15, 15]} stepSize={0.5} roundTo={2} units="in" checked={!robot.cogOffsetYDisabled} setChecked={checked => { mergeRobot({ cogOffsetYDisabled: !checked }); saveSnapshot(); }} />
                 </Section>
 
-                <Section name="Extras" icon={clockIcon} defaultCollapsed>
+                <Section name="Timing" icon={clockIcon} defaultCollapsed>
                     <NumberInputButton
                         name="Update Rate"
                         label="How often the simulation updates. Slew and PID gains are affected by this"

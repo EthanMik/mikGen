@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="1.375 1.375 21.25 21.25">
     <!-- Robot body -->
-    <rect x="2" y="2" width="20" height="20" fill="rgba(29, 100, 8, 0.4)" stroke="black" stroke-width="1.25" />
+    <rect x="2" y="2" width="20" height="20" fill="rgba(150, 150, 150, 0.4)" stroke="black" stroke-width="1.25" />
     <!-- Heading -->
     <line x1="12" y1="12" x2="12" y2="2" stroke="black" stroke-width="1.5" />
     <!-- CoG -->
-    <circle cx="17" cy="17" r="3" fill="rgb(29, 100, 8)" />
+    <circle cx="17" cy="17" r="2" fill="rgb(150, 150, 150)" />
 </svg>
