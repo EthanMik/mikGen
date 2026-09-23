@@ -69,6 +69,13 @@ export async function unloadFromGhostHandle(handle: FileSystemFileHandle): Promi
 
 const getSavedHandle = async () => {
     const data = await get('saved');
+    if (!(data instanceof FileSystemDirectoryHandle)) return;
+    try {
+        const first = await data.values().next();
+        if (first.done) return;
+    } catch {
+        return;
+    }
     dirHandleStore.setState(data);
 }
 getSavedHandle();

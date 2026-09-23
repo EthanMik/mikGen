@@ -4,6 +4,7 @@ type CheckButtonProps = {
     name: string,
     checked: boolean,
     setChecked: (state: boolean) => void;
+    src?: string;
 }
 
 export function MenuCheckButton({
@@ -26,7 +27,7 @@ export function MenuCheckButton({
 }
 
 export function ConfigCheckButton({
-    name, checked, setChecked 
+    name, checked, setChecked, src 
 }: CheckButtonProps) {
     return (
             <button
@@ -34,10 +35,14 @@ export function ConfigCheckButton({
                 onClick={() => setChecked(true)}
             >
                 <span className="text-[14px]">{name}</span>
-                {checked && (
+                {(checked || src) && (
                     <img
-                        src={check}
-                        className="w-3 h-3"
+                        src={checked ? check : src}
+                        style={{
+                            width: `${src && !checked ? "16px" : "12px" }`,
+                            height: `${src && !checked ? "16px" : "12px" }`,
+                        }}
+                        className="opacity-90"
                     >
                     </img>
                 )}
