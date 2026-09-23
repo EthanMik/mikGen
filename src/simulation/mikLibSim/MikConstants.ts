@@ -1,14 +1,14 @@
 import { getUnequalKeys, normalizeDeg, roundOff } from "../../core/Util";
 import { type FormatDef, type NumberInputGroup, type CycleButtonField, type SegmentKind } from "../FormatDefinition";
 import type { Pose } from "../../core/Types/Pose";
-import ccw from "../../assets/ccw.svg";
-import cw from "../../assets/cw.svg";
-import cwccw from "../../assets/cwwcw.svg";
-import fwd from "../../assets/fwd.svg";
-import rev from "../../assets/reverse.svg";
-import fastest from "../../assets/fwdrev.svg"
-import leftswing from "../../assets/leftswing.svg";
-import rightswing from "../../assets/rightswing.svg";
+import ccw from "../../assets/icons/motion/ccw.svg";
+import cw from "../../assets/icons/motion/cw.svg";
+import cwccw from "../../assets/icons/motion/cw-ccw.svg";
+import fwd from "../../assets/icons/motion/fwd.svg";
+import rev from "../../assets/icons/motion/reverse.svg";
+import fastest from "../../assets/icons/motion/fwdrev.svg"
+import leftswing from "../../assets/icons/motion/leftswing.svg";
+import rightswing from "../../assets/icons/motion/rightswing.svg";
 import { drive_to_pose } from "./DriveMotions/DriveToPose";
 import { drive_distance } from "./DriveMotions/DriveDistance";
 import { drive_to_point } from "./DriveMotions/DriveToPoint";

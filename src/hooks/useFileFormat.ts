@@ -5,27 +5,27 @@ import type { Segment } from "../core/Types/Segment";
 import { FORMAT_REGISTRY, type Format, type FormatDef } from "../simulation/FormatDefinition";
 import type { RobotConstants } from "../core/Robot";
 
-import pushbackIcon from "../assets/pushbackball.svg";
-import highstakesIcon from "../assets/highstakesring.svg";
-import overrideIcon from "../assets/overridecup.svg";
+import pushbackIcon from "../assets/fields/pushback/icon.svg";
+import highstakesIcon from "../assets/fields/highstakes/icon.svg";
+import overrideIcon from "../assets/fields/override/icon.svg";
 
 
-import pushbackVEXUMatchField from "../assets/pushback-match.png";
-import pushbackSkillsField from "../assets/pushback-skills.png";
-import pushbackV5MatchField from "../assets/pushback-matchv5.png";
+import pushbackVEXUMatchField from "../assets/fields/pushback/vexu-match.png";
+import pushbackSkillsField from "../assets/fields/pushback/v5-skills.png";
+import pushbackV5MatchField from "../assets/fields/pushback/v5-match.png";
 
-import overrideVEXUMatchField from "../assets/VURC-Override-H2H-TopDownHighlighted-TileColor66_71@0.1.png";
-import overrideVEXUSkillsField from "../assets/VURC-Override-Skills-TopDownHighlighted-TileColor66_71@0.1.png";
-import overrideV5MatchField from "../assets/V5RC-Override-H2H-TopDownHighlighted-TileColor66_71@0.1.png";
-import overrideV5SkillsField from "../assets/V5RC-Override-Skills-TopDownHighlighted-TileColor66_71@0.1.png";
+import overrideVEXUMatchField from "../assets/fields/override/vexu-match.png";
+import overrideVEXUSkillsField from "../assets/fields/override/vexu-skills.png";
+import overrideV5MatchField from "../assets/fields/override/v5-match.png";
+import overrideV5SkillsField from "../assets/fields/override/v5-skills.png";
 
-import highstakesVEXUMatchField from "../assets/VURC-HighStakes-H2H-TopDownHighlighted-TileColor66_71@4.0.png";
-import highstakesVEXUSkillsField from "../assets/VURC-HighStakes-Skills-TopDownHighlighted-TileColor66_71@4.0.png";
-import highstakesV5MatchField from "../assets/V5RC-HighStakes-H2H-TopDownHighlighted-TileColor66_71@4.0.png";
-import highstakesV5SkillsField from "../assets/V5RC-HighStakes-Skills-TopDownHighlighted-TileColor66_71@4.0.png";
+import highstakesVEXUMatchField from "../assets/fields/highstakes/vexu-match.png";
+import highstakesVEXUSkillsField from "../assets/fields/highstakes/vexu-skills.png";
+import highstakesV5MatchField from "../assets/fields/highstakes/v5-match.png";
+import highstakesV5SkillsField from "../assets/fields/highstakes/v5-skills.png";
 
 
-import emptyField from "../assets/empty-field.png";
+import emptyField from "../assets/fields/empty.png";
 // import { dummyFormat } from "./useFileFormat.test";
 
 export type { FileFormat, FieldType, Format }

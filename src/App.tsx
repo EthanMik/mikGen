@@ -12,10 +12,10 @@ import { fileFormatStore } from "./hooks/useFileFormat";
 import { useFieldImg } from "./hooks/useFieldImg";
 import { invalidateSvgCtm } from "./components/Field/FieldUtils";
 import HoverButton from "./components/Util/HoverButton";
-import threeDots from "./assets/three-dots.svg";
-import lines from "./assets/lines.svg";
-import marker from "./assets/marker.svg";
-import homeButton from "./assets/home.svg";
+import threeDots from "./assets/icons/ui/three-dots.svg";
+import lines from "./assets/icons/ui/lines.svg";
+import marker from "./assets/icons/ui/marker.svg";
+import homeButton from "./assets/icons/ui/home.svg";
 
 // Everything on screen sits on one 8px grid: the window edges, the gaps between the
 // config panel, field, simulator and the right hand panels

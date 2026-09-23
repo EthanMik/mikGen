@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import ConfigButtonTemplate from "./ConfigButtonTemplate";
-import fileIcon from "../../assets/file.svg";
-import folderIcon from "../../assets/folder.svg";
-import back from "../../assets/back.svg";
+import fileIcon from "../../assets/icons/files/file.svg";
+import folderIcon from "../../assets/icons/files/folder.svg";
+import back from "../../assets/icons/ui/back.svg";
 import { loadFromHandle, fileSaveStore, fileHandleStore, dirHandleStore, loadFromGhostHandle, unloadFromGhostHandle } from "../../core/FileStore";
-import refresh from "../../assets/cw.svg";
-import check from "../../assets/check.svg";
-import eyeOpen from "../../assets/eye-open.svg";
-import eyeClose from "../../assets/eye-closed.svg";
+import refresh from "../../assets/icons/files/refresh.svg";
+import check from "../../assets/icons/ui/check.svg";
+import eyeOpen from "../../assets/icons/toggles/eye-open.svg";
+import eyeClose from "../../assets/icons/toggles/eye-closed.svg";
 import { ghostFilesStore } from "../../hooks/useFileFormat";
 
 type Entry = {

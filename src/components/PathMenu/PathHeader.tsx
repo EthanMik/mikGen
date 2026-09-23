@@ -1,9 +1,9 @@
 import { useRef, useState } from "react";
-import eyeOpen from "../../assets/eye-open.svg";
-import eyeClosed from "../../assets/eye-closed.svg";
-import clockClose from "../../assets/clock-close.svg";
-import clockOpen from "../../assets/clock-open.svg";
-import downArrow from "../../assets/down-arrow.svg";
+import eyeOpen from "../../assets/icons/toggles/eye-open.svg";
+import eyeClosed from "../../assets/icons/toggles/eye-closed.svg";
+import clockClose from "../../assets/icons/toggles/clock-close.svg";
+import clockOpen from "../../assets/icons/toggles/clock-open.svg";
+import downArrow from "../../assets/icons/ui/down-arrow.svg";
 import { usePathVisibility } from "../../hooks/usePathVisibility";
 import { fileFormatStore, updatePath } from "../../hooks/useFileFormat";
 import Tooltip from "../Util/Tooltip";

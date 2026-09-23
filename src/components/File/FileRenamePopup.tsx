@@ -1,7 +1,7 @@
 import { useFormat, usePath } from "../../hooks/useFileFormat";
 import TextInput from "../Util/TextInput";
-import enter from "../../assets/enter.svg";
-import cross from "../../assets/cross.svg"
+import enter from "../../assets/icons/ui/enter.svg";
+import cross from "../../assets/icons/ui/cross.svg"
 import type { SetStateAction } from "react";
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";

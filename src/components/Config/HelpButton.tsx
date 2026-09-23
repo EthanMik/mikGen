@@ -1,8 +1,8 @@
 import { MenuKeybindButton } from "../Util/KeybindButton";
 import MenuButtonTemplate from "../Util/MenuButtonTemplate";
-import folderIcon from "../../assets/file.svg"
-import github from "../../assets/github.svg"
-import discord from "../../assets/discord.svg"
+import folderIcon from "../../assets/icons/links/docs.svg"
+import github from "../../assets/icons/links/github.svg"
+import discord from "../../assets/icons/links/discord.svg"
 
 
 export default function HelpButton() {

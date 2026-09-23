@@ -1,7 +1,7 @@
 import { memo } from "react";
-import eyeOpen from "../../assets/eye-open.svg";
-import eyeClosed from "../../assets/eye-closed.svg";
-import trash from "../../assets/trash.svg";
+import eyeOpen from "../../assets/icons/toggles/eye-open.svg";
+import eyeClosed from "../../assets/icons/toggles/eye-closed.svg";
+import trash from "../../assets/icons/ui/trash.svg";
 import { fileFormatStore, selectSegmentById, updatePath } from "../../hooks/useFileFormat";
 import { segmentControls } from "../../core/Types/Bezier";
 import { saveSnapshot } from "../../core/Undo/UndoHistory";

@@ -1,4 +1,4 @@
-import check from "../../assets/check.svg"
+import check from "../../assets/icons/ui/check.svg"
 
 type CheckButtonProps = {
     name: string,

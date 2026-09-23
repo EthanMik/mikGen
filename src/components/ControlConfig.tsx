@@ -1,5 +1,5 @@
-import flipHorizontal from "../assets/flip-horizontal.svg";
-import flipVertical from "../assets/flip-vertical.svg";
+import flipHorizontal from "../assets/icons/ui/flip-horizontal.svg";
+import flipVertical from "../assets/icons/ui/flip-vertical.svg";
 import { distanceToPosition, getSegmentDistance } from "../core/Types/Path";
 import { saveSnapshot } from "../core/Undo/UndoHistory";
 import { normalizeDeg, resolveTurnPose } from "../core/Util";

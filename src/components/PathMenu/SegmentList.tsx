@@ -1,10 +1,10 @@
 import { memo, useEffect, useMemo, useState } from "react";
-import eyeOpen from "../../assets/eye-open.svg";
-import eyeClosed from "../../assets/eye-closed.svg";
-import clockClose from "../../assets/clock-close.svg";
-import clockOpen from "../../assets/clock-open.svg";
-import downArrow from "../../assets/down-arrow.svg";
-import play from "../../assets/play.svg";
+import eyeOpen from "../../assets/icons/toggles/eye-open.svg";
+import eyeClosed from "../../assets/icons/toggles/eye-closed.svg";
+import clockClose from "../../assets/icons/toggles/clock-close.svg";
+import clockOpen from "../../assets/icons/toggles/clock-open.svg";
+import downArrow from "../../assets/icons/ui/down-arrow.svg";
+import play from "../../assets/icons/playback/play.svg";
 import Slider from "../Util/Slider";
 import { useFormatDef, fileFormatStore, selectSegmentById, updatePath } from "../../hooks/useFileFormat";
 import ConstantsList from "./ConstantsList";

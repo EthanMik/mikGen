@@ -1,10 +1,10 @@
 import type { CycleButtonField, FormatDef, NumberInputGroup, SegmentKind } from "../FormatDefinition";
 import type { Pose } from "../../core/Types/Pose";
 import { normalizeDeg, roundOff } from "../../core/Util";
-import leftswing from "../../assets/leftswing.svg";
-import rightswing from "../../assets/rightswing.svg";
-import fwd from "../../assets/fwd.svg";
-import rev from "../../assets/reverse.svg";
+import leftswing from "../../assets/icons/motion/leftswing.svg";
+import rightswing from "../../assets/icons/motion/rightswing.svg";
+import fwd from "../../assets/icons/motion/fwd.svg";
+import rev from "../../assets/icons/motion/reverse.svg";
 import { drive_distance, drive_to_point, drive_to_pose, swing_to_angle, turn_to_angle, turn_to_point } from "./drive";
 import { turnLockButton } from "../TurnFields";
 

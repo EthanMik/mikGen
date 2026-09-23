@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Coordinate } from "../../core/Types/Coordinate";
-import homeButton from "../../assets/home.svg";
+import homeButton from "../../assets/icons/ui/home.svg";
 import type { Segment } from "../../core/Types/Segment";
 import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, toInch, toRGBA } from "../../core/Util";
 import { usePath, useFormat, useField, getFieldSrcFromKey, fileFormatStore, updatePath, ghostFilesStore } from "../../hooks/useFileFormat";

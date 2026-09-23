@@ -1,4 +1,4 @@
-import plus from "../assets/plus.svg";
+import plus from "../assets/icons/ui/plus.svg";
 import { bezierEndpoints, chordControlPosition, segmentControls } from "../core/Types/Bezier";
 import { createControlPoint } from "../core/Types/Pose";
 import type { ActionButtonField } from "./FormatDefinition";
