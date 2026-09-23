@@ -12863,7 +12863,7 @@ function fitCubic(p0, p1, through) {
   return best;
 }
 const ccw = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_301_13)'%3e%3cpath%20d='M1.21931%202.13826C1.89274%202.13826%202.43862%202.68416%202.43862%203.35757V5.31611C3.165%204.05176%204.17638%202.97141%205.40345%202.15761C6.94433%201.13569%208.73971%200.59552%2010.5955%200.59552C11.8646%200.59552%2013.0964%200.844329%2014.2566%201.33507C15.3766%201.80879%2016.3822%202.48673%2017.2455%203.35002C18.1088%204.21332%2018.7867%205.21896%2019.2605%206.33898C19.7512%207.4992%2020%208.73096%2020%2010C20%2011.2691%2019.7512%2012.5008%2019.2604%2013.661C18.7867%2014.7811%2018.1088%2015.7867%2017.2455%2016.65C16.3822%2017.5133%2015.3765%2018.1912%2014.2565%2018.6649C13.0963%2019.1557%2011.8646%2019.4045%2010.5955%2019.4045C9.51175%2019.4045%208.44882%2019.2214%207.43621%2018.8603C6.45763%2018.5114%205.54814%2018.0045%204.73299%2017.354C3.92588%2016.7098%203.23407%2015.9431%202.67677%2015.0752C2.10908%2014.191%201.69688%2013.226%201.45174%2012.2071C1.29421%2011.5524%201.69719%2010.8939%202.35194%2010.7363C3.00672%2010.5788%203.66515%2010.9819%203.82269%2011.6366C4.18195%2013.1297%205.04546%2014.4833%206.2542%2015.448C6.85805%2015.9299%207.53129%2016.3052%208.25526%2016.5633C9.00427%2016.8304%209.79164%2016.9659%2010.5955%2016.9659C12.4561%2016.9659%2014.2055%2016.2413%2015.5211%2014.9256C16.8368%2013.6099%2017.5614%2011.8606%2017.5614%209.99995C17.5614%208.13933%2016.8368%206.39%2015.5211%205.07433C14.2054%203.75866%2012.4561%203.03407%2010.5955%203.03407C9.22063%203.03407%207.89133%203.43372%206.75126%204.18981C5.76887%204.84137%204.97311%205.72282%204.42863%206.75724H5.77625C6.44968%206.75724%206.99556%207.30314%206.99556%207.97655C6.99556%208.64993%206.44968%209.19586%205.77625%209.19586H1.21931C0.545879%209.19586%201.06012e-07%208.64993%201.06012e-07%207.97655V3.35757C1.06012e-07%202.68416%200.545926%202.13826%201.21931%202.13826Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_301_13'%3e%3crect%20width='20'%20height='20'%20fill='white'%20transform='matrix(-1%200%200%201%2020%200)'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
-const refresh = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_301_6)'%3e%3cpath%20d='M18.7807%202.13826C18.1073%202.13826%2017.5614%202.68416%2017.5614%203.35757V5.31611C16.835%204.05176%2015.8236%202.97141%2014.5966%202.15761C13.0557%201.13569%2011.2603%200.59552%209.40448%200.59552C8.13537%200.59552%206.90364%200.844329%205.74344%201.33507C4.62339%201.80879%203.6178%202.48673%202.75448%203.35002C1.89121%204.21332%201.21327%205.21896%200.739529%206.33898C0.248832%207.4992%200%208.73096%200%2010C0%2011.2691%200.248832%2012.5008%200.739552%2013.661C1.21327%2014.7811%201.89123%2015.7867%202.75452%2016.65C3.61782%2017.5133%204.62346%2018.1912%205.74346%2018.6649C6.90366%2019.1557%208.1354%2019.4045%209.4045%2019.4045C10.4882%2019.4045%2011.5512%2019.2214%2012.5638%2018.8603C13.5424%2018.5114%2014.4519%2018.0045%2015.267%2017.354C16.0741%2016.7098%2016.7659%2015.9431%2017.3232%2015.0752C17.8909%2014.191%2018.3031%2013.226%2018.5483%2012.2071C18.7058%2011.5524%2018.3028%2010.8939%2017.6481%2010.7363C16.9933%2010.5788%2016.3348%2010.9819%2016.1773%2011.6366C15.818%2013.1297%2014.9545%2014.4833%2013.7458%2015.448C13.142%2015.9299%2012.4687%2016.3052%2011.7447%2016.5633C10.9957%2016.8304%2010.2084%2016.9659%209.4045%2016.9659C7.54386%2016.9659%205.79453%2016.2413%204.47888%2014.9256C3.16321%2013.6099%202.43862%2011.8606%202.43862%209.99995C2.43862%208.13933%203.16319%206.39%204.47888%205.07433C5.79458%203.75866%207.54386%203.03407%209.4045%203.03407C10.7794%203.03407%2012.1087%203.43372%2013.2487%204.18981C14.2311%204.84137%2015.0269%205.72282%2015.5714%206.75724H14.2237C13.5503%206.75724%2013.0044%207.30314%2013.0044%207.97655C13.0044%208.64993%2013.5503%209.19586%2014.2237%209.19586H18.7807C19.4541%209.19586%2020%208.64993%2020%207.97655V3.35757C20%202.68416%2019.4541%202.13826%2018.7807%202.13826Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_301_6'%3e%3crect%20width='20'%20height='20'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
+const cw = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_301_6)'%3e%3cpath%20d='M18.7807%202.13826C18.1073%202.13826%2017.5614%202.68416%2017.5614%203.35757V5.31611C16.835%204.05176%2015.8236%202.97141%2014.5966%202.15761C13.0557%201.13569%2011.2603%200.59552%209.40448%200.59552C8.13537%200.59552%206.90364%200.844329%205.74344%201.33507C4.62339%201.80879%203.6178%202.48673%202.75448%203.35002C1.89121%204.21332%201.21327%205.21896%200.739529%206.33898C0.248832%207.4992%200%208.73096%200%2010C0%2011.2691%200.248832%2012.5008%200.739552%2013.661C1.21327%2014.7811%201.89123%2015.7867%202.75452%2016.65C3.61782%2017.5133%204.62346%2018.1912%205.74346%2018.6649C6.90366%2019.1557%208.1354%2019.4045%209.4045%2019.4045C10.4882%2019.4045%2011.5512%2019.2214%2012.5638%2018.8603C13.5424%2018.5114%2014.4519%2018.0045%2015.267%2017.354C16.0741%2016.7098%2016.7659%2015.9431%2017.3232%2015.0752C17.8909%2014.191%2018.3031%2013.226%2018.5483%2012.2071C18.7058%2011.5524%2018.3028%2010.8939%2017.6481%2010.7363C16.9933%2010.5788%2016.3348%2010.9819%2016.1773%2011.6366C15.818%2013.1297%2014.9545%2014.4833%2013.7458%2015.448C13.142%2015.9299%2012.4687%2016.3052%2011.7447%2016.5633C10.9957%2016.8304%2010.2084%2016.9659%209.4045%2016.9659C7.54386%2016.9659%205.79453%2016.2413%204.47888%2014.9256C3.16321%2013.6099%202.43862%2011.8606%202.43862%209.99995C2.43862%208.13933%203.16319%206.39%204.47888%205.07433C5.79458%203.75866%207.54386%203.03407%209.4045%203.03407C10.7794%203.03407%2012.1087%203.43372%2013.2487%204.18981C14.2311%204.84137%2015.0269%205.72282%2015.5714%206.75724H14.2237C13.5503%206.75724%2013.0044%207.30314%2013.0044%207.97655C13.0044%208.64993%2013.5503%209.19586%2014.2237%209.19586H18.7807C19.4541%209.19586%2020%208.64993%2020%207.97655V3.35757C20%202.68416%2019.4541%202.13826%2018.7807%202.13826Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_301_6'%3e%3crect%20width='20'%20height='20'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
 const cwccw = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M5.453%209.24096C6.08872%209.24096%206.60408%208.72561%206.60408%208.08988C6.60408%207.45416%206.08872%206.93881%205.453%206.93881H4.17772C4.62934%206.08515%205.26881%205.32864%206.04444%204.7442C7.19062%203.8805%208.55757%203.424%209.99747%203.424C10.7563%203.424%2011.4997%203.55184%2012.2067%203.80398C12.8902%204.04768%2013.5258%204.40195%2014.0958%204.85692C15.2369%205.76761%2016.0521%207.04543%2016.3913%208.45505C16.5182%208.98264%2016.9897%209.33712%2017.5095%209.33708C17.5985%209.33708%2017.6892%209.32662%2017.7797%209.30487C18.3977%209.15615%2018.7783%208.53453%2018.6295%207.91646C18.398%206.95455%2018.0089%206.0436%2017.473%205.20886C16.9469%204.38947%2016.2938%203.66568%2015.5319%203.05758C14.7623%202.44341%2013.9038%201.96498%2012.9799%201.63556C12.024%201.29468%2011.0205%201.12183%209.99745%201.12183C9.01765%201.12183%208.05448%201.28065%207.13454%201.59385C6.24507%201.89671%205.41216%202.33804%204.659%202.90558C3.91471%203.46642%203.26565%204.13722%202.72991%204.89937C2.57683%205.11713%202.4344%205.3411%202.30213%205.57039V3.72931C2.30213%203.09358%201.78677%202.57823%201.15105%202.57823C0.515331%202.57823%200%203.09361%200%203.72933V8.08991C0%208.72563%200.515353%209.24098%201.15107%209.24098L5.453%209.24096Z'%20fill='white'/%3e%3cpath%20d='M18.8489%2010.7591H14.5469C13.9112%2010.7591%2013.3959%2011.2745%2013.3959%2011.9102C13.3959%2012.5459%2013.9112%2013.0613%2014.5469%2013.0613H15.8192C15.3052%2014.0378%2014.554%2014.87%2013.6265%2015.485C12.551%2016.1983%2011.2971%2016.5756%2010.0001%2016.5761C9.24206%2016.5758%208.49954%2016.448%207.7932%2016.1961C7.10975%2015.9524%206.47418%2015.5982%205.9041%2015.1432C4.76302%2014.2325%203.94782%2012.9547%203.60866%2011.5451C3.45996%2010.927%202.83838%2010.5465%202.22024%2010.6952C1.60217%2010.8439%201.22168%2011.4656%201.3704%2012.0836C1.60184%2013.0455%201.99095%2013.9565%202.52691%2014.7912C3.05301%2015.6106%203.7061%2016.3344%204.46804%2016.9425C5.23757%2017.5567%206.09617%2018.0351%207.01999%2018.3645C7.97323%2018.7044%208.97368%2018.8772%209.99379%2018.8781C9.99502%2018.8781%209.99618%2018.8782%209.99743%2018.8782C9.99835%2018.8782%209.99925%2018.8782%2010.0002%2018.8782C10.001%2018.8782%2010.0017%2018.8782%2010.0025%2018.8782C10.0034%2018.8782%2010.0044%2018.8782%2010.0053%2018.8782C11.7545%2018.8767%2013.4465%2018.3669%2014.8989%2017.4036C16.0573%2016.6354%2017.0121%2015.6154%2017.6978%2014.4218V16.2708C17.6978%2016.9065%2018.2132%2017.4219%2018.8489%2017.4219C19.4846%2017.4219%2020%2016.9065%2020%2016.2708V11.9102C20%2011.2745%2019.4846%2010.7591%2018.8489%2010.7591Z'%20fill='white'/%3e%3c/svg%3e";
 const fwd = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_304_10)'%3e%3cpath%20d='M16.1753%208.37015L16.8962%209.09093L0.909059%209.09093C0.406998%209.09093%20-3.20384e-05%209.49796%20-3.20384e-05%2010C-3.20384e-05%2010.5021%200.406998%2010.9091%200.909059%2010.9091L16.8962%2010.9091L16.1753%2011.63C15.9978%2011.8075%2015.909%2012.0401%2015.909%2012.2728C15.909%2012.5054%2015.9977%2012.7381%2016.1753%2012.9156C16.5303%2013.2706%2017.1059%2013.2706%2017.4609%2012.9156L19.7337%2010.6429C20.0887%2010.2879%2020.0887%209.71227%2019.7337%209.35724L17.4609%207.08451C17.1059%206.72948%2016.5303%206.72948%2016.1753%207.08451C15.8203%207.43948%2015.8203%208.01512%2016.1753%208.37015Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_304_10'%3e%3crect%20width='20'%20height='20'%20fill='white'%20transform='matrix(0%201%20-1%200%2020%200)'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
 const rev = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_304_8)'%3e%3cpath%20d='M3.8247%2011.6299L3.10385%2010.9091L19.0909%2010.9091C19.593%2010.9091%2020%2010.502%2020%209.99997C20%209.49791%2019.593%209.09088%2019.0909%209.09088H3.10385L3.8247%208.37004C4.00221%208.19252%204.091%207.95985%204.091%207.72725C4.091%207.49458%204.00227%207.26191%203.8247%207.0844C3.46967%206.72937%202.89409%206.72937%202.53906%207.0844L0.266334%209.35713C-0.0886965%209.7121%20-0.0886965%2010.2877%200.266334%2010.6428L2.53906%2012.9155C2.89409%2013.2705%203.46967%2013.2705%203.8247%2012.9155C4.17973%2012.5605%204.17973%2011.9849%203.8247%2011.6299Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_304_8'%3e%3crect%20width='20'%20height='20'%20fill='white'%20transform='matrix(0%20-1%201%200%200%2020)'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
@@ -13577,7 +13577,7 @@ const forwardsButton = {
 const directionButton = {
   key: "direction",
   keyValues: [
-    { srcImg: refresh, value: "AngularDirection::CW_CLOCKWISE" },
+    { srcImg: cw, value: "AngularDirection::CW_CLOCKWISE" },
     { srcImg: ccw, value: "AngularDirection::CCW_COUNTERCLOCKWISE" },
     { srcImg: cwccw, value: "AngularDirection::AUTO" }
   ]
@@ -14564,7 +14564,7 @@ const driveDirectionButton$2 = {
 const turnDirectionButton$2 = {
   key: "turn_direction",
   keyValues: [
-    { srcImg: refresh, value: "cw" },
+    { srcImg: cw, value: "cw" },
     { srcImg: ccw, value: "ccw" },
     { srcImg: cwccw, value: "fastest" }
   ]
@@ -16176,9 +16176,9 @@ const slowest = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%
 const stop = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='80'%20height='80'%20viewBox='3%2011%2019%202'%20fill='none'%20stroke='%23FFFFFF'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%20%3e%3cpolyline%20points='7%2018%2013%2012%207%206'%20/%3e%3cpath%20d='M17%206v12'%20/%3e%3c/svg%3e";
 const slow = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='80'%20height='80'%20viewBox='3%2011%2019%202'%20fill='none'%20stroke='%23FFFFFF'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%20%3e%3cpolyline%20points='9%2018%2015%2012%209%206'%20/%3e%3c/svg%3e";
 const fast = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='80'%20height='80'%20viewBox='3%2011%2019%202'%20fill='none'%20stroke='%23FFFFFF'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%20%3e%3cpolyline%20points='13%2017%2018%2012%2013%207'%20/%3e%3cpolyline%20points='6%2017%2011%2012%206%207'%20/%3e%3c/svg%3e";
-const marker = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20version='1.1'%20id='_x32_'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='800px'%20height='800px'%20viewBox='0%200%20512%20512'%20xml:space='preserve'%20fill='%23ffffff'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cstyle%20type='text/css'%3e%20.st0{fill:%23ffffff;}%20%3c/style%3e%3cg%3e%3cpath%20class='st0'%20d='M405.969,62.123c-82.828-82.828-217.109-82.828-299.938,0c-82.813,82.813-82.813,217.109,0,299.922%20L256,511.998l149.969-149.953C488.781,279.232,488.781,144.936,405.969,62.123z%20M256,293.201%20c-44.797,0-81.125-36.313-81.125-81.109c0-44.813,36.328-81.125,81.125-81.125s81.125,36.313,81.125,81.125%20C337.125,256.889,300.797,293.201,256,293.201z'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e";
-const lines = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2016%2016'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M1%205H15V7H1V5Z'%20fill='%23FFFFFF'/%3e%3cpath%20d='M1%209H15V11H1V9Z'%20fill='%23FFFFFF'/%3e%3cpath%20d='M1%2013H15V15H1V13Z'%20fill='%23FFFFFF'/%3e%3cpath%20d='M1%201H15V3H1V1Z'%20fill='%23FFFFFF'/%3e%3c/svg%3e";
-const loopOn = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20stroke='%23ffffff'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20d='M21%2012C21%2016.9706%2016.9706%2021%2012%2021C9.69494%2021%207.59227%2020.1334%206%2018.7083L3%2016M3%2012C3%207.02944%207.02944%203%2012%203C14.3051%203%2016.4077%203.86656%2018%205.29168L21%208M3%2021V16M3%2016H8M21%203V8M21%208H16'%20stroke='%23ffffff'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/g%3e%3c/svg%3e";
+const marker$1 = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20version='1.1'%20id='_x32_'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='800px'%20height='800px'%20viewBox='0%200%20512%20512'%20xml:space='preserve'%20fill='%23ffffff'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cstyle%20type='text/css'%3e%20.st0{fill:%23ffffff;}%20%3c/style%3e%3cg%3e%3cpath%20class='st0'%20d='M405.969,62.123c-82.828-82.828-217.109-82.828-299.938,0c-82.813,82.813-82.813,217.109,0,299.922%20L256,511.998l149.969-149.953C488.781,279.232,488.781,144.936,405.969,62.123z%20M256,293.201%20c-44.797,0-81.125-36.313-81.125-81.109c0-44.813,36.328-81.125,81.125-81.125s81.125,36.313,81.125,81.125%20C337.125,256.889,300.797,293.201,256,293.201z'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e";
+const lines$1 = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2016%2016'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M1%205H15V7H1V5Z'%20fill='%23FFFFFF'/%3e%3cpath%20d='M1%209H15V11H1V9Z'%20fill='%23FFFFFF'/%3e%3cpath%20d='M1%2013H15V15H1V13Z'%20fill='%23FFFFFF'/%3e%3cpath%20d='M1%201H15V3H1V1Z'%20fill='%23FFFFFF'/%3e%3c/svg%3e";
+const loop = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20stroke='%23ffffff'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20d='M21%2012C21%2016.9706%2016.9706%2021%2012%2021C9.69494%2021%207.59227%2020.1334%206%2018.7083L3%2016M3%2012C3%207.02944%207.02944%203%2012%203C14.3051%203%2016.4077%203.86656%2018%205.29168L21%208M3%2021V16M3%2016H8M21%203V8M21%208H16'%20stroke='%23ffffff'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/g%3e%3c/svg%3e";
 const COORD_PLACEHOLDERS = /* @__PURE__ */ new Set(["x", "y", "angle", "distance", "time", "c1x", "c1y", "c2x", "c2y"]);
 const POINTS_PLACEHOLDER = /\$\{points(?::([\d.]+))?\}/;
 const DEFAULT_POINT_SPACING = 5;
@@ -17580,7 +17580,7 @@ const turnDirectionButton$1 = {
   key: "angle_behavior",
   keyValues: [
     { srcImg: slowest, value: "longest" },
-    { srcImg: refresh, value: "cw" },
+    { srcImg: cw, value: "cw" },
     { srcImg: ccw, value: "ccw" },
     { srcImg: fastest, value: "shortest" }
   ]
@@ -17603,9 +17603,9 @@ const waitButton = {
 const ppModeButton = {
   key: "pp_mode",
   keyValues: [
-    { srcImg: marker, value: "pid_odom_injected_pp_set" },
-    { srcImg: lines, value: "pid_odom_pp_set" },
-    { srcImg: loopOn, value: "pid_odom_smooth_pp_set" }
+    { srcImg: marker$1, value: "pid_odom_injected_pp_set" },
+    { srcImg: lines$1, value: "pid_odom_pp_set" },
+    { srcImg: loop, value: "pid_odom_smooth_pp_set" }
   ]
 };
 const EZTemplateDef = {
@@ -18768,7 +18768,7 @@ const driveDirectionButton = {
 const turnDirectionButton = {
   key: "turn_direction",
   keyValues: [
-    { srcImg: refresh, value: "cw" },
+    { srcImg: cw, value: "cw" },
     { srcImg: ccw, value: "ccw" },
     { srcImg: cwccw, value: "shortest" }
   ]
@@ -20392,21 +20392,21 @@ function loadAppState() {
   }
 }
 const VALIDATED_APP_STATE = loadAppState();
-const pushbackIcon = "/assets/pushbackball-BhL-2NIV.svg";
-const highstakesIcon = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!--%20Created%20with%20Inkscape%20(http://www.inkscape.org/)%20--%3e%3csvg%20width='300mm'%20height='300mm'%20viewBox='0%200%20300%20300'%20version='1.1'%20id='svg1'%20inkscape:version='1.4.4%20(dcaf3e7d9e,%202026-05-05)'%20sodipodi:docname='highstakesring.svg'%20xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'%20xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:svg='http://www.w3.org/2000/svg'%3e%3csodipodi:namedview%20id='namedview1'%20pagecolor='%23505050'%20bordercolor='%23eeeeee'%20borderopacity='1'%20inkscape:showpageshadow='0'%20inkscape:pageopacity='0'%20inkscape:pagecheckerboard='0'%20inkscape:deskcolor='%23505050'%20inkscape:document-units='mm'%20inkscape:zoom='0.35355339'%20inkscape:cx='69.296465'%20inkscape:cy='543.05801'%20inkscape:window-width='1908'%20inkscape:window-height='1023'%20inkscape:window-x='0'%20inkscape:window-y='0'%20inkscape:window-maximized='1'%20inkscape:current-layer='layer1'%20/%3e%3cdefs%20id='defs1'%20/%3e%3cg%20inkscape:label='Layer%201'%20inkscape:groupmode='layer'%20id='layer1'%3e%3cpath%20d='M%20150.00015,25.000024%20A%20125,125%200%200%200%2025.000024,150.00015%20125,125%200%200%200%20150.00015,274.99975%20125,125%200%200%200%20274.99975,150.00015%20125,125%200%200%200%20150.00015,25.000024%20Z%20m%200,59.999956%20a%2065,65%200%200%201%2064.99965,65.00017%2065,65%200%200%201%20-64.99965,64.99965%2065,65%200%200%201%20-65.00017,-64.99965%2065,65%200%200%201%2065.00017,-65.00017%20z'%20style='fill:%23ffffff;stroke-width:30.9805'%20id='path3'%20/%3e%3c/g%3e%3c/svg%3e";
+const pushbackIcon = "/assets/icon-CyLEE9C0.svg";
+const highstakesIcon = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!--%20Created%20with%20Inkscape%20(http://www.inkscape.org/)%20--%3e%3csvg%20width='300mm'%20height='300mm'%20viewBox='25%2025%20250%20250'%20version='1.1'%20id='svg1'%20inkscape:version='1.4.4%20(dcaf3e7d9e,%202026-05-05)'%20sodipodi:docname='highstakesring.svg'%20xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'%20xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:svg='http://www.w3.org/2000/svg'%3e%3csodipodi:namedview%20id='namedview1'%20pagecolor='%23505050'%20bordercolor='%23eeeeee'%20borderopacity='1'%20inkscape:showpageshadow='0'%20inkscape:pageopacity='0'%20inkscape:pagecheckerboard='0'%20inkscape:deskcolor='%23505050'%20inkscape:document-units='mm'%20inkscape:zoom='0.35355339'%20inkscape:cx='69.296465'%20inkscape:cy='543.05801'%20inkscape:window-width='1908'%20inkscape:window-height='1023'%20inkscape:window-x='0'%20inkscape:window-y='0'%20inkscape:window-maximized='1'%20inkscape:current-layer='layer1'%20/%3e%3cdefs%20id='defs1'%20/%3e%3cg%20inkscape:label='Layer%201'%20inkscape:groupmode='layer'%20id='layer1'%3e%3cpath%20d='M%20150.00015,25.000024%20A%20125,125%200%200%200%2025.000024,150.00015%20125,125%200%200%200%20150.00015,274.99975%20125,125%200%200%200%20274.99975,150.00015%20125,125%200%200%200%20150.00015,25.000024%20Z%20m%200,59.999956%20a%2065,65%200%200%201%2064.99965,65.00017%2065,65%200%200%201%20-64.99965,64.99965%2065,65%200%200%201%20-65.00017,-64.99965%2065,65%200%200%201%2065.00017,-65.00017%20z'%20style='fill:%23ffffff;stroke-width:30.9805'%20id='path3'%20/%3e%3c/g%3e%3c/svg%3e";
 const overrideIcon = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!--%20Created%20with%20Inkscape%20(http://www.inkscape.org/)%20--%3e%3csvg%20width='300mm'%20height='300mm'%20viewBox='0%200%20300%20300'%20version='1.1'%20id='svg1'%20xml:space='preserve'%20sodipodi:docname='overridecup.svg'%20inkscape:version='1.4.4%20(dcaf3e7d9e,%202026-05-05)'%20xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'%20xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:svg='http://www.w3.org/2000/svg'%3e%3csodipodi:namedview%20id='namedview1'%20pagecolor='%23505050'%20bordercolor='%23eeeeee'%20borderopacity='1'%20inkscape:showpageshadow='0'%20inkscape:pageopacity='0'%20inkscape:pagecheckerboard='0'%20inkscape:deskcolor='%23505050'%20inkscape:document-units='mm'%20inkscape:zoom='0.29219978'%20inkscape:cx='114.64759'%20inkscape:cy='3.4223161'%20inkscape:window-width='1908'%20inkscape:window-height='1023'%20inkscape:window-x='0'%20inkscape:window-y='0'%20inkscape:window-maximized='1'%20inkscape:current-layer='layer1'%20/%3e%3cdefs%20id='defs1'%3e%3cinkscape:path-effect%20effect='fillet_chamfer'%20id='path-effect5'%20is_visible='true'%20lpeversion='1'%20nodesatellites_param='F,0,0,1,0,1.3229167,0,1%20@%20F,0,0,1,0,1.3229167,0,1%20@%20F,0,0,1,0,1.3229167,0,1%20@%20F,0,0,1,0,1.3229167,0,1%20@%20F,0,0,1,0,1.3229167,0,1%20@%20F,0,0,1,0,1.3229167,0,1%20@%20F,0,0,1,0,1.3229167,0,1%20@%20F,0,0,1,0,1.3229167,0,1%20@%20F,0,0,1,0,1.3229167,0,1%20@%20F,0,0,1,0,1.3229167,0,1%20@%20F,0,0,1,0,1.3229167,0,1%20@%20F,0,0,1,0,1.3229167,0,1%20|%20F,0,0,1,0,1.3229167,0,1%20@%20F,0,0,1,0,1.3229167,0,1%20@%20F,0,0,1,0,0,0,1%20@%20F,0,0,1,0,1.3229167,0,1%20@%20F,0,0,1,0,1.3229167,0,1%20|%20F,0,0,1,0,0,0,1%20@%20F,0,0,1,0,1.3229167,0,1%20@%20F,0,0,1,0,1.3229167,0,1%20@%20F,0,0,1,0,1.3229167,0,1%20@%20F,0,0,1,0,1.3229167,0,1%20@%20F,0,0,1,0,0,0,1'%20radius='10'%20unit='px'%20method='auto'%20mode='F'%20chamfer_steps='1'%20flexible='false'%20use_knot_distance='true'%20apply_no_radius='true'%20apply_with_radius='true'%20only_selected='false'%20hide_knots='false'%20/%3e%3c/defs%3e%3cg%20inkscape:label='Layer%201'%20inkscape:groupmode='layer'%20id='layer1'%3e%3cpath%20id='rect2'%20style='fill:%23ffffff;stroke-width:17.302'%20d='M%20126.00988,1.3229167%20V%2021.767146%20a%200.93757692,0.93757692%2086.133947%200%200%200.0894,1.322917%20L%20108.2085,111.41694%20a%201.6213307,1.6213307%20140.66301%200%201%20-1.58554,1.29946%20l%20-6.37895,0.0139%20a%202.2906184,2.2906184%20149.86754%200%200%20-1.981563,1.15017%20l%20-5.700366,9.92946%20a%200.76595017,0.76595017%2059.929762%200%200%200.66427,1.1473%20l%20115.520589,0%20a%200.74901755,0.74901755%20119.51795%200%200%200.64228,-1.13439%20l%20-6.10906,-10.18162%20a%202.330632,2.330632%2029.455732%200%200%20-2.00355,-1.13152%20l%20-6.37844,0.0139%20a%201.5711141,1.5711141%2039.973761%200%201%20-1.551,-1.30024%20L%20178.14901,24.392583%20a%201.0425073,1.0425073%2076.307367%200%200%20-0.31749,-1.303106%20V%201.3229167%20A%201.3229167,1.3229167%2045%200%200%20176.5086,0%20h%20-49.1758%20a%201.3229167,1.3229167%20135%200%200%20-1.32292,1.3229167%20z%20M%2090.641268,176.18985%20l%205.700366,9.92946%20a%202.2906758,2.2906758%2030.133078%200%200%201.981561,1.1502%20l%207.612455,0.0167%2093.42015,0.20382%20a%202.3306052,2.3306052%20150.54455%200%200%202.00355,-1.1315%20l%206.10906,-10.18162%20a%200.74901733,0.74901733%2060.48204%200%200%20-0.64228,-1.13439%20l%20-115.520592,3e-5%20a%200.76595039,0.76595039%20120.07023%200%200%20-0.66427,1.1473%20z%20m%2015.294382,11.09639%2017.8908,88.3274%20a%2013.195193,13.195193%2084.274801%200%201%200.26262,2.61951%20v%2020.44371%20a%201.3229167,1.3229167%2045%200%200%201.32292,1.32292%20h%2049.1758%20a%201.3229167,1.3229167%20135%200%200%201.32292,-1.32292%20v%20-20.44371%20a%2015.231669,15.231669%2094.963856%200%201%200.22808,-2.62603%20l%2015.42574,-88.13381%20z'%20inkscape:path-effect='%23path-effect5'%20inkscape:original-d='m%20126.00988,0%20v%2023.090063%20h%200.0894%20l%20-18.15341,89.623467%20-9.024776,0.0196%20-7.01766,12.22406%20H%20210.06986%20l%20-7.47034,-12.4504%20-9.02426,0.0196%20-15.65434,-89.436913%20h%20-0.0894%20V%200%20Z%20m%20-36.027259,175.04255%207.01766,12.22406%208.935369,0.0196%2094.74306,0.20671%207.47034,-12.4504%20z%20m%2015.953029,12.24369%2018.15342,89.62399%20v%2023.08955%20h%2051.82164%20v%20-23.08955%20l%2015.65382,-89.43692%20z'%20/%3e%3c/g%3e%3c/svg%3e";
-const pushbackVEXUMatchField = "/assets/pushback-match-BE3uYq7F.png";
-const pushbackSkillsField = "/assets/pushback-skills-Efz9rFPV.png";
-const pushbackV5MatchField = "/assets/pushback-matchv5-DmG8OjtY.png";
-const overrideVEXUMatchField = "/assets/VURC-Override-H2H-TopDownHighlighted-TileColor66_71@0.1-CDgzjcdL.png";
-const overrideVEXUSkillsField = "/assets/VURC-Override-Skills-TopDownHighlighted-TileColor66_71@0.1-CQsLWMNP.png";
-const overrideV5MatchField = "/assets/V5RC-Override-H2H-TopDownHighlighted-TileColor66_71@0.1-B9rUnxPL.png";
-const overrideV5SkillsField = "/assets/V5RC-Override-Skills-TopDownHighlighted-TileColor66_71@0.1-CA_Bfnio.png";
-const highstakesVEXUMatchField = "/assets/VURC-HighStakes-H2H-TopDownHighlighted-TileColor66_71@4.0-khyeGDAg.png";
-const highstakesVEXUSkillsField = "/assets/VURC-HighStakes-Skills-TopDownHighlighted-TileColor66_71@4.0-CR-xx8Hg.png";
-const highstakesV5MatchField = "/assets/V5RC-HighStakes-H2H-TopDownHighlighted-TileColor66_71@4.0-nPCijn3u.png";
-const highstakesV5SkillsField = "/assets/V5RC-HighStakes-Skills-TopDownHighlighted-TileColor66_71@4.0-DT0jEjfK.png";
-const emptyField = "/assets/empty-field-DoV3rtqm.png";
+const pushbackVEXUMatchField = "/assets/vexu-match-BE3uYq7F.png";
+const pushbackSkillsField = "/assets/v5-skills-Efz9rFPV.png";
+const pushbackV5MatchField = "/assets/v5-match-DmG8OjtY.png";
+const overrideVEXUMatchField = "/assets/vexu-match-CDgzjcdL.png";
+const overrideVEXUSkillsField = "/assets/vexu-skills-CQsLWMNP.png";
+const overrideV5MatchField = "/assets/v5-match-B9rUnxPL.png";
+const overrideV5SkillsField = "/assets/v5-skills-CA_Bfnio.png";
+const highstakesVEXUMatchField = "/assets/vexu-match-khyeGDAg.png";
+const highstakesVEXUSkillsField = "/assets/vexu-skills-CR-xx8Hg.png";
+const highstakesV5MatchField = "/assets/v5-match-nPCijn3u.png";
+const highstakesV5SkillsField = "/assets/v5-skills-DT0jEjfK.png";
+const emptyField = "/assets/empty-DoV3rtqm.png";
 const fileFormatStore = createStore$1(VALIDATED_APP_STATE);
 const ghostFilesStore = createStore$1([
   // { handle: null, fileFormat: seedFileFormat(dummyFormat) }
@@ -22694,6 +22694,7 @@ function useRafThrottle() {
   }, []);
   return schedule;
 }
+const loopOn = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20stroke='%23ffffff'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20d='M21%2012C21%2016.9706%2016.9706%2021%2012%2021C9.69494%2021%207.59227%2020.1334%206%2018.7083L3%2016M3%2012C3%207.02944%207.02944%203%2012%203C14.3051%203%2016.4077%203.86656%2018%205.29168L21%208M3%2021V16M3%2016H8M21%203V8M21%208H16'%20stroke='%23ffffff'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/g%3e%3c/svg%3e";
 const loopOff = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'%20standalone='no'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20version='1.1'%20id='svg1'%20sodipodi:docname='refresh-cw-alt-svgrepo-com%20(2).svg'%20inkscape:version='1.4.4%20(dcaf3e7d9e,%202026-05-05)'%20xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'%20xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:svg='http://www.w3.org/2000/svg'%3e%3cdefs%20id='defs1'%3e%3cinkscape:path-effect%20effect='fillet_chamfer'%20id='path-effect7'%20is_visible='true'%20lpeversion='1'%20nodesatellites_param='F,0,0,1,0,0,0,1%20@%20F,0,0,1,0,0,0,1%20@%20F,0,0,1,0,0,0,1%20@%20F,0,0,1,0,0,0,1'%20radius='0'%20unit='px'%20method='auto'%20mode='F'%20chamfer_steps='1'%20flexible='false'%20use_knot_distance='true'%20apply_no_radius='true'%20apply_with_radius='true'%20only_selected='false'%20hide_knots='false'%20/%3e%3cinkscape:path-effect%20effect='fillet_chamfer'%20id='path-effect3'%20is_visible='true'%20lpeversion='1'%20nodesatellites_param='F,0,0,1,0,0,0,1%20@%20F,0,0,1,0,0,0,1%20@%20F,0,0,1,0,0,0,1%20@%20F,0,0,1,0,0,0,1'%20radius='0'%20unit='px'%20method='auto'%20mode='F'%20chamfer_steps='1'%20flexible='false'%20use_knot_distance='true'%20apply_no_radius='true'%20apply_with_radius='true'%20only_selected='false'%20hide_knots='false'%20/%3e%3c/defs%3e%3csodipodi:namedview%20id='namedview1'%20pagecolor='%23505050'%20bordercolor='%23eeeeee'%20borderopacity='1'%20inkscape:showpageshadow='0'%20inkscape:pageopacity='0'%20inkscape:pagecheckerboard='0'%20inkscape:deskcolor='%23505050'%20inkscape:zoom='0.6175'%20inkscape:cx='84.210526'%20inkscape:cy='354.65587'%20inkscape:window-width='1908'%20inkscape:window-height='1023'%20inkscape:window-x='0'%20inkscape:window-y='0'%20inkscape:window-maximized='1'%20inkscape:current-layer='SVGRepo_iconCarrier'%20/%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'%20/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'%20/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20d='m%2021,12%20c%200.0184,1.334935%20-0.292807,2.658087%20-0.923795,3.889738%20m%20-4.267543,4.2239%20C%2014.138429,21.02822%2012.286723,20.973849%2011.089636,20.965646%209.8583188,20.957209%207.59227,20.1334%206,18.7083%20L%203,16%20M%203,12%20C%203.0856306,10.391704%203.1465001,9.8805864%203.816926,8.2996744%20M%208.105997,3.9471126%20C%209.762535,3.0439672%2011.630415,2.9129277%2013.093117,3.048583%2014.608416,3.1891162%2016.618465,4.0444674%2018,5.29168%20L%2021,8%20M%203,21%20v%20-5%20m%200,0%20H%208%20M%2021,3%20v%205%20m%200,0%20h%20-5'%20stroke='%23ffffff'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%20id='path1'%20sodipodi:nodetypes='cccscccccssccccccccc'%20/%3e%3cpath%20style='fill:%23000000;stroke-width:0.03'%20d='M%202.0890688,1.4089069%2021.910931,22.639676'%20id='path4'%20/%3e%3cpath%20style='fill:%23000000;stroke-width:0.03'%20d='M%201.8461539,1.7004049%2022.251012,22.785425%20Z'%20id='path5'%20/%3e%3crect%20style='fill:%23ffffff;stroke-width:0.0335846'%20id='rect6'%20width='1.899596'%20height='29.20233'%20x='-1.2514524'%20y='2.4518316'%20sodipodi:type='rect'%20ry='0.94979799'%20transform='matrix(0.71194974,-0.70223042,0.71194974,0.70223042,0,0)'%20/%3e%3c/g%3e%3c/svg%3e";
 const geoKeyCache = /* @__PURE__ */ new WeakMap();
 function segmentGeoString(s) {
@@ -23447,6 +23448,13 @@ async function unloadFromGhostHandle(handle) {
 }
 const getSavedHandle = async () => {
   const data = await get("saved");
+  if (!(data instanceof FileSystemDirectoryHandle)) return;
+  try {
+    const first = await data.values().next();
+    if (first.done) return;
+  } catch {
+    return;
+  }
   dirHandleStore.setState(data);
 };
 getSavedHandle();
@@ -24141,7 +24149,16 @@ function FileButton() {
       /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "New File", keybind: "Ctrl+P", callback: handleNewFile }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
       /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Open File", keybind: "Ctrl+O", callback: handleOpenFile }),
-      "showDirectoryPicker" in window && /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Open Folder", keybind: "Ctrl+⇧O", callback: handleOpenFolder }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        MenuKeybindButton,
+        {
+          name: "Open Folder",
+          keybind: "Ctrl+⇧O",
+          callback: handleOpenFolder,
+          disabled: !canSaveToDisk,
+          tooltip: canSaveToDisk ? void 0 : "Your browser doesn't support folder opening. Use Open File instead"
+        }
+      ),
       /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         MenuKeybindButton,
@@ -25108,9 +25125,10 @@ function EditButton() {
     /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Select Inverse", keybind: "Ctrl+⇧A", callback: () => selectInversePath(null, setPath) })
   ] }) });
 }
-const folderIcon$1 = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20fill='%23000000'%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20id='file-7'%20data-name='Flat%20Color'%20xmlns='http://www.w3.org/2000/svg'%20class='icon%20flat-color'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20id='primary'%20d='M19.71,6.29l-4-4A1,1,0,0,0,15,2H6A2,2,0,0,0,4,4V20a2,2,0,0,0,2,2H18a2,2,0,0,0,2-2V7A1,1,0,0,0,19.71,6.29Z'%20style='fill:%20%23ffffff;'/%3e%3cpath%20id='secondary'%20d='M16,18H8a1,1,0,0,1,0-2h8a1,1,0,0,1,0,2Zm0-4H8a1,1,0,0,1,0-2h8a1,1,0,0,1,0,2Zm0-4H8A1,1,0,0,1,8,8h8a1,1,0,0,1,0,2Z'%20style='fill:%20%23e6e6e6;'/%3e%3c/g%3e%3c/svg%3e";
-const folderIcon = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20d='M2%207c0-1.4%200-2.1.272-2.635a2.5%202.5%200%200%201%201.093-1.093C3.9%203%204.6%203%206%203h1.431c.94%200%201.409%200%201.835.13a3%203%200%200%201%201.033.552c.345.283.605.674%201.126%201.455L12%206h6c1.4%200%202.1%200%202.635.272a2.5%202.5%200%200%201%201.092%201.093C22%207.9%2022%208.6%2022%2010v5c0%201.4%200%202.1-.273%202.635a2.5%202.5%200%200%201-1.092%201.092C20.1%2019%2019.4%2019%2018%2019H6c-1.4%200-2.1%200-2.635-.273a2.5%202.5%200%200%201-1.093-1.092C2%2017.1%202%2016.4%202%2015V7z'%20fill='%23BED8FF'/%3e%3c/g%3e%3c/svg%3e";
+const fileIcon = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20fill='%23000000'%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20id='file-7'%20data-name='Flat%20Color'%20xmlns='http://www.w3.org/2000/svg'%20class='icon%20flat-color'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20id='primary'%20d='M19.71,6.29l-4-4A1,1,0,0,0,15,2H6A2,2,0,0,0,4,4V20a2,2,0,0,0,2,2H18a2,2,0,0,0,2-2V7A1,1,0,0,0,19.71,6.29Z'%20style='fill:%20%23ffffff;'/%3e%3cpath%20id='secondary'%20d='M16,18H8a1,1,0,0,1,0-2h8a1,1,0,0,1,0,2Zm0-4H8a1,1,0,0,1,0-2h8a1,1,0,0,1,0,2Zm0-4H8A1,1,0,0,1,8,8h8a1,1,0,0,1,0,2Z'%20style='fill:%20%23e6e6e6;'/%3e%3c/g%3e%3c/svg%3e";
+const folderIcon$1 = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20d='M2%207c0-1.4%200-2.1.272-2.635a2.5%202.5%200%200%201%201.093-1.093C3.9%203%204.6%203%206%203h1.431c.94%200%201.409%200%201.835.13a3%203%200%200%201%201.033.552c.345.283.605.674%201.126%201.455L12%206h6c1.4%200%202.1%200%202.635.272a2.5%202.5%200%200%201%201.092%201.093C22%207.9%2022%208.6%2022%2010v5c0%201.4%200%202.1-.273%202.635a2.5%202.5%200%200%201-1.092%201.092C20.1%2019%2019.4%2019%2018%2019H6c-1.4%200-2.1%200-2.635-.273a2.5%202.5%200%200%201-1.093-1.092C2%2017.1%202%2016.4%202%2015V7z'%20fill='%23BED8FF'/%3e%3c/g%3e%3c/svg%3e";
 const back = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='4%204%2016%2018'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20transform='matrix(1,%200,%200,%20-1,%200,%200)'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M3%2014a1%201%200%200%201%201-1h12a3%203%200%200%200%203-3V6a1%201%200%201%201%202%200v4a5%205%200%200%201-5%205H4a1%201%200%200%201-1-1z'%20fill='%23ffffff'/%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M3.293%2014.707a1%201%200%200%201%200-1.414l4-4a1%201%200%200%201%201.414%201.414L5.414%2014l3.293%203.293a1%201%200%201%201-1.414%201.414l-4-4z'%20fill='%23ffffff'/%3e%3c/g%3e%3c/svg%3e";
+const refresh = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_301_6)'%3e%3cpath%20d='M18.7807%202.13826C18.1073%202.13826%2017.5614%202.68416%2017.5614%203.35757V5.31611C16.835%204.05176%2015.8236%202.97141%2014.5966%202.15761C13.0557%201.13569%2011.2603%200.59552%209.40448%200.59552C8.13537%200.59552%206.90364%200.844329%205.74344%201.33507C4.62339%201.80879%203.6178%202.48673%202.75448%203.35002C1.89121%204.21332%201.21327%205.21896%200.739529%206.33898C0.248832%207.4992%200%208.73096%200%2010C0%2011.2691%200.248832%2012.5008%200.739552%2013.661C1.21327%2014.7811%201.89123%2015.7867%202.75452%2016.65C3.61782%2017.5133%204.62346%2018.1912%205.74346%2018.6649C6.90366%2019.1557%208.1354%2019.4045%209.4045%2019.4045C10.4882%2019.4045%2011.5512%2019.2214%2012.5638%2018.8603C13.5424%2018.5114%2014.4519%2018.0045%2015.267%2017.354C16.0741%2016.7098%2016.7659%2015.9431%2017.3232%2015.0752C17.8909%2014.191%2018.3031%2013.226%2018.5483%2012.2071C18.7058%2011.5524%2018.3028%2010.8939%2017.6481%2010.7363C16.9933%2010.5788%2016.3348%2010.9819%2016.1773%2011.6366C15.818%2013.1297%2014.9545%2014.4833%2013.7458%2015.448C13.142%2015.9299%2012.4687%2016.3052%2011.7447%2016.5633C10.9957%2016.8304%2010.2084%2016.9659%209.4045%2016.9659C7.54386%2016.9659%205.79453%2016.2413%204.47888%2014.9256C3.16321%2013.6099%202.43862%2011.8606%202.43862%209.99995C2.43862%208.13933%203.16319%206.39%204.47888%205.07433C5.79458%203.75866%207.54386%203.03407%209.4045%203.03407C10.7794%203.03407%2012.1087%203.43372%2013.2487%204.18981C14.2311%204.84137%2015.0269%205.72282%2015.5714%206.75724H14.2237C13.5503%206.75724%2013.0044%207.30314%2013.0044%207.97655C13.0044%208.64993%2013.5503%209.19586%2014.2237%209.19586H18.7807C19.4541%209.19586%2020%208.64993%2020%207.97655V3.35757C20%202.68416%2019.4541%202.13826%2018.7807%202.13826Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_301_6'%3e%3crect%20width='20'%20height='20'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
 async function readExportDirEntries(handle) {
   const result = [];
   for await (const [name, h] of handle.entries()) {
@@ -25437,7 +25455,7 @@ function DragAndDrop({ onHandle, onDirHandle }) {
           ConfigKeybindButton,
           {
             name: "Choose File",
-            keybind: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: folderIcon$1, className: "w-3.5 h-3.5" }),
+            keybind: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: fileIcon, className: "w-3.5 h-3.5" }),
             callback: handleFileClick,
             disabled: !canUseFileHandles
           }
@@ -25454,7 +25472,7 @@ function DragAndDrop({ onHandle, onDirHandle }) {
           ConfigKeybindButton,
           {
             name: "Choose Folder",
-            keybind: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: folderIcon, className: "w-3.5 h-3.5" }),
+            keybind: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: folderIcon$1, className: "w-3.5 h-3.5" }),
             callback: handleFolderClick,
             disabled: !canUseFileHandles
           }
@@ -25637,7 +25655,7 @@ function ExportButton() {
             onClick: () => entry.kind === "directory" ? openExportSubDir(entry.handle) : setHandle(entry.handle),
             children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[13px] truncate min-w-0", children: entry.name }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: entry.kind === "file" ? folderIcon$1 : folderIcon, className: "w-3.5 h-3.5 shrink-0 ml-1" })
+              /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: entry.kind === "file" ? fileIcon : folderIcon$1, className: "w-3.5 h-3.5 shrink-0 ml-1" })
             ]
           },
           entry.name
@@ -25687,7 +25705,8 @@ function MenuCheckButton({
 function ConfigCheckButton({
   name,
   checked,
-  setChecked
+  setChecked,
+  src
 }) {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     "button",
@@ -25696,11 +25715,15 @@ function ConfigCheckButton({
       onClick: () => setChecked(true),
       children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: name }),
-        checked && /* @__PURE__ */ jsxRuntimeExports.jsx(
+        (checked || src) && /* @__PURE__ */ jsxRuntimeExports.jsx(
           "img",
           {
-            src: check,
-            className: "w-3 h-3"
+            src: checked ? check : src,
+            style: {
+              width: `${src && !checked ? "16px" : "12px"}`,
+              height: `${src && !checked ? "16px" : "12px"}`
+            },
+            className: "opacity-90"
           }
         )
       ]
@@ -25790,7 +25813,7 @@ function FolderEntry({ entry, isSelected, isGhostSelected, onEnterFolder, onSele
       children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[13px] truncate min-w-0", children: entry.name }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center shrink-0 ml-1 gap-1", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: entry.kind === "file" ? folderIcon$1 : folderIcon, className: "w-3.5 h-3.5" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: entry.kind === "file" ? fileIcon : folderIcon$1, className: "w-3.5 h-3.5" }),
           entry.kind === "file" && !isSelected && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "w-3.5 h-3.5 cursor-pointer", onClick: (e) => {
             const handle = entry.handle;
             if (isGhostSelected) onCloseGhostFile(handle);
@@ -25872,16 +25895,22 @@ function FolderButton({ fileName }) {
     entry.name
   )) });
 }
+const lemlibLogo = "/assets/lemlib-DP-UmH-e.png";
+const mikLibLogo = "/assets/mikLib-CoaxO65r.ico";
+const jarLogo = "/assets/jar-jIgW5gC-.svg";
+const revLogo = "/assets/rev-CynL2uix.svg";
+const ezLogo = "/assets/ez-DfcV-9Dw.ico";
+const holoLogo = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='1.375%201.375%2021.25%2021.25'%3e%3c!--%20Robot%20body%20--%3e%3crect%20x='2'%20y='2'%20width='20'%20height='20'%20fill='rgba(29,%20100,%208,%200.4)'%20stroke='black'%20stroke-width='1.25'%20/%3e%3c!--%20Heading%20--%3e%3cline%20x1='12'%20y1='12'%20x2='12'%20y2='2'%20stroke='black'%20stroke-width='1.5'%20/%3e%3c!--%20Center%20--%3e%3ccircle%20cx='12'%20cy='12'%20r='2'%20fill='rgba(29,%20100,%208,%200.4)'%20/%3e%3c/svg%3e";
 const FORMATS = [
-  { name: "mikLib v2.3.0", format: "mikLib" },
-  { name: "mikLib-Holonomic v2.3.0", format: "mikLib Holonomic", tooltip: "Swaps drivetrain to holonomic" },
+  { name: "mikLib v2.3.0", format: "mikLib", src: mikLibLogo },
+  { name: "mikLib-Holonomic", format: "mikLib Holonomic", tooltip: "Swaps drivetrain to holonomic", src: holoLogo },
   { name: "Section" },
-  { name: "LemLib v0.5.6", format: "LemLib" },
-  { name: "JAR-Template", format: "JAR-Template" },
-  { name: "EZ-Template v3.2.2", format: "EZ-Template" },
+  { name: "LemLib v0.5.6", format: "LemLib", src: lemlibLogo },
+  { name: "JAR-Template", format: "JAR-Template", src: jarLogo },
+  { name: "EZ-Template v3.2.2", format: "EZ-Template", src: ezLogo },
   { name: "Section" },
-  { name: "ReveilLib v4.0", format: "ReveilLib" },
-  { name: "ReveilLib-Holonomic v4.0", format: "ReveilLib Holonomic", tooltip: "Swaps drivetrain to holonomic" }
+  { name: "ReveilLib v4.0", format: "ReveilLib", src: revLogo },
+  { name: "ReveilLib-Holonomic", format: "ReveilLib Holonomic", tooltip: "Swaps drivetrain to holonomic", src: holoLogo }
 ];
 function FormatButton() {
   const [format] = useFormat();
@@ -25897,9 +25926,10 @@ function FormatButton() {
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigButtonTemplate, { title: "Format", children: FORMATS.map((c) => /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
     c.name === "Section" && /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
-    c.name !== "Section" && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: c.tooltip, placement: "right", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigCheckButton, { checked: format === c.format, setChecked: () => handleClickItem(c.format), name: c.name }, c.format) })
+    c.name !== "Section" && /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: c.tooltip, placement: "right", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigCheckButton, { src: c.src, checked: format === c.format, setChecked: () => handleClickItem(c.format), name: c.name }, c.format) })
   ] })) });
 }
+const folderIcon = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20fill='%23000000'%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20id='file-7'%20data-name='Flat%20Color'%20xmlns='http://www.w3.org/2000/svg'%20class='icon%20flat-color'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20id='primary'%20d='M19.71,6.29l-4-4A1,1,0,0,0,15,2H6A2,2,0,0,0,4,4V20a2,2,0,0,0,2,2H18a2,2,0,0,0,2-2V7A1,1,0,0,0,19.71,6.29Z'%20style='fill:%20%23ffffff;'/%3e%3cpath%20id='secondary'%20d='M16,18H8a1,1,0,0,1,0-2h8a1,1,0,0,1,0,2Zm0-4H8a1,1,0,0,1,0-2h8a1,1,0,0,1,0,2Zm0-4H8A1,1,0,0,1,8,8h8a1,1,0,0,1,0,2Z'%20style='fill:%20%23e6e6e6;'/%3e%3c/g%3e%3c/svg%3e";
 const github = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2020%2020'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20fill='%23000000'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3ctitle%3egithub%20[%23142]%3c/title%3e%3cdesc%3eCreated%20with%20Sketch.%3c/desc%3e%3cdefs%3e%3c/defs%3e%3cg%20id='Page-1'%20stroke='none'%20stroke-width='1'%20fill='none'%20fill-rule='evenodd'%3e%3cg%20id='Dribbble-Light-Preview'%20transform='translate(-140.000000,%20-7559.000000)'%20fill='%23ffffff'%3e%3cg%20id='icons'%20transform='translate(56.000000,%20160.000000)'%3e%3cpath%20d='M94,7399%20C99.523,7399%20104,7403.59%20104,7409.253%20C104,7413.782%20101.138,7417.624%2097.167,7418.981%20C96.66,7419.082%2096.48,7418.762%2096.48,7418.489%20C96.48,7418.151%2096.492,7417.047%2096.492,7415.675%20C96.492,7414.719%2096.172,7414.095%2095.813,7413.777%20C98.04,7413.523%20100.38,7412.656%20100.38,7408.718%20C100.38,7407.598%2099.992,7406.684%2099.35,7405.966%20C99.454,7405.707%2099.797,7404.664%2099.252,7403.252%20C99.252,7403.252%2098.414,7402.977%2096.505,7404.303%20C95.706,7404.076%2094.85,7403.962%2094,7403.958%20C93.15,7403.962%2092.295,7404.076%2091.497,7404.303%20C89.586,7402.977%2088.746,7403.252%2088.746,7403.252%20C88.203,7404.664%2088.546,7405.707%2088.649,7405.966%20C88.01,7406.684%2087.619,7407.598%2087.619,7408.718%20C87.619,7412.646%2089.954,7413.526%2092.175,7413.785%20C91.889,7414.041%2091.63,7414.493%2091.54,7415.156%20C90.97,7415.418%2089.522,7415.871%2088.63,7414.304%20C88.63,7414.304%2088.101,7413.319%2087.097,7413.247%20C87.097,7413.247%2086.122,7413.234%2087.029,7413.87%20C87.029,7413.87%2087.684,7414.185%2088.139,7415.37%20C88.139,7415.37%2088.726,7417.2%2091.508,7416.58%20C91.513,7417.437%2091.522,7418.245%2091.522,7418.489%20C91.522,7418.76%2091.338,7419.077%2090.839,7418.982%20C86.865,7417.627%2084,7413.783%2084,7409.253%20C84,7403.59%2088.478,7399%2094,7399'%20id='github-[%23142]'%3e%3c/path%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/g%3e%3c/svg%3e";
 const discord = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20fill='%23ffffff'%20width='800px'%20height='800px'%20viewBox='0%200%2032%2032'%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'%20stroke='%23ffffff'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3ctitle%3ediscord%3c/title%3e%3cpath%20d='M20.992%2020.163c-1.511-0.099-2.699-1.349-2.699-2.877%200-0.051%200.001-0.102%200.004-0.153l-0%200.007c-0.003-0.048-0.005-0.104-0.005-0.161%200-1.525%201.19-2.771%202.692-2.862l0.008-0c1.509%200.082%202.701%201.325%202.701%202.847%200%200.062-0.002%200.123-0.006%200.184l0-0.008c0.003%200.050%200.005%200.109%200.005%200.168%200%201.523-1.191%202.768-2.693%202.854l-0.008%200zM11.026%2020.163c-1.511-0.099-2.699-1.349-2.699-2.877%200-0.051%200.001-0.102%200.004-0.153l-0%200.007c-0.003-0.048-0.005-0.104-0.005-0.161%200-1.525%201.19-2.771%202.692-2.862l0.008-0c1.509%200.082%202.701%201.325%202.701%202.847%200%200.062-0.002%200.123-0.006%200.184l0-0.008c0.003%200.048%200.005%200.104%200.005%200.161%200%201.525-1.19%202.771-2.692%202.862l-0.008%200zM26.393%206.465c-1.763-0.832-3.811-1.49-5.955-1.871l-0.149-0.022c-0.005-0.001-0.011-0.002-0.017-0.002-0.035%200-0.065%200.019-0.081%200.047l-0%200c-0.234%200.411-0.488%200.924-0.717%201.45l-0.043%200.111c-1.030-0.165-2.218-0.259-3.428-0.259s-2.398%200.094-3.557%200.275l0.129-0.017c-0.27-0.63-0.528-1.142-0.813-1.638l0.041%200.077c-0.017-0.029-0.048-0.047-0.083-0.047-0.005%200-0.011%200-0.016%200.001l0.001-0c-2.293%200.403-4.342%201.060-6.256%201.957l0.151-0.064c-0.017%200.007-0.031%200.019-0.040%200.034l-0%200c-2.854%204.041-4.562%209.069-4.562%2014.496%200%200.907%200.048%201.802%200.141%202.684l-0.009-0.11c0.003%200.029%200.018%200.053%200.039%200.070l0%200c2.14%201.601%204.628%202.891%207.313%203.738l0.176%200.048c0.008%200.003%200.018%200.004%200.028%200.004%200.032%200%200.060-0.015%200.077-0.038l0-0c0.535-0.72%201.044-1.536%201.485-2.392l0.047-0.1c0.006-0.012%200.010-0.027%200.010-0.043%200-0.041-0.026-0.075-0.062-0.089l-0.001-0c-0.912-0.352-1.683-0.727-2.417-1.157l0.077%200.042c-0.029-0.017-0.048-0.048-0.048-0.083%200-0.031%200.015-0.059%200.038-0.076l0-0c0.157-0.118%200.315-0.24%200.465-0.364%200.016-0.013%200.037-0.021%200.059-0.021%200.014%200%200.027%200.003%200.038%200.008l-0.001-0c2.208%201.061%204.8%201.681%207.536%201.681s5.329-0.62%207.643-1.727l-0.107%200.046c0.012-0.006%200.025-0.009%200.040-0.009%200.022%200%200.043%200.008%200.059%200.021l-0-0c0.15%200.124%200.307%200.248%200.466%200.365%200.023%200.018%200.038%200.046%200.038%200.077%200%200.035-0.019%200.065-0.046%200.082l-0%200c-0.661%200.395-1.432%200.769-2.235%201.078l-0.105%200.036c-0.036%200.014-0.062%200.049-0.062%200.089%200%200.016%200.004%200.031%200.011%200.044l-0-0.001c0.501%200.96%201.009%201.775%201.571%202.548l-0.040-0.057c0.017%200.024%200.046%200.040%200.077%200.040%200.010%200%200.020-0.002%200.029-0.004l-0.001%200c2.865-0.892%205.358-2.182%207.566-3.832l-0.065%200.047c0.022-0.016%200.036-0.041%200.039-0.069l0-0c0.087-0.784%200.136-1.694%200.136-2.615%200-5.415-1.712-10.43-4.623-14.534l0.052%200.078c-0.008-0.016-0.022-0.029-0.038-0.036l-0-0z'/%3e%3c/g%3e%3c/svg%3e";
 function HelpButton() {
@@ -25911,7 +25941,7 @@ function HelpButton() {
         callback: () => {
           window.open("https://mikgen.com/docs");
         },
-        keybind: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: folderIcon$1, className: "w-3.5 h-3.5" })
+        keybind: /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: folderIcon, className: "w-3.5 h-3.5" })
       }
     ),
     /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -25936,6 +25966,12 @@ function HelpButton() {
     )
   ] }) });
 }
+const tankIcon = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='1.375%201.375%2021.25%2021.25'%3e%3c!--%20Robot%20body%20--%3e%3crect%20x='2'%20y='2'%20width='20'%20height='20'%20fill='rgba(150,%20150,%20150,%200.4)'%20stroke='black'%20stroke-width='1.25'%20/%3e%3c!--%20Heading%20--%3e%3cline%20x1='12'%20y1='12'%20x2='12'%20y2='2'%20stroke='black'%20stroke-width='1.5'%20/%3e%3c!--%20Center%20--%3e%3ccircle%20cx='12'%20cy='12'%20r='2'%20fill='rgba(150,%20150,%20150,%200.4)'%20/%3e%3c/svg%3e";
+const expansionIcon = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0.375%200.375%2023.25%2023.25'%3e%3c!--%20Robot%20body%20--%3e%3crect%20x='7'%20y='7'%20width='16'%20height='16'%20fill='rgba(150,%20150,%20150,%200.4)'%20stroke='black'%20stroke-width='1.25'%20/%3e%3c!--%20Heading%20--%3e%3cline%20x1='15'%20y1='15'%20x2='15'%20y2='7'%20stroke='black'%20stroke-width='1.5'%20/%3e%3c!--%20Center%20--%3e%3ccircle%20cx='15'%20cy='15'%20r='2'%20fill='rgba(150,%20150,%20150,%200.4)'%20/%3e%3c!--%20Front%20expansion%20--%3e%3crect%20x='7'%20y='1'%20width='16'%20height='6'%20fill='rgba(150,%20150,%20150,%200.18)'%20stroke='black'%20stroke-width='1.25'%20/%3e%3c!--%20Left%20expansion%20--%3e%3crect%20x='1'%20y='7'%20width='6'%20height='16'%20fill='rgba(150,%20150,%20150,%200.18)'%20stroke='black'%20stroke-width='1.25'%20/%3e%3c/svg%3e";
+const sensorIcon = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='2%202.25%2019.5%2019.5'%3e%3c!--%20Sensor%20--%3e%3ccircle%20cx='18'%20cy='12'%20r='3.5'%20fill='black'%20/%3e%3c!--%20Ray%20--%3e%3cline%20x1='18'%20y1='12'%20x2='2'%20y2='12'%20stroke='%23aa0505'%20stroke-width='2'%20/%3e%3c/svg%3e";
+const cogIcon = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='1.375%201.375%2021.25%2021.25'%3e%3c!--%20Robot%20body%20--%3e%3crect%20x='2'%20y='2'%20width='20'%20height='20'%20fill='rgba(150,%20150,%20150,%200.4)'%20stroke='black'%20stroke-width='1.25'%20/%3e%3c!--%20Heading%20--%3e%3cline%20x1='12'%20y1='12'%20x2='12'%20y2='2'%20stroke='black'%20stroke-width='1.5'%20/%3e%3c!--%20CoG%20--%3e%3ccircle%20cx='17'%20cy='17'%20r='2'%20fill='rgb(150,%20150,%20150)'%20/%3e%3c/svg%3e";
+const motionIcon = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='5%205%2014%2014'%20fill='none'%20stroke='%23FFFFFF'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3e%3cpolyline%20points='13%2017%2018%2012%2013%207'%20/%3e%3cpolyline%20points='6%2017%2011%2012%206%207'%20/%3e%3c/svg%3e";
+const clockIcon = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='2%202%2020%2020'%20fill='none'%3e%3cpath%20d='M12%207V12L14.5%2010.5M21%2012C21%2016.9706%2016.9706%2021%2012%2021C7.02944%2021%203%2016.9706%203%2012C3%207.02944%207.02944%203%2012%203C16.9706%203%2021%207.02944%2021%2012Z'%20stroke='%23FFFFFF'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%20/%3e%3c/svg%3e";
 function RobotButton() {
   const robot = fileFormatStore.useSelector((s) => s.robot);
   const handleExpansionChange = (side, v) => {
@@ -25955,17 +25991,17 @@ function RobotButton() {
     saveSnapshot();
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigButtonTemplate, { title: "Robot", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-1.5", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Section, { name: "General", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(Section, { name: "Size", icon: tankIcon, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Width", value: robot.width, setValue: (v) => v !== null && mergeRobot({ width: v }), bounds: [0, 30], stepSize: 1, roundTo: 1, units: "in" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Height", value: robot.height, setValue: (v) => v !== null && mergeRobot({ height: v }), bounds: [0, 30], stepSize: 1, roundTo: 1, units: "in" })
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Section, { name: "Motion", defaultCollapsed: true, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(Section, { name: "Motion", icon: motionIcon, defaultCollapsed: true, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Speed", label: "Max velocity; measure on actual robot", value: robot.speed, setValue: (v) => v !== null && mergeRobot({ speed: v }), bounds: [0, 100], stepSize: 0.5, roundTo: 2, units: "ft/s" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Track Width", label: "Distance measured from wheel to wheel", value: robot.trackwidth, setValue: (v) => v !== null && mergeRobot({ trackwidth: v }), bounds: [0, 30], stepSize: 0.5, roundTo: 1, units: "in" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Drive Constant", label: "Time for robot to reach 63.2% of its max velocity laterally", value: robot.lateralTau, setValue: (v) => v !== null && mergeRobot({ lateralTau: v }), bounds: [0, 2], stepSize: 0.05, roundTo: 3, units: "s" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputButton, { name: "Turn Constant", label: "Time for robot to reach 63.2% of max velocity turning", value: robot.angularTau, setValue: (v) => v !== null && mergeRobot({ angularTau: v }), bounds: [0, 2], stepSize: 0.05, roundTo: 3, units: "s" })
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Section, { name: "Expansion", defaultCollapsed: true, children: ["Front", "Left", "Right", "Rear"].map((side) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Section, { name: "Expansion", icon: expansionIcon, defaultCollapsed: true, children: ["Front", "Left", "Right", "Rear"].map((side) => /* @__PURE__ */ jsxRuntimeExports.jsx(
       NumberInputCheckboxButton,
       {
         name: side,
@@ -25980,7 +26016,7 @@ function RobotButton() {
       },
       side
     )) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Section, { name: "Distance Sensors", defaultCollapsed: true, children: ["Front", "Left", "Right", "Rear"].map((side) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Section, { name: "Distance Sensors", icon: sensorIcon, defaultCollapsed: true, children: ["Front", "Left", "Right", "Rear"].map((side) => /* @__PURE__ */ jsxRuntimeExports.jsx(
       DualNumberInputCheckboxButton,
       {
         name: side,
@@ -26012,7 +26048,7 @@ function RobotButton() {
       },
       side
     )) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Section, { name: "CoG Offset", defaultCollapsed: true, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(Section, { name: "CoG Offset", icon: cogIcon, defaultCollapsed: true, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputCheckboxButton, { name: "Lateral", value: robot.cogOffsetX, setValue: (v) => v !== null && mergeRobot({ cogOffsetX: v }), bounds: [-15, 15], stepSize: 0.5, roundTo: 2, units: "in", checked: !robot.cogOffsetXDisabled, setChecked: (checked) => {
         mergeRobot({ cogOffsetXDisabled: !checked });
         saveSnapshot();
@@ -26022,7 +26058,7 @@ function RobotButton() {
         saveSnapshot();
       } })
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Section, { name: "Extras", defaultCollapsed: true, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(Section, { name: "Timing", icon: clockIcon, defaultCollapsed: true, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         NumberInputButton,
         {
@@ -27684,6 +27720,8 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
 }
 const ScaleContext = reactExports.createContext(1);
 const threeDots = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2016%2016'%20xmlns='http://www.w3.org/2000/svg'%20fill='%23ffffff'%20class='bi%20bi-three-dots-vertical'%3e%3cpath%20d='M9.5%2013a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200zm0-5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200zm0-5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200z'/%3e%3c/svg%3e";
+const lines = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2016%2016'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M1%205H15V7H1V5Z'%20fill='%23FFFFFF'/%3e%3cpath%20d='M1%209H15V11H1V9Z'%20fill='%23FFFFFF'/%3e%3cpath%20d='M1%2013H15V15H1V13Z'%20fill='%23FFFFFF'/%3e%3cpath%20d='M1%201H15V3H1V1Z'%20fill='%23FFFFFF'/%3e%3c/svg%3e";
+const marker = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20version='1.1'%20id='_x32_'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='800px'%20height='800px'%20viewBox='0%200%20512%20512'%20xml:space='preserve'%20fill='%23ffffff'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cstyle%20type='text/css'%3e%20.st0{fill:%23ffffff;}%20%3c/style%3e%3cg%3e%3cpath%20class='st0'%20d='M405.969,62.123c-82.828-82.828-217.109-82.828-299.938,0c-82.813,82.813-82.813,217.109,0,299.922%20L256,511.998l149.969-149.953C488.781,279.232,488.781,144.936,405.969,62.123z%20M256,293.201%20c-44.797,0-81.125-36.313-81.125-81.109c0-44.813,36.328-81.125,81.125-81.125s81.125,36.313,81.125,81.125%20C337.125,256.889,300.797,293.201,256,293.201z'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e";
 const EDGE = 8;
 const BUTTON_STEP = 33 + EDGE;
 const MOBILE_W = 700;
@@ -27748,10 +27786,10 @@ function App() {
       setShowConfig(nextShowConfig);
       setShowRightPanel(nextShowRight);
       setPopoutScale(Math.min(0.85, (vw - EDGE * 2 - BUTTON_STEP) / POPOUT_W));
-      const cw = content.scrollWidth;
+      const cw2 = content.scrollWidth;
       const ch = content.scrollHeight;
       content.style.transform = prev;
-      if (cw <= 0 || ch <= 0) return;
+      if (cw2 <= 0 || ch <= 0) return;
       const padding = EDGE * 2;
       const fullyCollapsedNext = !nextShowConfig && !nextShowRight;
       if (fullyCollapsedNext) {
@@ -27761,7 +27799,7 @@ function App() {
         setScale(s);
         setCanvasWidth(Math.max(baseW, Math.round(vw / s)));
       } else {
-        const totalCw = (nextShowConfig ? CONFIG_W + EDGE : 0) + cw;
+        const totalCw = (nextShowConfig ? CONFIG_W + EDGE : 0) + cw2;
         const fit = Math.min((vw - padding) / totalCw, (vh - padding) / ch);
         setScale(clamp(fit, MIN_SCALE_MOBILE, 2));
         setCanvasWidth(FIELD_IMG_DIMENSIONS.w);
@@ -27867,4 +27905,4 @@ registerSW({ immediate: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-DGbmGpCL.js.map
+//# sourceMappingURL=index-C7mIY6-k.js.map

@@ -1552,6 +1552,10 @@
     opacity: .7;
   }
 
+  .opacity-90 {
+    opacity: .9;
+  }
+
   .opacity-100 {
     opacity: 1;
   }
