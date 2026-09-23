@@ -16,14 +16,14 @@ type PathFormats = {
 
 const FORMATS: PathFormats[] = [
     { name: "mikLib v2.3.0", format: "mikLib" },
-    { name: "mikLib-Holonomic v2.3.0", format: "mikLib Holonomic", tooltip: "Swaps drivetrain to holonomic" },
+    { name: "mikLib-Holonomic", format: "mikLib Holonomic", tooltip: "Swaps drivetrain to holonomic" },
     { name: "Section" },
     { name: "LemLib v0.5.6", format: "LemLib" },
     { name: "JAR-Template", format: "JAR-Template" },
     { name: "EZ-Template v3.2.2", format: "EZ-Template" },
     { name: "Section" },
     { name: "ReveilLib v4.0", format: "ReveilLib" },
-    { name: "ReveilLib-Holonomic v4.0", format: "ReveilLib Holonomic", tooltip: "Swaps drivetrain to holonomic" }
+    { name: "ReveilLib-Holonomic", format: "ReveilLib Holonomic", tooltip: "Swaps drivetrain to holonomic" }
 ];
 
 export default function FormatButton() {

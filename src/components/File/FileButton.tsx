@@ -32,9 +32,9 @@ export default function FileButton() {
     }, [isSaved]);
 
     const dirHandle = dirHandleStore.useStore();
-    
+
     const saveOpenedFolderDB = async () => {
-        await set("saved", dirHandle); 
+        await set("saved", dirHandle);
     }
 
     useEffect(() => {
@@ -296,7 +296,10 @@ export default function FileButton() {
                 <MenuKeybindButton name="New File" keybind="Ctrl+P" callback={handleNewFile} />
                 <Section />
                 <MenuKeybindButton name="Open File" keybind="Ctrl+O" callback={handleOpenFile} />
-                {'showDirectoryPicker' in window && <MenuKeybindButton name="Open Folder" keybind="Ctrl+⇧O" callback={handleOpenFolder} />}
+                <MenuKeybindButton name="Open Folder" keybind="Ctrl+⇧O" callback={handleOpenFolder} disabled={!canSaveToDisk}
+                    tooltip={canSaveToDisk ? undefined : "Your browser doesn't support folder opening. Use Open File instead"}
+                />
+
                 <Section />
                 <MenuKeybindButton name="Save" keybind="Ctrl+S" callback={handleSave} disabled={!canSaveToDisk}
                     tooltip={canSaveToDisk ? undefined : "Your browser doesn't support file writing. Use Download instead."} />
