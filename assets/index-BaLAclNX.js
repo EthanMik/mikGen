@@ -24186,167 +24186,6 @@ function FileButton() {
     ] })
   ] });
 }
-function EditTemplatePopup({
-  open,
-  setOpen
-}) {
-  const popupRef = reactExports.useRef(null);
-  const templatesRef = reactExports.useRef({});
-  const [format] = useFormat();
-  const formatDef = useFormatDef();
-  reactExports.useEffect(() => {
-    const initial2 = {};
-    for (const [kind, segDef] of Object.entries(formatDef.segments)) {
-      if (segDef && !segDef.castTo && segDef.toStringTemplate) {
-        initial2[kind] = { toStringTemplate: segDef.toStringTemplate, pointTemplate: segDef.pointTemplate };
-      }
-    }
-    templatesRef.current = initial2;
-  }, [open]);
-  reactExports.useEffect(() => {
-    const handleKeyDown = (evt) => {
-      if (evt.key === "Enter") {
-        handleOnSave();
-      }
-      if (evt.key === "Escape") {
-        setOpen(false);
-      }
-    };
-    const handleClickOutside = (event) => {
-      if (popupRef.current && !popupRef.current.contains(event.target)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-  const handleReset = () => {
-    const registrySegments = FORMAT_REGISTRY[format].segments;
-    const updatedSegments = { ...formatDef.segments };
-    for (const [kind, segDef] of Object.entries(registrySegments)) {
-      const existing = updatedSegments[kind];
-      if (existing && segDef) updatedSegments[kind] = {
-        ...existing,
-        toStringTemplate: segDef.toStringTemplate,
-        pointTemplate: segDef.pointTemplate
-      };
-    }
-    setFormatDef({ ...formatDef, segments: updatedSegments });
-    saveSnapshot();
-    setOpen(false);
-  };
-  const handleOnSave = () => {
-    const updatedSegments = { ...formatDef.segments };
-    for (const [kind, edited] of Object.entries(templatesRef.current)) {
-      const existing = updatedSegments[kind];
-      if (existing) updatedSegments[kind] = {
-        ...existing,
-        toStringTemplate: edited.toStringTemplate,
-        // Only carried by kinds that expand a ${points:N} vector; left off the rest
-        ...edited.pointTemplate !== void 0 ? { pointTemplate: edited.pointTemplate } : {}
-      };
-    }
-    setFormatDef({ ...formatDef, segments: updatedSegments });
-    saveSnapshot();
-    setOpen(false);
-  };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(React.Fragment, { children: open && reactDomExports.createPortal(
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "div",
-      {
-        className: "\n                        fixed inset-0 z-[60]\n                        bg-black/10 backdrop-blur-[7px]\n                        grid place-items-center\n                        overflow-x-hidden",
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "div",
-          {
-            className: "\n                            relative\n                            -translate-y-[5%]\n                            bg-medgray_hover h-auto p-4\n                            w-[calc(100vw-500px)] min-w-[600px]\n                            flex flex-col gap-2\n                            shadow-xs shadow-blackgray\n                            rounded-lg\n                        ",
-            ref: popupRef,
-            children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-2 text-start", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                "button",
-                {
-                  className: "fixed right-2 top-2 px-0.5 py-0.5 rounded-sm hover:bg-blackgrayhover",
-                  onClick: () => setOpen(false),
-                  children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    "img",
-                    {
-                      className: "w-[25px] h-[25px]",
-                      src: cross
-                    }
-                  )
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                "button",
-                {
-                  className: "fixed right-23 top-2 px-2 py-0.5 rounded-sm hover:bg-blackgrayhover",
-                  onClick: handleReset,
-                  children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-lightgray", children: "Reset" })
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                "button",
-                {
-                  className: "fixed right-10 top-2 px-2 py-0.5 rounded-sm hover:bg-blackgrayhover",
-                  onClick: handleOnSave,
-                  children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "Save" })
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[16px] text-white", children: "Templates" }),
-              Object.entries(formatDef.segments).filter(([, segDef]) => !segDef.castTo && segDef.toStringTemplate).map(([kind, segDef]) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-1 ", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[12px] text-lightgray", children: segDef.name ?? kind }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  TextInput,
-                  {
-                    fontSize: 16,
-                    unitsFontSize: 14,
-                    width: "100%",
-                    height: 40,
-                    units: "",
-                    value: segDef.toStringTemplate ?? "",
-                    setValue: () => {
-                    },
-                    focus: false,
-                    setText: (v) => {
-                      templatesRef.current[kind] = { ...templatesRef.current[kind], toStringTemplate: v };
-                    },
-                    position: "left"
-                  }
-                ),
-                segDef.pointTemplate !== void 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-1", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[12px] text-lightgray", children: "${points:N}  with N being the distance between waypoints" }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    TextInput,
-                    {
-                      fontSize: 16,
-                      unitsFontSize: 14,
-                      width: "100%",
-                      height: 40,
-                      units: "",
-                      value: segDef.pointTemplate,
-                      setValue: () => {
-                      },
-                      focus: false,
-                      setText: (v) => {
-                        templatesRef.current[kind] = { toStringTemplate: templatesRef.current[kind]?.toStringTemplate ?? segDef.toStringTemplate ?? "", pointTemplate: v };
-                      },
-                      position: "left"
-                    }
-                  )
-                ] })
-              ] }, kind)),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "pt-2 text-[12px]", children: "Editing these templates may affect pasting behavior and create bugs; variables are placed inside ${}." })
-            ] })
-          }
-        )
-      }
-    ),
-    document.body
-  ) });
-}
 function ConfigCheckboxButton({ name, checked, setChecked, label }) {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row pr-2 pl-2 py-0.5 items-center justify-between rounded-sm", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: name }),
@@ -24428,33 +24267,18 @@ function DualNumberInputCheckboxButton({ numberInputs, name, checked, setChecked
 }
 function SettingsButton() {
   const [settings, setSettings] = useSettings();
-  const [popup, setPopup] = reactExports.useState(false);
   reactExports.useEffect(() => {
     localStorage.setItem("settings", JSON.stringify(settings));
   }, [settings]);
   const set2 = (key) => (state) => setSettings((prev) => ({ ...prev, [key]: state }));
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-    popup && /* @__PURE__ */ jsxRuntimeExports.jsx(
-      EditTemplatePopup,
-      {
-        label: "",
-        open: popup,
-        setOpen: setPopup,
-        onEnter: () => {
-        }
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(MenuButtonTemplate, { title: "Settings", closeOnClick: false, width: 47, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-1.5", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Robot Position", label: "Displays robots's actual position", checked: settings.robotPosition, setChecked: set2("robotPosition") }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Precise Path", label: "Displays robots exact path taken (P)", checked: settings.precisePath, setChecked: set2("precisePath") }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Numbered Path", label: "Displays number labels for notebook screenshots", checked: settings.numberedPath, setChecked: set2("numberedPath") }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputCheckboxButton, { width: 40, name: "Onion Layers", checkLabel: "Displays end positions when sim is off (O)", label: "Distance between outlines. 0 shows only end positions", checked: settings.onionLayers, setChecked: set2("onionLayers"), value: settings.onionSpacing, setValue: (v) => v !== null && set2("onionSpacing")(v), bounds: [0, 48], stepSize: 1, roundTo: 0, units: "in" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputCheckboxButton, { blocking: false, checked: settings.snappingEnabled, width: 40, setChecked: set2("snappingEnabled"), checkLabel: "Enable snapping by default", name: "Grid Snap", label: "Snap increment. Hold Ctrl while dragging to invert snapping", value: settings.snapToGrid, setValue: (v) => v !== null && set2("snapToGrid")(v), bounds: [0.1, 10], stepSize: 0.5, roundTo: 1, units: "in" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Edit Templates", keybind: "", callback: () => setPopup(true) })
-    ] }) })
-  ] });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(MenuButtonTemplate, { title: "Settings", closeOnClick: false, width: 47, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-1.5", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Robot Position", label: "Displays robots's actual position", checked: settings.robotPosition, setChecked: set2("robotPosition") }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Precise Path", label: "Displays robots exact path taken (P)", checked: settings.precisePath, setChecked: set2("precisePath") }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckboxButton, { name: "Numbered Path", label: "Displays number labels for notebook screenshots", checked: settings.numberedPath, setChecked: set2("numberedPath") }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputCheckboxButton, { width: 40, name: "Onion Layers", checkLabel: "Displays end positions when sim is off (O)", label: "Distance between outlines. 0 shows only end positions", checked: settings.onionLayers, setChecked: set2("onionLayers"), value: settings.onionSpacing, setValue: (v) => v !== null && set2("onionSpacing")(v), bounds: [0, 48], stepSize: 1, roundTo: 0, units: "in" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(NumberInputCheckboxButton, { blocking: false, checked: settings.snappingEnabled, width: 40, setChecked: set2("snappingEnabled"), checkLabel: "Enable snapping by default", name: "Grid Snap", label: "Snap increment. Hold Ctrl while dragging to invert snapping", value: settings.snapToGrid, setValue: (v) => v !== null && set2("snapToGrid")(v), bounds: [0.1, 10], stepSize: 0.5, roundTo: 1, units: "in" })
+  ] }) });
 }
 const useFieldImg = createSharedState(FIELD_IMG_DIMENSIONS);
 let pending = [];
@@ -25129,6 +24953,167 @@ const fileIcon = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%2
 const folderIcon$1 = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20d='M2%207c0-1.4%200-2.1.272-2.635a2.5%202.5%200%200%201%201.093-1.093C3.9%203%204.6%203%206%203h1.431c.94%200%201.409%200%201.835.13a3%203%200%200%201%201.033.552c.345.283.605.674%201.126%201.455L12%206h6c1.4%200%202.1%200%202.635.272a2.5%202.5%200%200%201%201.092%201.093C22%207.9%2022%208.6%2022%2010v5c0%201.4%200%202.1-.273%202.635a2.5%202.5%200%200%201-1.092%201.092C20.1%2019%2019.4%2019%2018%2019H6c-1.4%200-2.1%200-2.635-.273a2.5%202.5%200%200%201-1.093-1.092C2%2017.1%202%2016.4%202%2015V7z'%20fill='%23BED8FF'/%3e%3c/g%3e%3c/svg%3e";
 const back = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='4%204%2016%2018'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20transform='matrix(1,%200,%200,%20-1,%200,%200)'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M3%2014a1%201%200%200%201%201-1h12a3%203%200%200%200%203-3V6a1%201%200%201%201%202%200v4a5%205%200%200%201-5%205H4a1%201%200%200%201-1-1z'%20fill='%23ffffff'/%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M3.293%2014.707a1%201%200%200%201%200-1.414l4-4a1%201%200%200%201%201.414%201.414L5.414%2014l3.293%203.293a1%201%200%201%201-1.414%201.414l-4-4z'%20fill='%23ffffff'/%3e%3c/g%3e%3c/svg%3e";
 const refresh = "data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_301_6)'%3e%3cpath%20d='M18.7807%202.13826C18.1073%202.13826%2017.5614%202.68416%2017.5614%203.35757V5.31611C16.835%204.05176%2015.8236%202.97141%2014.5966%202.15761C13.0557%201.13569%2011.2603%200.59552%209.40448%200.59552C8.13537%200.59552%206.90364%200.844329%205.74344%201.33507C4.62339%201.80879%203.6178%202.48673%202.75448%203.35002C1.89121%204.21332%201.21327%205.21896%200.739529%206.33898C0.248832%207.4992%200%208.73096%200%2010C0%2011.2691%200.248832%2012.5008%200.739552%2013.661C1.21327%2014.7811%201.89123%2015.7867%202.75452%2016.65C3.61782%2017.5133%204.62346%2018.1912%205.74346%2018.6649C6.90366%2019.1557%208.1354%2019.4045%209.4045%2019.4045C10.4882%2019.4045%2011.5512%2019.2214%2012.5638%2018.8603C13.5424%2018.5114%2014.4519%2018.0045%2015.267%2017.354C16.0741%2016.7098%2016.7659%2015.9431%2017.3232%2015.0752C17.8909%2014.191%2018.3031%2013.226%2018.5483%2012.2071C18.7058%2011.5524%2018.3028%2010.8939%2017.6481%2010.7363C16.9933%2010.5788%2016.3348%2010.9819%2016.1773%2011.6366C15.818%2013.1297%2014.9545%2014.4833%2013.7458%2015.448C13.142%2015.9299%2012.4687%2016.3052%2011.7447%2016.5633C10.9957%2016.8304%2010.2084%2016.9659%209.4045%2016.9659C7.54386%2016.9659%205.79453%2016.2413%204.47888%2014.9256C3.16321%2013.6099%202.43862%2011.8606%202.43862%209.99995C2.43862%208.13933%203.16319%206.39%204.47888%205.07433C5.79458%203.75866%207.54386%203.03407%209.4045%203.03407C10.7794%203.03407%2012.1087%203.43372%2013.2487%204.18981C14.2311%204.84137%2015.0269%205.72282%2015.5714%206.75724H14.2237C13.5503%206.75724%2013.0044%207.30314%2013.0044%207.97655C13.0044%208.64993%2013.5503%209.19586%2014.2237%209.19586H18.7807C19.4541%209.19586%2020%208.64993%2020%207.97655V3.35757C20%202.68416%2019.4541%202.13826%2018.7807%202.13826Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_301_6'%3e%3crect%20width='20'%20height='20'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
+function EditTemplatePopup({
+  open,
+  setOpen
+}) {
+  const popupRef = reactExports.useRef(null);
+  const templatesRef = reactExports.useRef({});
+  const [format] = useFormat();
+  const formatDef = useFormatDef();
+  reactExports.useEffect(() => {
+    const initial2 = {};
+    for (const [kind, segDef] of Object.entries(formatDef.segments)) {
+      if (segDef && !segDef.castTo && segDef.toStringTemplate) {
+        initial2[kind] = { toStringTemplate: segDef.toStringTemplate, pointTemplate: segDef.pointTemplate };
+      }
+    }
+    templatesRef.current = initial2;
+  }, [open]);
+  reactExports.useEffect(() => {
+    const handleKeyDown = (evt) => {
+      if (evt.key === "Enter") {
+        handleOnSave();
+      }
+      if (evt.key === "Escape") {
+        setOpen(false);
+      }
+    };
+    const handleClickOutside = (event) => {
+      if (popupRef.current && !popupRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+  const handleReset = () => {
+    const registrySegments = FORMAT_REGISTRY[format].segments;
+    const updatedSegments = { ...formatDef.segments };
+    for (const [kind, segDef] of Object.entries(registrySegments)) {
+      const existing = updatedSegments[kind];
+      if (existing && segDef) updatedSegments[kind] = {
+        ...existing,
+        toStringTemplate: segDef.toStringTemplate,
+        pointTemplate: segDef.pointTemplate
+      };
+    }
+    setFormatDef({ ...formatDef, segments: updatedSegments });
+    saveSnapshot();
+    setOpen(false);
+  };
+  const handleOnSave = () => {
+    const updatedSegments = { ...formatDef.segments };
+    for (const [kind, edited] of Object.entries(templatesRef.current)) {
+      const existing = updatedSegments[kind];
+      if (existing) updatedSegments[kind] = {
+        ...existing,
+        toStringTemplate: edited.toStringTemplate,
+        // Only carried by kinds that expand a ${points:N} vector; left off the rest
+        ...edited.pointTemplate !== void 0 ? { pointTemplate: edited.pointTemplate } : {}
+      };
+    }
+    setFormatDef({ ...formatDef, segments: updatedSegments });
+    saveSnapshot();
+    setOpen(false);
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(React.Fragment, { children: open && reactDomExports.createPortal(
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "div",
+      {
+        className: "\n                        fixed inset-0 z-[60]\n                        bg-black/10 backdrop-blur-[7px]\n                        grid place-items-center\n                        overflow-x-hidden",
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "div",
+          {
+            className: "\n                            relative\n                            -translate-y-[5%]\n                            bg-medgray_hover h-auto p-4\n                            w-[calc(100vw-500px)] min-w-[600px]\n                            flex flex-col gap-2\n                            shadow-xs shadow-blackgray\n                            rounded-lg\n                        ",
+            ref: popupRef,
+            children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-2 text-start", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "button",
+                {
+                  className: "fixed right-2 top-2 px-0.5 py-0.5 rounded-sm hover:bg-blackgrayhover",
+                  onClick: () => setOpen(false),
+                  children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "img",
+                    {
+                      className: "w-[25px] h-[25px]",
+                      src: cross
+                    }
+                  )
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "button",
+                {
+                  className: "fixed right-23 top-2 px-2 py-0.5 rounded-sm hover:bg-blackgrayhover",
+                  onClick: handleReset,
+                  children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-lightgray", children: "Reset" })
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "button",
+                {
+                  className: "fixed right-10 top-2 px-2 py-0.5 rounded-sm hover:bg-blackgrayhover",
+                  onClick: handleOnSave,
+                  children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "Save" })
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[16px] text-white", children: "Templates" }),
+              Object.entries(formatDef.segments).filter(([, segDef]) => !segDef.castTo && segDef.toStringTemplate).map(([kind, segDef]) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-1 ", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[12px] text-lightgray", children: segDef.name ?? kind }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  TextInput,
+                  {
+                    fontSize: 16,
+                    unitsFontSize: 14,
+                    width: "100%",
+                    height: 40,
+                    units: "",
+                    value: segDef.toStringTemplate ?? "",
+                    setValue: () => {
+                    },
+                    focus: false,
+                    setText: (v) => {
+                      templatesRef.current[kind] = { ...templatesRef.current[kind], toStringTemplate: v };
+                    },
+                    position: "left"
+                  }
+                ),
+                segDef.pointTemplate !== void 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-1", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[12px] text-lightgray", children: "${points:N}  with N being the distance between waypoints" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    TextInput,
+                    {
+                      fontSize: 16,
+                      unitsFontSize: 14,
+                      width: "100%",
+                      height: 40,
+                      units: "",
+                      value: segDef.pointTemplate,
+                      setValue: () => {
+                      },
+                      focus: false,
+                      setText: (v) => {
+                        templatesRef.current[kind] = { toStringTemplate: templatesRef.current[kind]?.toStringTemplate ?? segDef.toStringTemplate ?? "", pointTemplate: v };
+                      },
+                      position: "left"
+                    }
+                  )
+                ] })
+              ] }, kind)),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "pt-2 text-[12px]", children: "Editing these templates may affect pasting behavior and create bugs; variables are placed inside ${}." })
+            ] })
+          }
+        )
+      }
+    ),
+    document.body
+  ) });
+}
 async function readExportDirEntries(handle) {
   const result = [];
   for await (const [name, h] of handle.entries()) {
@@ -25634,49 +25619,63 @@ function ExportButton() {
   };
   const refreshButton = { icon: refresh, visible: true, onClick: refreshExportDir, tooltip: "Refresh Folder" };
   const [path] = usePath();
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    ConfigButtonTemplate,
-    {
-      title: "Export",
-      iconButtons: mode === "folderView" ? [backButton, refreshButton] : mode === "writeInterface" ? [backButton] : [],
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: "Copy All", callback: () => {
-          copy(null, path, true);
-        } }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: "Copy Selected", callback: () => {
-          copy(null, path, false);
-        } }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
-        mode === "default" && /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(DragAndDrop, { onHandle: setHandle, onDirHandle: handleDirChosen }) }),
-        mode === "folderView" && (exportDirEntries.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[12px] opacity-40 px-1", children: "Empty folder" }) : exportDirEntries.map((entry) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          "button",
-          {
-            className: "flex flex-row px-2 py-0.5 items-center justify-between cursor-pointer rounded-sm w-full text-left hover:bg-medlightgray",
-            onClick: () => entry.kind === "directory" ? openExportSubDir(entry.handle) : setHandle(entry.handle),
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[13px] truncate min-w-0", children: entry.name }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: entry.kind === "file" ? fileIcon : folderIcon$1, className: "w-3.5 h-3.5 shrink-0 ml-1" })
-            ]
-          },
-          entry.name
-        ))),
-        mode === "writeInterface" && handle && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-0.5", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-row items-center gap-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[10px] opacity-70 truncate", title: handle.name, children: handle.name }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Export Path  Ctrl+E", placement: "right", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+  const [popup, setPopup] = reactExports.useState(false);
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+    popup && /* @__PURE__ */ jsxRuntimeExports.jsx(
+      EditTemplatePopup,
+      {
+        label: "",
+        open: popup,
+        setOpen: setPopup,
+        onEnter: () => {
+        }
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      ConfigButtonTemplate,
+      {
+        title: "Export",
+        iconButtons: mode === "folderView" ? [backButton, refreshButton] : mode === "writeInterface" ? [backButton] : [],
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { placement: "right", speed: "fast", label: "Ctrl+⇧C", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: "Copy All", tooltip: "Ctrl+⇧C", callback: () => {
+            copy(null, path, true);
+          } }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { placement: "right", speed: "fast", label: "Ctrl+C", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: "Copy Selected", tooltip: "Ctrl+C", callback: () => {
+            copy(null, path, false);
+          } }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: "Edit Templates", keybind: "", callback: () => setPopup(true) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
+          mode === "default" && /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(DragAndDrop, { onHandle: setHandle, onDirHandle: handleDirChosen }) }),
+          mode === "folderView" && (exportDirEntries.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[12px] opacity-40 px-1", children: "Empty folder" }) : exportDirEntries.map((entry) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
             "button",
             {
-              className: "w-full flex items-center justify-center px-2 py-1 brightness-120 bg-medgray hover:brightness-95 cursor-pointer rounded-sm",
-              onClick: replaceMode || mergeMode ? replaceInFile : writeToFile,
-              children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: "Write" })
-            }
-          ) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "pt-2 pb-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorConsole, { lines: consoleLines }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigCheckboxButton, { name: "Merge", label: "Toggles Merge Mode (Read Console)", checked: mergeMode, setChecked: toggleMergeMode }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigCheckboxButton, { name: "Replace", label: "Toggles Replace Mode (Read Console)", checked: replaceMode, setChecked: toggleReplaceMode })
-        ] })
-      ]
-    }
-  );
+              className: "flex flex-row px-2 py-0.5 items-center justify-between cursor-pointer rounded-sm w-full text-left hover:bg-medlightgray",
+              onClick: () => entry.kind === "directory" ? openExportSubDir(entry.handle) : setHandle(entry.handle),
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[13px] truncate min-w-0", children: entry.name }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: entry.kind === "file" ? fileIcon : folderIcon$1, className: "w-3.5 h-3.5 shrink-0 ml-1" })
+              ]
+            },
+            entry.name
+          ))),
+          mode === "writeInterface" && handle && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-0.5", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-row items-center gap-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[10px] opacity-70 truncate", title: handle.name, children: handle.name }) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Export Path  Ctrl+E", placement: "right", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "button",
+              {
+                className: "w-full flex items-center justify-center px-2 py-1 brightness-120 bg-medgray hover:brightness-95 cursor-pointer rounded-sm",
+                onClick: replaceMode || mergeMode ? replaceInFile : writeToFile,
+                children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[14px]", children: "Write" })
+              }
+            ) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "pt-2 pb-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorConsole, { lines: consoleLines }) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigCheckboxButton, { name: "Merge", label: "Toggles Merge Mode (Read Console)", checked: mergeMode, setChecked: toggleMergeMode }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigCheckboxButton, { name: "Replace", label: "Toggles Replace Mode (Read Console)", checked: replaceMode, setChecked: toggleReplaceMode })
+          ] })
+        ]
+      }
+    )
+  ] });
 }
 const check = "data:image/svg+xml,%3c!DOCTYPE%20svg%20PUBLIC%20'-//W3C//DTD%20SVG%201.1//EN'%20'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Transformed%20by:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='3%209%2018%205'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20id='SVGRepo_bgCarrier'%20stroke-width='0'/%3e%3cg%20id='SVGRepo_tracerCarrier'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cg%20id='SVGRepo_iconCarrier'%3e%3cpath%20d='M4%2012.6111L8.92308%2017.5L20%206.5'%20stroke='%23ffffff'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/g%3e%3c/svg%3e";
 function MenuCheckButton({
@@ -25780,6 +25779,7 @@ function FieldButton() {
     group.id
   )) });
 }
+const closeFolder = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20width='800px'%20height='800px'%20viewBox='6%206%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M6.99486%207.00636C6.60433%207.39689%206.60433%208.03005%206.99486%208.42058L10.58%2012.0057L6.99486%2015.5909C6.60433%2015.9814%206.60433%2016.6146%206.99486%2017.0051C7.38538%2017.3956%208.01855%2017.3956%208.40907%2017.0051L11.9942%2013.4199L15.5794%2017.0051C15.9699%2017.3956%2016.6031%2017.3956%2016.9936%2017.0051C17.3841%2016.6146%2017.3841%2015.9814%2016.9936%2015.5909L13.4084%2012.0057L16.9936%208.42059C17.3841%208.03007%2017.3841%207.3969%2016.9936%207.00638C16.603%206.61585%2015.9699%206.61585%2015.5794%207.00638L11.9942%2010.5915L8.40907%207.00636C8.01855%206.61584%207.38538%206.61584%206.99486%207.00636Z'%20fill='%23ffffffff'/%3e%3c/svg%3e";
 async function readDirEntries(handle) {
   const result = [];
   for await (const [name, h] of handle.entries()) {
@@ -25870,7 +25870,7 @@ function FolderButton({ fileName }) {
     refreshDirRef.current = refreshDir;
   });
   const backButton = {
-    icon: back,
+    icon: history.length > 0 ? back : closeFolder,
     visible: true,
     onClick: goBack,
     tooltip: history.length > 0 ? "Go Back" : "Close Folder"
@@ -26100,10 +26100,10 @@ function ViewButton() {
     fieldZoomKeyboard
   } = FieldMacros();
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(MenuButtonTemplate, { title: "View", width: 40, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckButton, { name: "Auto Adjust", checked: viewMode === "automatic", setChecked: () => setViewMode("automatic") }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckButton, { name: "Standard View", checked: viewMode === "standard", setChecked: () => setViewMode("standard") }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckButton, { name: "Collapsed Config", checked: viewMode === "collapsed-config", setChecked: () => setViewMode("collapsed-config") }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckButton, { name: "Collapsed List", checked: viewMode === "collapsed-list", setChecked: () => setViewMode("collapsed-list") }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckButton, { name: "Auto Collapse", checked: viewMode === "automatic", setChecked: () => setViewMode("automatic") }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckButton, { name: "No Collapse", checked: viewMode === "standard", setChecked: () => setViewMode("standard") }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckButton, { name: "Collapse Left", checked: viewMode === "collapsed-config", setChecked: () => setViewMode("collapsed-config") }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckButton, { name: "Collapse Right", checked: viewMode === "collapsed-list", setChecked: () => setViewMode("collapsed-list") }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(MenuCheckButton, { name: "Collapse All", checked: viewMode === "fully-collapsed", setChecked: () => setViewMode("fully-collapsed") }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Section, {}),
     /* @__PURE__ */ jsxRuntimeExports.jsx(MenuKeybindButton, { name: "Zoom In", keybind: "Ctrl+=", callback: () => fieldZoomKeyboard(null, setImg, "ZoomIn") }),
@@ -27905,4 +27905,4 @@ registerSW({ immediate: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-C7mIY6-k.js.map
+//# sourceMappingURL=index-BaLAclNX.js.map
