@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { useSettings } from "../../hooks/useSettings";
-import EditTemplatePopup from "../PathMenu/EditTemplatePopup";
-import { MenuKeybindButton } from "../Util/KeybindButton";
 import Section from "../Util/Section";
 import MenuButtonTemplate from "../Util/MenuButtonTemplate";
 import { MenuCheckboxButton } from "../Util/CheckboxButton";
@@ -10,7 +8,6 @@ import { NumberInputCheckboxButton } from "../Util/NumberInputButton";
 
 export default function SettingsButton() {
     const [settings, setSettings] = useSettings();
-    const [popup, setPopup] = useState(false);
     // const debug = debugStore.useStore();
 
     useEffect(() => {
@@ -21,29 +18,18 @@ export default function SettingsButton() {
         setSettings(prev => ({ ...prev, [key]: state }));
 
     return (
-        <>
-            {popup && <EditTemplatePopup
-                label={""}
-                open={popup}
-                setOpen={setPopup}
-                onEnter={() => { }}
-            />}
+        <MenuButtonTemplate title="Settings" closeOnClick={false} width={47}>
+            <div className="flex flex-col gap-1.5">
+                {/* <MenuCheckboxButton name="Position Logs" label="Prints robot position to console" checked={debug} setChecked={(state: boolean) => { debugStore.setState(state); }} /> */}
 
-            <MenuButtonTemplate title="Settings" closeOnClick={false} width={47}>
-                <div className="flex flex-col gap-1.5">
-                    {/* <MenuCheckboxButton name="Position Logs" label="Prints robot position to console" checked={debug} setChecked={(state: boolean) => { debugStore.setState(state); }} /> */}
+                <MenuCheckboxButton name="Robot Position" label="Displays robots's actual position" checked={settings.robotPosition} setChecked={set("robotPosition")} />
+                <MenuCheckboxButton name="Precise Path" label="Displays robots exact path taken (P)" checked={settings.precisePath} setChecked={set("precisePath")} />
+                <MenuCheckboxButton name="Numbered Path" label="Displays number labels for notebook screenshots" checked={settings.numberedPath} setChecked={set("numberedPath")} />
+                <NumberInputCheckboxButton width={40} name="Onion Layers" checkLabel="Displays end positions when sim is off (O)" label="Distance between outlines. 0 shows only end positions" checked={settings.onionLayers} setChecked={set("onionLayers")} value={settings.onionSpacing} setValue={v => v !== null && set("onionSpacing")(v)} bounds={[0, 48]} stepSize={1} roundTo={0} units="in" />
 
-                    <MenuCheckboxButton name="Robot Position" label="Displays robots's actual position" checked={settings.robotPosition} setChecked={set("robotPosition")} />
-                    <MenuCheckboxButton name="Precise Path" label="Displays robots exact path taken (P)" checked={settings.precisePath} setChecked={set("precisePath")} />
-                    <MenuCheckboxButton name="Numbered Path" label="Displays number labels for notebook screenshots" checked={settings.numberedPath} setChecked={set("numberedPath")} />
-                    <NumberInputCheckboxButton width={40} name="Onion Layers" checkLabel="Displays end positions when sim is off (O)" label="Distance between outlines. 0 shows only end positions" checked={settings.onionLayers} setChecked={set("onionLayers")} value={settings.onionSpacing} setValue={v => v !== null && set("onionSpacing")(v)} bounds={[0, 48]} stepSize={1} roundTo={0} units="in" />
-
-                    <Section />
-                    <NumberInputCheckboxButton blocking={false} checked={settings.snappingEnabled} width={40} setChecked={set("snappingEnabled")} checkLabel="Enable snapping by default" name="Grid Snap" label="Snap increment. Hold Ctrl while dragging to invert snapping" value={settings.snapToGrid} setValue={v => v !== null && set("snapToGrid")(v)} bounds={[0.1, 10]} stepSize={0.5} roundTo={1} units="in" />
-                    <Section />
-                    <MenuKeybindButton name="Edit Templates" keybind={""} callback={() => setPopup(true)} />
-                </div>
-            </MenuButtonTemplate>
-        </>
+                <Section />
+                <NumberInputCheckboxButton blocking={false} checked={settings.snappingEnabled} width={40} setChecked={set("snappingEnabled")} checkLabel="Enable snapping by default" name="Grid Snap" label="Snap increment. Hold Ctrl while dragging to invert snapping" value={settings.snapToGrid} setValue={v => v !== null && set("snapToGrid")(v)} bounds={[0.1, 10]} stepSize={0.5} roundTo={1} units="in" />
+            </div>
+        </MenuButtonTemplate>
     );
 }

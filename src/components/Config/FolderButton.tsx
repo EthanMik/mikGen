@@ -3,6 +3,7 @@ import ConfigButtonTemplate from "./ConfigButtonTemplate";
 import fileIcon from "../../assets/icons/files/file.svg";
 import folderIcon from "../../assets/icons/files/folder.svg";
 import back from "../../assets/icons/ui/back.svg";
+import closeFolder from "../../assets/icons/files/close-folder.svg";
 import { loadFromHandle, fileSaveStore, fileHandleStore, dirHandleStore, loadFromGhostHandle, unloadFromGhostHandle } from "../../core/FileStore";
 import refresh from "../../assets/icons/files/refresh.svg";
 import check from "../../assets/icons/ui/check.svg";
@@ -132,7 +133,7 @@ export default function FolderButton({ fileName }: FolderButtonProps) {
     useEffect(() => { refreshDirRef.current = refreshDir; });
 
     const backButton = {
-        icon: back,
+        icon: history.length > 0 ? back : closeFolder,
         visible: true,
         onClick: goBack,
         tooltip: history.length > 0 ? "Go Back" : "Close Folder"

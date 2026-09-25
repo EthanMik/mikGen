@@ -13,6 +13,7 @@ import refresh from "../../assets/icons/files/refresh.svg";
 import { ConfigKeybindButton } from "../Util/KeybindButton";
 import Section from "../Util/Section";
 import FieldMacros from "../../macros/FieldMacros";
+import EditTemplatePopup from "../PathMenu/EditTemplatePopup";
 
 // ─── export-dir helpers ───────────────────────────────────────────────────────
 
@@ -569,64 +570,79 @@ export default function ExportButton() {
     const refreshButton = { icon: refresh, visible: true, onClick: refreshExportDir, tooltip: "Refresh Folder" };
 
     const [path] = usePath();
+    const [ popup, setPopup ] = useState(false);
 
     return (
-        <ConfigButtonTemplate
-            title="Export"
-            iconButtons={mode === "folderView" ? [backButton, refreshButton] : mode === "writeInterface" ? [backButton] : []}
-        >
-            <ConfigKeybindButton name={"Copy All"} callback={() => { copy(null, path, true); }} />
-            <ConfigKeybindButton name={"Copy Selected"} callback={() => { copy(null, path, false); }} />
-            <Section />
+        <>
+            {popup && <EditTemplatePopup
+                label={""}
+                open={popup}
+                setOpen={setPopup}
+                onEnter={() => { }}
+            />}
 
-            {mode === "default" && (
-                <>
-                    {/* <span className="text-[7.5px] mb-1 opacity-50">Segments can be also be exported by Ctrl+C</span> */}
-                    <DragAndDrop onHandle={setHandle} onDirHandle={handleDirChosen} />
-                </>
-            )}
+            <ConfigButtonTemplate
+                title="Export"
+                iconButtons={mode === "folderView" ? [backButton, refreshButton] : mode === "writeInterface" ? [backButton] : []}
+            >
+            <Tooltip placement="right" speed="fast" label="Ctrl+⇧C">
+                <ConfigKeybindButton name={"Copy All"} tooltip={"Ctrl+⇧C"}  callback={() => { copy(null, path, true); }} />
+            </Tooltip>
+            <Tooltip placement="right" speed="fast" label="Ctrl+C">
+                <ConfigKeybindButton name={"Copy Selected"} tooltip={"Ctrl+C"}  callback={() => { copy(null, path, false); }} />
+            </Tooltip>
+                <ConfigKeybindButton name="Edit Templates" keybind={""} callback={() => setPopup(true)} />
+                <Section />
 
-            {mode === "folderView" && (
-                exportDirEntries.length === 0
-                    ? <span className="text-[12px] opacity-40 px-1">Empty folder</span>
-                    : exportDirEntries.map(entry => (
-                        <button
-                            key={entry.name}
-                            className="flex flex-row px-2 py-0.5 items-center justify-between cursor-pointer rounded-sm w-full text-left hover:bg-medlightgray"
-                            onClick={() => entry.kind === "directory"
-                                ? openExportSubDir(entry.handle as FileSystemDirectoryHandle)
-                                : setHandle(entry.handle as FileSystemFileHandle)
-                            }
-                        >
-                            <span className="text-[13px] truncate min-w-0">{entry.name}</span>
-                            <img src={entry.kind === "file" ? fileIcon : folderIcon} className="w-3.5 h-3.5 shrink-0 ml-1" />
-                        </button>
-                    ))
-            )}
+                {mode === "default" && (
+                    <>
+                        {/* <span className="text-[7.5px] mb-1 opacity-50">Segments can be also be exported by Ctrl+C</span> */}
+                        <DragAndDrop onHandle={setHandle} onDirHandle={handleDirChosen} />
+                    </>
+                )}
 
-            {mode === "writeInterface" && handle && (
-                <div className="flex flex-col gap-0.5">
-                    <div className="flex flex-row items-center gap-2">
-                        {/* Going back moved to the header button, so the name is only a label now */}
-                        <span className="text-[10px] opacity-70 truncate" title={handle.name}>
-                            {handle.name}
-                        </span>
+                {mode === "folderView" && (
+                    exportDirEntries.length === 0
+                        ? <span className="text-[12px] opacity-40 px-1">Empty folder</span>
+                        : exportDirEntries.map(entry => (
+                            <button
+                                key={entry.name}
+                                className="flex flex-row px-2 py-0.5 items-center justify-between cursor-pointer rounded-sm w-full text-left hover:bg-medlightgray"
+                                onClick={() => entry.kind === "directory"
+                                    ? openExportSubDir(entry.handle as FileSystemDirectoryHandle)
+                                    : setHandle(entry.handle as FileSystemFileHandle)
+                                }
+                            >
+                                <span className="text-[13px] truncate min-w-0">{entry.name}</span>
+                                <img src={entry.kind === "file" ? fileIcon : folderIcon} className="w-3.5 h-3.5 shrink-0 ml-1" />
+                            </button>
+                        ))
+                )}
+
+                {mode === "writeInterface" && handle && (
+                    <div className="flex flex-col gap-0.5">
+                        <div className="flex flex-row items-center gap-2">
+                            {/* Going back moved to the header button, so the name is only a label now */}
+                            <span className="text-[10px] opacity-70 truncate" title={handle.name}>
+                                {handle.name}
+                            </span>
+                        </div>
+                        <Tooltip label="Export Path  Ctrl+E" placement="right">
+                            <button
+                                className="w-full flex items-center justify-center px-2 py-1 brightness-120 bg-medgray hover:brightness-95 cursor-pointer rounded-sm"
+                                onClick={replaceMode || mergeMode ? replaceInFile : writeToFile}
+                            >
+                                <span className="text-[14px]">Write</span>
+                            </button>
+                        </Tooltip>
+                        <div className="pt-2 pb-2">
+                            <ErrorConsole lines={consoleLines} />
+                        </div>
+                        <ConfigCheckboxButton name="Merge" label="Toggles Merge Mode (Read Console)" checked={mergeMode} setChecked={toggleMergeMode} />
+                        <ConfigCheckboxButton name="Replace" label="Toggles Replace Mode (Read Console)" checked={replaceMode} setChecked={toggleReplaceMode} />
                     </div>
-                    <Tooltip label="Export Path  Ctrl+E" placement="right">
-                        <button
-                            className="w-full flex items-center justify-center px-2 py-1 brightness-120 bg-medgray hover:brightness-95 cursor-pointer rounded-sm"
-                            onClick={replaceMode || mergeMode ? replaceInFile : writeToFile}
-                        >
-                            <span className="text-[14px]">Write</span>
-                        </button>
-                    </Tooltip>
-                    <div className="pt-2 pb-2">
-                        <ErrorConsole lines={consoleLines} />
-                    </div>
-                    <ConfigCheckboxButton name="Merge" label="Toggles Merge Mode (Read Console)" checked={mergeMode} setChecked={toggleMergeMode} />
-                    <ConfigCheckboxButton name="Replace" label="Toggles Replace Mode (Read Console)" checked={replaceMode} setChecked={toggleReplaceMode} />
-                </div>
-            )}
-        </ConfigButtonTemplate>
+                )}
+            </ConfigButtonTemplate>
+        </>
     );
 }
