@@ -19720,10 +19720,6 @@ function forwardTurnTarget(path, idx) {
   for (let i = idx; i < path.segments.length; i++) {
     const seg = path.segments[i];
     if (seg.kind === "strafeDrive") continue;
-    if (seg.kind === "bezierCurve") {
-      const bezier = resolveBezier(path, i);
-      if (bezier !== null) return { x: bezier.c1.x, y: bezier.c1.y };
-    }
     if (seg.pose.x !== null && seg.pose.y !== null) return { x: seg.pose.x, y: seg.pose.y };
   }
   return null;
@@ -26832,19 +26828,24 @@ function renderCircle(ctx, attr, opacity) {
     }
   );
 }
-function renderTurnTarget(ctx, attr, opacity) {
+function renderTurnTarget(ctx, attr, opacity, cursorStyle) {
   const { seg, geom } = ctx;
   if (!seg.selected || geom.turnTarget === null) return null;
   const px = toPX(geom.turnTarget, FIELD_REAL_DIMENSIONS, ctx.img);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "circle",
     {
-      pointerEvents: "none",
+      pointerEvents: seg.turnLocked ? void 0 : "none",
+      style: { cursor: seg.turnLocked ? cursorStyle : void 0 },
       cx: px.x,
       cy: px.y,
       opacity,
-      r: ctx.radius * 0.35,
-      fill: attr.selectedColor
+      r: ctx.radius * shapeScale(attr, seg.selected, ctx.hovered) * 0.5,
+      fill: attr.selectedColor,
+      onPointerDown: seg.turnLocked ? (e) => {
+        e.stopPropagation();
+        ctx.onTurnTargetPointerDown(e, seg.id);
+      } : void 0
     }
   );
 }
@@ -26912,10 +26913,10 @@ function renderAttr(ctx, attr, opacity, cursor) {
     case "control":
       return renderControls(ctx, attr, opacity, cursor);
     case "turnTarget":
-      return renderTurnTarget(ctx, attr, opacity);
+      return renderTurnTarget(ctx, attr, opacity, cursor);
   }
 }
-const ControlsLayer = reactExports.memo(function ControlsLayer2({ path, img, radius, onPointerDown, onControlPointerDown, opacity, hoveredId }) {
+const ControlsLayer = reactExports.memo(function ControlsLayer2({ path, img, radius, onPointerDown, onControlPointerDown, onTurnTargetPointerDown, opacity, hoveredId }) {
   const imgDefaultSize = (FIELD_IMG_DIMENSIONS.w + FIELD_IMG_DIMENSIONS.h) / 2;
   const imgRealSize = (img.w + img.h) / 2;
   const scale = imgRealSize / imgDefaultSize;
@@ -26935,7 +26936,7 @@ const ControlsLayer = reactExports.memo(function ControlsLayer2({ path, img, rad
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
     renderOrder.map((idx) => {
       const seg = path.segments[idx];
-      const ctx = { path, idx, seg, geom: geoms[idx], img, radius, scale, hovered: hoveredId === seg.id, snapIdx, onControlPointerDown };
+      const ctx = { path, idx, seg, geom: geoms[idx], img, radius, scale, hovered: hoveredId === seg.id, snapIdx, onControlPointerDown, onTurnTargetPointerDown };
       return /* @__PURE__ */ jsxRuntimeExports.jsx("g", { onPointerDown: (e) => onPointerDown(e, seg.id), children: seg.visible && selectedLastAttrs(seg).map(({ attr, key }) => /* @__PURE__ */ jsxRuntimeExports.jsx(React.Fragment, { children: renderAttr(ctx, attr, opacity ?? 1, (opacity ?? 1) < 1 ? void 0 : "grab") }, key)) }, seg.id);
     }),
     settings.numberedPath && renderOrder.map((idx) => {
@@ -26961,6 +26962,7 @@ const ControlsLayer = reactExports.memo(function ControlsLayer2({ path, img, rad
   ] });
 });
 const controlDragKey = (segmentId, controlIdx) => `${segmentId}:c${controlIdx}`;
+const turnTargetDragKey = (segmentId) => `${segmentId}:t`;
 function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) {
   const [img, setImg] = useFieldImg();
   const [fieldKey] = useField();
@@ -27025,6 +27027,7 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
   const lastReleasedSnapshot = reactExports.useRef(null);
   const dragStartPointerInch = reactExports.useRef(null);
   const dragStartPositions = reactExports.useRef({});
+  const turnTargetDragRef = reactExports.useRef(null);
   const shiftPendingSelectRef = reactExports.useRef(null);
   const pendingTurnCycleRef = reactExports.useRef(null);
   const suppressClickFallbackRef = reactExports.useRef(false);
@@ -27227,8 +27230,9 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
     if (!start2) return;
     const shiftHeld = evt.shiftKey;
     let effectivePosInch = posInch;
+    const draggedTurnTarget = turnTargetDragRef.current;
     if (shiftHeld) {
-      let refKey = path.segments.find((s) => s.selected)?.id ?? null;
+      let refKey = draggedTurnTarget !== null ? turnTargetDragKey(draggedTurnTarget) : path.segments.find((s) => s.selected)?.id ?? null;
       if (refKey === null) {
         for (const s of path.segments) {
           const i = segmentControls(s).findIndex((c) => c.selected);
@@ -27275,6 +27279,11 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
     };
     setPath((prev) => {
       const firstPass = prev.segments.map((c) => {
+        if (draggedTurnTarget !== null) {
+          if (c.id !== draggedTurnTarget) return c;
+          const moved2 = applyDelta(dragStartPositions.current[turnTargetDragKey(c.id)]);
+          return moved2 ? { ...c, turnPose: { ...c.turnPose, x: moved2.x, y: moved2.y } } : c;
+        }
         const controls = segmentControls(c);
         const movedControls = controls.some((ctrl) => ctrl.selected) ? controls.map((ctrl, i) => {
           if (!ctrl.selected) return ctrl;
@@ -27292,12 +27301,13 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
       for (let segIdx = 0; segIdx < firstPass.length; segIdx++) {
         const c = firstPass[segIdx];
         if (c.kind !== "distanceDrive" && c.kind !== "strafeDrive") continue;
+        const moving = c.selected && draggedTurnTarget === null;
         const anchorPose = getBackwardsSnapPose({ ...prev, segments: next }, segIdx - 1);
         const prevSegKind = next[segIdx - 1]?.kind;
         const afterTurn = (prevSegKind === "pointSwing" || prevSegKind === "pointTurn") && c.kind !== "strafeDrive";
         if (afterTurn) {
           if (!anchorPose || anchorPose.x === null || anchorPose.y === null) continue;
-          if (c.selected) {
+          if (moving) {
             const startPos = dragStartPositions.current[c.id];
             let newX = startPos?.x == null ? c.pose.x ?? 0 : startPos.x + dx;
             let newY = startPos?.y == null ? c.pose.y ?? 0 : startPos.y + dy;
@@ -27320,7 +27330,7 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
           }
           continue;
         }
-        if (c.selected) {
+        if (moving) {
           const startPos = dragStartPositions.current[c.id];
           if (!anchorPose || anchorPose.x === null || anchorPose.y === null) {
             if (startPos) {
@@ -27383,6 +27393,7 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
     dragStartPushed.current = false;
     dragStartPointerInch.current = null;
     dragStartPositions.current = {};
+    turnTargetDragRef.current = null;
     isFieldDragging.current = false;
     setIsPanning(false);
   };
@@ -27412,20 +27423,22 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
   const selectControl = (segmentId, controlIdx) => {
     setPath((prev) => selectControlInPath(prev, segmentId, controlIdx, "exclusive"));
   };
+  const beginDragHistory = () => {
+    if (dragHistoryActive.current) return;
+    setPath((prev) => {
+      dragStartSnapshot.current = structuredClone(prev);
+      return prev;
+    });
+    dragStartPushed.current = false;
+    dragHistoryActive.current = true;
+    dragDidMove.current = false;
+  };
   const handleControlPointerDown = (evt, controlId) => {
     if (evt.button !== 0 || !svgRef.current) return;
     if (spaceHeld) return;
     evt.stopPropagation();
     svgRef.current.setPointerCapture(evt.pointerId);
-    if (!dragHistoryActive.current) {
-      setPath((prev) => {
-        dragStartSnapshot.current = structuredClone(prev);
-        return prev;
-      });
-      dragStartPushed.current = false;
-      dragHistoryActive.current = true;
-      dragDidMove.current = false;
-    }
+    beginDragHistory();
     const posSvg = pointerToSvg(evt, svgRef.current);
     if (!drag.dragging) {
       if (evt.shiftKey) {
@@ -27475,15 +27488,7 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
     if (spaceHeld) return;
     evt.stopPropagation();
     svgRef.current.setPointerCapture(evt.pointerId);
-    if (!dragHistoryActive.current) {
-      setPath((prev) => {
-        dragStartSnapshot.current = structuredClone(prev);
-        return prev;
-      });
-      dragStartPushed.current = false;
-      dragHistoryActive.current = true;
-      dragDidMove.current = false;
-    }
+    beginDragHistory();
     if (!drag.dragging) {
       const seg = path.segments.find((s) => s.id === segmentId);
       const alreadySelected = segmentControls(seg ?? {})[controlIdx]?.selected ?? false;
@@ -27497,6 +27502,17 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
     }
     snapshotDragStart(pointerToSvg(evt, svgRef.current));
   };
+  const handleTurnTargetPointerDown = (evt, segmentId) => {
+    if (evt.button !== 0 || !svgRef.current) return;
+    if (spaceHeld) return;
+    evt.stopPropagation();
+    svgRef.current.setPointerCapture(evt.pointerId);
+    beginDragHistory();
+    snapshotDragStart(pointerToSvg(evt, svgRef.current));
+    const target2 = resolveTurnPose(path, path.segments.findIndex((s) => s.id === segmentId));
+    dragStartPositions.current[turnTargetDragKey(segmentId)] = { x: target2.x, y: target2.y };
+    turnTargetDragRef.current = segmentId;
+  };
   const controlPointerDownImpl = reactExports.useRef(handleControlPointerDown);
   controlPointerDownImpl.current = handleControlPointerDown;
   const stableControlPointerDown = reactExports.useCallback(
@@ -27507,6 +27523,12 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
   controlPointPointerDownImpl.current = handleControlPointPointerDown;
   const stableControlPointPointerDown = reactExports.useCallback(
     (e, id, controlIdx) => controlPointPointerDownImpl.current(e, id, controlIdx),
+    []
+  );
+  const turnTargetPointerDownImpl = reactExports.useRef(handleTurnTargetPointerDown);
+  turnTargetPointerDownImpl.current = handleTurnTargetPointerDown;
+  const stableTurnTargetPointerDown = reactExports.useCallback(
+    (e, id) => turnTargetPointerDownImpl.current(e, id),
     []
   );
   const endSelection = () => {
@@ -27676,6 +27698,8 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
                     },
                     onControlPointerDown: () => {
                     },
+                    onTurnTargetPointerDown: () => {
+                    },
                     hoveredId: null
                   },
                   idx
@@ -27688,6 +27712,7 @@ function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }) 
                     radius,
                     onPointerDown: stableControlPointerDown,
                     onControlPointerDown: stableControlPointPointerDown,
+                    onTurnTargetPointerDown: stableTurnTargetPointerDown,
                     hoveredId: hoveredSegmentStore.getState()
                   }
                 )
@@ -27933,4 +27958,4 @@ registerSW({ immediate: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-Badl_Mt2.js.map
+//# sourceMappingURL=index-HbOH1NGh.js.map
