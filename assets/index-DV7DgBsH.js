@@ -14546,7 +14546,7 @@ const mikTurnExitConditionsSettings = [
   { key: "exit_error", units: "deg", label: "Exit Error", input: { bounds: [0, 360], stepSize: 5, roundTo: 2 } }
 ];
 const mikPIDConstantsSettings = [
-  { key: "max_voltage", units: "volt", label: "Max Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
+  { key: "max_voltage", units: "volt", label: "Max Voltage", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
   { key: "kp", label: "kP", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
   { key: "ki", label: "kI", units: "", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
   { key: "kd", label: "kD", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
@@ -24015,22 +24015,65 @@ function FileButton() {
     setIsSaved(true);
     skipSave.current = true;
   };
+  const writeToHandle = async (handle) => {
+    const writable = await handle.createWritable();
+    await writable.write(serializeFile(fileFormatStore.getState()));
+    await writable.close();
+    setIsSaved(true);
+    fileUndosStore.setState(0);
+    fileSaveStore.setState((n) => n + 1);
+  };
+  const renameInPlace = async (handle, fileName) => {
+    const movable = handle;
+    const root = dirHandleStore.getState();
+    if (!movable.move || !root) return false;
+    try {
+      const parts = await root.resolve(handle);
+      if (!parts) return false;
+      let dir = root;
+      for (const part of parts.slice(0, -1)) dir = await dir.getDirectoryHandle(part);
+      const taken = await dir.getFileHandle(fileName).then(() => true, () => false);
+      if (taken) return false;
+      await movable.move(fileName);
+      return true;
+    } catch (error) {
+      console.error("Error renaming file:", error);
+      return false;
+    }
+  };
+  const saveToNewFile = async (name, startIn) => {
+    const handle = await window.showSaveFilePicker({
+      suggestedName: `${name}.txt`,
+      startIn,
+      types: [
+        { description: "Text Files", accept: { "text/plain": [".txt"] } },
+        { description: "JSON Files", accept: { "application/json": [".json"] } }
+      ]
+    });
+    fileHandleStore.setState(handle);
+    const savedFileName = handle.name.replace(/\.[^/.]+$/, "");
+    setPath((prev) => ({ ...prev, name: savedFileName }));
+    await writeToHandle(handle);
+  };
   const handleSave = async () => {
     if (!canSaveToDisk) return;
     try {
       const handle = fileHandleStore.getState();
-      if (handle) {
-        const writable = await handle.createWritable();
-        await writable.write(serializeFile(fileFormatStore.getState()));
-        await writable.close();
-        setIsSaved(true);
-        fileUndosStore.setState(0);
-        fileSaveStore.setState((n) => n + 1);
-      } else {
+      if (!handle) {
         await handleSaveAs();
+        return;
       }
+      const name = getFileName();
+      const ext = handle.name.match(/\.[^/.]+$/)?.[0] ?? ".txt";
+      if (handle.name !== name + ext && !await renameInPlace(handle, name + ext)) {
+        await saveToNewFile(name, handle);
+        return;
+      }
+      await writeToHandle(handle);
     } catch (error) {
-      console.error("Error saving file:", error);
+      if (error.name !== "AbortError") {
+        console.error("Error saving file:", error);
+      }
     }
   };
   const handleSaveAs = async () => {
@@ -24039,22 +24082,7 @@ function FileButton() {
     try {
       const name = await requestFileName();
       if (name === null || name === "") return;
-      const handle = await window.showSaveFilePicker({
-        suggestedName: `${name}.txt`,
-        types: [
-          { description: "Text Files", accept: { "text/plain": [".txt"] } },
-          { description: "JSON Files", accept: { "application/json": [".json"] } }
-        ]
-      });
-      fileHandleStore.setState(handle);
-      const savedFileName = handle.name.replace(/\.[^/.]+$/, "");
-      setPath((prev) => ({ ...prev, name: savedFileName }));
-      const writable = await handle.createWritable();
-      await writable.write(serializeFile(fileFormatStore.getState()));
-      await writable.close();
-      setIsSaved(true);
-      fileUndosStore.setState(0);
-      fileSaveStore.setState((n) => n + 1);
+      await saveToNewFile(name);
     } catch (error) {
       if (error.name !== "AbortError") {
         console.error("Error saving file:", error);
@@ -27905,4 +27933,4 @@ registerSW({ immediate: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-BaLAclNX.js.map
+//# sourceMappingURL=index-DV7DgBsH.js.map
