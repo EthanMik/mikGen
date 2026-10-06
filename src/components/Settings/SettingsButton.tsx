@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSettings } from "../../hooks/useSettings";
 import Section from "../Util/Section";
 import MenuButtonTemplate from "../Util/MenuButtonTemplate";

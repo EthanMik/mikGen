@@ -154,22 +154,76 @@ export default function FileButton() {
         skipSave.current = true;
     };
 
+    const writeToHandle = async (handle: FileSystemFileHandle) => {
+        const writable = await handle.createWritable();
+        await writable.write(serializeFile(fileFormatStore.getState()));
+        await writable.close();
+        setIsSaved(true);
+        fileUndosStore.setState(0);
+        fileSaveStore.setState(n => n + 1);
+    };
+
+    // Reopening a file takes the path name from the filename, so a path renamed in the header has
+    // to carry its file along or the old name comes back. Only renames in place when the opened
+    // folder can confirm nothing else already has the name, since move() may replace that file.
+    const renameInPlace = async (handle: FileSystemFileHandle, fileName: string): Promise<boolean> => {
+        // move() is missing from the TS DOM lib and from older browsers
+        const movable = handle as FileSystemFileHandle & { move?: (name: string) => Promise<void> };
+        const root = dirHandleStore.getState();
+        if (!movable.move || !root) return false;
+        try {
+            const parts = await root.resolve(handle);
+            if (!parts) return false;
+            let dir = root;
+            for (const part of parts.slice(0, -1)) dir = await dir.getDirectoryHandle(part);
+            const taken = await dir.getFileHandle(fileName).then(() => true, () => false);
+            if (taken) return false;
+            await movable.move(fileName);
+            return true;
+        } catch (error) {
+            console.error('Error renaming file:', error);
+            return false;
+        }
+    };
+
+    const saveToNewFile = async (name: string, startIn?: FileSystemFileHandle) => {
+        // @ts-expect-error showSaveFilePicker not in all TS DOM libs
+        const handle = await window.showSaveFilePicker({
+            suggestedName: `${name}.txt`,
+            startIn,
+            types: [
+                { description: 'Text Files', accept: { 'text/plain': ['.txt'] } },
+                { description: 'JSON Files', accept: { 'application/json': ['.json'] } },
+            ],
+        });
+
+        fileHandleStore.setState(handle);
+        const savedFileName = handle.name.replace(/\.[^/.]+$/, "");
+        setPath(prev => ({ ...prev, name: savedFileName }));
+        await writeToHandle(handle);
+    };
+
     const handleSave = async () => {
         if (!canSaveToDisk) return;
         try {
             const handle = fileHandleStore.getState();
-            if (handle) {
-                const writable = await handle.createWritable();
-                await writable.write(serializeFile(fileFormatStore.getState()));
-                await writable.close();
-                setIsSaved(true);
-                fileUndosStore.setState(0);
-                fileSaveStore.setState(n => n + 1);
-            } else {
+            if (!handle) {
                 await handleSaveAs();
+                return;
             }
+
+            const name = getFileName();
+            const ext = handle.name.match(/\.[^/.]+$/)?.[0] ?? ".txt";
+            if (handle.name !== name + ext && !await renameInPlace(handle, name + ext)) {
+                // The picker opens beside the old file with the new name filled in, and asks before replacing anything
+                await saveToNewFile(name, handle);
+                return;
+            }
+            await writeToHandle(handle);
         } catch (error) {
-            console.error('Error saving file:', error);
+            if ((error as Error).name !== 'AbortError') {
+                console.error('Error saving file:', error);
+            }
         }
     };
 
@@ -179,26 +233,7 @@ export default function FileButton() {
         try {
             const name = await requestFileName();
             if (name === null || name === "") return;
-
-            // @ts-expect-error showSaveFilePicker not in all TS DOM libs
-            const handle = await window.showSaveFilePicker({
-                suggestedName: `${name}.txt`,
-                types: [
-                    { description: 'Text Files', accept: { 'text/plain': ['.txt'] } },
-                    { description: 'JSON Files', accept: { 'application/json': ['.json'] } },
-                ],
-            });
-
-            fileHandleStore.setState(handle);
-            const savedFileName = handle.name.replace(/\.[^/.]+$/, "");
-            setPath(prev => ({ ...prev, name: savedFileName }));
-
-            const writable = await handle.createWritable();
-            await writable.write(serializeFile(fileFormatStore.getState()));
-            await writable.close();
-            setIsSaved(true);
-            fileUndosStore.setState(0);
-            fileSaveStore.setState(n => n + 1);
+            await saveToNewFile(name);
         } catch (error) {
             if ((error as Error).name !== 'AbortError') {
                 console.error('Error saving file:', error);
