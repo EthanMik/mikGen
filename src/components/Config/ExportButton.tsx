@@ -585,8 +585,8 @@ export default function ExportButton() {
                 title="Export"
                 iconButtons={mode === "folderView" ? [backButton, refreshButton] : mode === "writeInterface" ? [backButton] : []}
             >
-            <Tooltip placement="right" speed="fast" label="Ctrl+⇧C">
-                <ConfigKeybindButton name={"Copy All"} tooltip={"Ctrl+⇧C"}  callback={() => { copy(null, path, true); }} />
+            <Tooltip placement="right" speed="fast" label="Ctrl+Shift+C">
+                <ConfigKeybindButton name={"Copy All"} tooltip={"Ctrl+Shift+C"}  callback={() => { copy(null, path, true); }} />
             </Tooltip>
             <Tooltip placement="right" speed="fast" label="Ctrl+C">
                 <ConfigKeybindButton name={"Copy Selected"} tooltip={"Ctrl+C"}  callback={() => { copy(null, path, false); }} />
