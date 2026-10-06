@@ -144,7 +144,7 @@ export const mikTurnExitConditionsSettings: Fields = [
 ];
 
 export const mikPIDConstantsSettings: Fields = [
-    { key: "max_voltage", units: "volt", label: "Max Speed", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
+    { key: "max_voltage", units: "volt", label: "Max Voltage", input: { bounds: [0, 12], stepSize: 1, roundTo: 1 } },
     { key: "kp", label: "kP", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },
     { key: "ki", label: "kI", units: "", input: { bounds: [0, 100], stepSize: 0.01, roundTo: 5 } },
     { key: "kd", label: "kD", units: "", input: { bounds: [0, 100], stepSize: 0.1, roundTo: 5 } },

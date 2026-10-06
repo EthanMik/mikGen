@@ -11,22 +11,14 @@ How to use the robot dropdown config in mikGen.
 
 <img src={require('./img/robot-visualization/robot-menu.png').default} width="20%"  style={{ paddingBottom: '20px' }} />
 
-`General` is open by default. Every value is saved inside path file.
-
-### General
+### Size
 
 | Setting | Units | Default | Effect |
 |----------|----------|----------|----------|
 | Width | in | 14 | Side to side size of the robot |
 | Height | in | 14 | Front to back size of the robot |
-| Holonomic | - | Off | Switches the format to mikLib Holonomic and draws the robot green instead of grey |
 
 Width and Height are purely visual. Turning is driven by `Track Width`.
-
-:::note
-The `Holonomic` checkbox only appears on mikLib. It is the same toggle as the one in
-[Selecting a Format](./getting-started.mdx#selecting-a-format)
-:::
 
 ### Motion
 
@@ -129,7 +121,7 @@ Both are off by default, which puts the tracking center at the middle of the fra
 enabled, the small dot inside the robot moves to the offset point, and that point becomes the
 position the algorithm reads and drives to.
 
-### Extras
+### Timing
 
 | Setting | Units | Default | Effect |
 |----------|----------|----------|----------|
