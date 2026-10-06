@@ -25665,7 +25665,7 @@ function ExportButton() {
         title: "Export",
         iconButtons: mode === "folderView" ? [backButton, refreshButton] : mode === "writeInterface" ? [backButton] : [],
         children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { placement: "right", speed: "fast", label: "Ctrl+⇧C", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: "Copy All", tooltip: "Ctrl+⇧C", callback: () => {
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { placement: "right", speed: "fast", label: "Ctrl+Shift+C", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: "Copy All", tooltip: "Ctrl+Shift+C", callback: () => {
             copy(null, path, true);
           } }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { placement: "right", speed: "fast", label: "Ctrl+C", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ConfigKeybindButton, { name: "Copy Selected", tooltip: "Ctrl+C", callback: () => {
@@ -27933,4 +27933,4 @@ registerSW({ immediate: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-DV7DgBsH.js.map
+//# sourceMappingURL=index-Badl_Mt2.js.map
