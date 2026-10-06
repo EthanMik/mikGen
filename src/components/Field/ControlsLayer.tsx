@@ -16,6 +16,7 @@ type ControlsLayerProps = {
 	opacity?: number;
 	onPointerDown: (e: React.PointerEvent<SVGGElement>, id: string) => void;
 	onControlPointerDown: (e: React.PointerEvent<SVGCircleElement>, id: string, controlIdx: number) => void;
+	onTurnTargetPointerDown: (e: React.PointerEvent<SVGCircleElement>, id: string) => void;
 	hoveredId: string | null;
 };
 
@@ -44,6 +45,7 @@ type ShapeCtx = {
 	hovered: boolean;
 	snapIdx: number | null;
 	onControlPointerDown: ControlsLayerProps["onControlPointerDown"];
+	onTurnTargetPointerDown: ControlsLayerProps["onTurnTargetPointerDown"];
 };
 
 /** Null when the kind has an optional heading and none is set, so nothing is drawn. */
@@ -188,20 +190,26 @@ function renderCircle(ctx: ShapeCtx, attr: SegmentAttribute, opacity: number): R
 	);
 }
 
-/** The coordinate a point turn aims at, shown only while the row owns the selection. */
-function renderTurnTarget(ctx: ShapeCtx, attr: SegmentAttribute, opacity: number): React.ReactNode {
+/**
+ * The coordinate a point turn aims at, shown only while the row owns the selection. Locked, it is
+ * a handle dragged like a bezier control; unlocked it just marks the drive node it tracks, so
+ * presses fall through to that node.
+ */
+function renderTurnTarget(ctx: ShapeCtx, attr: SegmentAttribute, opacity: number, cursorStyle?: "grab"): React.ReactNode {
 	const { seg, geom } = ctx;
 	if (!seg.selected || geom.turnTarget === null) return null;
 
 	const px = toPX(geom.turnTarget, FIELD_REAL_DIMENSIONS, ctx.img);
 	return (
 		<circle
-			pointerEvents="none"
+			pointerEvents={seg.turnLocked ? undefined : "none"}
+			style={{ cursor: seg.turnLocked ? cursorStyle : undefined }}
 			cx={px.x}
 			cy={px.y}
 			opacity={opacity}
-			r={ctx.radius * 0.35}
+			r={ctx.radius * shapeScale(attr, seg.selected, ctx.hovered) * 0.5}
 			fill={attr.selectedColor}
+			onPointerDown={seg.turnLocked ? (e) => { e.stopPropagation(); ctx.onTurnTargetPointerDown(e, seg.id); } : undefined}
 		/>
 	);
 }
@@ -268,14 +276,14 @@ function renderAttr(ctx: ShapeCtx, attr: SegmentAttribute, opacity: number, curs
 		case "curve": return renderCurve(ctx, attr, opacity);
 		case "circle": return renderCircle(ctx, attr, opacity);
 		case "control": return renderControls(ctx, attr, opacity, cursor);
-		case "turnTarget": return renderTurnTarget(ctx, attr, opacity);
+		case "turnTarget": return renderTurnTarget(ctx, attr, opacity, cursor);
 	}
 }
 
 // Memoized (with stable handler props from Field) so Field renders that leave the path and
 // viewport untouched, like pose animation frames and box-select updates, skip the full
 // per-segment shape render
-export default memo(function ControlsLayer({ path, img, radius, onPointerDown, onControlPointerDown, opacity, hoveredId }: ControlsLayerProps) {
+export default memo(function ControlsLayer({ path, img, radius, onPointerDown, onControlPointerDown, onTurnTargetPointerDown, opacity, hoveredId }: ControlsLayerProps) {
 	const imgDefaultSize = (FIELD_IMG_DIMENSIONS.w + FIELD_IMG_DIMENSIONS.h) / 2;
 	const imgRealSize = (img.w + img.h) / 2
 	const scale = imgRealSize / imgDefaultSize;
@@ -301,7 +309,7 @@ export default memo(function ControlsLayer({ path, img, radius, onPointerDown, o
 		<>
 			{renderOrder.map((idx) => {
 				const seg = path.segments[idx];
-				const ctx: ShapeCtx = { path, idx, seg, geom: geoms[idx], img, radius, scale, hovered: hoveredId === seg.id, snapIdx, onControlPointerDown };
+				const ctx: ShapeCtx = { path, idx, seg, geom: geoms[idx], img, radius, scale, hovered: hoveredId === seg.id, snapIdx, onControlPointerDown, onTurnTargetPointerDown };
 				return (
 					<g key={seg.id} onPointerDown={(e) => onPointerDown(e, seg.id)}>
 						{seg.visible && selectedLastAttrs(seg).map(({ attr, key }) => (
