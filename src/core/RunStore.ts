@@ -30,6 +30,10 @@ export async function loadRunFromFile(file: File): Promise<boolean> {
         return false;
     };
 
+    if (file.size === 0) {
+        return fail(["The file is empty."]);
+    }
+
     // Checked before reading: parsing a huge file would freeze the tab before any message showed
     if (file.size > MAX_RUN_FILE_BYTES) {
         return fail([`The file is ${(file.size / 1024 / 1024).toFixed(1)} MB. A run log is normally well under 1 MB, so this is probably not a run.`]);

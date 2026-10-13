@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type SetStateAction } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type SetStateAction } from "react";
 import ConfigButtonTemplate from "../Config/ConfigButtonTemplate";
 import { ConfigCheckboxButton } from "../Util/CheckboxButton";
 import { ConfigKeybindButton } from "../Util/KeybindButton";
@@ -6,6 +6,7 @@ import Section from "../Util/Section";
 import Tooltip from "../Util/Tooltip";
 import RunFormatPopup from "./RunFormatPopup";
 import { recordedRunStore } from "../../core/RecordedRun";
+import { buildRunDots, RUN_DOT_SPACING } from "../../core/RunDots";
 import { clearRun, loadRunFromFile, loadRunFromHandle, runDirHandleStore, runFileNameStore, runLoadErrorStore } from "../../core/RunStore";
 import { fileFormatStore } from "../../hooks/useFileFormat";
 import { useSettings } from "../../hooks/useSettings";
@@ -50,6 +51,10 @@ export default function RunsButton() {
     const loadError = runLoadErrorStore.useStore();
     // A path needs a motion beyond its start pose before there is anything to compare a run against
     const hasPath = fileFormatStore.useSelector(s => s.path.segments.length >= 2);
+
+    // A run where the robot only turned in place loads fine but draws nothing, which on its own looks
+    // like a failure. Top speed only affects colour, so any value works for counting dots.
+    const drawsNothing = useMemo(() => run !== null && buildRunDots(run.samples, RUN_DOT_SPACING, 1).length === 0, [run]);
 
     const [dirHandle, setDirHandle] = useState<FileSystemDirectoryHandle | null>(rootHandle);
     const [history, setHistory] = useState<FileSystemDirectoryHandle[]>([]);
@@ -236,9 +241,11 @@ export default function RunsButton() {
                 {run !== null && (
                     <span className="text-[12px] text-lightgray px-2">
                         {/* The run always draws in full; only the hover comparison needs a path */}
-                        {hasPath
-                            ? `${run.samples.length} samples loaded.`
-                            : `${run.samples.length} samples loaded. Open a path to see cross track error on hover.`}
+                        {drawsNothing
+                            ? `${run.samples.length} samples loaded, but the robot never travelled far enough to draw.`
+                            : hasPath
+                                ? `${run.samples.length} samples loaded.`
+                                : `${run.samples.length} samples loaded. Open a path to see cross track error on hover.`}
                     </span>
                 )}
             </ConfigButtonTemplate>

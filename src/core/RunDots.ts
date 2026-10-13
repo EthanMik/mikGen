@@ -25,6 +25,15 @@ export function runDotColor(t: number, slow: number[], mid: number[], fast: numb
     return `rgb(${channel(0)},${channel(1)},${channel(2)})`;
 }
 
+/**
+ * Faster than any VEX robot can move, in inches per second. The quickest drivetrains top out near
+ * 100 in/s, so a step between two rows faster than this is a glitch, not motion: typically one bad
+ * odometry reading that flings the robot across the field and straight back. Such a step is left
+ * undrawn rather than streaked across the field. Fixed rather than taken from the robot settings, so
+ * a wrong top speed in mikGen can never hide real motion.
+ */
+export const TELEPORT_SPEED_IN_S = 300;
+
 /** One dot of a drawn run, in field inches. */
 export type RunDot = {
     x: number,
@@ -63,6 +72,12 @@ export function buildRunDots(samples: RunSample[], spacing: number, maxSpeedIn: 
         // rather than dropping it, since the robot plainly did move
         const dt = b.t - a.t;
         const speed = dt > 0 ? len / dt : maxSpeedIn;
+
+        // A glitch, not motion. Restart the spacing afterwards so dots resume evenly on the far side.
+        if (speed > TELEPORT_SPEED_IN_S) {
+            sinceLast = 0;
+            continue;
+        }
         const t = maxSpeedIn > 0 ? Math.min(speed / maxSpeedIn, 1) : 0;
 
         sinceLast += len;

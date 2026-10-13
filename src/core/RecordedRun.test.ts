@@ -56,6 +56,14 @@ describe("parseRunCsv", () => {
         expect(warnings[0]).toContain("theta");
     });
 
+    it("sums up a file where no row can be read, instead of one line per row", () => {
+        const rows = Array.from({ length: 300 }, () => '"1","2","3","4"').join("\n");
+        const { run, warnings } = parseRunCsv(`${HEADER}\n${rows}`, "run");
+        expect(run).toBeNull();
+        expect(warnings).toHaveLength(1);
+        expect(warnings[0]).toContain("None of the 300 data rows");
+    });
+
     it("returns null for an empty or header only log", () => {
         expect(parseRunCsv("", "run").run).toBeNull();
         expect(parseRunCsv(HEADER, "run").run).toBeNull();

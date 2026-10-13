@@ -59,6 +59,22 @@ describe("buildRunDots", () => {
         expect(dots.every(d => Number.isFinite(d.t))).toBe(true);
     });
 
+    it("does not streak a one sample odometry glitch across the field", () => {
+        // 10 in north at a steady 10 in/s, with one reading flung 130 in to the side and back
+        const run = Array.from({ length: 51 }, (_, i) => sample(i * 0.02, 0, i * 0.2));
+        const clean = buildRunDots(run, 1.5, 72).length;
+        run[25] = sample(25 * 0.02, 130, 25 * 0.2);
+        const dots = buildRunDots(run, 1.5, 72);
+        expect(dots.every(d => d.x < 10)).toBe(true);
+        expect(dots.length).toBeLessThanOrEqual(clean);
+    });
+
+    it("still draws a genuinely fast robot", () => {
+        // 100 in/s, about the fastest a VEX drivetrain goes
+        const run = Array.from({ length: 11 }, (_, i) => sample(i * 0.02, 0, i * 2));
+        expect(buildRunDots(run, 1.5, 72).length).toBeGreaterThan(10);
+    });
+
     it("draws nothing for an empty or single sample run", () => {
         expect(buildRunDots([], 1.5, 72)).toHaveLength(0);
         expect(buildRunDots([sample(0, 1, 1)], 1.5, 72)).toHaveLength(0);

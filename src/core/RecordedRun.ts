@@ -145,7 +145,12 @@ export function parseRunCsv(content: string, name: string): ParseResult {
     }
 
     if (samples.length === 0) {
-        return { run: null, warnings: [...warnings, "No readable rows in log."] };
+        // One summary rather than a line per row: a file of unreadable rows would otherwise fill the
+        // popup with thousands of identical lines and push it off the screen
+        const dataRows = lines.length - 1;
+        return { run: null, warnings: [
+            `None of the ${dataRows} data row${dataRows === 1 ? "" : "s"} could be read. Every t_ms, x, y and theta value must be a plain number; text, quotes, nan and Infinity are not accepted.`,
+        ] };
     }
 
     return { run: { name, samples }, warnings };
