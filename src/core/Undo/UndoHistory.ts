@@ -14,6 +14,5 @@ export function saveSnapshot() {
     undoHistory.setState([...current, snapshot].slice(-MAX_UNDO_HISTORY));
     redoHistory.setState([]);
     fileUndosStore.setState(n => n + 1);
-    // Same bytes as an on-disk save, so the autosave and a real file are read back by one loader
     localStorage.setItem("appState", serializeFile(snapshot));
 }

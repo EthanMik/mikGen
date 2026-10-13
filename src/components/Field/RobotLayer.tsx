@@ -5,16 +5,19 @@ import type { Path } from "../../core/Types/Path";
 import type { Rectangle } from "../../core/Util";
 import { useSettings } from "../../hooks/useSettings";
 import type { RobotConstants } from "../../core/Robot";
-import { useFormat } from "../../hooks/useFileFormat";
-import { usePose } from "../../hooks/usePose";
-import { useRobotPose } from "../../hooks/useRobotPose";
-import { computedPathStore, type Snapshot } from "../../core/ComputePathSim";
+import { type PathSim, type Snapshot } from "../../core/ComputePathSim";
+import { isHolonomicFormat, type Format } from "../../simulation/FormatDefinition";
 
 type RobotLayerProps = {
     img: Rectangle;
     robotConstants: RobotConstants;
-    visible: boolean;
+    pose: Pose | null;
+    robotPose: Pose[];
+    computedPath: PathSim | undefined; // undefined for a ghost on the render before its sim is computed
+    visible: boolean; 
     path: Path;
+    format: Format;
+    opacity: number;
 };
 
 const MECANUM_COLOR: number[] = [29, 100, 8];
@@ -24,11 +27,6 @@ const EXPANSION_TRANSPARENCY: number = 0.18;
 const GHOST_TRANSPARENCY: number = 0.05;
 const BG_TRANSPARENCY: number = 0.4;
 
-/**
- * Poses every `spacing` inches of travel along one segment, for the onion layers between its
- * start and its end. The end pose is drawn on its own, so a layer that would land on top of it
- * is dropped rather than doubling up the outline.
- */
 function onionLayerPoses(segment: Snapshot[], spacing: number): Pose[] {
     if (spacing <= 0 || segment.length < 2) return [];
 
@@ -47,7 +45,6 @@ function onionLayerPoses(segment: Snapshot[], spacing: number): Pose[] {
         travelled += steps[i - 1];
         if (travelled < next || total - travelled < spacing / 2) continue;
         poses.push({ x: segment[i].x, y: segment[i].y, angle: segment[i].angle });
-        // measured from where the layer actually landed, so the sampling cannot drift
         next = travelled + spacing;
     }
     return poses;
@@ -56,7 +53,8 @@ function onionLayerPoses(segment: Snapshot[], spacing: number): Pose[] {
 type OnionLayersProps = {
     img: Rectangle;
     endPoses: Pose[];
-    layerPoses: Pose[][];
+    opacity: number;
+    layerPoses: Pose[][] | undefined;
     robotConstants: RobotConstants;
     path: Path;
     bgColor: number[];
@@ -64,7 +62,7 @@ type OnionLayersProps = {
 };
 
 /** Memoized so pose-only animation frames re-render just the active robot, not every outline. */
-const OnionLayers = memo(function OnionLayers({ img, endPoses, layerPoses, robotConstants, path, bgColor, show }: OnionLayersProps) {
+const OnionLayers = memo(function OnionLayers({ img, endPoses, layerPoses, opacity, robotConstants, path, bgColor, show }: OnionLayersProps) {
     if (!show) return null;
 
     const outline = (p: Pose, key: string) => (
@@ -73,6 +71,7 @@ const OnionLayers = memo(function OnionLayers({ img, endPoses, layerPoses, robot
             img={img}
             x={p.x ?? 0}
             y={p.y ?? 0}
+            opacity={opacity}
             angle={p.angle ?? 0}
             width={robotConstants.width}
             height={robotConstants.height}
@@ -92,7 +91,7 @@ const OnionLayers = memo(function OnionLayers({ img, endPoses, layerPoses, robot
                 <React.Fragment key={`ghost-${idx}`}>
                     {path.segments[idx]?.visible && (
                         <>
-                            {layerPoses[idx]?.map((layer, i) => outline(layer, `layer-${idx}-${i}`))}
+                            {layerPoses?.[idx]?.map((layer, i) => outline(layer, `layer-${idx}-${i}`))}
                             {outline(p, `end-${idx}`)}
                         </>
                     )}
@@ -102,22 +101,16 @@ const OnionLayers = memo(function OnionLayers({ img, endPoses, layerPoses, robot
     );
 });
 
-export default function RobotLayer({ img, robotConstants, visible, path }: RobotLayerProps) {
-    // Subscribed here rather than in Field so a pose write during playback re-renders
-    // only this layer instead of the whole SVG tree
-    const [pose] = usePose();
-    const [robotPose] = useRobotPose();
-    const [ settings, ] = useSettings();
-    const [ format, ] = useFormat();
-    const computedPath = computedPathStore.useStore();
+export default function RobotLayer({ img, robotConstants, visible, path, opacity, pose, robotPose, computedPath, format }: RobotLayerProps) {
+    const [settings,] = useSettings();
 
-    const bgColor = format === "mikLib Holonomic" ? MECANUM_COLOR : TANK_COLOR;
+    const bgColor = isHolonomicFormat(format) ? MECANUM_COLOR : TANK_COLOR;
 
     // Only the recompute writes the store, so the layers are sampled once per path change
     // rather than once per animation frame
     const spacing = settings.onionLayers ? settings.onionSpacing : 0;
     const layerPoses = useMemo(
-        () => computedPath.segmentTrajectorys.map(segment => onionLayerPoses(segment, spacing)),
+        () => computedPath?.segmentTrajectorys?.map(segment => onionLayerPoses(segment, spacing)),
         [computedPath, spacing]
     );
 
@@ -135,6 +128,7 @@ export default function RobotLayer({ img, robotConstants, visible, path }: Robot
             {pose && visible && (
                 <RobotView
                     img={img}
+                    opacity={opacity}
                     x={pose.x ?? 0}
                     y={pose.y ?? 0}
                     angle={pose.angle ?? 0}
@@ -156,6 +150,7 @@ export default function RobotLayer({ img, robotConstants, visible, path }: Robot
             {/* Onion Layers */}
             <OnionLayers
                 img={img}
+                opacity={opacity}
                 endPoses={robotPose}
                 layerPoses={layerPoses}
                 robotConstants={robotConstants}

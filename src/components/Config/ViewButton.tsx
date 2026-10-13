@@ -16,10 +16,10 @@ export default function ViewButton() {
 
     return (
         <MenuButtonTemplate title="View" width={40}>
-            <MenuCheckButton name="Auto Adjust" checked={viewMode === "automatic"} setChecked={() => setViewMode("automatic")}/>
-            <MenuCheckButton name="Standard View" checked={viewMode === "standard"} setChecked={() => setViewMode("standard")}/>
-            <MenuCheckButton name="Collapsed Config" checked={viewMode === "collapsed-config"} setChecked={() => setViewMode("collapsed-config")}/>
-            <MenuCheckButton name="Collapsed List" checked={viewMode === "collapsed-list"} setChecked={() => setViewMode("collapsed-list")}/>
+            <MenuCheckButton name="Auto Collapse" checked={viewMode === "automatic"} setChecked={() => setViewMode("automatic")}/>
+            <MenuCheckButton name="No Collapse" checked={viewMode === "standard"} setChecked={() => setViewMode("standard")}/>
+            <MenuCheckButton name="Collapse Left" checked={viewMode === "collapsed-config"} setChecked={() => setViewMode("collapsed-config")}/>
+            <MenuCheckButton name="Collapse Right" checked={viewMode === "collapsed-list"} setChecked={() => setViewMode("collapsed-list")}/>
             <MenuCheckButton name="Collapse All" checked={viewMode === "fully-collapsed"} setChecked={() => setViewMode("fully-collapsed")}/>
             <Section />
             <MenuKeybindButton name={"Zoom In"} keybind="Ctrl+=" callback={() => fieldZoomKeyboard(null, setImg, "ZoomIn")} />

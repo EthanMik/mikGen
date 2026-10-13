@@ -5,39 +5,42 @@ import type { Segment } from "../core/Types/Segment";
 import { FORMAT_REGISTRY, type Format, type FormatDef } from "../simulation/FormatDefinition";
 import type { RobotConstants } from "../core/Robot";
 
-import pushbackIcon from "../assets/pushbackball.svg"
-import highstakesIcon from "../assets/highstakesring.svg"
-import overrideIcon from "../assets/overridecup.svg"
+import pushbackIcon from "../assets/fields/pushback/icon.svg";
+import highstakesIcon from "../assets/fields/highstakes/icon.svg";
+import overrideIcon from "../assets/fields/override/icon.svg";
 
 
-import pushbackVEXUMatchField from "../assets/pushback-match.png";
-import pushbackSkillsField from "../assets/pushback-skills.png";
-import pushbackV5MatchField from "../assets/pushback-matchv5.png";
+import pushbackVEXUMatchField from "../assets/fields/pushback/vexu-match.png";
+import pushbackSkillsField from "../assets/fields/pushback/v5-skills.png";
+import pushbackV5MatchField from "../assets/fields/pushback/v5-match.png";
 
-import overrideVEXUMatchField from "../assets/VURC-Override-H2H-TopDownHighlighted-TileColor66_71@0.1.png";
-import overrideVEXUSkillsField from "../assets/VURC-Override-Skills-TopDownHighlighted-TileColor66_71@0.1.png";
-import overrideV5MatchField from "../assets/V5RC-Override-H2H-TopDownHighlighted-TileColor66_71@0.1.png";
-import overrideV5SkillsField from "../assets/V5RC-Override-Skills-TopDownHighlighted-TileColor66_71@0.1.png";
+import overrideVEXUMatchField from "../assets/fields/override/vexu-match.png";
+import overrideVEXUSkillsField from "../assets/fields/override/vexu-skills.png";
+import overrideV5MatchField from "../assets/fields/override/v5-match.png";
+import overrideV5SkillsField from "../assets/fields/override/v5-skills.png";
 
-import highstakesVEXUMatchField from "../assets/VURC-HighStakes-H2H-TopDownHighlighted-TileColor66_71@4.0.png";
-import highstakesVEXUSkillsField from "../assets/VURC-HighStakes-Skills-TopDownHighlighted-TileColor66_71@4.0.png";
-import highstakesV5MatchField from "../assets/V5RC-HighStakes-H2H-TopDownHighlighted-TileColor66_71@4.0.png";
-import highstakesV5SkillsField from "../assets/V5RC-HighStakes-Skills-TopDownHighlighted-TileColor66_71@4.0.png";
+import highstakesVEXUMatchField from "../assets/fields/highstakes/vexu-match.png";
+import highstakesVEXUSkillsField from "../assets/fields/highstakes/vexu-skills.png";
+import highstakesV5MatchField from "../assets/fields/highstakes/v5-match.png";
+import highstakesV5SkillsField from "../assets/fields/highstakes/v5-skills.png";
 
 
-import emptyField from "../assets/empty-field.png";
+import emptyField from "../assets/fields/empty.png";
+// import { dummyFormat } from "./useFileFormat.test";
 
 export type { FileFormat, FieldType, Format }
 export { DEFAULT_FORMAT, DEFAULT_FIELD_KEY, VALIDATED_APP_STATE }
 
 export const fileFormatStore = createStore<FileFormat>(VALIDATED_APP_STATE);
+export const ghostFilesStore = createStore<{
+    handle: FileSystemFileHandle | null;
+    fileFormat: FileFormat;
+}[]>([
+    // { handle: null, fileFormat: seedFileFormat(dummyFormat) }
+]);
 
-/**
- * Switches the whole file to another library, recasting every segment to the nearest kind that
- * format has and reseeding its constants. Lives here rather than in FormatDefinition so the
- * format registry never has to import app state, which would make the two modules circular.
- */
 export function changeFormat(newFormat: Format) {
+    // if (window.confirm("This will reset all your segments to the new formats defaults")) {
     const newFormatDef = FORMAT_REGISTRY[newFormat] as FormatDef<Format>;
     fileFormatStore.setState(prev => ({
         ...prev,
@@ -45,6 +48,7 @@ export function changeFormat(newFormat: Format) {
         formatDef: newFormatDef,
         path: recastPath(newFormatDef, newFormat, prev.path),
     }));
+    // }
 }
 
 export function useFileFormat() {
@@ -105,7 +109,7 @@ export const FIELD_GROUPS: FieldGroup[] = [
         ]
     },
     {
-        id: "misc",  icon: "", name: "Misc", items: [
+        id: "misc", icon: "", name: "Misc", items: [
             { key: "empty", src: emptyField, name: "Empty" },
         ]
     },

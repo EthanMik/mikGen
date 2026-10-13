@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef, useState } from "react";
-import downArrow from "../../assets/down-arrow.svg";
+import downArrow from "../../assets/icons/ui/down-arrow.svg";
 import ConstantRow from "./ConstantRow";
 import { deepEqual } from "../../core/Util";
 import { saveSnapshot, undoHistory } from "../../core/Undo/UndoHistory";

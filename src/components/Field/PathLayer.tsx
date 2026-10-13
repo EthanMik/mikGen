@@ -1,6 +1,5 @@
 import { memo, useMemo } from "react";
-import { computedPathStore } from "../../core/ComputePathSim";
-import { hoveredSegmentStore } from "../../core/HoverStore";
+import { type PathSim } from "../../core/ComputePathSim";
 import type { Path } from "../../core/Types/Path";
 import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, toRGB, type Rectangle } from "../../core/Util";
 import { getSegmentPointsInch, getPreciseSegmentDots, pointsToSvg } from "./FieldUtils";
@@ -32,12 +31,13 @@ type Dot = { x: number; y: number; t: number };
  * so nothing here depends on img. Memoized because a long path is thousands of circles that
  * would otherwise be rebuilt on every pan frame.
  */
-const PreciseDots = memo(function PreciseDots({ dots, hovered }: { dots: Dot[]; hovered: boolean }) {
+const PreciseDots = memo(function PreciseDots({ dots, hovered, opacity }: { dots: Dot[]; hovered: boolean; opacity: number }) {
   return (
     <>
       {dots.map((pt, i) => (
         <circle
           key={i}
+          opacity={opacity}
           cx={pt.x}
           cy={pt.y}
           r={DOT_RADIUS}
@@ -53,17 +53,19 @@ type PathLayerProps = {
   img: Rectangle;
   visible: boolean;
   precise: boolean;
+  computedPath: PathSim;
+  hoveredId: string | null;
+  opacity: number;
 };
 
 // Memoized so Field renders with an unchanged path and viewport (pose frames, box select,
 // drag-state flips) skip rebuilding the dots. Live updates during drags are unaffected:
 // the trajectory subscription below re-renders this component directly.
-export default memo(function PathLayer({ path, img, visible, precise }: PathLayerProps) {
-  const trajectories = computedPathStore.useSelector(s => s.segmentTrajectorys);
-  const hoveredId = hoveredSegmentStore.useStore();
+export default memo(function PathLayer({ path, img, visible, precise, computedPath, hoveredId, opacity }: PathLayerProps) {
+  const trajectories = computedPath?.segmentTrajectorys;
 
   const allDots = useMemo(
-    () => path.segments.map((_, idx) => getPreciseSegmentDots(idx, DOT_SPACING)),
+    () => path.segments.map((_, idx) => getPreciseSegmentDots(computedPath, idx, DOT_SPACING)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [trajectories, path.segments.length]
   );
@@ -99,7 +101,7 @@ export default memo(function PathLayer({ path, img, visible, precise }: PathLaye
           if (!dots) return null;
           return (
             <g key={`precise-seg-${control.id}`} transform={dotTransform}>
-              <PreciseDots dots={dots} hovered={hovered} />
+              <PreciseDots dots={dots} opacity={opacity} hovered={hovered} />
             </g>
           );
         }
@@ -109,6 +111,7 @@ export default memo(function PathLayer({ path, img, visible, precise }: PathLaye
 
         return (
           <polyline
+            opacity={opacity}
             key={`hover-seg-${control.id}`}
             points={pointsToSvg(points, img)}
             fill="none"

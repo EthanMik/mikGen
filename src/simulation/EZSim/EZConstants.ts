@@ -1,18 +1,18 @@
 import type { CycleButtonField, FormatDef, NumberInputGroup } from "../FormatDefinition"
-import ccw from "../../assets/ccw.svg";
-import cw from "../../assets/cw.svg";
-import fastest from "../../assets/fastest_turn.svg";
-import slowest from "../../assets/slowest_turn.svg";
-import fwd from "../../assets/fwd.svg";
-import rev from "../../assets/reverse.svg";
-import leftswing from "../../assets/leftswing.svg";
-import rightswing from "../../assets/rightswing.svg";
-import stop from "../../assets/stop_speed.svg"
-import slow from "../../assets/slow_speed.svg"
-import fast from "../../assets/fast_speed.svg"
-import marker from "../../assets/marker.svg";
-import lines from "../../assets/lines.svg";
-import loop from "../../assets/loop.svg";
+import ccw from "../../assets/icons/motion/ccw.svg";
+import cw from "../../assets/icons/motion/cw.svg";
+import fastest from "../../assets/icons/motion/fastest-turn.svg";
+import slowest from "../../assets/icons/motion/slowest-turn.svg";
+import fwd from "../../assets/icons/motion/fwd.svg";
+import rev from "../../assets/icons/motion/reverse.svg";
+import leftswing from "../../assets/icons/motion/leftswing.svg";
+import rightswing from "../../assets/icons/motion/rightswing.svg";
+import stop from "../../assets/icons/motion/stop-speed.svg"
+import slow from "../../assets/icons/motion/slow-speed.svg"
+import fast from "../../assets/icons/motion/fast-speed.svg"
+import marker from "../../assets/icons/motion/marker.svg";
+import lines from "../../assets/icons/motion/lines.svg";
+import loop from "../../assets/icons/motion/loop.svg";
 import { pid_drive_set, resetDrivePid } from "./DriveMotions/set_drive_pid";
 import { pid_turn_set, resetTurnPid } from "./DriveMotions/set_turn_pid";
 import { pid_odom_turn_set, resetOdomTurnPid } from "./DriveMotions/set_odom_turn_pid";

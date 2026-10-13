@@ -1,5 +1,5 @@
 import { useRef, useState, type ReactNode, useEffect, useLayoutEffect } from "react";
-import downArrow from "../../assets/down-arrow.svg";
+import downArrow from "../../assets/icons/ui/down-arrow.svg";
 import Tooltip from "../Util/Tooltip";
 
 type IconButton = {
