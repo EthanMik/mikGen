@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Coordinate } from "../../core/Types/Coordinate";
-import homeButton from "../../assets/home.svg";
+import homeButton from "../../assets/icons/ui/home.svg";
 import type { Segment } from "../../core/Types/Segment";
-import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, toInch, toRGBA } from "../../core/Util";
-import { usePath, useFormat, useField, getFieldSrcFromKey, fileFormatStore, updatePath } from "../../hooks/useFileFormat";
+import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, resolveTurnPose, toInch, toRGBA } from "../../core/Util";
+import { usePath, useFormat, useField, getFieldSrcFromKey, fileFormatStore, updatePath, ghostFilesStore } from "../../hooks/useFileFormat";
 import { usePathVisibility } from "../../hooks/usePathVisibility";
 import { useRobotVisibility } from "../../hooks/useRobotVisibility";
 import { PathSimMacros } from "../../macros/PathSimMacros";
@@ -24,8 +24,14 @@ import { resolveHeading, getBackwardsSnapPose, getBackwardsSnapIdx, distanceToPo
 import { useSettings } from "../../hooks/useSettings";
 import { queueFieldImg, useFieldImg } from "../../hooks/useFieldImg";
 import { consumeSpacePan, markSpacePan, useSpaceHeld } from "../../hooks/useSpaceHeld";
+import { useGhostPoses, usePose } from "../../hooks/usePose";
+import { useRobotPose } from "../../hooks/useRobotPose";
+import { computedPathStore, ghostComputedPathStore } from "../../core/ComputePathSim";
+import { hoveredSegmentStore } from "../../core/HoverStore";
+import { GHOST_PATH_OPACITY } from "./FieldColors";
 
 const controlDragKey = (segmentId: string, controlIdx: number) => `${segmentId}:c${controlIdx}`;
+const turnTargetDragKey = (segmentId: string) => `${segmentId}:t`;
 
 export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_DIMENSIONS.w }: { showRightPanel?: boolean; canvasWidth?: number }) {
 	const [img, setImg] = useFieldImg();
@@ -37,6 +43,12 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 	const moveHistoryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const [path, setPath] = usePath();
+	const [pose] = usePose();
+	const [robotPose] = useRobotPose();
+	const [ghostPoses] = useGhostPoses();
+	const ghostFiles = ghostFilesStore.useStore();
+	const ghostComputedPath = ghostComputedPathStore.useStore();
+
 	pathRef.current = path;
 
 	// Key covering every input the reposition effect reads: anchor poses come from non-distance
@@ -116,6 +128,8 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 	const lastReleasedSnapshot = useRef<Path | null>(null);
 	const dragStartPointerInch = useRef<Coordinate | null>(null);
 	const dragStartPositions = useRef<Record<string, { x: number | null; y: number | null }>>({});
+	/** The point turn whose locked target is being dragged, null for every other drag. */
+	const turnTargetDragRef = useRef<string | null>(null);
 	const shiftPendingSelectRef = useRef<string | null>(null);
 	const pendingTurnCycleRef = useRef<string | null>(null);
 	const suppressClickFallbackRef = useRef(false);
@@ -346,10 +360,14 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 
 		const shiftHeld = evt.shiftKey;
 		let effectivePosInch = posInch;
+		const draggedTurnTarget = turnTargetDragRef.current;
 
 		if (shiftHeld) {
-			// A control drives the snap just like a segment node when it owns the selection
-			let refKey: string | null = path.segments.find(s => s.selected)?.id ?? null;
+			// A control drives the snap just like a segment node when it owns the selection, and a
+			// grabbed turn target always does
+			let refKey: string | null = draggedTurnTarget !== null
+				? turnTargetDragKey(draggedTurnTarget)
+				: path.segments.find(s => s.selected)?.id ?? null;
 			if (refKey === null) {
 				for (const s of path.segments) {
 					const i = segmentControls(s).findIndex(c => c.selected);
@@ -375,7 +393,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 
 		const dx = effectivePosInch.x - start.x;
 		const dy = effectivePosInch.y - start.y;
-		
+
 		const snapEnabled = settings.snappingEnabled !== evt.ctrlKey;
 		const snapValue = 1 / settings.snapToGrid;
 
@@ -398,8 +416,16 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		};
 
 		setPath(prev => {
-			// First pass: move all non-distance segments and any selected bezier controls by delta
+			// First pass: move all non-distance segments and any selected bezier controls by delta.
+			// A turn target has no selection of its own, so grabbing one moves it alone and the rest
+			// of the selection stays put.
 			const firstPass: Segment[] = prev.segments.map((c) => {
+				if (draggedTurnTarget !== null) {
+					if (c.id !== draggedTurnTarget) return c;
+					const moved = applyDelta(dragStartPositions.current[turnTargetDragKey(c.id)]);
+					return moved ? { ...c, turnPose: { ...c.turnPose, x: moved.x, y: moved.y } } : c;
+				}
+
 				const controls = segmentControls(c);
 				const movedControls = controls.some(ctrl => ctrl.selected)
 					? controls.map((ctrl, i) => {
@@ -425,6 +451,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 				const c = firstPass[segIdx];
 				if (c.kind !== "distanceDrive" && c.kind !== "strafeDrive") continue;
 
+				const moving = c.selected && draggedTurnTarget === null;
 				const anchorPose = getBackwardsSnapPose({ ...prev, segments: next }, segIdx - 1);
 				const prevSegKind = next[segIdx - 1]?.kind;
 				const afterTurn = (prevSegKind === "pointSwing" || prevSegKind === "pointTurn") && c.kind !== "strafeDrive";
@@ -433,7 +460,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 					// After a point turn the turn always faces the next point, so the segment moves freely
 					if (!anchorPose || anchorPose.x === null || anchorPose.y === null) continue;
 
-					if (c.selected) {
+					if (moving) {
 						// Use delta from drag-start position so multi-select moves all segments uniformly
 						const startPos = dragStartPositions.current[c.id];
 						let newX = startPos?.x == null ? (c.pose.x ?? 0) : startPos.x + dx;
@@ -462,7 +489,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 					continue;
 				}
 
-				if (c.selected) {
+				if (moving) {
 					// Selected: project mouse onto heading and update distance
 					const startPos = dragStartPositions.current[c.id];
 					if (!anchorPose || anchorPose.x === null || anchorPose.y === null) {
@@ -539,6 +566,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		dragStartPushed.current = false;
 		dragStartPointerInch.current = null;
 		dragStartPositions.current = {};
+		turnTargetDragRef.current = null;
 		isFieldDragging.current = false;
 		setIsPanning(false);
 	}
@@ -580,6 +608,18 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		setPath((prev) => selectControlInPath(prev, segmentId, controlIdx, "exclusive"));
 	};
 
+	/** Marks the start of a drag gesture, once per gesture however many handles it grabs. */
+	const beginDragHistory = () => {
+		if (dragHistoryActive.current) return;
+		setPath((prev) => {
+			dragStartSnapshot.current = structuredClone(prev);
+			return prev;
+		});
+		dragStartPushed.current = false;
+		dragHistoryActive.current = true;
+		dragDidMove.current = false;
+	};
+
 	const handleControlPointerDown = (evt: React.PointerEvent<SVGGElement>, controlId: string) => {
 		if (evt.button !== 0 || !svgRef.current) return;
 		// Bail before stopPropagation so the press bubbles up and starts a pan instead
@@ -587,15 +627,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		evt.stopPropagation();
 		svgRef.current.setPointerCapture(evt.pointerId);
 
-		if (!dragHistoryActive.current) {
-			setPath((prev) => {
-				dragStartSnapshot.current = structuredClone(prev);
-				return prev;
-			});
-			dragStartPushed.current = false;
-			dragHistoryActive.current = true;
-			dragDidMove.current = false;
-		}
+		beginDragHistory();
 
 		const posSvg = pointerToSvg(evt, svgRef.current);
 		if (!drag.dragging) {
@@ -657,15 +689,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		evt.stopPropagation();
 		svgRef.current.setPointerCapture(evt.pointerId);
 
-		if (!dragHistoryActive.current) {
-			setPath((prev) => {
-				dragStartSnapshot.current = structuredClone(prev);
-				return prev;
-			});
-			dragStartPushed.current = false;
-			dragHistoryActive.current = true;
-			dragDidMove.current = false;
-		}
+		beginDragHistory();
 
 		if (!drag.dragging) {
 			const seg = path.segments.find(s => s.id === segmentId);
@@ -683,6 +707,24 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 		snapshotDragStart(pointerToSvg(evt, svgRef.current));
 	};
 
+	/**
+	 * Drags a locked point turn's target like a bezier control. Selection is left alone: the target
+	 * is only drawn while its turn is selected, so taking the selection away would hide it mid-drag.
+	 */
+	const handleTurnTargetPointerDown = (evt: React.PointerEvent<SVGCircleElement>, segmentId: string) => {
+		if (evt.button !== 0 || !svgRef.current) return;
+		if (spaceHeld) return;
+		evt.stopPropagation();
+		svgRef.current.setPointerCapture(evt.pointerId);
+		beginDragHistory();
+
+		snapshotDragStart(pointerToSvg(evt, svgRef.current));
+		// Seeded from where the target is drawn, since a lock can leave turnPose itself without x/y
+		const target = resolveTurnPose(path, path.segments.findIndex(s => s.id === segmentId));
+		dragStartPositions.current[turnTargetDragKey(segmentId)] = { x: target.x, y: target.y };
+		turnTargetDragRef.current = segmentId;
+	};
+
 	// Stable wrappers so the memoized ControlsLayer's props keep identity across Field renders;
 	// the refs always point at the latest closures, so behavior is unchanged
 	const controlPointerDownImpl = useRef(handleControlPointerDown);
@@ -695,6 +737,11 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 	const stableControlPointPointerDown = useCallback(
 		(e: React.PointerEvent<SVGCircleElement>, id: string, controlIdx: number) =>
 			controlPointPointerDownImpl.current(e, id, controlIdx), []);
+
+	const turnTargetPointerDownImpl = useRef(handleTurnTargetPointerDown);
+	turnTargetPointerDownImpl.current = handleTurnTargetPointerDown;
+	const stableTurnTargetPointerDown = useCallback(
+		(e: React.PointerEvent<SVGCircleElement>, id: string) => turnTargetPointerDownImpl.current(e, id), []);
 
 	const endSelection = () => {
 		setPath((prev) => ({
@@ -820,24 +867,68 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 			>
 				<image href={getFieldSrcFromKey(fieldKey)} x={img.x} y={img.y} width={img.w} height={img.h} />
 
-				<PathLayer path={path} img={img} visible={pathVisible} precise={settings.precisePath} />
-
-				<RunLayer img={img} visible={settings.showRun} errorOnHover={settings.runErrorOnHover} />
-
-				<RobotLayer
-					img={img}
-					robotConstants={robot}
-					visible={robotVisible}
-					path={path}
-				/>
-				{!pathVisible && (
-					<ControlsLayer
-						path={path}
+				<PathLayer path={path} opacity={1} img={img} visible={pathVisible} hoveredId={hoveredSegmentStore.getState()} computedPath={computedPathStore.getState()} precise={settings.precisePath} />
+				{ghostFiles.map(({ fileFormat: f }, idx) => (
+					<PathLayer key={idx} path={f.path} img={img} opacity={GHOST_PATH_OPACITY} visible={pathVisible} hoveredId={null} computedPath={ghostComputedPath[idx]} precise={settings.precisePath} />
+				))}
+				<>
+					<RobotLayer
 						img={img}
-						radius={radius}
-						onPointerDown={stableControlPointerDown}
-						onControlPointerDown={stableControlPointPointerDown}
+						opacity={1}
+						pose={pose}
+						robotPose={robotPose}
+						computedPath={computedPathStore.getState()}
+						robotConstants={robot}
+						visible={robotVisible}
+						path={path}
+						format={format}
 					/>
+
+					{ghostFiles.map(({ fileFormat: f }, idx) => (
+						<RobotLayer
+							key={idx}
+							img={img}
+							pose={ghostPoses[idx]}
+							computedPath={ghostComputedPath[idx]}
+							robotPose={ghostComputedPath[idx]?.endTrajectory ?? []}
+							opacity={GHOST_PATH_OPACITY}
+							robotConstants={f.robot}
+							visible={robotVisible}
+							path={f.path}
+							format={f.format}
+						/>
+					))}
+
+				</>
+				{!pathVisible && (
+					<>
+						{ghostFiles.map(({ fileFormat: f }, idx) => (
+							<ControlsLayer
+								key={idx}
+								path={f.path}
+								img={img}
+								radius={radius}
+								opacity={GHOST_PATH_OPACITY}
+								onPointerDown={() => { }}
+								onControlPointerDown={() => { }}
+								onTurnTargetPointerDown={() => { }}
+								hoveredId={null}
+							/>
+						))
+
+						}
+						<ControlsLayer
+							path={path}
+							img={img}
+							radius={radius}
+							onPointerDown={stableControlPointerDown}
+							onControlPointerDown={stableControlPointPointerDown}
+							onTurnTargetPointerDown={stableTurnTargetPointerDown}
+							hoveredId={hoveredSegmentStore.getState()}
+						/>
+
+					</>
+
 				)}
 				{boxSelectRect && (
 					<rect

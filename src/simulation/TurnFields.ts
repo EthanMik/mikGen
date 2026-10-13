@@ -1,5 +1,5 @@
-import lockClose from "../assets/lock-close.svg";
-import lockOpen from "../assets/lock-open.svg";
+import lockClose from "../assets/icons/toggles/lock-close.svg";
+import lockOpen from "../assets/icons/toggles/lock-open.svg";
 import { resolveTurnPose } from "../core/Util";
 import type { ActionButtonField } from "./FormatDefinition";
 

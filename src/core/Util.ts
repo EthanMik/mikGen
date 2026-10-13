@@ -2,7 +2,6 @@
 
 import type { Coordinate } from "./Types/Coordinate";
 import { getBackwardsSnapPose, type Path } from "./Types/Path";
-import { resolveBezier } from "./Types/Bezier";
 import type { Pose } from "./Types/Pose";
 
 export interface Rectangle {
@@ -104,11 +103,7 @@ function forwardTurnTarget(path: Path, idx: number): Coordinate | null {
     for (let i = idx; i < path.segments.length; i++) {
         const seg = path.segments[i];
         if (seg.kind === "strafeDrive") continue;
-        if (seg.kind === "bezierCurve") {
-            // Face where the curve starts heading, not its far endpoint
-            const bezier = resolveBezier(path, i);
-            if (bezier !== null) return { x: bezier.c1.x, y: bezier.c1.y };
-        }
+        // A bezier's controls are only shaping, so the turn faces where the curve ends, same as any drive
         if (seg.pose.x !== null && seg.pose.y !== null) return { x: seg.pose.x, y: seg.pose.y };
     }
     return null;

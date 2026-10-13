@@ -59,6 +59,7 @@ export const computedPathStore = createStore<PathSim>({
     segmentTimeRanges: [],
     timeOffset: 0,
 });
+export const ghostComputedPathStore = createStore<PathSim[]>([]);
 
 export function activeSegmentAtTime(path: PathSim, t: number): number {
     return path.segmentTimeRanges.findIndex(r => t >= r.startT && t < r.endT);
@@ -67,8 +68,8 @@ export function activeSegmentAtTime(path: PathSim, t: number): number {
 export function precomputePath(
     robot: Robot,
     auton: ((robot: Robot, dt: number) => [boolean, SegmentKind, number])[],
-): PathSim
-{
+    setPathTelemetry: boolean = true
+): PathSim {
     let autoIdx = 0;
     const trajectory: Snapshot[] = [];
     const endTrajectory: EndSnapShot[] = [];
@@ -181,7 +182,9 @@ export function precomputePath(
         };
     });
 
-    pathTelemetry.setState(telemetry);
+    if (setPathTelemetry) {
+        pathTelemetry.setState(telemetry);
+    }
 
-    return {totalTime: t, dt, trajectory, endTrajectory, segmentTrajectorys, segmentCumulativeDists, segmentTimeRanges, timeOffset: 0};
+    return { totalTime: t, dt, trajectory, endTrajectory, segmentTrajectorys, segmentCumulativeDists, segmentTimeRanges, timeOffset: 0 };
 }

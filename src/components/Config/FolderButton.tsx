@@ -1,11 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import ConfigButtonTemplate from "./ConfigButtonTemplate";
-import fileIcon from "../../assets/file.svg";
-import folderIcon from "../../assets/folder.svg";
-import back from "../../assets/back.svg";
-import { loadFromHandle, fileSaveStore, fileHandleStore, dirHandleStore } from "../../core/FileStore";
-import refresh from "../../assets/cw.svg";
-import check from "../../assets/check.svg"
+import fileIcon from "../../assets/icons/files/file.svg";
+import folderIcon from "../../assets/icons/files/folder.svg";
+import back from "../../assets/icons/ui/back.svg";
+import closeFolder from "../../assets/icons/files/close-folder.svg";
+import { loadFromHandle, fileSaveStore, fileHandleStore, dirHandleStore, loadFromGhostHandle, unloadFromGhostHandle } from "../../core/FileStore";
+import refresh from "../../assets/icons/files/refresh.svg";
+import check from "../../assets/icons/ui/check.svg";
+import eyeOpen from "../../assets/icons/toggles/eye-open.svg";
+import eyeClose from "../../assets/icons/toggles/eye-closed.svg";
+import { ghostFilesStore } from "../../hooks/useFileFormat";
 
 type Entry = {
     name: string;
@@ -33,26 +37,42 @@ async function readDirEntries(handle: FileSystemDirectoryHandle): Promise<Entry[
 type FolderEntryProps = {
     entry: Entry;
     isSelected: boolean;
+    isGhostSelected: boolean;
     onEnterFolder: (handle: FileSystemDirectoryHandle) => void;
     onSelectFile: (handle: FileSystemFileHandle) => void;
+    onOpenGhostFile: (handle: FileSystemFileHandle) => void;
+    onCloseGhostFile: (handle: FileSystemFileHandle) => void;
 };
 
-function FolderEntry({ entry, isSelected, onEnterFolder, onSelectFile }: FolderEntryProps) {
+function FolderEntry({ entry, isSelected, isGhostSelected, onEnterFolder, onSelectFile, onOpenGhostFile, onCloseGhostFile }: FolderEntryProps) {
+
     return (
         <button
-            className="flex flex-row px-2 py-0.5 items-center justify-between cursor-pointer rounded-sm w-full text-left hover:bg-medlightgray"
+            className={`flex flex-row px-2 py-0.5 items-center justify-between rounded-sm w-full 
+            text-left bg-medgray hover:brightness-92 ${isSelected ? "bg-medlightgray" : ""}`}
             onClick={() => {
                 if (entry.kind === "directory") {
                     onEnterFolder(entry.handle as FileSystemDirectoryHandle);
                 } else {
                     onSelectFile(entry.handle as FileSystemFileHandle);
+                    onCloseGhostFile(entry.handle as FileSystemFileHandle);
                 }
             }}
         >
             <span className="text-[13px] truncate min-w-0">{entry.name}</span>
             <div className="flex items-center shrink-0 ml-1 gap-1">
-                {isSelected && <img src={check} className="w-3 h-3" />}
                 <img src={entry.kind === "file" ? fileIcon : folderIcon} className="w-3.5 h-3.5" />
+                {(entry.kind === "file" && !isSelected) &&
+                    <button className="w-3.5 h-3.5 cursor-pointer" onClick={(e) => {
+                        const handle = entry.handle as FileSystemFileHandle;
+                        if (isGhostSelected) onCloseGhostFile(handle);
+                        else onOpenGhostFile(handle);
+                        e.stopPropagation();
+                    }}>
+                        <img src={isGhostSelected ? eyeOpen : eyeClose} />
+                    </button>
+                }
+                {isSelected && <img src={check} className="w-3.5 h-3.5" />}
             </div>
         </button>
     );
@@ -69,6 +89,7 @@ export default function FolderButton({ fileName }: FolderButtonProps) {
     const [history, setHistory] = useState<FileSystemDirectoryHandle[]>([]);
     const saveCount = fileSaveStore.useStore();
     const currentHandle = fileHandleStore.useStore();
+    const ghostFiles = ghostFilesStore.useStore();
 
     // Reset navigation whenever the root folder changes
     useEffect(() => {
@@ -95,7 +116,13 @@ export default function FolderButton({ fileName }: FolderButtonProps) {
 
     const goBack = async () => {
         const prev = history[history.length - 1];
-        if (!prev) return;
+        if (!prev) {
+            // At the root, going back closes the folder, which unmounts this component
+            if (window.confirm("Are you sure you want to close this folder?")) {
+                dirHandleStore.setState(null);
+            }
+            return;
+        }
         const result = await readDirEntries(prev);
         setHistory(h => h.slice(0, -1));
         setDirHandle(prev);
@@ -106,10 +133,10 @@ export default function FolderButton({ fileName }: FolderButtonProps) {
     useEffect(() => { refreshDirRef.current = refreshDir; });
 
     const backButton = {
-        icon: back,
-        visible: history.length > 0,
+        icon: history.length > 0 ? back : closeFolder,
+        visible: true,
         onClick: goBack,
-        tooltip: "Go Back"
+        tooltip: history.length > 0 ? "Go Back" : "Close Folder"
     };
 
     const refreshButton = {
@@ -128,8 +155,11 @@ export default function FolderButton({ fileName }: FolderButtonProps) {
                         key={entry.name}
                         entry={entry}
                         isSelected={entry.kind === "file" && currentHandle?.name === entry.name}
+                        isGhostSelected={entry.kind === "file" && ghostFiles.some(g => g.handle?.name === entry.name)}
                         onEnterFolder={h => openDir(h)}
                         onSelectFile={loadFromHandle}
+                        onOpenGhostFile={loadFromGhostHandle}
+                        onCloseGhostFile={unloadFromGhostHandle}
                     />
                 ))
             }

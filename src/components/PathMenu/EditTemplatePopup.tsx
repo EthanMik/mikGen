@@ -2,7 +2,7 @@ import { setFormatDef, useFormat, useFormatDef } from "../../hooks/useFileFormat
 import { FORMAT_REGISTRY } from "../../simulation/FormatDefinition";
 import type { SegmentKind } from "../../simulation/FormatDefinition";
 import TextInput from "../Util/TextInput";
-import cross from "../../assets/cross.svg"
+import cross from "../../assets/icons/ui/cross.svg"
 import type { SetStateAction } from "react";
 import React, { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";

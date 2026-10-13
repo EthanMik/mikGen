@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import arrow from "../../assets/down-arrow.svg"
+import arrow from "../../assets/icons/ui/down-arrow.svg"
 import { makeId } from "../../core/Util";
 
 export interface DropdownItem {

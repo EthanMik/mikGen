@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import downArrow from "../../assets/down-arrow.svg";
+import downArrow from "../../assets/icons/ui/down-arrow.svg";
 
 type SectionProps = {
     name?: string;

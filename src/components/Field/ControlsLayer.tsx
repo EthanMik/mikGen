@@ -1,5 +1,4 @@
 import React, { memo, useMemo } from "react";
-import { hoveredSegmentStore } from "../../core/HoverStore";
 import type { Path } from "../../core/Types/Path";
 import type { Coordinate } from "../../core/Types/Coordinate";
 import { getBackwardsSnapIdx, getBackwardsSnapPose, turnHeadingAt } from "../../core/Types/Path";
@@ -14,8 +13,11 @@ type ControlsLayerProps = {
 	path: Path;
 	img: Rectangle;
 	radius: number;
+	opacity?: number;
 	onPointerDown: (e: React.PointerEvent<SVGGElement>, id: string) => void;
 	onControlPointerDown: (e: React.PointerEvent<SVGCircleElement>, id: string, controlIdx: number) => void;
+	onTurnTargetPointerDown: (e: React.PointerEvent<SVGCircleElement>, id: string) => void;
+	hoveredId: string | null;
 };
 
 /**
@@ -43,6 +45,7 @@ type ShapeCtx = {
 	hovered: boolean;
 	snapIdx: number | null;
 	onControlPointerDown: ControlsLayerProps["onControlPointerDown"];
+	onTurnTargetPointerDown: ControlsLayerProps["onTurnTargetPointerDown"];
 };
 
 /** Null when the kind has an optional heading and none is set, so nothing is drawn. */
@@ -88,15 +91,16 @@ function indicatorTipPx(ctx: ShapeCtx, snapPose: { x: number, y: number }, angle
 	);
 }
 
-function renderNode(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
+function renderNode(ctx: ShapeCtx, attr: SegmentAttribute, opacity: number, cursorStyle?: "grab"): React.ReactNode {
 	const { seg } = ctx;
 	if (seg.pose.x === null || seg.pose.y === null) return null;
 
 	const nodePx = toPX({ x: seg.pose.x, y: seg.pose.y }, FIELD_REAL_DIMENSIONS, ctx.img);
 	return (
 		<circle
-			style={{ stroke: FIELD_COLORS.endBorderColor, cursor: "grab" }}
+			style={{ stroke: FIELD_COLORS.endBorderColor, cursor: cursorStyle }}
 			id={seg.id}
+			opacity={opacity}
 			cx={nodePx.x}
 			cy={nodePx.y}
 			r={ctx.radius * shapeScale(attr, seg.selected, ctx.hovered)}
@@ -106,7 +110,7 @@ function renderNode(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
 	);
 }
 
-function renderLine(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
+function renderLine(ctx: ShapeCtx, attr: SegmentAttribute, opacity: number): React.ReactNode {
 	const snapPose = ctx.geom.snapPose;
 	if (snapPose === null) return null;
 
@@ -121,6 +125,7 @@ function renderLine(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
 	return (
 		<line
 			pointerEvents="none"
+			opacity={opacity}
 			x1={basePx.x} y1={basePx.y} x2={tipPx.x} y2={tipPx.y}
 			stroke={shapeColor(attr, seg.selected)}
 			strokeWidth={indicatorThickness(seg.selected, ctx.hovered) * ctx.scale}
@@ -129,7 +134,7 @@ function renderLine(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
 	);
 }
 
-function renderCurve(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
+function renderCurve(ctx: ShapeCtx, attr: SegmentAttribute, opacity: number): React.ReactNode {
 	const snapPose = ctx.geom.snapPose;
 	if (snapPose === null) return null;
 
@@ -159,6 +164,7 @@ function renderCurve(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
 			pointerEvents="none"
 			d={`M ${basePx.x} ${basePx.y} Q ${cx} ${cy} ${tipPx.x} ${tipPx.y}`}
 			fill="none"
+			opacity={opacity}	
 			stroke={shapeColor(attr, seg.selected)}
 			strokeWidth={thickness * ctx.scale}
 			strokeLinecap="round"
@@ -166,7 +172,7 @@ function renderCurve(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
 	);
 }
 
-function renderCircle(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
+function renderCircle(ctx: ShapeCtx, attr: SegmentAttribute, opacity: number): React.ReactNode {
 	const snapPose = ctx.geom.snapPose;
 	if (snapPose === null) return null;
 
@@ -177,30 +183,38 @@ function renderCircle(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
 			pointerEvents="none"
 			cx={px.x}
 			cy={px.y}
+			opacity={opacity}
 			r={ctx.radius * shapeScale(attr, seg.selected, ctx.hovered) * 0.3}
 			fill={shapeColor(attr, seg.selected)}
 		/>
 	);
 }
 
-/** The coordinate a point turn aims at, shown only while the row owns the selection. */
-function renderTurnTarget(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
+/**
+ * The coordinate a point turn aims at, shown only while the row owns the selection. Locked, it is
+ * a handle dragged like a bezier control; unlocked it just marks the drive node it tracks, so
+ * presses fall through to that node.
+ */
+function renderTurnTarget(ctx: ShapeCtx, attr: SegmentAttribute, opacity: number, cursorStyle?: "grab"): React.ReactNode {
 	const { seg, geom } = ctx;
 	if (!seg.selected || geom.turnTarget === null) return null;
 
 	const px = toPX(geom.turnTarget, FIELD_REAL_DIMENSIONS, ctx.img);
 	return (
 		<circle
-			pointerEvents="none"
+			pointerEvents={seg.turnLocked ? undefined : "none"}
+			style={{ cursor: seg.turnLocked ? cursorStyle : undefined }}
 			cx={px.x}
 			cy={px.y}
-			r={ctx.radius * 0.35}
+			opacity={opacity}
+			r={ctx.radius * shapeScale(attr, seg.selected, ctx.hovered) * 0.5}
 			fill={attr.selectedColor}
+			onPointerDown={seg.turnLocked ? (e) => { e.stopPropagation(); ctx.onTurnTargetPointerDown(e, seg.id); } : undefined}
 		/>
 	);
 }
 
-function renderControls(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
+function renderControls(ctx: ShapeCtx, attr: SegmentAttribute, opacity: number, cursorStyle?: "grab"): React.ReactNode {
 	const { seg } = ctx;
 
 	const i = controlAttributes().indexOf(attr);
@@ -220,12 +234,14 @@ function renderControls(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode 
 				pointerEvents="none"
 				x1={anchorPx.x} y1={anchorPx.y} x2={controlPx.x} y2={controlPx.y}
 				stroke={"#00000035"}
+				opacity={opacity}
 				strokeWidth={1 * ctx.scale}
 			/>
 			<circle
-				style={{ cursor: "grab" }}
+				style={{ cursor: cursorStyle }}
 				cx={controlPx.x}
 				cy={controlPx.y}
+				opacity={opacity}
 				r={ctx.radius * shapeScale(attr, control.selected, ctx.hovered) * 0.5}
 				fill={shapeColor(attr, control.selected)}
 				onPointerDown={(e) => { e.stopPropagation(); ctx.onControlPointerDown(e, seg.id, i); }}
@@ -253,26 +269,25 @@ function selectedLastAttrs(seg: Segment): { attr: SegmentAttribute; key: number 
 		.sort((a, b) => Number(isSelected(a.attr)) - Number(isSelected(b.attr)) || a.key - b.key);
 }
 
-function renderAttr(ctx: ShapeCtx, attr: SegmentAttribute): React.ReactNode {
+function renderAttr(ctx: ShapeCtx, attr: SegmentAttribute, opacity: number, cursor?: "grab"): React.ReactNode {
 	switch (attr.shape) {
-		case "node": return renderNode(ctx, attr);
-		case "line": return renderLine(ctx, attr);
-		case "curve": return renderCurve(ctx, attr);
-		case "circle": return renderCircle(ctx, attr);
-		case "control": return renderControls(ctx, attr);
-		case "turnTarget": return renderTurnTarget(ctx, attr);
+		case "node": return renderNode(ctx, attr, opacity, cursor);
+		case "line": return renderLine(ctx, attr, opacity);
+		case "curve": return renderCurve(ctx, attr, opacity);
+		case "circle": return renderCircle(ctx, attr, opacity);
+		case "control": return renderControls(ctx, attr, opacity, cursor);
+		case "turnTarget": return renderTurnTarget(ctx, attr, opacity, cursor);
 	}
 }
 
 // Memoized (with stable handler props from Field) so Field renders that leave the path and
 // viewport untouched, like pose animation frames and box-select updates, skip the full
 // per-segment shape render
-export default memo(function ControlsLayer({ path, img, radius, onPointerDown, onControlPointerDown }: ControlsLayerProps) {
+export default memo(function ControlsLayer({ path, img, radius, onPointerDown, onControlPointerDown, onTurnTargetPointerDown, opacity, hoveredId }: ControlsLayerProps) {
 	const imgDefaultSize = (FIELD_IMG_DIMENSIONS.w + FIELD_IMG_DIMENSIONS.h) / 2;
 	const imgRealSize = (img.w + img.h) / 2
 	const scale = imgRealSize / imgDefaultSize;
 	const [settings] = useSettings();
-	const hoveredId = hoveredSegmentStore.useStore();
 	radius = radius * scale;
 
 	const snapIdx = getBackwardsSnapIdx(path, path.segments.length - 1);
@@ -294,11 +309,11 @@ export default memo(function ControlsLayer({ path, img, radius, onPointerDown, o
 		<>
 			{renderOrder.map((idx) => {
 				const seg = path.segments[idx];
-				const ctx: ShapeCtx = { path, idx, seg, geom: geoms[idx], img, radius, scale, hovered: hoveredId === seg.id, snapIdx, onControlPointerDown };
+				const ctx: ShapeCtx = { path, idx, seg, geom: geoms[idx], img, radius, scale, hovered: hoveredId === seg.id, snapIdx, onControlPointerDown, onTurnTargetPointerDown };
 				return (
 					<g key={seg.id} onPointerDown={(e) => onPointerDown(e, seg.id)}>
 						{seg.visible && selectedLastAttrs(seg).map(({ attr, key }) => (
-							<React.Fragment key={key}>{renderAttr(ctx, attr)}</React.Fragment>
+							<React.Fragment key={key}>{renderAttr(ctx, attr, opacity ?? 1, (opacity ?? 1) < 1 ? undefined : "grab")}</React.Fragment>
 						))}
 					</g>
 				);
