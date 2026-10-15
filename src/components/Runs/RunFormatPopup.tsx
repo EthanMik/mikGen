@@ -1,4 +1,4 @@
-import cross from "../../assets/cross.svg";
+import cross from "../../assets/icons/ui/cross.svg";
 import type { SetStateAction } from "react";
 import React, { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";

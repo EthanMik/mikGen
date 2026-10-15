@@ -10,11 +10,11 @@ import { buildRunDots, RUN_DOT_SPACING } from "../../core/RunDots";
 import { clearRun, loadRunFromFile, loadRunFromHandle, runDirHandleStore, runFileNameStore, runLoadErrorStore } from "../../core/RunStore";
 import { fileFormatStore } from "../../hooks/useFileFormat";
 import { useSettings } from "../../hooks/useSettings";
-import fileIcon from "../../assets/file.svg";
-import folderIcon from "../../assets/folder.svg";
-import back from "../../assets/back.svg";
-import refresh from "../../assets/cw.svg";
-import check from "../../assets/check.svg";
+import fileIcon from "../../assets/icons/files/file.svg";
+import folderIcon from "../../assets/icons/files/folder.svg";
+import back from "../../assets/icons/ui/back.svg";
+import refresh from "../../assets/icons/files/refresh.svg";
+import check from "../../assets/icons/ui/check.svg";
 
 /** Firefox has no File System Access API, so it can open a single run but not browse a folder. */
 const canUseFileHandles = "showOpenFilePicker" in window;

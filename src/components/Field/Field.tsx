@@ -871,6 +871,7 @@ export default function Field({ showRightPanel = true, canvasWidth = FIELD_IMG_D
 				{ghostFiles.map(({ fileFormat: f }, idx) => (
 					<PathLayer key={idx} path={f.path} img={img} opacity={GHOST_PATH_OPACITY} visible={pathVisible} hoveredId={null} computedPath={ghostComputedPath[idx]} precise={settings.precisePath} />
 				))}
+				<RunLayer img={img} visible={settings.showRun} errorOnHover={settings.runErrorOnHover} />
 				<>
 					<RobotLayer
 						img={img}
