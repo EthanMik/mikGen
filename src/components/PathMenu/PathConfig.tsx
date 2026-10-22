@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { fileFormatStore } from "../../hooks/useFileFormat";
 import SegmentList from "./SegmentList";
 import PathConfigHeader from "./PathHeader";
+import RunLabel from "../Runs/RunLabel";
 import { ROW_INDEX_ATTR, useSegmentReorder } from "./useSegmentReorder";
 
 export default function PathConfig() {
@@ -23,6 +24,7 @@ export default function PathConfig() {
                 isTelemetryOpen={isTelemetryOpen}
                 onTelemetryToggle={() => setTelemetryOpen(p => !p)}
             />
+            <RunLabel />
 
             <div
                 ref={listRef}

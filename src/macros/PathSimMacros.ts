@@ -21,6 +21,15 @@ export function PathSimMacros() {
         }
     }
 
+    function toggleShowRun(
+        evt: KeyboardEvent,
+        setSettings: React.Dispatch<SetStateAction<Settings>>,
+    ) {
+        if (evt.key.toLowerCase() === "e" && !evt.ctrlKey) {
+            setSettings((prev) => ({ ...prev, showRun: !prev.showRun }));
+        }
+    }
+
     function toggleOnionLayers(
         evt: KeyboardEvent,
         setSettings: React.Dispatch<SetStateAction<Settings>>,
@@ -127,6 +136,7 @@ export function PathSimMacros() {
     return {
         toggleRobotVisibility,
         togglePrecisePath,
+        toggleShowRun,
         toggleOnionLayers,
         toggleLoopPath,
         pauseSimulator,

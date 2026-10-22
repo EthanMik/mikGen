@@ -17,6 +17,10 @@ export type FieldColors = {
     pathSlowColor: string;
     pathMedColor: string;
     pathFastColor: string;
+    /** A loaded run, drawn with the precise path's dots but a palette of its own so the two can be told apart. */
+    runSlowColor: string;
+    runMedColor: string;
+    runFastColor: string;
     endBorderColor: string;
     segmentColors: Record<SegmentKind, SegmentAttribute[]>;
 };
@@ -29,6 +33,10 @@ export const FIELD_COLORS: FieldColors = {
     pathSlowColor: toRGBA("#aa0505", 1),
     pathMedColor: toRGBA("#977f03", 0.75),
     pathFastColor: toRGBA("#058d29", 1),
+
+    runSlowColor: toRGBA("#a15cff", 1),
+    runMedColor: toRGBA("#3d8bff", 1),
+    runFastColor: toRGBA("#f4f6ff", 1),
 
     endBorderColor: toRGBA("#1560BD", 0.75),
     segmentColors: {
