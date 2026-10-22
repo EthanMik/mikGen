@@ -21519,8 +21519,8 @@ const ConstantsList = reactExports.memo(function ConstantsList2({ segmentId, kin
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, []);
-  const hasSelection = selectedKeys.size > 0;
-  const inSelection = (field) => !hasSelection || selectedKeys.has(field.key);
+  const hasSelection2 = selectedKeys.size > 0;
+  const inSelection = (field) => !hasSelection2 || selectedKeys.has(field.key);
   const picked = group.fields.filter(inSelection);
   const values = record(picked, (f) => f.value);
   const defaults = record(picked, (f) => f.defaultValue);
@@ -23012,6 +23012,8 @@ function PathSimulator() {
 }
 const flipHorizontal = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20id='mdi-flip-horizontal'%20viewBox='0%200%2024%2024'%3e%3cpath%20d='M15%2021H17V19H15M19%209H21V7H19M3%205V19C3%2020.1%203.9%2021%205%2021H9V19H5V5H9V3H5C3.9%203%203%203.9%203%205M19%203V5H21C21%203.9%2020.1%203%2019%203M11%2023H13V1H11M19%2017H21V15H19M15%205H17V3H15M19%2013H21V11H19M19%2021C20.1%2021%2021%2020.1%2021%2019H19Z'%20fill='%23ffffff'/%3e%3c/svg%3e";
 const flipVertical = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20id='mdi-flip-vertical'%20viewBox='0%200%2024%2024'%3e%3cpath%20d='M3%2015V17H5V15M15%2019V21H17V19M19%203H5C3.9%203%203%203.9%203%205V9H5V5H19V9H21V5C21%203.9%2020.1%203%2019%203M21%2019H19V21C20.1%2021%2021%2020.1%2021%2019M1%2011V13H23V11M7%2019V21H9V19M19%2015V17H21V15M11%2019V21H13V19M3%2019C3%2020.1%203.9%2021%205%2021V19Z'%20fill='%23ffffff'/%3e%3c/svg%3e";
+const rotateLeft = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20fill='%23ffffff'%20width='800px'%20height='800px'%20viewBox='1.5%201.5%2021%2021'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20transform='matrix(-1%200%200%201%2024%200)'%20d='M16.242%2017.242a6.04%206.04%200%200%201-1.37%201.027l.961%201.754a8.068%208.068%200%200%200%202.569-2.225l-1.6-1.201a5.938%205.938%200%200%201-.56.645zm1.743-4.671a5.975%205.975%200%200%201-.362%202.528l1.873.701a7.977%207.977%200%200%200%20.483-3.371l-1.994.142zm1.512-2.368a8.048%208.048%200%200%200-1.841-2.859l-1.414%201.414a6.071%206.071%200%200%201%201.382%202.146l1.873-.701zm-8.128%208.763c-.047-.005-.094-.015-.141-.021a6.701%206.701%200%200%201-.468-.075%205.923%205.923%200%200%201-2.421-1.122%205.954%205.954%200%200%201-.583-.506%206.138%206.138%200%200%201-.516-.597%205.91%205.91%200%200%201-.891-1.634%206.086%206.086%200%200%201-.247-.902c-.008-.043-.012-.088-.019-.131A6.332%206.332%200%200%201%206%2013.002V13c0-1.603.624-3.109%201.758-4.242A5.944%205.944%200%200%201%2011%207.089V10l5-4-5-4v3.069a7.917%207.917%200%200%200-4.656%202.275A7.936%207.936%200%200%200%204%2012.999v.009c0%20.253.014.504.037.753.007.076.021.15.03.227.021.172.044.345.076.516.019.1.044.196.066.295.032.142.065.283.105.423.032.112.07.223.107.333.026.079.047.159.076.237l.008-.003A7.948%207.948%200%200%200%205.6%2017.785l-.007.005c.021.028.049.053.07.081.211.272.433.538.681.785a8.236%208.236%200%200%200%20.966.816c.265.192.537.372.821.529l.028.019.001-.001a7.877%207.877%200%200%200%202.136.795l-.001.005.053.009c.201.042.405.071.61.098.069.009.138.023.207.03a8.038%208.038%200%200%200%202.532-.137l-.424-1.955a6.11%206.11%200%200%201-1.904.102z'/%3e%3c/svg%3e";
+const rotateRight = "data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3c!--%20Uploaded%20to:%20SVG%20Repo,%20www.svgrepo.com,%20Generator:%20SVG%20Repo%20Mixer%20Tools%20--%3e%3csvg%20fill='%23ffffff'%20width='800px'%20height='800px'%20viewBox='1.5%201.5%2021%2021'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M16.242%2017.242a6.04%206.04%200%200%201-1.37%201.027l.961%201.754a8.068%208.068%200%200%200%202.569-2.225l-1.6-1.201a5.938%205.938%200%200%201-.56.645zm1.743-4.671a5.975%205.975%200%200%201-.362%202.528l1.873.701a7.977%207.977%200%200%200%20.483-3.371l-1.994.142zm1.512-2.368a8.048%208.048%200%200%200-1.841-2.859l-1.414%201.414a6.071%206.071%200%200%201%201.382%202.146l1.873-.701zm-8.128%208.763c-.047-.005-.094-.015-.141-.021a6.701%206.701%200%200%201-.468-.075%205.923%205.923%200%200%201-2.421-1.122%205.954%205.954%200%200%201-.583-.506%206.138%206.138%200%200%201-.516-.597%205.91%205.91%200%200%201-.891-1.634%206.086%206.086%200%200%201-.247-.902c-.008-.043-.012-.088-.019-.131A6.332%206.332%200%200%201%206%2013.002V13c0-1.603.624-3.109%201.758-4.242A5.944%205.944%200%200%201%2011%207.089V10l5-4-5-4v3.069a7.917%207.917%200%200%200-4.656%202.275A7.936%207.936%200%200%200%204%2012.999v.009c0%20.253.014.504.037.753.007.076.021.15.03.227.021.172.044.345.076.516.019.1.044.196.066.295.032.142.065.283.105.423.032.112.07.223.107.333.026.079.047.159.076.237l.008-.003A7.948%207.948%200%200%200%205.6%2017.785l-.007.005c.021.028.049.053.07.081.211.272.433.538.681.785a8.236%208.236%200%200%200%20.966.816c.265.192.537.372.821.529l.028.019.001-.001a7.877%207.877%200%200%200%202.136.795l-.001.005.053.009c.201.042.405.071.61.098.069.009.138.023.207.03a8.038%208.038%200%200%200%202.532-.137l-.424-1.955a6.11%206.11%200%200%201-1.904.102z'/%3e%3c/svg%3e";
 function flipSwingDirection(constants) {
   const [first, ...rest] = constants;
   const k = first;
@@ -23043,6 +23045,27 @@ function applyMirrorExtras(c) {
     return { ...c, constants: flipSwingDirection(c.constants) };
   return c;
 }
+function rotateCoord(x, y, direction) {
+  if (x == null || y == null) return { x, y };
+  return direction === "right" ? { x: y, y: -x } : { x: -y, y: x };
+}
+const hasSelection = () => fileFormatStore.getState().path.segments.some((m) => m.selected || segmentControls(m).some((ctrl) => ctrl.selected));
+function TransformButton({ src, onClick }) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "button",
+    {
+      className: "flex items-center justify-center w-[34px] h-[34px] cursor-pointer\n            rounded-lg bg-transparent hover:bg-medgray_hover border-none outline-none fill-white",
+      onClick,
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "img",
+        {
+          className: "fill-white w-[27px] h-[27px]",
+          src
+        }
+      )
+    }
+  );
+}
 function MirrorControl({
   src,
   mirrorDirection
@@ -23056,7 +23079,6 @@ function MirrorControl({
       controls: controls.map((ctrl) => !ctrl.selected ? ctrl : axis === "x" ? { ...ctrl, x: ctrl.x != null ? -ctrl.x : null } : { ...ctrl, y: ctrl.y != null ? -ctrl.y : null })
     };
   };
-  const hasSelection = () => fileFormatStore.getState().path.segments.some((m) => m.selected || segmentControls(m).some((ctrl) => ctrl.selected));
   const mirrorX = () => {
     const hasSelected = hasSelection();
     setPath((prev) => ({
@@ -23106,20 +23128,39 @@ function MirrorControl({
       mirrorY();
     }
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "button",
-    {
-      className: "flex items-center justify-center w-[40px] h-[40px] cursor-pointer\n            rounded-lg bg-transparent hover:bg-medgray_hover border-none outline-none fill-white",
-      onClick: handleOnClick,
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "img",
-        {
-          className: "fill-white w-[30px] h-[30px]",
-          src
-        }
-      )
-    }
-  );
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(TransformButton, { src, onClick: handleOnClick });
+}
+function RotateControl({
+  src,
+  rotateDirection
+}) {
+  const setPath = updatePath;
+  const step = rotateDirection === "right" ? 90 : -90;
+  const rotate = () => {
+    const hasSelected = hasSelection();
+    setPath((prev) => ({
+      ...prev,
+      segments: prev.segments.map((c) => {
+        const controls = segmentControls(c);
+        const withControls = !controls.some((ctrl) => ctrl.selected) ? c : {
+          ...c,
+          controls: controls.map((ctrl) => !ctrl.selected ? ctrl : { ...ctrl, ...rotateCoord(ctrl.x, ctrl.y, rotateDirection) })
+        };
+        if (!c.selected) return withControls;
+        return {
+          ...withControls,
+          pose: {
+            ...rotateCoord(c.pose.x, c.pose.y, rotateDirection),
+            angle: c.pose.angle != null ? normalizeDeg(c.pose.angle + step) : null
+          },
+          // Rotated whether or not the turn is locked, so a lock applied later is already correct
+          turnPose: { ...c.turnPose, ...rotateCoord(c.turnPose.x, c.turnPose.y, rotateDirection) }
+        };
+      })
+    }));
+    if (hasSelected) saveSnapshot();
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(TransformButton, { src, onClick: rotate });
 }
 function ControlConfig() {
   const [path, setPath] = usePath();
@@ -23262,13 +23303,13 @@ function ControlConfig() {
       };
     });
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row items-center justify-center gap-4 bg-medgray w-[500px] h-[65px] rounded-lg", children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-row items-center justify-center gap-3 bg-medgray w-[500px] h-[65px] rounded-lg", children: [
     selectedSegment !== "distanceDrive" && selectedSegment !== "strafeDrive" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `flex items-center flex-row gap-2 ${selectedSegment === "angleSwing" || selectedSegment === "angleTurn" || selectedSegment === "wait" || isPointBased2 && !turnTargetEditable ? "opacity-50 pointer-events-none" : ""}`, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: 20 }, children: "X" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         NumberInput,
         {
-          width: 80,
+          width: 76,
           height: 40,
           fontSize: 18,
           setValue: updateXValue,
@@ -23286,7 +23327,7 @@ function ControlConfig() {
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         NumberInput,
         {
-          width: 80,
+          width: 76,
           height: 40,
           fontSize: 18,
           stepSize: 1,
@@ -23302,13 +23343,13 @@ function ControlConfig() {
       )
     ] }),
     (selectedSegment === "distanceDrive" || selectedSegment === "strafeDrive") && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-[100px]" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-[93px]" }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontSize: 20 }, children: "Δ" }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(
           NumberInput,
           {
-            width: 80,
+            width: 76,
             height: 40,
             fontSize: 18,
             setValue: updateDistance,
@@ -23329,7 +23370,7 @@ function ControlConfig() {
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         NumberInput,
         {
-          width: 80,
+          width: 76,
           height: 40,
           fontSize: 18,
           stepSize: 5,
@@ -23344,9 +23385,11 @@ function ControlConfig() {
         }
       )
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `flex items-center flex-row gap-[15px] ${selectedSegment === "wait" ? "opacity-50 pointer-events-none" : ""}`, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `flex items-center flex-row gap-[2px] ${selectedSegment === "wait" ? "opacity-50 pointer-events-none" : ""}`, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Mirror Horizontally", children: /* @__PURE__ */ jsxRuntimeExports.jsx(MirrorControl, { mirrorDirection: "x", src: flipHorizontal }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Mirror Vertically", children: /* @__PURE__ */ jsxRuntimeExports.jsx(MirrorControl, { mirrorDirection: "y", src: flipVertical }) })
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Mirror Vertically", children: /* @__PURE__ */ jsxRuntimeExports.jsx(MirrorControl, { mirrorDirection: "y", src: flipVertical }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Rotate Left", children: /* @__PURE__ */ jsxRuntimeExports.jsx(RotateControl, { rotateDirection: "left", src: rotateLeft }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { label: "Rotate Right", children: /* @__PURE__ */ jsxRuntimeExports.jsx(RotateControl, { rotateDirection: "right", src: rotateRight }) })
     ] })
   ] });
 }
@@ -27958,4 +28001,4 @@ registerSW({ immediate: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-KnGeuJVM.js.map
+//# sourceMappingURL=index-DsCFxoef.js.map
