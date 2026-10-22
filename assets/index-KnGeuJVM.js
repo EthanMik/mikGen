@@ -16348,7 +16348,7 @@ function templateToRegex(template, anchored = true) {
   }
   t = t.replace(/__COORD__/g, "(-?[\\d.]+)");
   t = t.replace(/__POINTS__/g, "([\\s\\S]+)");
-  t = t.replace(/__KBUILDER_CHAIN__/g, "((?:\\.\\w+\\([^()]*\\))*)");
+  t = t.replace(/__KBUILDER_CHAIN__/g, "((?:\\.\\w+\\([^()]*\\))*)(?:,\\s*[^(),]+)*");
   t = t.replace(/__FIELD__/g, "([^,)]+?)");
   return { regex: new RegExp(anchored ? `^\\s*${t}\\s*$` : t), groups };
 }
@@ -27958,4 +27958,4 @@ registerSW({ immediate: true });
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-HbOH1NGh.js.map
+//# sourceMappingURL=index-KnGeuJVM.js.map
