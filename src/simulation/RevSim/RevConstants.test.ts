@@ -134,4 +134,18 @@ describe("ReveilLib codegen", () => {
         expect(k[2].kp).toBe(0.25);
         expect(k[1].settle_error).toBe(2);
     });
+
+    it("parses a motion handed extra trailing arguments to reckless.go", () => {
+        const parsed = convertStringToPath(revHoloDef, "ReveilLib Holonomic", [
+            "reckless.go(StrafeToPose({5_in, -53.9_in, 180_deg}), true);",
+            "reckless.go(StrafeToPose({24_in, 48_in, 90_deg}).max_speed(0.5).translational_kp(0.25), true);",
+            "reckless.go(StrafeDistance(16_in, 90_deg), true);",
+        ].join("\n"));
+        expect(parsed.map(p => p.kind)).toEqual(["poseDrive2", "poseDrive2", "strafeDrive"]);
+        expect(parsed[0].pose).toEqual({ x: 5, y: -53.9, angle: 180 });
+        const k = parsed[1].constants as unknown as Record<string, unknown>[];
+        expect(k[0].max_speed).toBe(0.5);
+        expect(k[2].kp).toBe(0.25);
+        expect(parsed[2].distance).toBe(16);
+    });
 });

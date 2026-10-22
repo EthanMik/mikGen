@@ -303,8 +303,10 @@ export function templateToRegex(template: string, anchored = true): { regex: Reg
     // backwards from the end of the chunk finds the real terminator far faster than forwards.
     // Chunks are grown smallest-first, so this cannot swallow a following segment.
     t = t.replace(/__POINTS__/g, '([\\s\\S]+)');
-    // Matches empty, so a segment that overrides nothing round-trips through the same template
-    t = t.replace(/__KBUILDER_CHAIN__/g, '((?:\\.\\w+\\([^()]*\\))*)');
+    // Matches empty, so a segment that overrides nothing round-trips through the same template.
+    // The chain closes the motion object, so anything after it is a trailing argument to the call
+    // wrapping it, like the flag in ReveilLib's `reckless.go(motion, true)`, and is skipped
+    t = t.replace(/__KBUILDER_CHAIN__/g, '((?:\\.\\w+\\([^()]*\\))*)(?:,\\s*[^(),]+)*');
     t = t.replace(/__FIELD__/g, '([^,)]+?)');
 
     // Unanchored is for matching one entry inside a larger block, where the surrounding text is
