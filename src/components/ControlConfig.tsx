@@ -1,5 +1,7 @@
 import flipHorizontal from "../assets/icons/ui/flip-horizontal.svg";
 import flipVertical from "../assets/icons/ui/flip-vertical.svg";
+import rotateLeft from "../assets/icons/ui/rotate-left.svg";
+import rotateRight from "../assets/icons/ui/rotate-right.svg";
 import { distanceToPosition, getSegmentDistance } from "../core/Types/Path";
 import { saveSnapshot } from "../core/Undo/UndoHistory";
 import { normalizeDeg, resolveTurnPose } from "../core/Util";
@@ -17,6 +19,13 @@ type MirrorDirection = "x" | "y";
 type MirrorControlProps = {
     src: string
     mirrorDirection: MirrorDirection
+}
+
+type RotateDirection = "left" | "right";
+
+type RotateControlProps = {
+    src: string
+    rotateDirection: RotateDirection
 }
 
 function flipSwingDirection(constants: SegmentConstants<Format>): SegmentConstants<Format> {
@@ -58,12 +67,38 @@ function applyMirrorExtras(c: Segment): Segment {
     return c;
 }
 
+/**
+ * A quarter turn about the field's center. Right is clockwise on screen, the same way headings
+ * increase, so a heading only has to step by 90 to stay with its point.
+ */
+function rotateCoord(x: number | null, y: number | null, direction: RotateDirection): { x: number | null, y: number | null } {
+    if (x == null || y == null) return { x, y };
+    return direction === "right" ? { x: y, y: -x } : { x: -y, y: x };
+}
+
+// The path is only needed inside click handlers; reading it at call time keeps the mounted
+// transform buttons from re-rendering on every path write
+const hasSelection = () =>
+    fileFormatStore.getState().path.segments.some(m => m.selected || segmentControls(m).some(ctrl => ctrl.selected));
+
+function TransformButton({ src, onClick }: { src: string, onClick: () => void }) {
+    return (
+        <button
+            className="flex items-center justify-center w-[34px] h-[34px] cursor-pointer
+            rounded-lg bg-transparent hover:bg-medgray_hover border-none outline-none fill-white"
+            onClick={onClick}>
+            <img
+                className="fill-white w-[27px] h-[27px]"
+                src={src}
+            />
+        </button>
+    );
+}
+
 function MirrorControl({
     src,
     mirrorDirection
 }: MirrorControlProps) {
-    // The path is only needed inside click handlers; reading it at call time keeps both
-    // mounted mirror buttons from re-rendering on every path write
     const setPath = updatePath;
 
     // Controls mirror like segments do, each on its own selection
@@ -77,9 +112,6 @@ function MirrorControl({
                 : { ...ctrl, y: ctrl.y != null ? -ctrl.y : null }),
         };
     };
-
-    const hasSelection = () =>
-        fileFormatStore.getState().path.segments.some(m => m.selected || segmentControls(m).some(ctrl => ctrl.selected));
 
     const mirrorX = () => {
         const hasSelected = hasSelection();
@@ -131,17 +163,47 @@ function MirrorControl({
         }
     }
 
-    return (
-        <button
-            className="flex items-center justify-center w-[40px] h-[40px] cursor-pointer
-            rounded-lg bg-transparent hover:bg-medgray_hover border-none outline-none fill-white"
-            onClick={handleOnClick}>
-            <img
-                className="fill-white w-[30px] h-[30px]"
-                src={src}
-            />
-        </button>
-    );
+    return <TransformButton src={src} onClick={handleOnClick} />;
+}
+
+/**
+ * Unlike a mirror, a rotation keeps handedness, so a turn's offset, a strafe's side and a swing's
+ * side all carry over as they are. Only positions and headings move.
+ */
+function RotateControl({
+    src,
+    rotateDirection
+}: RotateControlProps) {
+    const setPath = updatePath;
+    const step = rotateDirection === "right" ? 90 : -90;
+
+    const rotate = () => {
+        const hasSelected = hasSelection();
+        setPath(prev => ({
+            ...prev,
+            segments: prev.segments.map(c => {
+                // Controls rotate like segments do, each on its own selection
+                const controls = segmentControls(c);
+                const withControls = !controls.some(ctrl => ctrl.selected) ? c : {
+                    ...c,
+                    controls: controls.map(ctrl => !ctrl.selected ? ctrl : { ...ctrl, ...rotateCoord(ctrl.x, ctrl.y, rotateDirection) }),
+                };
+                if (!c.selected) return withControls;
+                return {
+                    ...withControls,
+                    pose: {
+                        ...rotateCoord(c.pose.x, c.pose.y, rotateDirection),
+                        angle: c.pose.angle != null ? normalizeDeg(c.pose.angle + step) : null,
+                    },
+                    // Rotated whether or not the turn is locked, so a lock applied later is already correct
+                    turnPose: { ...c.turnPose, ...rotateCoord(c.turnPose.x, c.turnPose.y, rotateDirection) },
+                };
+            })
+        }));
+        if (hasSelected) saveSnapshot();
+    }
+
+    return <TransformButton src={src} onClick={rotate} />;
 }
 
 export default function ControlConfig() {
@@ -244,7 +306,7 @@ export default function ControlConfig() {
 
         if (selectedSegment.kind === "angleSwing" || selectedSegment.kind === "angleTurn") return;
 
-        // An unlocked target is derived, so a write to it would be discarded on the next read
+        // An unlocked target is derived, so a wrihttp://localhost:5173/te to it would be discarded on the next read
         if (isPointBased) {
             if (!turnTargetEditable) return;
             return setPath(prev => ({
@@ -339,12 +401,12 @@ export default function ControlConfig() {
     }
 
     return (
-        <div className="flex flex-row items-center justify-center gap-4 bg-medgray w-[500px] h-[65px] rounded-lg">
+        <div className="flex flex-row items-center justify-center gap-3 bg-medgray w-[500px] h-[65px] rounded-lg">
             { selectedSegment !== "distanceDrive" && selectedSegment !== "strafeDrive" &&
                 <div className={`flex items-center flex-row gap-2 ${(selectedSegment === "angleSwing" || selectedSegment === "angleTurn" || selectedSegment === "wait" || (isPointBased && !turnTargetEditable)) ? "opacity-50 pointer-events-none" : ""}`}>
                         <span style={{ fontSize: 20 }}>X</span>
                         <NumberInput
-                            width={80}
+                            width={76}
                             height={40}
                             fontSize={18}
                             setValue={updateXValue}
@@ -357,7 +419,7 @@ export default function ControlConfig() {
                         />
                         <span style={{ fontSize: 20 }}>Y</span>
                         <NumberInput
-                            width={80}
+                            width={76}
                             height={40}
                             fontSize={18}
                             stepSize={1}
@@ -373,11 +435,11 @@ export default function ControlConfig() {
 
             { (selectedSegment === "distanceDrive" || selectedSegment === "strafeDrive") &&
                 <>
-                    <div className="w-[100px]"></div>
+                    <div className="w-[93px]"></div>
                     <div className="flex items-center gap-2">
                         <span style={{ fontSize: 20 }}>Δ</span>
                         <NumberInput
-                            width={80}
+                            width={76}
                             height={40}
                             fontSize={18}
                             setValue={updateDistance}
@@ -395,7 +457,7 @@ export default function ControlConfig() {
             <div className={`flex items-center gap-2 ${(selectedSegment === "pointSwing" || selectedSegment === "pointTurn" || selectedSegment === "wait" || selectedSegment === "bezierControl") ? "opacity-50 pointer-events-none" : ""}`}>
                 <span style={{ fontSize: 20 }}>θ</span>
                 <NumberInput
-                    width={80}
+                    width={76}
                     height={40}
                     fontSize={18}
                     stepSize={5}
@@ -408,12 +470,18 @@ export default function ControlConfig() {
                 />
             </div>
 
-            <div className={`flex items-center flex-row gap-[15px] ${selectedSegment === "wait" ? "opacity-50 pointer-events-none" : ""}`}>
+            <div className={`flex items-center flex-row gap-[2px] ${selectedSegment === "wait" ? "opacity-50 pointer-events-none" : ""}`}>
                 <Tooltip label="Mirror Horizontally">
                     <MirrorControl mirrorDirection="x" src={flipHorizontal}/>
                 </Tooltip>
                 <Tooltip label="Mirror Vertically">
                     <MirrorControl mirrorDirection="y" src={flipVertical}/>
+                </Tooltip>
+                <Tooltip label="Rotate Left">
+                    <RotateControl rotateDirection="left" src={rotateLeft}/>
+                </Tooltip>
+                <Tooltip label="Rotate Right">
+                    <RotateControl rotateDirection="right" src={rotateRight}/>
                 </Tooltip>
             </div>
         </div>
